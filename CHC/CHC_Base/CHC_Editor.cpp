@@ -22,7 +22,9 @@ bool CHC_Editor::editSong(bool multi)
 	do
 	{
 		banner(" " + song.shortname + ".CHC - Editor ");
+		//Holds addresses to the various functions that can be chosen in this menu prompt
 		List<void(CHC_Editor::*)()> results;
+
 		string choices = "";
 		results.push_back(&CHC_Editor::saveFile); choices += 's';
 		cout << global.tabs << "S - Save File\n";
@@ -88,44 +90,44 @@ bool CHC_Editor::editSong(bool multi)
 		case -3:
 			cout << global.tabs << endl;
 			cout << global.tabs << "S - Save File:\n";
-			cout << global.tabs << "Pretty self-explanatory - save the file as an overwrite or as a new file.\n" << global.tabs << "\n";
+			cout << global.tabs << "Pretty self-explanatory - save the file as an overwrite or as a new file.\n" << global.tabs << '\n';
 
 			if (strstr(song.imc, ".IMC"))
 			{
 				cout << global.tabs << "I - Swap IMC file (Current file: " << song.imc + 34 << "):\n";
 				cout << global.tabs << "PS2 compatible CHC files contain a string that points to the location of the .IMC audio file used for the stage.\n";
-				cout << global.tabs << "Use this option to change which specific .IMC file the CHC will point to;\n" << global.tabs << "\n";
+				cout << global.tabs << "Use this option to change which specific .IMC file the CHC will point to;\n" << global.tabs << '\n';
 			}
 			else
 			{
 				cout << global.tabs << "P - Convert for PS2-Version Compatibility:\n";
 				cout << global.tabs << "Use this option to convert this (assumed) duet-made CHC into a PS2 compatible CHC. Doing so will open up a few other features\n";
 				cout << global.tabs << "- most prominently being TASing capability - at the cost of one of the player tracks: Player 1, Player 2, or the Enemy.\n";
-				cout << global.tabs << "This will also reorganize all unorganized sections for optimal compatibility.\n" << global.tabs << "\n";
+				cout << global.tabs << "This will also reorganize all unorganized sections for optimal compatibility.\n" << global.tabs << '\n';
 			}
 			cout << global.tabs << "V - Volume & Pan Settings:\n";
 			cout << global.tabs << "Allows you to adjust the volume and pan of the 8 available audio channels.\n";
-			cout << global.tabs << "Note that you can change channel 1 & 2 and channel pan altogether only if the CHC in question is PS2 compatible.\n" << global.tabs << "\n";
+			cout << global.tabs << "Note that you can change channel 1 & 2 and channel pan altogether only if the CHC in question is PS2 compatible.\n" << global.tabs << '\n';
 
 			cout << global.tabs << "A - Win/Loss Animations:\n";
 			cout << global.tabs << "Every stage in the game has a set of win and loss animations. These animations start at set points in a stage's frame data (located in the stage's SSQ file).\n";
-			cout << global.tabs << "This option will allow you to change what frame any of the four animations (two wins, two losses) start on - although you'll most likely never use this.\n" << global.tabs << "\n";
+			cout << global.tabs << "This option will allow you to change what frame any of the four animations (two wins, two losses) start on - although you'll most likely never use this.\n" << global.tabs << '\n';
 
 			cout << global.tabs << "G - Adjust Gameplay Speed (Current speed: " << song.speed << "):\n";
 			cout << global.tabs << "The speed of which trace lines, phrae bars, and guard marks approach the middle of the screen is determined by this value.\n";
-			cout << global.tabs << "This option will allow you to adjust the value to whatever you want (negative even). Note: lower = faster; higher = slower.\n" << global.tabs << "\n";
+			cout << global.tabs << "This option will allow you to adjust the value to whatever you want (negative even). Note: lower = faster; higher = slower.\n" << global.tabs << '\n';
 
 			cout << global.tabs << "C - SongSections (" << song.numSections << "):\n";
 			cout << global.tabs << "In the future, this option will be the gateway to digging into the nitty gritty of each section. It will allow you manually adjust a wide range\n";
 			cout << global.tabs << "of parameters, including a section's duration, conditions, and phase type while also allowing for manual adjustments on subsections and\n";
 			cout << global.tabs << "their trace lines, phrase bars, and guard marks. Currently, however, it will give you a choice of two features:\n";
 			cout << global.tabs << "1. If there are any sections still unorganized, it will give you the option to reorganize every section that needs it.\n";
-			cout << global.tabs << "2. Change the order of which sections will proceed in gameplay using unconditional conditions. Useful for when you need to test only certain sections.\n" << global.tabs << "\n";
+			cout << global.tabs << "2. Change the order of which sections will proceed in gameplay using unconditional conditions. Useful for when you need to test only certain sections.\n" << global.tabs << '\n';
 
 			cout << global.tabs << "F - Player Damage/Energy Factors:\n";
 			cout << global.tabs << "For each player separately, each phase type has values pertaining to 8 different HP related factors.\n";
 			cout << global.tabs << "This will bring up a series of menus so that you can edit any factors you like - although some factors have no effect in certain phase types.\n";
-			cout << global.tabs << "(No dealing or receiving damage in charge phases for example).\n" << global.tabs << "\n";
+			cout << global.tabs << "(No dealing or receiving damage in charge phases for example).\n" << global.tabs << '\n';
 		case -2:
 			break;
 		default:

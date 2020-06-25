@@ -47,12 +47,12 @@ bool loadSingleCHC(string& filename)
 	catch (string str)
 	{
 		cout << global.tabs << str << endl;
-		cout << global.tabs << "Load cancelled for " << filename << endl;
+		cout << global.tabs << "Load cancelled for " << filename << ".CHC" << endl;
 	}
 	catch (const char* str)
 	{
 		cout << global.tabs << str << endl;
-		cout << global.tabs << "Load cancelled for " << filename << endl;
+		cout << global.tabs << "Load cancelled for " << filename << ".CHC" << endl;
 	}
 	adjustTabs(0);
 	return val;
@@ -72,7 +72,7 @@ bool loadMultiCHC(List<string>* files)
 		{
 			banner(" CHC Mode Selection ");
 			cout << global.tabs << "E - Evaluate each CHC individually" << endl;
-			cout << global.tabs << "P - Print out all CHC's included to readable .txts" << endl;
+			cout << global.tabs << "P - Print out all CHCs included to readable .txts" << endl;
 			cout << global.tabs << "S - Swap players in all CHCs" << endl;
 			cout << global.tabs << "F - Fix all CHCs where necessary (may not fix all bugs)" << endl;
 			cout << global.tabs << "B - Both 'S' & 'F'" << endl;
@@ -91,14 +91,12 @@ bool loadMultiCHC(List<string>* files)
 			}
 			cout << global.tabs << "C - Create a PCSX2 Phrase Bar Color Cheat template for each CHC" << endl;
 			cout << global.tabs << "K - CHC files will be skipped" << endl;
-			cout << global.tabs << "Q - Quit program" << endl;
+			cout << global.tabs << "Q - Quit Program" << endl;
 			result = menuChoices(choices);
 		}
 		switch (result)
 		{
 		case -1:
-			delete files;
-			files = nullptr;
 			return true;
 		case -3:
 			cout << global.tabs << "P - Print out all CHC's included to readable .txts" << endl;
@@ -165,8 +163,6 @@ bool loadMultiCHC(List<string>* files)
 					case 'e':
 						if (chc.menu(files->size()))
 						{
-							delete files;
-							files = nullptr;
 							adjustTabs(0);
 							return false;
 						}
@@ -200,8 +196,6 @@ bool loadMultiCHC(List<string>* files)
 						chc.createColorTemplate();
 						break;
 					case 'k':
-						delete files;
-						files = nullptr;
 						adjustTabs(0);
 						return false;
 					}
@@ -209,12 +203,12 @@ bool loadMultiCHC(List<string>* files)
 				catch (string str)
 				{
 					cout << global.tabs << str << endl;
-					cout << global.tabs << "Load cancelled for " << files->front() << endl;
+					cout << global.tabs << "Load cancelled for " << files->front() << ".CHC" << endl;
 				}
 				catch (const char* str)
 				{
 					cout << global.tabs << str << endl;
-					cout << global.tabs << "Load cancelled for " << files->front() << endl;
+					cout << global.tabs << "Load cancelled for " << files->front() << ".CHC" << endl;
 				}
 				files->pop_front();
 			}
@@ -225,8 +219,6 @@ bool loadMultiCHC(List<string>* files)
 	} while (!global.quit);
 	global.quit = false;
 	cout << "All provided CHC files have been evaluated." << endl;
-	delete files;
-	files = nullptr;
 	return false;
 }
 
@@ -292,10 +284,10 @@ bool CHC_Main::menu(size_t fileCount)
 			if (global.quit)
 				global.quit = false;
 			else
-				cout << global.tabs << "Q - Quit" << endl;
+				cout << global.tabs << "Q - Quit Program" << endl;
 		}
 		else
-			cout << global.tabs << "Q - Quit" << endl;
+			cout << global.tabs << "Q - Main Menu" << endl;
 		size_t value = menuChoices(choices);
 		switch (value)
 		{

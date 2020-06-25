@@ -143,19 +143,20 @@ int main(int argc, char** argv)
 				}
 			}
 			//Go through every extension that has 1+ file associated with it and run its "Multi" function
-			for (size_t i = 0; i < 20; i++)
+			for (size_t i = 0; i < 20 && !global.quit; i++)
 			{
 				if (dlls[i].libraries[0].dll != nullptr)
 				{
-					for (size_t s = 0; s < dlls[i].extensions.size(); s++)
+					for (size_t s = 0; s < dlls[i].extensions.size() && !global.quit; s++)
 					{
 						//If an extension has files and its Multi function returns true, exit the program
 						if (dlls[i].extensions[s].files.size())
 							if (loadProc(dlls[i].libraries[0].dll, "loadMulti" + dlls[i].extensions[s].ext, dlls[i].extensions[s].files))
-								break;
+								global.quit = true;
 					}
 				}
 			}
+			global.quit = false;
 		}
 		//If either click & drag wasn't used or if none of the click & drag files returned valid
 		if (!fileCount)

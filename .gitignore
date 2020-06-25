@@ -35,3 +35,11 @@
 *.db-wal
 *.opendb
 *.suo
+*.ipch
+*.exp
+*.ilk
+*.log
+*.res
+*.tlog
+*.idb
+*.pdb

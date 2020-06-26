@@ -192,7 +192,16 @@ bool Charter::exportChart()
 	cout << endl;
 	bool multiplayer = toupper(song.shortname[song.shortname.length() - 1]) == 'M';
 	bool sectOrientation = false, chartOrientation = false, chartColor = false, noteColor = false, phraseColor = false;
-	size_t orientation = 0;
+	size_t orientation = 3;
+	bool modchart = false;
+	{
+		FILE* test;
+		if (!fopen_s(&test, "yes.txt", "r"))
+		{
+			modchart = true;
+			fclose(test);
+		}
+	}
 	{
 		bool phrFound = false, grdFound = false;
 		for (size_t sect = 0; sect < sectionIndexes.size() && (!phrFound || !grdFound); sect++)
@@ -205,27 +214,27 @@ bool Charter::exportChart()
 					for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && (!phrFound || !grdFound); chartIndex++)
 					{
 						Chart& chart = section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex);
-						if (!grdFound && chart.getNumGuards())
+						if (modchart && !grdFound && chart.getNumGuards())
 						{
 							do
 							{
-								cout << global.tabs << "How will guard phrases be handled?" << endl;
+								cout << global.tabs << "How will guard phrases be handled? [Only effects the modchart version]" << endl;
 								cout << global.tabs << "B - Base Orientation Only" << endl;
 								cout << global.tabs << "G - Guitar Hero Conversion" << endl;
 								cout << global.tabs << "S - Determined per Section" << endl;
 								cout << global.tabs << "C - Determined per Chart" << endl;
 								switch (menuChoices("bgsc"))
 								{
-								case 1:
-									orientation = 3;
 								case 0:
+									orientation = 0;
+								case 1:
 									cout << global.tabs << endl;
 									grdFound = true;
 									global.quit = true;
 									break;
 								case 2:
 									cout << global.tabs << endl;
-									sectOrientation = global.quit = true;
+									sectOrientation = grdFound = global.quit = true;
 									break;
 								case 3:
 									cout << global.tabs << endl;
@@ -288,15 +297,6 @@ bool Charter::exportChart()
 	const double TICKS_PER_BEAT = 480.0, SAMPLES_PER_MIN = 2880000.0, SAMPLE_GAP = 1800.0, GUARD_GAP = 8000.0;
 	List<SyncTrack> sync;
 	double position = 0;
-	bool modchart = false;
-	{
-		FILE* test;
-		if (!fopen_s(&test, "yes.txt", "r"))
-		{
-			modchart = true;
-			fclose(test);
-		}
-	}
 	if (modchart)
 	{
 		//Set starting position for gnerating the modchart
@@ -433,7 +433,7 @@ bool Charter::exportChart()
 			sync.push_back(SyncTrack{ position, 4, unsigned long(section.getTempo() * 1000) });
 		if (section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK")) //If not INTRO phase or BRK section
 		{
-			if (sectOrientation)
+			if (modchart && sectOrientation)
 			{
 				for (size_t playerIndex = 0; playerIndex < section.getNumPlayers() && !global.quit; playerIndex++)
 				{
@@ -475,7 +475,7 @@ bool Charter::exportChart()
 						continue;
 					List<CHNote>& player = expert[currentPlayer];
 					List<CHNote>& rein = reimport[currentPlayer];
-					if (chartOrientation && chart.getNumGuards() && !getOrientation(section.getName(), playerIndex, chartIndex))
+					if (modchart && chartOrientation && chart.getNumGuards() && !getOrientation(section.getName(), playerIndex, chartIndex))
 					{
 						cout << global.tabs << "CH chart creation cancelled." << endl;
 						return false;
@@ -487,7 +487,7 @@ bool Charter::exportChart()
 						return false;
 					}
 					size_t index = startIndex[0][currentPlayer], index2 = startIndex[1][currentPlayer];
-					char fret;
+					char fret, modfret;
 					size_t grdIndex;
 					for (size_t i = 0; i < chart.getNumGuards(); i++)
 					{
@@ -497,67 +497,81 @@ bool Charter::exportChart()
 							switch (chart.getGuard(i).getButton())
 							{
 							case 0:		//Red
-								fret = 1;
+								modfret = 1;
 								break;
 							case 1:		//Blue
-								fret = 3;
+								modfret = 3;
 								break;
 							case 2:		//Orange
-								fret = 4;
+								modfret = 4;
 								break;
 							case 3:		//Green
-								fret = 0;
+								modfret = 0;
 							}
 							break;
 						case 1:
 							switch (chart.getGuard(i).getButton())
 							{
 							case 0:		//Blue
-								fret = 3;
+								modfret = 3;
 								break;
 							case 1:		//Orange
-								fret = 4;
+								modfret = 4;
 								break;
 							case 2:		//Green
-								fret = 0;
+								modfret = 0;
 								break;
 							case 3:		//Red
-								fret = 1;
+								modfret = 1;
 							}
 							break;
 						case 2:
 							switch (chart.getGuard(i).getButton())
 							{
 							case 0:		//Orange
-								fret = 4;
+								modfret = 4;
 								break;
 							case 1:		//Green
-								fret = 0;
+								modfret = 0;
 								break;
 							case 2:		//Red
-								fret = 1;
+								modfret = 1;
 								break;
 							case 3:		//Blue
-								fret = 3;
+								modfret = 3;
 							}
 							break;
 						case 3:
 							switch (chart.getGuard(i).getButton())
 							{
 							case 0:		//Red
-								fret = 3;
+								modfret = 3;
 								break;
 							case 1:		//Green
-								fret = 0;
+								modfret = 0;
 								break;
 							case 2:		//Blue
-								fret = 1;
+								modfret = 1;
 								break;
 							case 3:		//Orange
-								fret = 4;
+								modfret = 4;
 							}
 						}
-						CHNote grd = { position + TICKS_PER_SAMPLE * (chart.getGuard(i).getPivotAlpha() + double(chart.getPivotTime())), fret };
+						switch (chart.getGuard(i).getButton())
+						{
+						case 0:		//Red
+							fret = 3;
+							break;
+						case 1:		//Green
+							fret = 0;
+							break;
+						case 2:		//Blue
+							fret = 1;
+							break;
+						case 3:		//Orange
+							fret = 4;
+						}
+						CHNote grd = { position + TICKS_PER_SAMPLE * (chart.getGuard(i).getPivotAlpha() + double(chart.getPivotTime())), modfret };
 						if (modchart)
 						{
 							grd.mod = CHNote::Modifier::TAP;
@@ -612,6 +626,7 @@ bool Charter::exportChart()
 							else
 								index2++;
 						}
+						grd.fret = fret;
 						rein.insert(index2, grd);
 						index2++;
 						

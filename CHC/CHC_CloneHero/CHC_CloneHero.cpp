@@ -65,9 +65,6 @@ FILE* operator<<(FILE* outFile, CHNote note)
 			fprintf(outFile, "%ul\n", 0UL);
 		switch (note.mod)
 		{
-		case CHNote::Modifier::HOPO:
-			if (note.dif < 162.5)
-				break;
 		case CHNote::Modifier::FORCED:
 			fprintf(outFile, "%lu = S 5 0\n", (unsigned long)round(note.position));
 			break;
@@ -195,6 +192,7 @@ bool Charter::exportChart()
 	size_t orientation = 3;
 	bool modchart = false;
 	{
+		//"yes.txt" is essentially a run-time checked setting
 		FILE* test;
 		if (!fopen_s(&test, "yes.txt", "r"))
 		{
@@ -204,6 +202,8 @@ bool Charter::exportChart()
 	}
 	{
 		bool phrFound = false, grdFound = false;
+		//Goes through each chosen section to see whether any guard marks and/or phrase bars are present
+		//If any are found, prompt the user for their choice customization.
 		for (size_t sect = 0; sect < sectionIndexes.size() && (!phrFound || !grdFound); sect++)
 		{
 			SongSection& section = song.sections[sectionIndexes[sect]];
@@ -294,7 +294,7 @@ bool Charter::exportChart()
 		}
 	}
 	bool duet = song.imc[0] == 0;
-	const double TICKS_PER_BEAT = 480.0, SAMPLES_PER_MIN = 2880000.0, SAMPLE_GAP = 1800.0, GUARD_GAP = 8000.0;
+	const double TICKS_PER_BEAT = 480.0, GUARD_GAP = 8000.0;
 	List<SyncTrack> sync;
 	double position = 0;
 	if (modchart)
@@ -333,10 +333,14 @@ bool Charter::exportChart()
 			sync.push_back(SyncTrack{ position, 2, 80000 });
 		position += TICKS_PER_BEAT;
 	}
+	//Expert for modchart, reimport for... well you get it
 	List<CHNote> expert[2];
 	List<CHNote> reimport[2];
+
 	List<Event> events;
+	//Yellow (GRYBO)
 	char strumFret = 2;
+	//Essentially selectin which controller setup to correspond to
 	auto getOrientation = [&](string sectionName, size_t player = 0, size_t chart = 0)
 	{
 		while (true)
@@ -408,6 +412,8 @@ bool Charter::exportChart()
 			}
 		};
 	};
+	//Used for modchart song.ini file that accompanies the .chart
+	//Fills in the "song_length" tag
 	double totalDur = 0;
 	for (size_t sect = 0; sect < sectionIndexes.size(); sect++)
 	{
@@ -455,8 +461,10 @@ bool Charter::exportChart()
 			global.quit = false;
 			const double TICKS_PER_SAMPLE = section.getTempo() * TICKS_PER_BEAT / SAMPLES_PER_MIN;
 			const double GUARD_OPEN_TICK_DISTANCE = GUARD_GAP * TICKS_PER_SAMPLE;
+			//Marking where in the list the current section starts
 			size_t startIndex[2][2] = { { expert[0].size(), expert[1].size() },
 										  { reimport[0].size(), reimport[1].size()} };
+
 			for (size_t chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
 			{
 				for (size_t playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); playerIndex++)
@@ -487,10 +495,10 @@ bool Charter::exportChart()
 						return false;
 					}
 					size_t index = startIndex[0][currentPlayer], index2 = startIndex[1][currentPlayer];
-					char fret, modfret;
 					size_t grdIndex;
 					for (size_t i = 0; i < chart.getNumGuards(); i++)
 					{
+						char fret, modfret;
 						switch (orientation)	//Determine button based on orientation
 						{
 						case 0:
@@ -681,8 +689,10 @@ bool Charter::exportChart()
 							Phrase& phrase = chart.getPhrase(i);
 							if (chartColor)
 							{
+								//Only ask about the first note
 								if (note == 1)
 								{
+									//Not currently implemented, so it essentially calls fretting regardless
 									if (phrase.getColor() != -1)
 										strumFret = (char)phrase.getColor();
 									else if (!fretting(section.getName(), section.getPhase(), playerIndex, chartIndex))
@@ -696,6 +706,7 @@ bool Charter::exportChart()
 							}
 							else if (noteColor)
 							{
+								//Not currently implemented, so it essentially calls fretting regardless
 								if (phrase.getColor() != -1)
 									strumFret = (char)phrase.getColor();
 								else if (!fretting(section.getName(), section.getPhase(), playerIndex, chartIndex, note))
@@ -714,8 +725,10 @@ bool Charter::exportChart()
 								{
 									if (i + 1 != chart.getNumPhrases())
 									{
-										if ((double)chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < SAMPLE_GAP)
-											phrase.changeEndAlpha(long(chart.getPhrase(i + 1).getPivotAlpha() - SAMPLE_GAP));
+										//Most likely won't be used much, if at all, but it's still a good safety feature
+										//(Won't be used as a fixed CHC is required to with the exporter to begin with)
+										if ((double)chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < SongSection::SAMPLE_GAP)
+											phrase.changeEndAlpha(long(chart.getPhrase(i + 1).getPivotAlpha() - SongSection::SAMPLE_GAP));
 										else
 											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 									}
@@ -727,38 +740,49 @@ bool Charter::exportChart()
 							}
 							if (note == 1)
 							{
-								if (phr.fret > 5)
+								//With note == 1, fret > 5 can only mean it's the TAP variant
+								if (strumFret > 5)
 								{
 									phr.mod = CHNote::Modifier::TAP;
-									phr.fret -= 6;
+									phr.fret = strumFret - 6;
 								}
 								else
 								{
+									//Open note is set to fret 7
+									if (strumFret == 5)
+										phr.fret = 7;
+									else
+										phr.fret = strumFret;
 									if (modchart)
 									{
+										//Ensures that the modchart has the note set to strum
+										//Skips any tracelines
 										for (size_t p = index; p > 0;)
 										{
-											if (player[--p].sustain)
+											if (player[--p].type == CHNote::NoteType::NOTE)
 											{
-												if (phr.position - player[p].position < 162.5)
+												if (phr.fret != player[p].fret && phr.position - player[p].position < 162.5)
 													phr.mod = CHNote::Modifier::FORCED;
 												break;
 											}
 										}
 									}
-									if (phr.fret == 5)
-										phr.fret = 7;
+									
 								}
 							}
 							else
 							{
+								//Open note is set to fret 7
+								if (strumFret == 5)
+									phr.fret = 7;
+								else
+									phr.fret = strumFret;
 								if (modchart)
 								{
-									if (phr.position - player[index - 1].position < 162.5)
+									//Ensures that the modchart has the note set to strum
+									if (phr.fret != player[index - 1].fret && phr.position - player[index - 1].position < 162.5)
 										phr.mod = CHNote::Modifier::FORCED;
 								}
-								if (phr.fret == 5)
-									phr.fret = 7;
 							}
 							//Find note placement in timeline
 							if (modchart)
@@ -770,18 +794,26 @@ bool Charter::exportChart()
 									else
 										index++;
 								}
+								//In other words, disable the sustain for the modchart
 								if (phrase.getDuration() < 4800)
 									phr.name = "n";
 								player.insert(index, phr);
 								if (note == 1)
 									phrIndex = index;
 								index++;
+								//To account for the two beats added by the extra synctracks
 								phr.position -= 960;
 							}
+							//For modchart exporting, TAP is used only on the first note of a subsection
+							//and only for a note too close to the guard mark that preceeded it.
+							//For normal exporting, the first note is instead forced.
 							if (phr.mod == CHNote::Modifier::TAP)
 								phr.mod = CHNote::Modifier::FORCED;
+							//Modchart requires all notes regular notes to be strums, so forcing is needed
+							//Normal export has no need for that rule.
 							else if (phr.mod == CHNote::Modifier::FORCED)
 								phr.mod = CHNote::Modifier::NORMAL;
+							//Override any names of "n"
 							if (phrase.getAnimation() > 0)
 								phr.name = "Anim_" + to_string(phrase.getAnimation());
 							else
@@ -797,8 +829,9 @@ bool Charter::exportChart()
 							index2++;
 							note++;
 						}
-						else
+						else //In other words, if phraseColor is true
 						{
+							//Not currently implemented, so it essentially calls fretting regardless
 							if (chart.getPhrase(i).getColor() != -1)
 								strumFret = (char)chart.getPhrase(i).getColor();
 							else if (!fretting(section.getName(), section.getPhase(), playerIndex, chartIndex, note, piece))
@@ -806,8 +839,11 @@ bool Charter::exportChart()
 								cout << global.tabs << "CH chart creation cancelled." << endl;
 								return false;
 							}
+							bool hopo = false;
 							if (strumFret > 5)
 							{
+								//With piece == 1, strumFret > 5 is one of the tap options
+								//This also means that note == 1 as options 6-10 don't appear otherwise
 								if (piece == 1)
 								{
 									phr.mod = CHNote::Modifier::TAP;
@@ -815,7 +851,11 @@ bool Charter::exportChart()
 								}
 								else
 								{
+									//With piece > 1, strumFret > 5 is one of the continuation options
+									//This means that everything in this scope must be done in reference
+									//to the previous phrase bar
 									Phrase& phrase = chart.getPhrase(i - 1);
+									//Connect all phrase bars until an end cap is reached
 									if (strumFret == 7)
 									{
 										while (i < chart.getNumPhrases())
@@ -826,8 +866,10 @@ bool Charter::exportChart()
 											{
 												if (i + 1 != chart.getNumPhrases())
 												{
-													if ((double)chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < SAMPLE_GAP)
-														phrase.changeEndAlpha(long(chart.getPhrase(i + 1).getPivotAlpha() - SAMPLE_GAP));
+													//Most likely won't be used much, if at all, but it's still a good safety feature
+													//(Won't be used as a fixed CHC is required to with the exporter to begin with)
+													if ((double)chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < SongSection::SAMPLE_GAP)
+														phrase.changeEndAlpha(long(chart.getPhrase(i + 1).getPivotAlpha() - SongSection::SAMPLE_GAP));
 													else
 														phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 												}
@@ -839,10 +881,13 @@ bool Charter::exportChart()
 									}
 									else
 									{
+										//Extend the note color by one more phrase bar
 										if (i + 1 != chart.getNumPhrases())
 										{
-											if ((double)chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < SAMPLE_GAP)
-												phrase.changeEndAlpha(long(chart.getPhrase(i + 1).getPivotAlpha() - SAMPLE_GAP));
+											//Most likely won't be used much, if at all, but it's still a good safety feature
+											//(Won't be used as a fixed CHC is required to with the exporter to begin with)
+											if ((double)chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < SongSection::SAMPLE_GAP)
+												phrase.changeEndAlpha(long(chart.getPhrase(i + 1).getPivotAlpha() - SongSection::SAMPLE_GAP));
 											else
 												phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 										}
@@ -851,6 +896,7 @@ bool Charter::exportChart()
 									}
 									if (modchart)
 									{
+										//Reverse a disbabled modchart sustain
 										if (phrase.getDuration() >= 4800)
 											player[index - 1].name = "";
 										player[index - 1].sustain = TICKS_PER_SAMPLE * phrase.getDuration();
@@ -863,43 +909,52 @@ bool Charter::exportChart()
 									}
 									else
 										piece++;
+									//Seeing as this was a continuation, no new notes are inserted, so we
+									//can skip over to the next iteration of the loop without incrementing
+									//either indexes
 									continue;
 								}
 							}
 							else
 							{
-								phr.fret = strumFret;
+								if (strumFret == 5)
+									phr.fret = 7;
+								else
+									phr.fret = strumFret;
 								if (piece == 1)
 								{
 									if (modchart)
 									{
+										//Ensures that the modchart has the note set to strum
 										if (note == 1)
 										{
+											//Skips any tracelines
 											for (size_t p = index; p > 0; p--)
 											{
-												if (player[--p].sustain)
+												if (player[--p].type == CHNote::NoteType::NOTE)
 												{
-													if (phr.position - player[p].position < 162.5)
+													if (phr.fret != player[p].fret && phr.position - player[p].position < 162.5)
 														phr.mod = CHNote::Modifier::FORCED;
 													break;
 												}
 											}
 										}
-										else if (phr.position - player[index - 1].position < 162.5)
+										else if (phr.fret != player[index - 1].fret && phr.position - player[index - 1].position < 162.5)
 											phr.mod = CHNote::Modifier::FORCED;
 									}
 								}
 								else
 								{
-									phr.dif = phr.position - rein[index2 - 1].position;
-									phr.mod = CHNote::Modifier::HOPO;
+									//Ensures that the modchart has the note set to a hopo... even in unusual cases
+									if (modchart && (phr.position - rein[index2 - 1].position >= 162.5 || phr.fret == player[index - 1].fret))
+										phr.mod = CHNote::Modifier::FORCED;
+									hopo = true;
 								}
-								if (phr.fret == 5)
-									phr.fret = 7;
 							}
 							phr.sustain = TICKS_PER_SAMPLE * chart.getPhrase(i).getDuration();
 							if (modchart)
 							{
+								//Disables the note's sustain for the modchart
 								if (chart.getPhrase(i).getDuration() < 4800)
 									phr.name = "n";
 								while (index < player.size())
@@ -913,14 +968,22 @@ bool Charter::exportChart()
 									phrIndex = index;
 								player.insert(index, phr);
 								index++;
+								//To account for the two beats added by the extra synctracks
 								phr.position -= 960;
 							}
-							if (phr.mod == CHNote::Modifier::HOPO)
+							//All hopos are taps... yea that's about it
+							if (hopo)
 								phr.mod = CHNote::Modifier::TAP;
+							//For modchart exporting, TAP is used only on the first note of a subsection
+							//and only for a note too close to the guard mark that preceeded it.
+							//For normal exporting, the first note is instead forced.
 							else if (phr.mod == CHNote::Modifier::TAP)
 								phr.mod = CHNote::Modifier::FORCED;
+							//Modchart requires all notes regular notes to be strums, so forcing is needed
+							//Normal export has no need for that rule.
 							else if (phr.mod == CHNote::Modifier::FORCED)
 								phr.mod = CHNote::Modifier::NORMAL;
+							//Overrides a disabled modchart sustain
 							if (piece == 1 && chart.getPhrase(i).getAnimation() > 0)
 								phr.name = "Anim_" + to_string(chart.getPhrase(i).getAnimation());
 							else
@@ -944,11 +1007,13 @@ bool Charter::exportChart()
 						}
 					}
 					index = startIndex[0][currentPlayer];
+					//Firstly, determines whether a "start" marker should be placed
 					if ((chartIndex != 0 || (playerIndex >= 2 && !duet)) && (chart.getNumTracelines() > 1 || chart.getNumGuards()))
 					{
 						CHNote chartMarker;
 						chartMarker.type = CHNote::NoteType::EVENT;
 						chartMarker.name = "start";
+						//AKA, if any notes or trace lines were added
 						if (markIndex < rein.size())
 						{
 							chartMarker.position = (rein[markIndex].position + rein[markIndex - 1].position) / 2;
@@ -964,6 +1029,7 @@ bool Charter::exportChart()
 						}
 						
 					}
+					//Sets star power phrases
 					if (modchart)
 					{
 						switch (section.getPhase())
@@ -971,6 +1037,7 @@ bool Charter::exportChart()
 						case SongSection::Phase::BATTLE:
 							if (chart.getNumGuards())
 							{
+								//Encapsulate all the guard marks in the subsection
 								CHNote starpower = { position + ((chart.getGuard(0).getPivotAlpha() + double(chart.getPivotTime())) / TICKS_PER_SAMPLE) };
 								starpower.sustain = 20 + TICKS_PER_SAMPLE * ((double)chart.getGuard(chart.getNumGuards() - 1).getPivotAlpha() - chart.getGuard(0).getPivotAlpha());
 								starpower.type = CHNote::NoteType::STAR;
@@ -980,6 +1047,7 @@ bool Charter::exportChart()
 						case SongSection::Phase::CHARGE:
 							if (chart.getNumPhrases())
 							{
+								//Encapsulate all the phrase bars in the subsection
 								CHNote starpower = { position + TICKS_PER_SAMPLE * (chart.getPhrase(0).getPivotAlpha() + double(chart.getPivotTime())) };
 								starpower.sustain = TICKS_PER_SAMPLE * ((double)chart.getPhrase(chart.getNumPhrases() - 1).getEndAlpha() - chart.getPhrase(0).getPivotAlpha());
 								starpower.type = CHNote::NoteType::STAR;
@@ -1006,9 +1074,15 @@ bool Charter::exportChart()
 			switch (fileOverwriteCheck(filenameMod + ".chart"))
 			{
 			case -1:
-				for (size_t i = 0; i < sync.size(); i++)
-					if (sync[i].timeSig != 2)
-						sync[i].position -= 960;
+				for (size_t i = 0; i < sync.size();)
+				{
+					sync[i].position -= 960;
+					//Remove the two extra synctracks
+					if (sync[i].position < 960)
+						sync.erase(i);
+					else
+						i++;
+				}
 				for (size_t i = 0; i < events.size(); i++)
 					events[i].position -= 960;
 				global.quit = true;
@@ -1236,10 +1310,11 @@ bool Charter::exportChart()
 					fputs("lyrics = 1\n", outFile);
 				}
 				fputs("modchart = 1\n", outFile);
+				//Converting totalDur to milliseconds
 				fprintf(outFile, "song_length = %lu\n", (unsigned long)ceil(totalDur / 48));
 				fputs("Property of Koei Co. Ltd. Gitaroo Man (C) KOEI 2001", outFile);
 				fclose(outFile);
-				//Switch file to the actual chart
+				//Switch file from the .ini to the .chart
 				fopen_s(&outFile, (filenameMod + ".chart").c_str(), "w");
 				fputs("[Song]\n{\n", outFile);
 				fputs("  Offset = 0\n", outFile);
@@ -1254,8 +1329,12 @@ bool Charter::exportChart()
 				for (size_t i = 0; i < sync.size(); i++)
 				{
 					outFile << sync[i];
-					if (sync[i].timeSig != 2)
-						sync[i].position -= 960;
+					sync[i].position -= 960;
+					//Remove the two extra synctracks
+					if (sync[i].position < 960)
+						sync.erase(i);
+					else
+						i++;
 				}
 				fputs("}\n[Events]\n{\n", outFile);
 				for (size_t i = 0; i < events.size(); i++)

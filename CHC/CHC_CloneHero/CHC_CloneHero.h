@@ -36,14 +36,13 @@ struct Event
 struct CHNote
 {
 	enum class NoteType { NOTE, EVENT, STAR };
-	enum class Modifier { NORMAL, FORCED, HOPO, TAP };
+	enum class Modifier { NORMAL, FORCED, TAP };
 	double position = 0;
 	char fret = 1;
 	double sustain = 0;
 	Modifier mod = Modifier::NORMAL;
 	NoteType type = NoteType::NOTE;
 	std::string name = "";
-	double dif = 0;
 };
 
 class Charter

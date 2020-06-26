@@ -446,7 +446,7 @@ void CHC_Main::printTxt()
 				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Unused in PSP version\n");
 			}
 		}
-		dualvfprintf_s(outTXT, outSimpleTXT, "\t       Speed: %f\n", song->speed);
+		dualvfprintf_s(outTXT, outSimpleTXT, "\t       Speed: %g\n", song->speed);
 		fputs("\t   # of Cues: %lu\n", outTXT);
 		fputs("\t    SSQ Cues:\n", outTXT);
 		for (unsigned cueIndex = 0; cueIndex < song->numSections; cueIndex++)	//Cues
@@ -539,18 +539,18 @@ void CHC_Main::printTxt()
 					break;
 				case 1:
 					fputs("\t\t\t\t\t\tType: Left Side Energy", outTXT);
-					fprintf(outTXT, "\t\t\t\t\t    Argument: %f\n", cond.argument);
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: True if Left Side's energy is less than %f%%. False otherwise.\n", cond.argument * 100);
+					fprintf(outTXT, "\t\t\t\t\t    Argument: %g\n", cond.argument);
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: True if Left Side's energy is less than %g%%. False otherwise.\n", cond.argument * 100.0);
 					break;
 				case 2:
 					fputs("\t\t\t\t\t\tType: Right Side Energy", outTXT);
-					fprintf(outTXT, "\t\t\t\t\t    Argument: %f\n", cond.argument);
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: True if Right Side's energy is less than %f%%. False otherwise.\n", cond.argument * 100);
+					fprintf(outTXT, "\t\t\t\t\t    Argument: %g\n", cond.argument);
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: True if Right Side's energy is less than %g%%. False otherwise.\n", cond.argument * 100.0);
 					break;
 				case 3:
 					fputs("\t\t\t\t\t\tType: Random", outTXT);
-					fprintf(outTXT, "\t\t\t\t\t    Argument: %f\n", cond.argument);
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: Generates a random number between 0.0 and 1.0, True if the random number is less than %f%%. False otherwise.\n", cond.argument);
+					fprintf(outTXT, "\t\t\t\t\t    Argument: %g\n", cond.argument);
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: Generates a random number between 0.0 and 1.0, True if the random number is less than %g%%. False otherwise.\n", cond.argument);
 					break;
 				case 4:
 					fputs("\t\t\t\t\t\tType: Left Side Unavailable", outTXT);
@@ -632,7 +632,7 @@ void CHC_Main::printTxt()
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", trace.getPivotAlpha());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", trace.getPivotAlpha() + chart.getPivotTime());
 						fprintf(outTXT, "\t\t\t\t\t\t\t    Duration: %lu samples\n", trace.getDuration());
-						fprintf(outTXT, "\t\t\t\t\t\t\t       Angle: %s*PI radians | %g degrees\n", angleToFraction(trace.getAngle()).c_str(), round(180.0 * trace.getAngle() / M_PI));
+						fprintf(outTXT, "\t\t\t\t\t\t\t       Angle: %s*PI radians | %li degrees\n", angleToFraction(trace.getAngle()).c_str(), radiansToDegrees(trace.getAngle()));
 						trace.getCurve() ? fputs("\t\t\t\t\t\t\t       Curve: True\n", outTXT)
 							: fputs("\t\t\t\t\t\t\t       Curve: False\n", outTXT);
 						fprintf(outTXT, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", trace.getEndAlpha() + chart.getPivotTime());
@@ -716,15 +716,15 @@ void CHC_Main::printTxt()
 				case 3: dualvfprintf_s(outTXT, outSimpleTXT, "\tHarmony ||"); break;
 				case 4: dualvfprintf_s(outTXT, outSimpleTXT, "\t    End ||");
 				}
-				dualvfprintf_s(outTXT, outSimpleTXT, "%015f%% ||%020f%% ||%020f%% ||%017f%% ||%018f%% ||%017f%% ||%018f%% ||%018f%% ||\n",
-					song->energyDamageFactors[player][section].start * 100,
-					song->energyDamageFactors[player][section].chargeInitial * 100,
-					song->energyDamageFactors[player][section].attackInitial * 100,
-					song->energyDamageFactors[player][section].guardEnergy * 100,
-					song->energyDamageFactors[player][section].attackMiss * 100,
-					song->energyDamageFactors[player][section].guardMiss * 100,
-					song->energyDamageFactors[player][section].chargeRelease * 100,
-					song->energyDamageFactors[player][section].attackRelease * 100);
+				dualvfprintf_s(outTXT, outSimpleTXT, "%015g%% ||%020g%% ||%020g%% ||%017g%% ||%018g%% ||%017g%% ||%018g%% ||%018g%% ||\n",
+					song->energyDamageFactors[player][section].start * 100.0,
+					song->energyDamageFactors[player][section].chargeInitial * 100.0,
+					song->energyDamageFactors[player][section].attackInitial * 100.0,
+					song->energyDamageFactors[player][section].guardEnergy * 100.0,
+					song->energyDamageFactors[player][section].attackMiss * 100.0,
+					song->energyDamageFactors[player][section].guardMiss * 100.0,
+					song->energyDamageFactors[player][section].chargeRelease * 100.0,
+					song->energyDamageFactors[player][section].attackRelease * 100.0);
 			}
 			dualvfprintf_s(outTXT, outSimpleTXT, "\n");
 		}

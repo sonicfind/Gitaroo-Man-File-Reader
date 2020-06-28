@@ -61,7 +61,9 @@ private:
 		if (index < *count)
 		{
 			Node* cur;
-			if (index == 0) //Return *root
+			if (index == lastAccessed->index) //Return *lastAccessed's node
+				cur = lastAccessed->prevNode;
+			else if (index == 0) //Return *root
 				cur = *root;
 			else if (index == *count - 1) //Return *tail
 				cur = *tail;
@@ -72,8 +74,6 @@ private:
 				for (size_t i = 0; i < index; i++)
 					cur = cur->next;
 			}
-			else if (index == lastAccessed->index) //Return *lastAccessed's node
-				cur = lastAccessed->prevNode;
 			else if (index > lastAccessed->index)
 			{
 				if (index - lastAccessed->index <= *count - 1) //Start from LA and go up
@@ -100,6 +100,39 @@ private:
 		}
 		else
 			return nullptr;
+	}
+	//Returns the index for where, in order, the new node was placed
+	size_t findOrderedPosition(Node* newNode)
+	{
+		size_t index = 0;
+		while (newNode->next != nullptr)
+		{
+			if (newNode->data == newNode->next->data)
+			{
+				newNode->next->data = newNode->data;
+				delete newNode;
+				return index;
+			}
+			else if (newNode->data < newNode->next->data)
+				break;
+			else
+			{
+				newNode->prev = newNode->next;
+				newNode->next = newNode->next->next;
+				index++;
+			}
+		}
+		if (newNode->next == nullptr)
+			*tail = newNode;
+		else
+			newNode->next->prev = newNode;
+		if (newNode->prev == nullptr)
+			*root = newNode;
+		else
+			newNode->prev->next = newNode;
+		(*count)++;
+		*lastAccessed = { index, newNode };
+		return index;
 	}
 public:
 	//Create empty list
@@ -349,41 +382,6 @@ public:
 		return insert(index, 1, data);
 	}
 
-	//Uses "data" to find the proper position in the list then constructs
-	//a new element in that position with a shallow copy of "data"
-	size_t insert_ordered(const T& data)
-	{
-		size_t index = 0;
-		Node* prev = nullptr, *cur = *root;
-		while (cur != nullptr)
-		{
-			if (data == cur->data)
-			{
-				cur->data = data;
-				return index;
-			}
-			else if (data < cur->data)
-				break;
-			else
-			{
-				prev = cur;
-				cur = cur->next;
-				index++;
-			}
-		}
-		Node* newNode = new Node(data, prev, cur);
-		if (cur == nullptr)
-			*tail = newNode;
-		else
-			cur->prev = newNode;
-		if (prev == nullptr)
-			*root = newNode;
-		else
-			prev->next = newNode;
-		(*count)++;
-		return index;
-	}
-
 	//Maneuvers to the specified index and then creates numElements number of new elements
 	//using the args provided as the parameters for object T's constructor
 	template <class... Args>
@@ -434,40 +432,19 @@ public:
 		return emplace(index, 1, args...);
 	}
 
+	//Uses "data" to find the proper position in the list then constructs
+	//a new element in that position with a shallow copy of "data"
+	size_t insert_ordered(const T& data)
+	{
+		return findOrderedPosition(new Node(data, nullptr, *root));
+	}
+
 	//Constructs a new element using the values provided in parameter pack "args"
 	//and then finds that element's ordered placement in the list
 	template <class... Args>
 	size_t emplace_ordered(Args&&... args)
 	{
-		size_t index = 0;
-		Node* newNode = new Node(nullptr, *root, args...);
-		while (newNode->next != nullptr)
-		{
-			if (newNode->data == newNode->next->data)
-			{
-				newNode->next->data = newNode->data;
-				delete newNode;
-				return index;
-			}
-			else if (newNode->data < newNode->next->data)
-				break;
-			else
-			{
-				newNode->prev = newNode->next;
-				newNode->next = newNode->next->next;
-				index++;
-			}
-		}
-		if (newNode->next == nullptr)
-			*tail = newNode;
-		else
-			newNode->next->prev = newNode;
-		if (newNode->prev == nullptr)
-			*root = newNode;
-		else
-			newNode->prev->next = newNode;
-		(*count)++;
-		return index;
+		return findOrderedPosition(new Node(nullptr, *root, args...));
 	}
 
 	//Changes the size of a list

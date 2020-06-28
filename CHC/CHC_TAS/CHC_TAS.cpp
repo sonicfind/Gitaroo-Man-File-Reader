@@ -228,10 +228,10 @@ void PCSX2TAS::print(string filename)
 	fwrite(emulator, 1, 50, outp2m2);
 	fwrite(author, 1, 255, outp2m2);
 	fwrite(game, 1, 255, outp2m2);
-	fputc('\0', outp2m2);
+	fwrite('\0', 1, 1, outp2m2);
 	fwrite(multi, 1, 8, outp2m2);
 	fwrite(&players[0].size(), 4, 1, outp2m2);
-	fputs("\0\0\0\0", outp2m2);
+	fwrite("\0\0\0\0", 1, 4, outp2m2);
 	for (unsigned index = 0; index < players[0].size(); index++)
 	{
 		for (long player = 0; player < 4; player++)
@@ -1047,6 +1047,9 @@ bool TAS::buildTAS()
 	struct SectPoint
 	{
 		long pos = 0;
+		//0 - Technical
+		//1 - Visuals
+		//2 - Mixed
 		size_t visualType = 0;
 		long sustainLimit = 0;
 	};
@@ -1057,94 +1060,103 @@ bool TAS::buildTAS()
 	bool endReached = false;
 	unsigned short notes[4] = { 0, 0, 0, 0 };
 	long position = PCSX2TAS::frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]];
+	//Places every single note that will appear in all chosen sections
+	//into one huge timeline.
 	for (unsigned sectIndex = 0; sectIndex < sectionIndexes.size(); sectIndex++)
 	{
 		SongSection& section = song.sections[sectionIndexes[sectIndex]];
 		cout << global.tabs << section.getName() << endl;
 		if (!stage || (section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK"))) //If not INTRO phase or BRK section
 		{
-			size_t visualType = 0;
-			float sustainCoeffienct = 1;
 			if (section.getPhase() == SongSection::Phase::END || sectionIndexes[sectIndex] + 1 == song.numSections)
 				endReached = true; // If END phase or last section
-			for (size_t playerIndex = 0; playerIndex < section.getNumPlayers() && !global.quit; playerIndex++)
 			{
-				if (!(playerIndex & 1) || difficulty == 3)
+				//0 - Technical
+				//1 - Visuals
+				//2 - Mixed
+				size_t visualType = 0;
+				float sustainCoeffienct = 1; //Sustain limit set to a base of 1 beat
+				for (size_t playerIndex = 0; playerIndex < section.getNumPlayers() && !global.quit; playerIndex++)
 				{
-					for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && !global.quit; chartIndex++)
+					if (!(playerIndex & 1) || difficulty == 3)
 					{
-						if (section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex).getNumPhrases())
+						for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && !global.quit; chartIndex++)
 						{
-							do
+							if (section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex).getNumPhrases())
 							{
-								cout << global.tabs << "How should " << section.getName() << "'s phrase bars be played?\n";
-								cout << global.tabs << "T - Technicality (Release at the end of all sustains)\n";
-								cout << global.tabs << "V - Visually (Hold past/through the end of all sustains)\n";
-								cout << global.tabs << "M - Mixed (Release only on sustain that exceeds a defined length)\n";
-								visualType = menuChoices("tvm");
-								switch (visualType)
+								do
 								{
-								case -1:
-									cout << global.tabs << endl;
-									cout << global.tabs << "TAS creation cancelled" << endl;
-									return true;
-								case -2:
-									break;
-								default:
-									cout << global.tabs << endl;
-									if (visualType == 2)
+									cout << global.tabs << "How should " << section.getName() << "'s phrase bars be played?\n";
+									cout << global.tabs << "T - Technicality (Release at the end of all sustains)\n";
+									cout << global.tabs << "V - Visually (Hold past/through the end of all sustains)\n";
+									cout << global.tabs << "M - Mixed (Release only on sustain that exceeds a defined length)\n";
+									visualType = menuChoices("tvm");
+									switch (visualType)
 									{
-										do
+									case -1:
+										cout << global.tabs << endl;
+										cout << global.tabs << "TAS creation cancelled" << endl;
+										return true;
+									case -2:
+										break;
+									default:
+										cout << global.tabs << endl;
+										if (visualType == 2)
 										{
-											cout << global.tabs << "Provide a value for the sustain limit coeffienct.\n";
-											cout << global.tabs << "AKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n";
-											cout << global.tabs << "Value can range from 0.5 to 4.0 [Default is 1].\n";
-											cout << global.tabs << "Input: ";
-											switch (valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
+											do
 											{
-											case 1:
-												global.quit = true;
-												break;
-											case 0:
-												cout << global.tabs << endl;
-												cout << global.tabs << "TAS creation cancelled" << endl;
-												return true;
-											case -1:
-											case -2:
-												cout << global.tabs << "Provided value *must* be greater than or equal to 0.5.\n" << global.tabs << endl;
-												break;
-											case -3:
-												cout << global.tabs << "Provided value *must* be less than or equal to 4.0.\n" << global.tabs << endl;
-												break;
-											case -4:
-												cout << global.tabs << "\"" << global.invalid << "\" is not a valid response.\n" << global.tabs << endl;
-												cin.clear();
-											}
-										} while (!global.quit);
+												cout << global.tabs << "Provide a value for the sustain limit coeffienct.\n";
+												cout << global.tabs << "AKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n";
+												cout << global.tabs << "Value can range from 0.5 to 4.0 [Default is 1].\n";
+												cout << global.tabs << "Input: ";
+												switch (valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
+												{
+												case 1:
+													global.quit = true;
+													break;
+												case 0:
+													cout << global.tabs << endl;
+													cout << global.tabs << "TAS creation cancelled" << endl;
+													return true;
+												case -1:
+												case -2:
+													cout << global.tabs << "Provided value *must* be greater than or equal to 0.5.\n" << global.tabs << endl;
+													break;
+												case -3:
+													cout << global.tabs << "Provided value *must* be less than or equal to 4.0.\n" << global.tabs << endl;
+													break;
+												case -4:
+													cout << global.tabs << "\"" << global.invalid << "\" is not a valid response.\n" << global.tabs << endl;
+													cin.clear();
+												}
+											} while (!global.quit);
+										}
+										global.quit = true;
 									}
-									global.quit = true;
-								}
-							} while (!global.quit);
+								} while (!global.quit);
+							}
 						}
 					}
 				}
+				global.quit = false;
+				markers[0].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
+				if (difficulty == 3)
+				{
+					markers[1].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
+					if (multi[0])
+						markers[2].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
+					if (multi[1])
+						markers[3].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
+				}
 			}
-			global.quit = false;
-			markers[0].push_back(SectPoint{ position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()) });
-			if (difficulty == 3)
-			{
-				markers[1].push_back(SectPoint{ position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()) });
-				if (multi[0])
-					markers[2].push_back(SectPoint{ position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()) });
-				if (multi[1])
-					markers[3].push_back(SectPoint{ position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()) });
-			}
+			//Marking where in each list the current section starts
 			size_t startIndex[4] = { timeline[0].size(), timeline[1].size(), timeline[2].size(), timeline[3].size() };
 			for (size_t chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
 			{
 				for (size_t playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); playerIndex++)
 				{
 					Chart& chart = section.getChart(playerIndex * section.getNumCharts() + chartIndex);
+					//Player 1 will always be TAS'd, it just depends on how
 					if (!(playerIndex & 1))
 						currentPlayer = (multi[0] ? playerIndex : 0);
 					else if (difficulty == 3)
@@ -1155,14 +1167,15 @@ bool TAS::buildTAS()
 					size_t index = startIndex[currentPlayer];
 					for (size_t i = 0; i < chart.getNumGuards(); i++)
 					{
+						long pos = chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position;
 						while (index < player.size())
 						{
-							if (chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position <= player[index].pos)
+							if (pos <= player[index].pos)
 								break;
 							else
 								index++;
 						}
-						player.insert(index, NotePoint{ chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position, &chart.getGuard(i), i, i + 1 == chart.getNumGuards() });
+						player.emplace(index, 1, pos, &chart.getGuard(i), i, i + 1 == chart.getNumGuards());
 						notes[currentPlayer]++;
 						index++;
 					}
@@ -1170,9 +1183,10 @@ bool TAS::buildTAS()
 					for (size_t i = 0; i < chart.getNumPhrases(); i++)
 					{
 						Phrase& phrase = chart.getPhrase(i);
+						long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
 						while (index < player.size())
 						{
-							if (phrase.getPivotAlpha() + chart.getPivotTime() + position <= player[index].pos)
+							if (pos <= player[index].pos)
 								break;
 							else
 								index++;
@@ -1186,37 +1200,26 @@ bool TAS::buildTAS()
 							{
 								if (i + 1 != chart.getNumPhrases())
 								{
-									if (markers[currentPlayer].back().visualType > 0)
+									if (markers[currentPlayer].back().visualType == 1)
 									{
-										if (markers[currentPlayer].back().visualType == 1)
-										{
-											if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers[currentPlayer].back().sustainLimit)
-												phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
-											else
-												phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
-										}
-										else if (chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers[currentPlayer].back().sustainLimit)
+										if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers[currentPlayer].back().sustainLimit)
 											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
 										else
-											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
+											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
 									}
+									else if (markers[currentPlayer].back().visualType == 2
+											 && chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers[currentPlayer].back().sustainLimit)
+										phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
 									else
 										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 								}
-								else
-								{
-									if (markers[currentPlayer].back().visualType != 1)
-									{
-										if (!phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - (5 * long(SAMPLES_PER_FRAME))))
-											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
-									}
-									else
-										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
-								}
+								else if (markers[currentPlayer].back().visualType != 1
+										|| !phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5.0 * SAMPLES_PER_FRAME)))
+									phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 								break;
 							}
 						}
-						player.insert(index, NotePoint{ phrase.getPivotAlpha() + chart.getPivotTime() + position, &phrase, i, i + 1 == chart.getNumPhrases() });
+						player.emplace(index, 1, pos, &phrase, i, i + 1 == chart.getNumPhrases());
 						notes[currentPlayer]++;
 						index++;
 					}
@@ -1225,18 +1228,15 @@ bool TAS::buildTAS()
 					{
 						for (size_t i = 0; i < chart.getNumTracelines(); i++)
 						{
+							long pos = chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position;
 							while (index < player.size())
 							{
-								if (chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position <= player[index].pos)
+								if (pos <= player[index].pos)
 									break;
 								else
 									index++;
 							}
-							if (orientation == 2)
-								chart.getTraceline(i).adJustAngle(.5 * M_PI);
-							else if (orientation == 3)
-								chart.getTraceline(i).adJustAngle(-.5 * M_PI);
-							player.insert(index, NotePoint{ chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position, &chart.getTraceline(i), i, i + 1 == chart.getNumTracelines() });
+							player.emplace(index, 1, pos, &chart.getTraceline(i), i, i + 1 == chart.getNumTracelines());
 							index++;
 						}
 					}
@@ -1367,157 +1367,155 @@ bool TAS::buildTAS()
 				cout << global.tabs << section.getName() << endl;
 				if (sectionIndexes[sectIndex] + 1 == tutorial->numSections)
 					endReached = true; // If END phase or last section
-				size_t visualType = 0;
-				float sustainCoeffienct = 1;
-				for (size_t playerIndex = 0; playerIndex < section.getNumPlayers() && !global.quit; playerIndex += 2)
 				{
-					for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && !global.quit; chartIndex++)
+					//0 - Technical
+					//1 - Visuals
+					//2 - Mixed
+					size_t visualType = 0;
+					float sustainCoeffienct = 1; //Sustain limit set to a base of 1 beat
+					for (size_t playerIndex = 0; playerIndex < section.getNumPlayers() && !global.quit; playerIndex += 2)
 					{
-						if (section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex).getNumPhrases())
+						for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && !global.quit; chartIndex++)
 						{
-							do
+							if (section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex).getNumPhrases())
 							{
-								cout << global.tabs << "How should " << section.getName() << "'s phrase bars be played?\n";
-								cout << global.tabs << "T - Technicality (Release at the end of all sustains)\n";
-								cout << global.tabs << "V - Visually (Hold past/through the end of all sustains)\n";
-								cout << global.tabs << "M - Mixed (Release only on sustain that exceeds a defined length)\n";
-								visualType = menuChoices("tvm");
-								switch (visualType)
+								do
 								{
-								case -1:
-									cout << global.tabs << endl;
-									cout << global.tabs << "TAS creation cancelled" << endl;
-									return true;
-								case -2:
-									break;
-								default:
-									cout << global.tabs << endl;
-									if (visualType == 2)
+									cout << global.tabs << "How should " << section.getName() << "'s phrase bars be played?\n";
+									cout << global.tabs << "T - Technicality (Release at the end of all sustains)\n";
+									cout << global.tabs << "V - Visually (Hold past/through the end of all sustains)\n";
+									cout << global.tabs << "M - Mixed (Release only on sustain that exceeds a defined length)\n";
+									visualType = menuChoices("tvm");
+									switch (visualType)
 									{
-										do
+									case -1:
+										cout << global.tabs << endl;
+										cout << global.tabs << "TAS creation cancelled" << endl;
+										return true;
+									case -2:
+										break;
+									default:
+										cout << global.tabs << endl;
+										if (visualType == 2)
 										{
-											cout << global.tabs << "Provide a value for the sustain limit coeffienct.\n";
-											cout << global.tabs << "AKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n";
-											cout << global.tabs << "Value can range from 0.5 to 4.0 [Default is 1].\n";
-											cout << global.tabs << "Input: ";
-											switch (valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
+											do
 											{
-											case 1:
-												global.quit = true;
-												break;
-											case 0:
-												cout << global.tabs << endl;
-												cout << global.tabs << "TAS creation cancelled" << endl;
-												return true;
-											case -1:
-											case -2:
-												cout << global.tabs << "Provided value *must* be greater than or equal to 0.5.\n" << global.tabs << endl;
-												break;
-											case -3:
-												cout << global.tabs << "Provided value *must* be less than or equal to 4.0.\n" << global.tabs << endl;
-												break;
-											case -4:
-												cout << global.tabs << "\"" << global.invalid << "\" is not a valid response.\n" << global.tabs << endl;
-												cin.clear();
-											}
-										} while (!global.quit);
+												cout << global.tabs << "Provide a value for the sustain limit coeffienct.\n";
+												cout << global.tabs << "AKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n";
+												cout << global.tabs << "Value can range from 0.5 to 4.0 [Default is 1].\n";
+												cout << global.tabs << "Input: ";
+												switch (valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
+												{
+												case 1:
+													global.quit = true;
+													break;
+												case 0:
+													cout << global.tabs << endl;
+													cout << global.tabs << "TAS creation cancelled" << endl;
+													return true;
+												case -1:
+												case -2:
+													cout << global.tabs << "Provided value *must* be greater than or equal to 0.5.\n" << global.tabs << endl;
+													break;
+												case -3:
+													cout << global.tabs << "Provided value *must* be less than or equal to 4.0.\n" << global.tabs << endl;
+													break;
+												case -4:
+													cout << global.tabs << "\"" << global.invalid << "\" is not a valid response.\n" << global.tabs << endl;
+													cin.clear();
+												}
+											} while (!global.quit);
+										}
+										global.quit = true;
 									}
-									global.quit = true;
-								}
-							} while (!global.quit);
+								} while (!global.quit);
+							}
 						}
 					}
+					global.quit = false;
+					markers[0].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
 				}
-				global.quit = false;
-				markers[0].push_back(SectPoint{ position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()) });
 				size_t startIndex = timeline[0].size();
 				for (unsigned chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
 				{
-					Chart& chart = section.getChart(chartIndex);
-					size_t index = startIndex;
-					for (size_t i = 0; i < chart.getNumGuards(); i++)
+					for (size_t playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); playerIndex++)
 					{
-						while (index < timeline[0].size())
+						Chart& chart = section.getChart(chartIndex);
+						size_t index = startIndex;
+						for (size_t i = 0; i < chart.getNumGuards(); i++)
 						{
-							if (chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position <= timeline[0][index].pos)
-								break;
-							else
-								index++;
-						}
-						timeline[0].insert(index, NotePoint{ chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position, &chart.getGuard(i), i, i + 1 == chart.getNumGuards() });
-						index++;
-					}
-					index = startIndex;
-					for (size_t i = 0; i < chart.getNumPhrases(); i++)
-					{
-						Phrase& phrase = chart.getPhrase(i);
-						while (index < timeline[0].size())
-						{
-							if (phrase.getPivotAlpha() + chart.getPivotTime() + position <= timeline[0][index].pos)
-								break;
-							else
-								index++;
-						}
-						//Combine all pieces into one Note
-						while (i < chart.getNumPhrases())
-						{
-							if (!chart.getPhrase(i).getEnd())
-								i++;
-							else
-							{
-								if (i + 1 != chart.getNumPhrases())
-								{
-									if (markers[0].back().visualType > 0)
-									{
-										if (markers[0].back().visualType == 1)
-										{
-											if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers[0].back().sustainLimit)
-												phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
-											else
-												phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
-										}
-										else if (chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers[0].back().sustainLimit)
-											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
-										else
-											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
-									}
-									else
-										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
-								}
-								else
-								{
-									if (markers[0].back().visualType != 1)
-									{
-										if (!phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - (5 * long(SAMPLES_PER_FRAME))))
-											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
-									}
-									else
-										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
-								}
-								break;
-							}
-						}
-						timeline[0].insert(index, NotePoint{ phrase.getPivotAlpha() + chart.getPivotTime() + position, &phrase, i, i + 1 == chart.getNumPhrases() });
-						index++;
-					}
-					index = startIndex;
-					if (chart.getNumTracelines() > 1)
-					{
-						for (size_t i = 0; i < chart.getNumTracelines(); i++)
-						{
+							long pos = chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position;
 							while (index < timeline[0].size())
 							{
-								if (chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position <= timeline[0][index].pos)
+								if (pos <= timeline[0][index].pos)
 									break;
 								else
 									index++;
 							}
-							if (orientation == 2)
-								chart.getTraceline(i).adJustAngle(.5 * M_PI);
-							else if (orientation == 3)
-								chart.getTraceline(i).adJustAngle(-.5 * M_PI);
-							timeline[0].insert(index, NotePoint{ chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position, &chart.getTraceline(i), i, i + 1 == chart.getNumTracelines() });
+							timeline[0].emplace(index, 1, pos, &chart.getGuard(i), i, i + 1 == chart.getNumGuards());
+							notes[currentPlayer]++;
 							index++;
+						}
+						index = startIndex;
+						for (size_t i = 0; i < chart.getNumPhrases(); i++)
+						{
+							Phrase& phrase = chart.getPhrase(i);
+							long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
+							while (index < timeline[0].size())
+							{
+								if (pos <= timeline[0][index].pos)
+									break;
+								else
+									index++;
+							}
+							//Combine all pieces into one Note
+							while (i < chart.getNumPhrases())
+							{
+								if (!chart.getPhrase(i).getEnd())
+									i++;
+								else
+								{
+									if (i + 1 != chart.getNumPhrases())
+									{
+										if (markers[currentPlayer].back().visualType == 1)
+										{
+											if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers[currentPlayer].back().sustainLimit)
+												phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
+											else
+												phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
+										}
+										else if (markers[currentPlayer].back().visualType == 2
+											&& chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers[currentPlayer].back().sustainLimit)
+											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
+										else
+											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
+									}
+									else if (markers[currentPlayer].back().visualType != 1
+										|| !phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5.0 * SAMPLES_PER_FRAME)))
+										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
+									break;
+								}
+							}
+							timeline[0].emplace(index, 1, pos, &phrase, i, i + 1 == chart.getNumPhrases());
+							notes[currentPlayer]++;
+							index++;
+						}
+						index = startIndex;
+						if (chart.getNumTracelines() > 1)
+						{
+							for (size_t i = 0; i < chart.getNumTracelines(); i++)
+							{
+								long pos = chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position;
+								while (index < timeline[0].size())
+								{
+									if (pos <= timeline[0][index].pos)
+										break;
+									else
+										index++;
+								}
+								timeline[0].emplace(index, 1, pos, &chart.getTraceline(i), i, i + 1 == chart.getNumTracelines());
+								index++;
+							}
 						}
 					}
 				}
@@ -1543,6 +1541,7 @@ bool TAS::buildTAS()
 				fopen_s(&taslog, (filename + "_P" + to_string(playerIndex + 1) + ".txt").c_str(), "w");
 			fprintf(taslog, "Samples per frame: %Lf\n", SAMPLES_PER_FRAME);
 			fprintf(taslog, "////Section Marker 1 at sample %li\n", markers[playerIndex][sectIndex].pos);
+			NotePoint* prevPhrase = nullptr;
 			for (unsigned long noteIndex = 0; noteIndex < timeline[playerIndex].size(); noteIndex++)
 			{
 				NotePoint& point = timeline[playerIndex][noteIndex];
@@ -1648,10 +1647,8 @@ bool TAS::buildTAS()
 				}
 				else if (dynamic_cast<Traceline*>(timeline[playerIndex][noteIndex].note) != nullptr)
 				{
-					Traceline* tr = static_cast<Traceline*>(point.note);
 					for (unsigned long testIndex = noteIndex + 1; testIndex < timeline[playerIndex].size(); testIndex++)
 					{
-						NotePoint& point2 = timeline[playerIndex][testIndex];
 						if (dynamic_cast<Guard*>(timeline[playerIndex][testIndex].note) != nullptr && point.last)
 						{
 							inTrace = false;
@@ -1667,24 +1664,29 @@ bool TAS::buildTAS()
 										connected = true;
 									inTrace = true;
 									size_t currentFrame = frameStart + (unsigned long)round(point.pos / SAMPLES_PER_FRAME);
-									size_t endFrame = frameStart + (unsigned)round(point2.pos / SAMPLES_PER_FRAME);
+									size_t endFrame = frameStart + (unsigned)round(timeline[playerIndex][testIndex].pos / SAMPLES_PER_FRAME);
 									if (endFrame - currentFrame > 0)
 									{
+										float currentAngle = static_cast<Traceline*>(point.note)->getAngle();
 										float angleDif = 0;
 										if (!point.last)
 										{
-											if (!point2.last)
+											if (!timeline[playerIndex][testIndex].last)
 											{
-												angleDif = static_cast<Traceline*>(point2.note)->getAngle() - tr->getAngle();
+												angleDif = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->getAngle() - currentAngle;
 												if (angleDif > M_PI)
 													angleDif -= float(2 * M_PI);
-												else if (angleDif < -1 * M_PI)
+												else if (angleDif < -M_PI)
 													angleDif += float(2 * M_PI);
 											}
 										}
 										else
-											tr->setAngle(static_cast<Traceline*>(point2.note)->getAngle());
-										if (!tr->getCurve()) //If curve is false
+											currentAngle = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->getAngle();
+										if (orientation == 2)
+											currentAngle += .5 * M_PI;
+										else if (orientation == 3)
+											currentAngle -= .5 * M_PI;
+										if (!static_cast<Traceline*>(point.note)->getCurve()) //If curve is false
 										{
 											//Iterate through all frames with a straight trace line, if any
 											for (; 20 * (endFrame - currentFrame - 1) > song.speed; currentFrame++)
@@ -1693,12 +1695,12 @@ bool TAS::buildTAS()
 												switch (orientation)
 												{
 												case 2:
-													pcsx2.players[playerIndex][currentFrame].rightStickX = (unsigned)round(127 - 127 * cos(tr->getAngle()));
-													pcsx2.players[playerIndex][currentFrame].rightStickY = (unsigned)round(127 + 127 * sin(tr->getAngle()));
+													pcsx2.players[playerIndex][currentFrame].rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+													pcsx2.players[playerIndex][currentFrame].rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
 													break;
 												default:
-													pcsx2.players[playerIndex][currentFrame].leftStickX = (unsigned)round(127 - 127 * cos(tr->getAngle()));
-													pcsx2.players[playerIndex][currentFrame].leftStickY = (unsigned)round(127 + 127 * sin(tr->getAngle()));
+													pcsx2.players[playerIndex][currentFrame].leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+													pcsx2.players[playerIndex][currentFrame].leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
 												}
 											}
 										}
@@ -1709,15 +1711,14 @@ bool TAS::buildTAS()
 											switch (orientation)
 											{
 											case 2:
-												pcsx2.players[playerIndex][currentFrame].rightStickX = (unsigned)round(127 - 127 * cos(tr->getAngle()));
-												pcsx2.players[playerIndex][currentFrame].rightStickY = (unsigned)round(127 + 127 * sin(tr->getAngle()));
+												pcsx2.players[playerIndex][currentFrame].rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+												pcsx2.players[playerIndex][currentFrame].rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
 												break;
 											default:
-												pcsx2.players[playerIndex][currentFrame].leftStickX = (unsigned)round(127 - 127 * cos(tr->getAngle()));
-												pcsx2.players[playerIndex][currentFrame].leftStickY = (unsigned)round(127 + 127 * sin(tr->getAngle()));
+												pcsx2.players[playerIndex][currentFrame].leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+												pcsx2.players[playerIndex][currentFrame].leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
 											}
-											if (angleIncrement)
-												tr->adJustAngle(angleIncrement);
+											currentAngle += angleIncrement;
 										}
 									}
 									break;
@@ -1734,56 +1735,42 @@ bool TAS::buildTAS()
 						}
 					}
 				}
-				else if (inTrace) //If Phrase Note is inside a trace line
+				else if (inTrace) //only go here if the confirmed to be Phrase bar is inside a trace line
 				{
 					size_t phraseStart;
-					if (!point.index && connected)
+					//If this phrase bar isn't the first one in the song but is the first in its subsection
+					//&
+					//if the current & following trace lines are close enough together without interruptions
+					if (prevPhrase != nullptr && !point.index && connected)
 					{
 						unsigned long prevsectIndex = sectIndex;
-						for (long testIndex = noteIndex - 1; testIndex >= 0; testIndex--)
+						//Check if the previous PB is close enough to justify connecting its
+						//sustain button press to the current PB
+						while (prevPhrase->pos < markers[playerIndex][prevsectIndex].pos)
+								prevsectIndex--;
+						if ((markers[playerIndex][prevsectIndex].visualType == 2 && point.pos - prevPhrase->pos < markers[playerIndex][prevsectIndex].sustainLimit)
+							|| (markers[playerIndex][prevsectIndex].visualType == 1
+								&& point.pos - prevPhrase->pos < markers[playerIndex][prevsectIndex].sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
 						{
-							NotePoint& pointPrev = timeline[playerIndex][testIndex];
-							if (pointPrev.pos < markers[playerIndex][prevsectIndex].pos)
-									prevsectIndex--;
-							if (dynamic_cast<Phrase*>(pointPrev.note) != nullptr)
+							phraseStart = frameStart + (size_t)round((point.pos - SAMPLES_PER_FRAME) / SAMPLES_PER_FRAME);
+							fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", point.pos, phraseStart - frameStart);
+							size_t phraseEnd = frameStart
+							+ (size_t)ceil((SAMPLES_PER_FRAME + prevPhrase->pos + static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME);
+							for (; phraseEnd < phraseStart - 1; phraseEnd++)
 							{
-								Phrase* phr = static_cast<Phrase*>(pointPrev.note);
-								bool yes = false;
-								//If Visual and less than 
-								if (markers[playerIndex][prevsectIndex].visualType == 1)
+								//No need to check for button slots being occupied
+								switch (orientation)
 								{
-									//Visual type 1 has base sustain limit of 1 beat always
-									if (point.pos - pointPrev.pos < markers[playerIndex][prevsectIndex].sustainLimit + long(phr->getDuration()))
-										yes = true;
+								case 0:
+								case 1:
+									pcsx2.players[playerIndex][phraseEnd].button &= 191;
+									break;
+								case 2:
+									pcsx2.players[playerIndex][phraseEnd].button &= 223;
+									break;
+								case 3:
+									pcsx2.players[playerIndex][phraseEnd].button &= 127;
 								}
-								else if (markers[playerIndex][prevsectIndex].visualType == 2)
-								{
-									if (point.pos - pointPrev.pos < markers[playerIndex][prevsectIndex].sustainLimit)
-										yes = true;
-								}
-								if (yes)
-								{
-									phraseStart = frameStart + (size_t)round((point.pos - SAMPLES_PER_FRAME) / SAMPLES_PER_FRAME);
-									fprintf(taslog, "              - Extended to sample %li | Frame #%zu\n", point.pos, phraseStart - frameStart);
-									size_t phraseEnd = frameStart + (size_t)ceil(((double)pointPrev.pos + phr->getDuration() + SAMPLES_PER_FRAME) / SAMPLES_PER_FRAME);
-									for (; phraseEnd < phraseStart - 1; phraseEnd++)
-									{
-										//No need to check for button slots being occupied
-										switch (orientation)
-										{
-										case 0:
-										case 1:
-											pcsx2.players[playerIndex][phraseEnd].button &= 191;
-											break;
-										case 2:
-											pcsx2.players[playerIndex][phraseEnd].button &= 223;
-											break;
-										case 3:
-											pcsx2.players[playerIndex][phraseEnd].button &= 127;
-										}
-									}
-								}
-								break;
 							}
 						}
 					}
@@ -1832,6 +1819,7 @@ bool TAS::buildTAS()
 							pcsx2.players[playerIndex][phraseStart].button &= 255 - (1 << exponent);
 					}
 					fprintf(taslog, "\t      -   Ending at sample %li | Frame #%zu\n" , point.pos + static_cast<Phrase*>(point.note)->getDuration(), phraseEnd - frameStart);
+					prevPhrase = &point;
 				}
 			}
 			fclose(taslog);

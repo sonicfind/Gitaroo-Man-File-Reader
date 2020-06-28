@@ -116,40 +116,32 @@ public:
 	//Every parameter after "size" is used in
 	//the construction of every new node
 	template <class... Args>
-	List<T>(size_t size, Args&&... args)
+	List<T>(size_t size, Args&&... args) : List()
 	{
-		root = new Node*(nullptr);
-		tail = new Node*(nullptr);
-		count = new size_t(0);
-		usedCount = new size_t(1);
-		lastAccessed = new placeSaver{ 0, nullptr };
 		for (unsigned i = 0; i < size; i++)
 			emplace_back(args...);
+	}
+
+	//Creates a list based off the provided initializer list
+	List<T>(const std::initializer_list<T>& init) : List()
+	{
+		for (unsigned i = 0; i < init.size(); i++)
+			push_back(init.begin()[i]);
 	}
 
 	//Creates a list based off the provided initializer list
 	//Each initializer element is used as the parameter(s) for a constructor
 	//of object type 'T'
 	template <class... Args>
-	List<T>(const std::initializer_list<Args...>& init)
+	List<T>(const std::initializer_list<std::initializer_list<Args...>>& init) : List()
 	{
-		root = new Node * (nullptr);
-		tail = new Node * (nullptr);
-		count = new size_t(0);
-		usedCount = new size_t(1);
-		lastAccessed = new placeSaver{ 0, nullptr };
 		for (unsigned i = 0; i < init.size(); i++)
-			emplace_back(init.begin()[i]...);
+			emplace_back(init.begin()[i].begin()...);
 	}
 
 	//Create a list with cloned elements from the provided list
-	List<T>(const List<T>& list)
+	List<T>(const List<T>& list) : List()
 	{
-		root = new Node* (nullptr);
-		tail = new Node* (nullptr);
-		count = new size_t(0);
-		usedCount = new size_t(1);
-		lastAccessed = new placeSaver{ 0, nullptr };
 		Node* cur = *list.root;
 		for (unsigned i = 0; i < *list.count; i++)
 		{
@@ -159,8 +151,7 @@ public:
 	}
 
 	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
-	template <class... Args>
-	List<T>& operator=(const std::initializer_list<Args...>& init)
+	List<T>& operator=(const std::initializer_list<T>& init)
 	{
 		if (*usedCount > 1)
 			(*usedCount)--;
@@ -173,13 +164,38 @@ public:
 			delete lastAccessed;
 			delete usedCount;
 		}
-		root = new Node* (nullptr);
-		tail = new Node* (nullptr);
+		root = new Node*(nullptr);
+		tail = new Node*(nullptr);
 		lastAccessed = new placeSaver{ 0, nullptr };
 		count = new size_t(0);
 		usedCount = new size_t(1);
 		for (unsigned i = 0; i < init.size(); i++)
-			emplace_back(init.begin()[i]...);
+			push_back(init.begin()[i]);
+		return *this;
+	}
+
+	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
+	template <class... Args>
+	List<T>& operator=(const std::initializer_list<std::initializer_list<Args...>>& init)
+	{
+		if (*usedCount > 1)
+			(*usedCount)--;
+		else
+		{
+			clear();
+			delete root;
+			delete tail;
+			delete count;
+			delete lastAccessed;
+			delete usedCount;
+		}
+		root = new Node*(nullptr);
+		tail = new Node*(nullptr);
+		lastAccessed = new placeSaver{ 0, nullptr };
+		count = new size_t(0);
+		usedCount = new size_t(1);
+		for (unsigned i = 0; i < init.size(); i++)
+			emplace_back(init.begin()[i].begin()...);
 		return *this;
 	}
 

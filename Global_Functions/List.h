@@ -21,13 +21,6 @@ template <class T>
 class List
 {
 private:
-	class list_out_of_range : public std::exception
-	{
-		virtual const char* what() const throw()
-		{
-			return "List index out of range";
-		}
-	} myex;
 	struct Node
 	{
 		T data;
@@ -424,14 +417,6 @@ public:
 		return curIndex - 1;
 	}
 
-	//Maneuvers to the specified index and then creates a new element using
-	//the args provided as the parameters for object T's constructor
-	template <class... Args>
-	size_t emplace(size_t index, Args&&... args)
-	{
-		return emplace(index, 1, args...);
-	}
-
 	//Uses "data" to find the proper position in the list then constructs
 	//a new element in that position with a shallow copy of "data"
 	size_t insert_ordered(const T& data)
@@ -540,15 +525,15 @@ public:
 	{
 		if (*count)
 		{
-			Node* cur = *root;
-			if (cur == lastAccessed->prevNode)
-				*lastAccessed = { 0, nullptr };
+			(*count)--;
+			if (*root == lastAccessed->prevNode)
+				lastAccessed->prevNode = lastAccessed->prevNode->next;
 			else
 				lastAccessed->index--;
+			Node* cur = *root;
 			*root = (*root)->next;
 			delete cur;
-			(*count)--;
-			if (*count)
+			if (*root != nullptr)
 				(*root)->prev = nullptr;
 			else
 				*tail = nullptr;
@@ -560,13 +545,17 @@ public:
 	{
 		if (*count)
 		{
+			(*count)--;
+			if (*tail == lastAccessed->prevNode)
+			{
+				//Overflow if index is 0 doesn't matter as it would mean count is also 0
+				lastAccessed->index--;
+				lastAccessed->prevNode = lastAccessed->prevNode->prev;
+			}
 			Node* cur = *tail;
-			if (cur == lastAccessed->prevNode)
-				*lastAccessed = { 0, nullptr };
 			*tail = (*tail)->prev;
 			delete cur;
-			(*count)--;
-			if (*count)
+			if (*tail != nullptr)
 				(*tail)->next = nullptr;
 			else
 				*root = nullptr;
@@ -578,25 +567,27 @@ public:
 	{
 		bool result = false;
 		Node* cur = find(index);
-		*count -= numElements;
 		while (numElements > 0 && cur != nullptr)
 		{
+			Node* next = cur->next;
 			if (cur->prev != nullptr)
-				cur->prev->next = cur->next;
+				cur->prev->next = next;
 			else
-				*root = cur->next;
-			if (cur->next != nullptr)
-				cur->next->prev = cur->prev;
+				*root = next;
+			if (next != nullptr)
+				next->prev = cur->prev;
 			else
 				*tail = cur->prev;
-			Node* next = cur->next;
 			delete cur;
 			cur = next;
 			numElements--;
+			(*count)--;
 			result = true;
 		}
 		if (cur != nullptr)
-			lastAccessed->prevNode = cur;
+			*lastAccessed = { index, cur };
+		else if (*count)
+			*lastAccessed = { *count - 1, tail };
 		else
 			*lastAccessed = { 0, nullptr };
 		return result;
@@ -625,7 +616,7 @@ public:
 			return (*root)->data;
 		}
 		else
-			throw myex;
+			throw "Error: list index out of range";
 	}
 
 	//Returns element at *tail if *count is at least 1
@@ -637,7 +628,7 @@ public:
 			return (*tail)->data;
 		}
 		else
-			throw myex;
+			throw "Error: list index out of range";
 	}
 
 	//Returns element at index if *count is at least 1
@@ -646,7 +637,7 @@ public:
 		if (index < *count)
 			return find(index)->data;
 		else
-			throw myex;
+			throw "Error: list index out of range";
 	}
 
 	//Returns the index with an element that matches the provided object.
@@ -655,79 +646,74 @@ public:
 	int search(T& compare, size_t startIndex = 0)
 	{
 		Node* cur = find(startIndex);
-		if (cur != nullptr)
+		while (cur != nullptr)
 		{
-			int index = -1;
-			for (size_t i = 0; i < *count; i++)
+			if (cur->data == compare)
 			{
-				if (cur->data == compare)
-				{
-					*lastAccessed = { i, cur };
-					index = (int)i;
-					break;
-				}
+				*lastAccessed = { startIndex, cur };
+				return startIndex;
+			}
+			else
+			{
+				startIndex++;
 				cur = cur->next;
 			}
-			return index;
 		}
-		else
-			return -1;
+		//Only reaches here if searching fails
+		return -1;
 	}
 
 	//Moves numElements number of elements starting at position index to position newPosition if both positions are valid.
-	bool moveElements(size_t index, size_t newPosition, size_t numElements = 1)
+	void moveElements(size_t index, size_t newPosition, size_t numElements = 1)
 	{
-		if (index < *count && newPosition <= *count)
+		if (index >= *count)
+			throw "Error: list index out of range"
+		else if (newPosition > *count)
+			throw "Error: list newPosition index out of range"
+		else
 		{
 			if (index + numElements > *count)
 				numElements = *count - index;
 			else if (numElements == 0)
 				numElements = 1;
-			if (numElements <= *count)
+			Node* beg = find(index);
+			if (newPosition < index)
 			{
-				if (newPosition < index)
-				{
-					Node* beg = find(index);
-					Node* end = numElements > 1 ? find(index + numElements - 1) : beg;
-					Node* pos = find(newPosition);
-					beg->prev->next = end->next;
-					if (end->next != nullptr)
-						end->next->prev = beg->prev;
-					else
-						*tail = beg->prev;
-					if (pos->prev != nullptr)
-						pos->prev->next = beg;
-					else
-						*root = beg;
-					beg->prev = pos->prev;
-					end->next = pos;
-					pos->prev = end;
-					*lastAccessed = { newPosition, beg };
-					return true;
-				}
-				else if (newPosition > index + numElements)
-				{
-					Node* beg = find(index);
-					Node* end = numElements > 1 ? find(index + numElements - 1) : beg;
-					Node* pos = find(newPosition - 1);
+				Node* end = find(index + numElements - 1);
+				Node* pos = find(newPosition);
+				beg->prev->next = end->next;
+				if (end->next != nullptr)
 					end->next->prev = beg->prev;
-					if (beg->prev != nullptr)
-						beg->prev->next = end->next;
-					else
-						*root = end->next;
-					if (pos->next != nullptr)
-						pos->next->prev = end;
-					else
-						*tail = end;
-					end->next = pos->next;
-					beg->prev = pos;
-					pos->next = beg;
-					*lastAccessed = { newPosition, beg };
-					return true;
-				}
+				else
+					*tail = beg->prev;
+				if (pos->prev != nullptr)
+					pos->prev->next = beg;
+				else
+					*root = beg;
+				beg->prev = pos->prev;
+				end->next = pos;
+				pos->prev = end;
+				*lastAccessed = { newPosition, beg };
+			}
+			else if (newPosition > index + numElements)
+			{
+				Node* end = find(index + numElements - 1);
+				Node* pos = find(newPosition - 1);
+				end->next->prev = beg->prev;
+				if (beg->prev != nullptr)
+					beg->prev->next = end->next;
+				else
+					*root = end->next;
+				if (pos->next != nullptr)
+					pos->next->prev = end;
+				else
+					*tail = end;
+				end->next = pos->next;
+				beg->prev = pos;
+				pos->next = beg;
+				*lastAccessed = { newPosition, beg };
 			}
 		}
-		return false;
 	}
 
 	//Swaps the contents of the two lists.

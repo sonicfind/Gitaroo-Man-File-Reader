@@ -21,6 +21,8 @@ SongSection::Condition::Condition(FILE* inFile)
 	fread(&type, 16, 1, inFile);
 }
 
+SongSection::Condition::Condition(Condition& cond) : type(cond.type), argument(cond.argument), trueEffect(cond.trueEffect), falseEffect(cond.falseEffect) {}
+
 //Create a SongSection object with 1 Condition and 4 Charts
 SongSection::SongSection()
 	: index(0), organized(false), size(384), battlePhase(Phase::INTRO), tempo(0), duration(0), conditions(1), numPlayers(4), numCharts(1), charts(4) {}

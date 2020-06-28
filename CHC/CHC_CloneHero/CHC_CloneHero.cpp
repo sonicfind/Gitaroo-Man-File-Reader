@@ -601,41 +601,43 @@ bool Charter::exportChart()
 								unsigned dif = chart.getGuard(i + 1).getPivotAlpha() - chart.getGuard(i).getPivotAlpha();
 								if (dif >= 480000)		//If dif is >= ten seconds
 								{
-									open.position = grd.position + 240000 * TICKS_PER_SAMPLE;
-									open.mod = CHNote::Modifier::FORCED;
+									pos += 240000 * TICKS_PER_SAMPLE;
+									mod = CHNote::Modifier::FORCED;
 								}
 								else if (dif >= 240000) //If 5 seconds <= dif < ten seconds
 								{
-									open.position = grd.position + (dif >> 1) * TICKS_PER_SAMPLE;
-									open.mod = CHNote::Modifier::FORCED;
+									pos += (dif >> 1) * TICKS_PER_SAMPLE;
+									mod = CHNote::Modifier::FORCED;
 								}
 								else if (dif >= 2 * GUARD_GAP)
 								{
-									open.position = grd.position + GUARD_OPEN_TICK_DISTANCE;
+									pos += GUARD_OPEN_TICK_DISTANCE;
 									if (GUARD_OPEN_TICK_DISTANCE >= 162.5)
-										open.mod = CHNote::Modifier::FORCED;
+										mod = CHNote::Modifier::FORCED;
+									else
+										mod = CHNote::Modifier::NORMAL;
 								}
 								else
 								{
-									open.position = grd.position + (dif >> 1) * TICKS_PER_SAMPLE;
+									pos += (dif >> 1) * TICKS_PER_SAMPLE;
 									if ((dif >> 1) * TICKS_PER_SAMPLE >= 162.5)
-										open.mod = CHNote::Modifier::FORCED;
+										mod = CHNote::Modifier::FORCED;
+									else
+										mod = CHNote::Modifier::NORMAL;
 								}
-								player.insert(index, open);
+								player.emplace(index, pos, 7, 0, mod);
 								index++;
 							}
-							grd.position -= 960;
-							grd.mod = CHNote::Modifier::NORMAL;
+							pos -= 960;
 						}
 						while (index2 < rein.size())
 						{
-							if (grd.position <= rein[index2].position)
+							if (pos <= rein[index2].position)
 								break;
 							else
 								index2++;
 						}
-						grd.fret = fret;
-						rein.insert(index2, grd);
+						rein.emplace(index2, pos, fret, 0, CHNote::Modifier::NORMAL);
 						index2++;
 						
 					}
@@ -645,37 +647,38 @@ bool Charter::exportChart()
 						for (size_t i = 0; i < chart.getNumTracelines(); i++)
 						{
 							CHNote trace;
+							double pos;
 							if (modchart)
-								trace.position = position + TICKS_PER_SAMPLE * (chart.getTraceline(i).getPivotAlpha() + double(chart.getPivotTime())) - 960;
+								pos = position + TICKS_PER_SAMPLE * (chart.getTraceline(i).getPivotAlpha() + double(chart.getPivotTime())) - 960;
 							else
-								trace.position = position + TICKS_PER_SAMPLE * (chart.getTraceline(i).getPivotAlpha() + double(chart.getPivotTime()));
+								pos = position + TICKS_PER_SAMPLE * (chart.getTraceline(i).getPivotAlpha() + double(chart.getPivotTime()));
 							trace.type = CHNote::NoteType::EVENT;
 							while (index2 < rein.size())
 							{
-								if (trace.position <= rein[index2].position)
+								if (pos <= rein[index2].position)
 									break;
 								else
 									index2++;
 							}
 							if (i + 1 != chart.getNumTracelines())
 							{
-								trace.name = chart.getTraceline(i).getAngle() == 0 ? "Trace" : "Trace_" + to_string(radiansToDegrees(chart.getTraceline(i).getAngle()));
-								rein.insert(index2, trace);
+								if (chart.getTraceline(i).getAngle() == 0)
+									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace");
+								else
+									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_" + to_string(radiansToDegrees(chart.getTraceline(i).getAngle())));
 								index2++;
 								if (chart.getTraceline(i).getCurve())
 								{
-									trace.name = "Trace_curve";
-									rein.insert(index2, trace);
+									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_curve");
 									index2++;
 								}
 							}
 							else
 							{
 								if (chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() >= (long)section.getDuration())
-									trace.name = "Trace_endP";
+									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_endP");
 								else
-									trace.name = "Trace_end";
-								rein.insert(index2, trace);
+									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_end");
 							}
 						}
 					}
@@ -1452,13 +1455,19 @@ bool Charter::importChart()
 		struct Tempo
 		{
 			unsigned long bpm = 0;
+			//In reference to the beginning of the song
 			double position_ticks = 0;
+			//In reference to the beginning of the section is resides in
 			double position_samples = 0;
 		};
 		string name = "";
+		//In reference to the beginning of the song
 		double position_ticks = 0;
+		//In reference to the beginning of the song, but calculated 
+		//using the previous songsection (if one exists) as a base
 		double position_samples = 0;
 		List<Tempo> tempos;
+		//Two lists for two players
 		List<SubSection> subs[2];
 		Section(string nam, double pos_T, double pos_S, unsigned long bpm)
 		{
@@ -1474,6 +1483,7 @@ bool Charter::importChart()
 	{
 		List<SyncTrack> tempos;
 		fscanf_s(inChart, " %c", &test, 1);
+		//Checking for the end of the synctrack section
 		while (test != '}')
 		{
 			fseek(inChart, -1, SEEK_CUR);
@@ -1485,13 +1495,18 @@ bool Charter::importChart()
 		fscanf_s(inChart, " %[^{]", ignore, 400);
 		size_t tempoIndex = 0;
 		fscanf_s(inChart, " %c", &test, 1);
+		//Checking for the end of the event section
 		while (test != '}')
 		{
 			fseek(inChart, -1, SEEK_CUR);
 			Event ev;
 			inChart >> ev;
+			//For example, if the name is "BATTLE - something,"
+			//only use "something."
 			if (ev.name.find('-') != string::npos)
 				ev.name = ev.name.substr(ev.name.find('-') + 2);
+			//Add all tempos between the current section event and the previous section
+			//to the previous section
 			while (tempoIndex + 1ULL < tempos.size() && ev.position >= tempos[tempoIndex + 1ULL].position)
 			{
 				if (ev.position > tempos[tempoIndex + 1ULL].position)
@@ -1504,6 +1519,7 @@ bool Charter::importChart()
 				tempoIndex++;
 			}
 			double pos_samples = 0;
+			//If this isn't the first section
 			if (sections.size())
 			{
 				Section::Tempo& prev = sections.back().tempos.back();
@@ -1570,6 +1586,8 @@ bool Charter::importChart()
 						//If endP
 						if ((note.name.find('P') != string::npos || note.name.find('p') != string::npos) && prevSub != nullptr)
 						{
+							//Makes sure that the resulting trace line would not interrupted
+							//If it would be, don't add it
 							if (!currSub->chart.getNumGuards() && (!currSub->chart.getNumTracelines() || (long)round(pos) == currSub->chart.getTraceline(0).getPivotAlpha()))
 							{
 								if (sections[sectIndex].position_ticks != prev->position_ticks) //Specifically, greater than
@@ -1586,6 +1604,7 @@ bool Charter::importChart()
 						else
 						{
 							trace.setPivotAlpha((long)round(pos));
+							//If the traceline is not and end piece AND has an angle tied to it
 							if (note.name.find("end") == string::npos && note.name.length() > 5)
 							{
 								try
@@ -1686,9 +1705,12 @@ bool Charter::importChart()
 				{
 					if (sectIndex2 + 1ULL != sections.size())
 					{
+						//Sets Section duration to an even and equal spacing based off marked tempo
 						const long double numBeats = (long double)round((sections[sectIndex2 + 1ULL].position_ticks - sections[sectIndex2].position_ticks) / TICKS_PER_BEAT);
 						section.setDuration((unsigned long)round(SAMPLES_PER_MIN * numBeats / section.getTempo()));
 					}
+					//This differentiation is needed due to the difference in how
+					//subsections are split in PS2 charts vs. Duet charts
 					if (!duet)
 					{
 						bool p1swapped, p2swapped;
@@ -1712,6 +1734,8 @@ bool Charter::importChart()
 											{
 												Phrase phr = imp.getPhrase(phraseIndex);
 												phr.setPivotAlpha(phr.getPivotAlpha() - chart.getPivotTime());
+												//Create a new copy so that pivot alpha values are maintained for the loop iterations
+												//Pivot alpha was previous set to total displacement from the start of the section
 												if (!phr.getStart() && chart.getNumPhrases())
 													chart.getPhrase(chart.getNumPhrases() - 1).changeEndAlpha(phr.getPivotAlpha());
 												if (!phr.getEnd() && phraseIndex + 1 == imp.getNumPhrases())
@@ -1730,6 +1754,8 @@ bool Charter::importChart()
 													chart.add(&trace);
 												}
 											}
+											//Go through every phrase bar & trace line to find places where phrase bars
+											//should be split into two pieces
 											for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < chart.getNumTracelines(); traceIndex++)
 											{
 												Traceline& trace = chart.getTraceline(traceIndex);
@@ -1759,6 +1785,7 @@ bool Charter::importChart()
 													else if (traceIndex + 1 != chart.getNumTracelines())
 														break;
 													else if (chart.getPhrase(phraseIndex).getPivotAlpha() >= trace.getPivotAlpha())
+													//If the phrase bar lands at or after the last trace line, delete
 													{
 														if (!chart.getPhrase(phraseIndex).getStart())
 															chart.getPhrase(phraseIndex - 1).setEnd(true);
@@ -1823,6 +1850,8 @@ bool Charter::importChart()
 										{
 											Phrase phr = imp.getPhrase(phraseIndex);
 											phr.setPivotAlpha(phr.getPivotAlpha() - chart.getPivotTime());
+											//Create a new copy so that pivot alpha values are maintained for the loop iterations
+											//Pivot alpha was previous set to total displacement from the start of the section
 											if (!phr.getStart() && chart.getNumPhrases())
 												chart.getPhrase(chart.getNumPhrases() - 1).changeEndAlpha(phr.getPivotAlpha());
 											if (!phr.getEnd() && phraseIndex + 1 == imp.getNumPhrases())
@@ -1841,6 +1870,8 @@ bool Charter::importChart()
 												chart.add(&trace);
 											}
 										}
+										//Go through every phrase bar & trace line to find places where phrase bars
+										//should be split into two pieces
 										for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < chart.getNumTracelines(); traceIndex++)
 										{
 											Traceline& trace = chart.getTraceline(traceIndex);
@@ -1870,6 +1901,7 @@ bool Charter::importChart()
 												else if (traceIndex + 1 != chart.getNumTracelines())
 													break;
 												else if (chart.getPhrase(phraseIndex).getPivotAlpha() >= trace.getPivotAlpha())
+												//If the phrase bar lands at or after the last trace line, delete
 												{
 													if (!chart.getPhrase(phraseIndex).getStart())
 														chart.getPhrase(phraseIndex - 1).setEnd(true);
@@ -1944,6 +1976,8 @@ bool Charter::importChart()
 		}
 		do
 		{
+			//Either yes or no will still overwrite the old CHC data currently held
+			//in the current CHC_Main object
 			cout << global.tabs << "Save " << song.shortname << " externally? [Y/N]\n";
 			switch (menuChoices("yn"))
 			{

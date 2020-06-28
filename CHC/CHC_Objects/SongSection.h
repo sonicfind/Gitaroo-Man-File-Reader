@@ -125,7 +125,7 @@ public:
 		if (index > conditions.size())
 			index = conditions.size();
 		size += 16;
-		conditions.emplace(index, args...);
+		conditions.emplace(index, 1, args...);
 		return index;
 	}
 	Condition& getCondition(size_t index);

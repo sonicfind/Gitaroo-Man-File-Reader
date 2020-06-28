@@ -436,7 +436,7 @@ void CHC_Editor::PSPToPS2()
 		if (section.numCharts & 1)
 		{
 			section.charts.emplace_back();
-			section.charts.emplace(section.numCharts);
+			section.charts.emplace(section.numCharts, 1);
 			section.numCharts++;
 		}
 		for (size_t c = 1; c < section.numCharts >> 1; c++)

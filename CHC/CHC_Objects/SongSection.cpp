@@ -14,8 +14,28 @@
  */
 #include "..\..\Header\pch.h"
 #include "SongSection.h"
+SongSection::Condition::Condition() : type(0), argument(0), trueEffect(0), falseEffect(0) {}
+
+SongSection::Condition::Condition(FILE* inFile)
+{
+	fread(&type, 16, 1, inFile);
+}
+
 //Create a SongSection object with 1 Condition and 4 Charts
-SongSection::SongSection() : conditions(1), charts(4) {}
+SongSection::SongSection()
+	: index(0), organized(false), size(384), battlePhase(Phase::INTRO), tempo(0), duration(0), conditions(1), numPlayers(4), numCharts(1), charts(4) {}
+
+//Uses a file to read in a few of the values
+//Due to the context, no conditions or charts are created
+SongSection::SongSection(FILE* inFile) : organized(false), size(384), battlePhase(Phase::INTRO), tempo(0), duration(0), numPlayers(0), numCharts(0)
+{
+	fread(&index, 4, 1, inFile);
+	fread(&name, 1, 16, inFile);
+	fread(&audio, 1, 16, inFile);
+	fread(&frames, sizeof(SSQ), 1, inFile);
+	fseek(inFile, 4, SEEK_CUR);
+}
+
 SongSection::SongSection(const SongSection& section) : conditions(section.conditions), charts(section.charts)
 {
 	index = section.index;
@@ -29,7 +49,6 @@ SongSection::SongSection(const SongSection& section) : conditions(section.condit
 	battlePhase = section.battlePhase;
 	tempo = section.tempo;
 	duration = section.duration;
-	numConditions = section.numConditions;
 	numPlayers = section.numPlayers;
 	numCharts = section.numCharts;
 }
@@ -47,21 +66,10 @@ void SongSection::operator=(const SongSection section)
 	battlePhase = section.battlePhase;
 	tempo = section.tempo;
 	duration = section.duration;
-	numConditions = section.numConditions;
 	conditions = section.conditions;
 	numPlayers = section.numPlayers;
 	numCharts = section.numCharts;
 	charts = section.charts;
-}
-
-//Add the condition to the list, at the given index
-unsigned SongSection::add(unsigned index, Condition& condition)
-{
-	if (index > numConditions) index = numConditions;
-	numConditions++;
-	size += 16;
-	conditions.insert(index, condition);
-	return index;
 }
 
 //Returns the condition at the provided index
@@ -74,7 +82,7 @@ SongSection::Condition& SongSection::getCondition(size_t index)
 	}
 	catch (...)
 	{
-		std::cout << global.tabs << "Index out of Condition range: " << numConditions << ". Returning the last condition." << std::endl;
+		std::cout << global.tabs << "Index out of Condition range: " << conditions.size() << ". Returning the last condition." << std::endl;
 		return conditions.back();
 	}
 }
@@ -82,20 +90,19 @@ SongSection::Condition& SongSection::getCondition(size_t index)
 //I think this is obvious
 bool SongSection::removeCondition(unsigned index)
 {
-	if (numConditions != 1 && index < numConditions)
+	if (conditions.size() != 1 && index < conditions.size())
 	{
-		conditions.erase(index);
 		size -= 16;
-		numConditions--;
+		conditions.erase(index);
 		std::cout << "Condition " << index + 1 << " removed" << std::endl;
 		return true;
 	}
 	else
 	{
-		if (numConditions == 1)
+		if (conditions.size() == 1)
 			std::cout << global.tabs << "Cannot delete condition - a section must have at least 1 condition" << std::endl;
 		else
-			std::cout << global.tabs << "Index out of range - # of Conditions: " << numConditions << std::endl;
+			std::cout << global.tabs << "Index out of range - # of Conditions: " << conditions.size() << std::endl;
 		return false;
 	}
 }
@@ -103,11 +110,10 @@ bool SongSection::removeCondition(unsigned index)
 //Clears all conditions minus 1
 void SongSection::clearConditions()
 {
-	if (numConditions > 1)
+	if (conditions.size() > 1)
 	{
-		conditions.erase(0, numConditions - 1); //Leave the last condition as it will ALWAYS point to another section
-		size -= 16 * (numConditions - 1);
-		numConditions = 1;
+		size -= 16 * (conditions.size() - 1);
+		conditions.erase(0, conditions.size() - 1); //Leave the last condition as it will ALWAYS point to another section
 	}
 }
 
@@ -116,7 +122,7 @@ void SongSection::operator++()
 {
 	size += numPlayers * 72;
 	for (size_t player = 0; player < numPlayers; player++)
-		charts.insert(player + (player * numCharts) + numCharts, Chart());
+		charts.emplace(player + (player * numCharts) + numCharts);
 	numCharts++;
 }
 

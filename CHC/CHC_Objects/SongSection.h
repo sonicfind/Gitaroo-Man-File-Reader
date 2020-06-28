@@ -58,15 +58,16 @@ private:
 	float tempo = 0;
 	//Total duration in samples
 	unsigned long duration = 0;
-	//Number of conditions
-	unsigned long numConditions = 1;
 	//Determines what actions to take after the section
 	struct Condition
 	{
-		unsigned long type = 0;
-		float argument = 0;
-		long trueEffect = 0;
-		long falseEffect = 0;
+		unsigned long type;
+		float argument;
+		long trueEffect;
+		long falseEffect;
+		Condition();
+		Condition(FILE* inFile);
+		Condition(Condition& cond);
 	};
 	//List of all conditions
 	List<Condition> conditions;
@@ -79,6 +80,7 @@ private:
 public:
 	static const unsigned SAMPLE_GAP = 1800;
 	SongSection();
+	SongSection(FILE* inFile);
 	SongSection(const SongSection&);
 	void operator=(const SongSection);
 	//Returns name C-string (size: 16)
@@ -115,9 +117,17 @@ public:
 	//Sets the duration of the section to the provided value
 	void setDuration(unsigned long dur) { duration = dur; }
 	//Returns the number of conditions in the section
-	unsigned long getNumCondtions() const { return numConditions; }
+	unsigned long getNumCondtions() const { return conditions.size(); }
 	//Adds a new condition to the end of the section's condition list
-	unsigned add(unsigned, Condition&);
+	template<class...Args>
+	size_t addCondition(size_t index, Args&&...args)
+	{
+		if (index > conditions.size())
+			index = conditions.size();
+		size += 16;
+		conditions.emplace(index, args...);
+		return index;
+	}
 	Condition& getCondition(size_t index);
 	bool removeCondition(unsigned);
 	//Returns the num of players assigned to this section.

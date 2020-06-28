@@ -123,16 +123,9 @@ CHC::CHC(string filename)
 	fread(&speed, 4, 1, inFile);
 	fread(&numSections, 4, 1, inFile);
 	unorganized = numSections;
-	for (unsigned sectIndex = 0; sectIndex < numSections; sectIndex++) //Cues
-	{
-		SongSection section;
-		fread(&section.index, 4, 1, inFile);
-		fread(&section.name, 1, 16, inFile);
-		fread(&section.audio, 1, 16, inFile);
-		fread(&section.frames, sizeof(SSQ), 1, inFile);
-		fseek(inFile, 4, SEEK_CUR);
-		sections.push_back(section);
-	}
+	//Uses FILE* constructor to read section cue data
+	for (unsigned sectIndex = 0; sectIndex < numSections; sectIndex++)
+		sections.emplace_back(inFile);
 	fseek(inFile, 4, SEEK_CUR);
 	bool reorganized = false;
 	for (unsigned sectIndex = 0; sectIndex < numSections; sectIndex++) //SongSections
@@ -173,10 +166,9 @@ CHC::CHC(string filename)
 		fread(&section.tempo, 4, 1, inFile);
 		fread(&section.duration, 4, 1, inFile);
 		fseek(inFile, 4, SEEK_CUR);
-		fread(&section.numConditions, 4, 1, inFile);
-		section.conditions.resize(section.numConditions);
-		for (unsigned condIndex = 0; condIndex < section.numConditions; condIndex++)
-			fread(&section.conditions[condIndex], 16, 1, inFile);
+		fread(u.c, 4, 1, inFile);
+		for (unsigned condIndex = 0; condIndex < u.ui; condIndex++)
+			section.conditions.emplace_back(inFile);
 		fread(&section.numPlayers, 4, 1, inFile);
 		if (section.numPlayers != 4)
 		{
@@ -217,39 +209,18 @@ CHC::CHC(string filename)
 				fread(&chart.pivotTime, 4, 1, inFile);
 				fread(&chart.endTime, 4, 1, inFile);
 				chart.clearTracelines();
-				fread(u.c, 1, 4, inFile); //Read but don't insert numTracelines as that will get automatically adjusted
+				fread(u.c, 1, 4, inFile); //Read number of trace lines
+				//Uses Traceline FILE* constructor
 				for (unsigned traceIndex = 0; traceIndex < u.ui; traceIndex++)
-				{
-					Traceline trace;
-					fread(&trace.pivotAlpha, 4, 1, inFile);
-					fread(&trace.duration, 4, 1, inFile);
-					fread(&trace.angle, 4, 1, inFile);
-					fread(&trace.curve, 4, 1, inFile);
-					chart.add(&trace);
-				}
-				fread(u.c, 1, 4, inFile); //Read but don't insert numPhrases as that will get automatically adjusted
+					chart.addTraceline(inFile);
+				fread(u.c, 1, 4, inFile); //Read number of Phrase bars
+				//Uses Phrase FILE* constructor
 				for (unsigned phraseIndex = 0; phraseIndex < u.ui; phraseIndex++)
-				{
-					Phrase phrase;
-					fread(&phrase.pivotAlpha, 4, 1, inFile);
-					fread(&phrase.duration, 4, 1, inFile);
-					fread(&phrase.start, 4, 1, inFile);
-					fread(&phrase.end, 4, 1, inFile);
-					fread(&phrase.animation, 4, 1, inFile);
-					fread(phrase.junk, 1, 12, inFile);
-					if (strstr(phrase.junk, "CHARTCLR"))
-						memcpy_s((char*)&phrase.color, 4, phrase.junk + 8, 4);
-					chart.add(&phrase);
-				}
-				fread(u.c, 1, 4, inFile); //Read but don't insert numGuards as that will get automatically adjusted
+					chart.addPhrase(inFile);
+				fread(u.c, 1, 4, inFile); //Read number of Guard marks
+				//Uses Guard FILE* constructor
 				for (unsigned guardIndex = 0; guardIndex < u.ui; guardIndex++)
-				{
-					Guard guard;
-					fread(&guard.pivotAlpha, 4, 1, inFile);
-					fread(&guard.button, 4, 1, inFile);
-					fseek(inFile, 8, SEEK_CUR);
-					chart.add(&guard);
-				}
+					chart.addGuard(inFile);
 				fseek(inFile, 4, SEEK_CUR);
 				section.charts.push_back(chart);
 			}
@@ -293,7 +264,7 @@ bool CHC::create(string filename)
 		fwrite(sections[sectIndex].name, 1, 16, outFile);
 		fwrite(sections[sectIndex].audio, 1, 16, outFile);
 		fwrite(&sections[sectIndex].frames, 4, 2, outFile);
-		fwrite("\0\0\0\0", 4, 1, outFile);
+		fwrite("\0\0\0\0", 1, 4, outFile);
 	}
 	fwrite(&numSections, 4, 1, outFile);
 	for (unsigned sectIndex = 0; sectIndex < numSections; sectIndex++) //SongSections
@@ -309,9 +280,9 @@ bool CHC::create(string filename)
 		fwrite(&section.battlePhase, 4, 1, outFile);
 		fwrite(&section.tempo, 4, 1, outFile);
 		fwrite(&section.duration, 4, 1, outFile);
-		fwrite("\0\0\0\0", 4, 1, outFile);
-		fwrite(&section.numConditions, 4, 1, outFile);
-		for (unsigned condIndex = 0; condIndex < section.numConditions; condIndex++)
+		fwrite("\0\0\0\0", 1, 4, outFile);
+		fwrite(&section.conditions.size(), 4, 1, outFile);
+		for (unsigned condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 			fwrite(&section.conditions[condIndex], 16, 1, outFile);
 		fwrite(&section.numPlayers, 4, 1, outFile);
 		fwrite(&section.numCharts, 4, 1, outFile);
@@ -324,20 +295,20 @@ bool CHC::create(string filename)
 				u.ui = 4864UL;
 				fwrite(u.c, 1, 4, outFile);
 				fwrite(&chart.size, 4, 1, outFile);
-				fwrite("\0\0\0\0\0\0\0\0", 8, 1, outFile);
+				fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
 				fwrite(chart.junk, 1, 16, outFile);
 				fwrite(&chart.pivotTime, 4, 1, outFile);
 				fwrite(&chart.endTime, 4, 1, outFile);
-				fwrite(&chart.numTracelines, 4, 1, outFile);
-				for (unsigned traceIndex = 0; traceIndex < chart.numTracelines; traceIndex++)
+				fwrite(&chart.tracelines.size(), 4, 1, outFile);
+				for (unsigned traceIndex = 0; traceIndex < chart.tracelines.size(); traceIndex++)
 				{
 					fwrite(&chart.tracelines[traceIndex].pivotAlpha, 4, 1, outFile);
 					fwrite(&chart.tracelines[traceIndex].duration, 4, 1, outFile);
 					fwrite(&chart.tracelines[traceIndex].angle, 4, 1, outFile);
 					fwrite(&chart.tracelines[traceIndex].curve, 4, 1, outFile);
 				}
-				fwrite(&chart.numPhrases, 4, 1, outFile);
-				for (unsigned phraseIndex = 0; phraseIndex < chart.numPhrases; phraseIndex++)
+				fwrite(&chart.phrases.size(), 4, 1, outFile);
+				for (unsigned phraseIndex = 0; phraseIndex < chart.phrases.size(); phraseIndex++)
 				{
 					fwrite(&chart.phrases[phraseIndex].pivotAlpha, 4, 1, outFile);
 					fwrite(&chart.phrases[phraseIndex].duration, 4, 1, outFile);
@@ -352,14 +323,14 @@ bool CHC::create(string filename)
 					else
 						fwrite(chart.phrases[phraseIndex].junk, 1, 12, outFile);
 				}
-				fwrite(&chart.numGuards, 4, 1, outFile);
-				for (unsigned guardIndex = 0; guardIndex < chart.numGuards; guardIndex++)
+				fwrite(&chart.guards.size(), 4, 1, outFile);
+				for (unsigned guardIndex = 0; guardIndex < chart.guards.size(); guardIndex++)
 				{
 					fwrite(&chart.guards[guardIndex].pivotAlpha, 4, 1, outFile);
 					fwrite(&chart.guards[guardIndex].button, 4, 1, outFile);
-					fwrite("\0\0\0\0\0\0\0\0", 8, 1, outFile);
+					fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
 				}
-				fwrite("\0\0\0\0", 4, 1, outFile);
+				fwrite("\0\0\0\0", 1, 4, outFile);
 			}
 		}
 		fflush(outFile);

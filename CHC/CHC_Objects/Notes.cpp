@@ -12,6 +12,7 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "..\..\Header\pch.h"
 #include "Notes.h"
 Note& Note::operator=(const Note& note)
 {
@@ -19,34 +20,23 @@ Note& Note::operator=(const Note& note)
 	return *this;
 }
 
-Path::Path(const Note& note)
+Path::Path(const Note& note) : Note(note)
 {
 	const Path* path = dynamic_cast<const Path*>(&note);
 	if (path != nullptr)
-	{
-		pivotAlpha = path->pivotAlpha;
 		duration = path->duration;
-	}
 	else
-	{
-		Note(note);
 		duration = 1;
-	}
 }
 
 Note& Path::operator=(const Note& note)
 {
+	Note::operator=(note);
 	const Path* path = dynamic_cast<const Path*>(&note);
 	if (path != nullptr)
-	{
-		pivotAlpha = path->pivotAlpha;
 		duration = path->duration;
-	}
 	else
-	{
-		Note::operator=(note);
 		duration = 1;
-	}
 	return *this;
 }
 
@@ -87,19 +77,29 @@ bool Path::changeEndAlpha(const long endAlpha)
 		return false;
 }
 
-Traceline::Traceline(const Note& note)
+Traceline::Traceline(FILE* inFile)
+{
+	if (inFile != nullptr)
+	{
+		fread(&pivotAlpha, 4, 1, inFile);
+		fread(&duration, 4, 1, inFile);
+		fread(&angle, 4, 1, inFile);
+		fread(&curve, 4, 1, inFile);
+	}
+	else
+		throw "Error creating Trace line: Bruh, open a file first.";
+}
+
+Traceline::Traceline(const Note& note) : Path(note)
 {
 	const Traceline* trace = dynamic_cast<const Traceline*>(&note);
 	if (trace != nullptr)
 	{
-		pivotAlpha = trace->pivotAlpha;
-		duration = trace->duration;
 		angle = trace->angle;
 		curve = trace->curve;
 	}
 	else
 	{
-		Path(note);
 		angle = 0;
 		curve = false;
 	}
@@ -107,17 +107,15 @@ Traceline::Traceline(const Note& note)
 
 Note& Traceline::operator=(const Note& note)
 {
+	Path::operator=(note);
 	const Traceline* trace = dynamic_cast<const Traceline*>(&note);
 	if (trace != nullptr)
 	{
-		pivotAlpha = trace->pivotAlpha;
-		duration = trace->duration;
 		angle = trace->angle;
 		curve = trace->curve;
 	}
 	else
 	{
-		Path::operator=(note);
 		angle = 0;
 		curve = false;
 	}
@@ -130,92 +128,95 @@ Phrase::Phrase() : Path(), start(true), end(true), animation(0), color(-1)
 		junk[i] = 0;
 }
 
-Phrase::Phrase(long alpha, unsigned long dur, bool st, bool ed, unsigned long anim, char* jnk, long clr) : Path(alpha, dur), start(st), end(ed), animation(anim), color(clr)
+Phrase::Phrase(FILE* inFile)
 {
-	if (jnk == nullptr)
+	if (inFile != nullptr)
 	{
-		for (unsigned char i = 0; i < 12; i++)
-			junk[i] = 0;
+		fread(&pivotAlpha, 4, 1, inFile);
+		fread(&duration, 4, 1, inFile);
+		fread(&start, 4, 1, inFile);
+		fread(&end, 4, 1, inFile);
+		fread(&animation, 4, 1, inFile);
+		fread(junk, 1, 12, inFile);
+		if (strstr(junk, "CHARTCLR"))
+			memcpy_s((char*)&color, 4, junk + 8, 4);
+		else
+			color = -1;
 	}
 	else
-	{
-		for (unsigned char i = 0; i < 12; i++)
-			junk[i] = jnk[i];
-	}
+		throw "Error creating Phrase bar: Bruh, open a file first.";
 }
 
-Phrase::Phrase(const Note& note)
+Phrase::Phrase(const Note& note) : Path(note)
 {
 	const Phrase* phrase = dynamic_cast<const Phrase*>(&note);
 	if (phrase != nullptr)
 	{
-		pivotAlpha = phrase->pivotAlpha;
-		duration = phrase->duration;
 		start = phrase->start;
 		end = phrase->end;
 		animation = phrase->animation;
-		for (unsigned char i = 0; i < 12; i++) junk[i] = phrase->junk[i];
+		for (unsigned char i = 0; i < 12; i++)
+			junk[i] = phrase->junk[i];
 	}
 	else
 	{
-		Path(note);
 		start = true;
 		end = true;
 		animation = 0;
-		for (unsigned char i = 0; i < 12; i++) junk[i] = 0;
 	}
 }
 
 Note& Phrase::operator=(const Note& note)
 {
+	Path::operator=(note);
 	const Phrase* phrase = dynamic_cast<const Phrase*>(&note);
 	if (phrase != nullptr)
 	{
-		pivotAlpha = phrase->pivotAlpha;
-		duration = phrase->duration;
 		start = phrase->start;
 		end = phrase->end;
 		animation = phrase->animation;
-		for (unsigned char i = 0; i < 12; i++) junk[i] = phrase->junk[i];
+		for (unsigned char i = 0; i < 12; i++)
+			junk[i] = phrase->junk[i];
 	}
 	else
 	{
-		Path::operator=(note);
 		start = true;
 		end = true;
 		animation = 0;
-		for (unsigned char i = 0; i < 12; i++) junk[i] = 0;
+		for (unsigned char i = 0; i < 12; i++)
+			junk[i] = 0;
 	}
 	return *this;
 }
 
-Guard::Guard(const Note& note)
+Guard::Guard(FILE* inFile)
+{
+	if (inFile != nullptr)
+	{
+		fread(&pivotAlpha, 4, 1, inFile);
+		fread(&button, 4, 1, inFile);
+		fseek(inFile, 8, SEEK_CUR);
+	}
+	else
+		throw "Error creating Guard Mark: Bruh, open a file first.";
+}
+
+Guard::Guard(const Note& note) : Note(note)
 {
 	const Guard* guard = dynamic_cast<const Guard*>(&note);
 	if (guard != nullptr)
-	{
-		pivotAlpha = guard->pivotAlpha;
 		button = guard->button;
-	}
 	else
-	{
-		Note(note);
 		button = 0;
-	}
 }
 
 Note& Guard::operator=(const Note& note)
 {
+	Note::operator=(note);
 	const Guard* guard = dynamic_cast<const Guard*>(&note);
 	if (guard != nullptr)
-	{
-		pivotAlpha = guard->pivotAlpha;
 		button = guard->button;
-	}
 	else
-	{
-		Note::operator=(note);
 		button = 0;
-	}
 	return *this;
 }

@@ -28,7 +28,7 @@ private:
 	//Short version
 	std::string shortname;
 	//Stage number
-	unsigned char stage = 0;
+	unsigned char stage;
 	//Holds header data from original file
 	char header[36] = { 0 };
 

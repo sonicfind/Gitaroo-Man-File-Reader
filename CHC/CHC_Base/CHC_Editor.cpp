@@ -223,7 +223,7 @@ void CHC_Editor::fixNotes()
 			for (unsigned chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
 			{
 				Chart& chart = section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex];
-				for (unsigned traceIndex = 1; traceIndex < chart.numTracelines; traceIndex++)
+				for (unsigned traceIndex = 1; traceIndex < chart.tracelines.size(); traceIndex++)
 				{
 					if (chart.tracelines[traceIndex - 1].angle == chart.tracelines[traceIndex].angle && !chart.tracelines[traceIndex - 1].curve)
 					{
@@ -234,7 +234,7 @@ void CHC_Editor::fixNotes()
 					}
 				}
 				unsigned long barsRemoved = 0, linesRemoved = 0;
-				for (unsigned phraseIndex = 0, traceIndex = 0; phraseIndex < chart.numPhrases; phraseIndex++)
+				for (unsigned phraseIndex = 0, traceIndex = 0; phraseIndex < chart.phrases.size(); phraseIndex++)
 				{
 					Phrase& phrase = chart.phrases[phraseIndex];
 					if (phraseIndex && phrase.start)
@@ -247,7 +247,7 @@ void CHC_Editor::fixNotes()
 							phrasesShortened++;
 						}
 					}
-					for (; traceIndex < chart.numTracelines; traceIndex++)
+					for (; traceIndex < chart.tracelines.size(); traceIndex++)
 						if (chart.tracelines[traceIndex].contains(phrase.pivotAlpha))
 							break;
 					while ((phrase.start && !phrase.end)
@@ -258,7 +258,7 @@ void CHC_Editor::fixNotes()
 						phrase.end = chart.phrases[phraseIndex + 1ULL].end;
 						for (size_t i = 0; i < 12; i++)
 							phrase.junk[i] = chart.phrases[phraseIndex + 1ULL].junk[i];
-						for (; traceIndex < chart.numTracelines; traceIndex++)
+						for (; traceIndex < chart.tracelines.size(); traceIndex++)
 						{
 							if (chart.tracelines[traceIndex].contains(chart.phrases[phraseIndex + 1ULL].pivotAlpha))
 							{
@@ -279,9 +279,9 @@ void CHC_Editor::fixNotes()
 				}
 				tracelinesDeleted += linesRemoved;
 				phrasesDeleted += barsRemoved;
-				for (unsigned guardIndex = 0; guardIndex < chart.numGuards; guardIndex++)
+				for (unsigned guardIndex = 0; guardIndex < chart.guards.size(); guardIndex++)
 				{
-					while (guardIndex + 1 < chart.numGuards && chart.guards[guardIndex].pivotAlpha + 1600 > chart.guards[guardIndex + 1ULL].pivotAlpha)
+					while (guardIndex + 1 < chart.guards.size() && chart.guards[guardIndex].pivotAlpha + 1600 > chart.guards[guardIndex + 1ULL].pivotAlpha)
 					{
 						cout << global.tabs << section.name << " - Subsection #" << playerIndex * section.numCharts + chartIndex << ": ";
 						chart.remove(guardIndex + 1, 'g');
@@ -300,7 +300,7 @@ void CHC_Editor::fixNotes()
 				{
 					if (section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex].getNumPhrases() > 0)
 					{
-						for (unsigned condIndex = 0; condIndex < section.numConditions; condIndex++)
+						for (unsigned condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 						{
 							long* effect = &section.conditions[condIndex].trueEffect;
 							for (size_t i = 0; i < 2; i++, effect++)
@@ -308,16 +308,16 @@ void CHC_Editor::fixNotes()
 								if (*effect >= 0)
 								{
 									Chart& chart = section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex];
-									long endTime = section.duration - (chart.phrases[chart.numPhrases - 1].getEndAlpha() + chart.pivotTime);
+									long endTime = section.duration - (chart.phrases[chart.phrases.size() - 1].getEndAlpha() + chart.pivotTime);
 									Chart& chart2 = song.sections[*effect].charts[(unsigned long long)playerIndex * song.sections[*effect].numCharts];
-									if (chart2.numPhrases)
+									if (chart2.phrases.size())
 									{
 										long startTime = chart2.phrases[0].pivotAlpha + chart2.pivotTime;
 										if (startTime + endTime < section.SAMPLE_GAP)
 										{
-											chart.phrases[chart.numPhrases - 1].changeEndAlpha((long)(section.duration - startTime - section.SAMPLE_GAP - chart.pivotTime));
+											chart.phrases[chart.phrases.size() - 1].changeEndAlpha((long)(section.duration - startTime - section.SAMPLE_GAP - chart.pivotTime));
 											cout << global.tabs << section.name << " - Subsection #" << playerIndex * section.numCharts + chartIndex << ": ";
-											cout << "Phrase bar #" << chart.numPhrases - 1 << " shortened" << endl;
+											cout << "Phrase bar #" << chart.phrases.size() - 1 << " shortened" << endl;
 											phrasesShortened++;
 										}
 									}
@@ -337,9 +337,9 @@ void CHC_Editor::fixNotes()
 				{
 					for (int playerIndex = section.numPlayers - 2 + p; !global.quit && playerIndex >= 0; playerIndex -= 2)
 					{
-						if (section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex].numPhrases != 0)
+						if (section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex].phrases.size() != 0)
 						{
-							for (unsigned condIndex = 0; condIndex < section.numConditions; condIndex++)
+							for (unsigned condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 							{
 								long* effect = &section.conditions[condIndex].trueEffect;
 								for (size_t i = 0; i < 2; i++, effect++)
@@ -347,16 +347,16 @@ void CHC_Editor::fixNotes()
 									if (*effect >= 0)
 									{
 										Chart& chart = section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex];
-										long endTime = section.duration - (chart.phrases[chart.numPhrases - 1].getEndAlpha() + chart.pivotTime);
+										long endTime = section.duration - (chart.phrases[chart.phrases.size() - 1].getEndAlpha() + chart.pivotTime);
 										Chart& chart2 = song.sections[*effect].charts[(unsigned long long)p * song.sections[*effect].numCharts];
-										if (chart2.numPhrases)
+										if (chart2.phrases.size())
 										{
 											long startTime = chart2.phrases[0].pivotAlpha + chart2.pivotTime;
 											if (startTime + endTime < section.SAMPLE_GAP)
 											{
-												chart.phrases[chart.numPhrases - 1].changeEndAlpha((long)(section.duration - startTime - section.SAMPLE_GAP - chart.pivotTime));
+												chart.phrases[chart.phrases.size() - 1].changeEndAlpha((long)(section.duration - startTime - section.SAMPLE_GAP - chart.pivotTime));
 												cout << global.tabs << section.name << " - Subsection #" << playerIndex * section.numCharts + chartIndex << ": ";
-												cout << "Phrase bar #" << chart.numPhrases - 1 << " shortened" << endl;
+												cout << "Phrase bar #" << chart.phrases.size() - 1 << " shortened" << endl;
 												phrasesShortened++;
 											}
 										}
@@ -1010,7 +1010,7 @@ void CHC_Editor::rearrange()
 		}
 		for (unsigned sectIndex = 0; sectIndex < song.numSections; sectIndex++)
 		{
-			for (unsigned condIndex = 0; condIndex < song.sections[sectIndex].numConditions; condIndex++)
+			for (unsigned condIndex = 0; condIndex < song.sections[sectIndex].conditions.size(); condIndex++)
 			{
 				long* effect = &song.sections[sectIndex].conditions[condIndex].trueEffect;
 				for (size_t eff = 0; eff < 2; eff++, effect++)
@@ -1192,7 +1192,7 @@ bool CHC_Editor::pathTest(size_t startIndex, bool show)
 			{
 				if (conditionTested[sectIndex] != nullptr)
 				{
-					for (size_t condIndex = 0; condIndex < song.sections[sectIndex].numConditions; sectIndex++)
+					for (size_t condIndex = 0; condIndex < song.sections[sectIndex].conditions.size(); sectIndex++)
 						conditionTested[sectIndex][condIndex] = false;
 				}
 			}
@@ -1217,7 +1217,7 @@ bool CHC_Editor::pathTest(size_t startIndex, bool show)
 		}
 		for (size_t sectIndex = 0; sectIndex < song.numSections; sectIndex++)
 			if (conditionTested[sectIndex] != nullptr)
-				delete[song.sections[sectIndex].numConditions] conditionTested[sectIndex];
+				delete[song.sections[sectIndex].conditions.size()] conditionTested[sectIndex];
 		bool res = results[startIndex];
 		delete[song.numSections] results;
 		delete[song.numSections] conditionTested;
@@ -1234,8 +1234,8 @@ char CHC_Editor::testSection(size_t sectIndex, bool** conditionTested, bool* res
 		if (reach != nullptr)
 			reach[sectIndex] = true;
 		if (conditionTested[sectIndex] == nullptr)
-			conditionTested[sectIndex] = new bool[song.sections[sectIndex].numConditions]();
-		for (size_t c = 0; c < song.sections[sectIndex].numConditions; c++)
+			conditionTested[sectIndex] = new bool[song.sections[sectIndex].conditions.size()]();
+		for (size_t c = 0; c < song.sections[sectIndex].conditions.size(); c++)
 		{
 			if (!conditionTested[sectIndex][c])
 			{
@@ -1436,7 +1436,7 @@ void CHC_Editor::reorganize(SongSection& section)
 						index++;
 					}
 					index = 0;
-					for (size_t i = 0; i < ch.numPhrases; i++)
+					for (size_t i = 0; i < ch.phrases.size(); i++)
 					{
 						while (index < player.size())
 						{
@@ -1449,9 +1449,9 @@ void CHC_Editor::reorganize(SongSection& section)
 						index++;
 					}
 					index = 0;
-					if (ch.numTracelines > 1)
+					if (ch.tracelines.size() > 1)
 					{
-						for (size_t i = 0; i < ch.numTracelines; i++)
+						for (size_t i = 0; i < ch.tracelines.size(); i++)
 						{
 							while (index < player.size())
 							{
@@ -1467,7 +1467,7 @@ void CHC_Editor::reorganize(SongSection& section)
 				}
 				else
 				{
-					for (size_t i = 0; i < ch.numPhrases; i++)
+					for (size_t i = 0; i < ch.phrases.size(); i++)
 					{
 						while (index < player.size())
 						{
@@ -1480,9 +1480,9 @@ void CHC_Editor::reorganize(SongSection& section)
 						index++;
 					}
 					index = 0;
-					if (ch.numTracelines > 1)
+					if (ch.tracelines.size() > 1)
 					{
-						for (size_t i = 0; i < ch.numTracelines; i++)
+						for (size_t i = 0; i < ch.tracelines.size(); i++)
 						{
 							while (index < player.size())
 							{
@@ -1579,7 +1579,7 @@ void CHC_Editor::reorganize(SongSection& section)
 									{
 										long endAlpha = notes[pl][ntIndex + 1ULL].first - SongSection::SAMPLE_GAP - 1 - currentChart->pivotTime;
 										float angle = 0;
-										for (int t = currentChart->numTracelines - 1; t >= 0;)
+										for (int t = currentChart->tracelines.size() - 1; t >= 0;)
 										{
 											//If the new end point is less than or equal to the last trace line's pivot
 											if (!currentChart->tracelines[t].changeEndAlpha(endAlpha))
@@ -1589,10 +1589,10 @@ void CHC_Editor::reorganize(SongSection& section)
 												//Remove trace line
 												cout << global.tabs << section.name << ": ";
 												currentChart->remove(t--, 't');
-												if (currentChart->numTracelines)
+												if (currentChart->tracelines.size())
 												{
 													//Same idea for phrase bars
-													for (int p = currentChart->numPhrases - 1; p >= 0;)
+													for (int p = currentChart->phrases.size() - 1; p >= 0;)
 													{
 														//If the phrase bar is past the trace line
 														if (currentChart->tracelines[t].getEndAlpha() <= currentChart->phrases[p].pivotAlpha)
@@ -1614,7 +1614,7 @@ void CHC_Editor::reorganize(SongSection& section)
 												}
 												else
 												{
-													for (int p = currentChart->numPhrases - 1; p >= 0;)
+													for (int p = currentChart->phrases.size() - 1; p >= 0;)
 													{
 														cout << global.tabs << section.name << ": ";
 														currentChart->remove(p--, 'p');
@@ -1624,7 +1624,7 @@ void CHC_Editor::reorganize(SongSection& section)
 											else
 												break;
 										}
-										if (currentChart->numTracelines)
+										if (currentChart->tracelines.size())
 										{
 											Traceline* tr2 = new Traceline(endAlpha, 1, angle);
 											currentChart->add(tr2);
@@ -1651,7 +1651,7 @@ void CHC_Editor::reorganize(SongSection& section)
 								//If there is enough distance between these guard marks in a duet or tutorial stage
 								if ((duet || song.stage == 0 || song.stage == 11 || song.stage == 12) && notes[pl][ntIndex + 1ULL].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
 								{
-									if (!currentChart->numTracelines)
+									if (!currentChart->tracelines.size())
 									{
 										//Move chartPivot in between these two notes
 										//Calculate the value adjustment
@@ -1659,7 +1659,7 @@ void CHC_Editor::reorganize(SongSection& section)
 										//Adjust the chartAlpha
 										currentChart->adjustPivotTime(pivotDifference);
 										//Adjust the pivot alphas of inserted notes
-										for (unsigned long grdIndex = 0; grdIndex < currentChart->numGuards; grdIndex++)
+										for (unsigned long grdIndex = 0; grdIndex < currentChart->guards.size(); grdIndex++)
 											currentChart->guards[grdIndex].adjustPivotAlpha(-pivotDifference);
 									}
 									currentChart->setEndTime(notes[pl][ntIndex].first + long(SAMPLES_PER_BEAT));
@@ -1689,7 +1689,7 @@ void CHC_Editor::reorganize(SongSection& section)
 									//If there is enough distance between these guard marks in the tutorial or a duet stage
 									if ((duet || song.stage == 0 || song.stage == 11 || song.stage == 12) && notes[pl][ntIndex + 1ULL].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
 									{
-										if (!currentChart->numTracelines)
+										if (!currentChart->tracelines.size())
 										{
 											//Move chartPivot in between these two notes
 											//Calculate the value adjustment
@@ -1697,7 +1697,7 @@ void CHC_Editor::reorganize(SongSection& section)
 											//Adjust the chartAlpha
 											currentChart->adjustPivotTime(pivotDifference);
 											//Adjust the pivot alphas of inserted notes
-											for (unsigned long grdIndex = 0; grdIndex < currentChart->numGuards; grdIndex++)
+											for (unsigned long grdIndex = 0; grdIndex < currentChart->guards.size(); grdIndex++)
 												currentChart->guards[grdIndex].adjustPivotAlpha(-pivotDifference);
 										}
 										currentChart->setEndTime(notes[pl][ntIndex].first + long(SAMPLES_PER_BEAT));
@@ -1714,7 +1714,7 @@ void CHC_Editor::reorganize(SongSection& section)
 										//Adjust the chartAlpha
 										currentChart->adjustPivotTime(pivotDifference);
 										//Adjust the pivot alphas of inserted notes
-										for (unsigned long grdIndex = 0; grdIndex < currentChart->numGuards; grdIndex++)
+										for (unsigned long grdIndex = 0; grdIndex < currentChart->guards.size(); grdIndex++)
 											currentChart->guards[grdIndex].adjustPivotAlpha(-pivotDifference);
 									}
 									else
@@ -1746,7 +1746,7 @@ void CHC_Editor::reorganize(SongSection& section)
 								{
 									long endAlpha = notes[pl][ntIndex + 1ULL].first - SongSection::SAMPLE_GAP - 1 - currentChart->pivotTime;
 									float angle = 0;
-									for (int t = currentChart->numTracelines - 1; t >= 0;)
+									for (int t = currentChart->tracelines.size() - 1; t >= 0;)
 									{
 										//If the new end point is less than or equal to the last trace line's pivot
 										if (!currentChart->tracelines[t].changeEndAlpha(endAlpha))
@@ -1756,10 +1756,10 @@ void CHC_Editor::reorganize(SongSection& section)
 											//Remove trace line
 											cout << global.tabs << section.name << ": ";
 											currentChart->remove(t--, 't');
-											if (currentChart->numTracelines)
+											if (currentChart->tracelines.size())
 											{
 												//Same idea for phrase bars
-												for (int p = currentChart->numPhrases - 1; p >= 0;)
+												for (int p = currentChart->phrases.size() - 1; p >= 0;)
 												{
 													//If the phrase bar is past the trace line
 													if (currentChart->tracelines[t].getEndAlpha() <= currentChart->phrases[p].pivotAlpha)
@@ -1781,7 +1781,7 @@ void CHC_Editor::reorganize(SongSection& section)
 											}
 											else
 											{
-												for (int p = currentChart->numPhrases - 1; p >= 0;)
+												for (int p = currentChart->phrases.size() - 1; p >= 0;)
 												{
 													cout << global.tabs << section.name << ": ";
 													currentChart->remove(p--, 'p');
@@ -1790,7 +1790,7 @@ void CHC_Editor::reorganize(SongSection& section)
 										}
 										else
 										{
-											for (int p = currentChart->numPhrases - 1; p >= 0;)
+											for (int p = currentChart->phrases.size() - 1; p >= 0;)
 											{
 												//If the phrase bar is past the trace line
 												if (currentChart->tracelines[t].getEndAlpha() <= currentChart->phrases[p].pivotAlpha)
@@ -1812,7 +1812,7 @@ void CHC_Editor::reorganize(SongSection& section)
 											break;
 										}
 									}
-									if (currentChart->numTracelines)
+									if (currentChart->tracelines.size())
 									{
 										Traceline* tr = new Traceline(endAlpha, 1, angle);
 										currentChart->add(tr);
@@ -1858,14 +1858,13 @@ void CHC_Editor::reorganize(SongSection& section)
 		{
 			size_t perChart = newCharts[pl].size();
 			for (unsigned ch = 0; ch < newCharts[pl].size(); ch++)
-				if (perChart > 1 && !(newCharts[pl][ch].numGuards + newCharts[pl][ch].numPhrases) && newCharts[pl][ch].numTracelines <= 1)
+				if (perChart > 1 && !(newCharts[pl][ch].guards.size() + newCharts[pl][ch].phrases.size()) && newCharts[pl][ch].tracelines.size() <= 1)
 					perChart--;
 			if (perChart > chartCount)
 				chartCount = newCharts[pl].size();
 		}
 		if (chartCount != section.numCharts)
 			section.numCharts = (unsigned long)chartCount;
-		section.charts.clear();
 		unsigned long total;
 		if (!duet)
 		{
@@ -1873,15 +1872,16 @@ void CHC_Editor::reorganize(SongSection& section)
 			for (unsigned pl = 0; pl < 4; pl += 2)
 			{
 				for (unsigned ch = 0; ch < newCharts[pl].size(); ch++)
-					if (newCharts[pl][ch].numGuards + newCharts[pl][ch].numPhrases || newCharts[pl][ch].numTracelines <= 1)
+					if (newCharts[pl][ch].guards.size() + newCharts[pl][ch].phrases.size() || newCharts[pl][ch].tracelines.size() <= 1)
 						total1++;
 				for (unsigned ch = 0; ch < newCharts[pl + 1].size(); ch++)
-					if (newCharts[pl + 1][ch].numGuards + newCharts[pl + 1][ch].numPhrases || newCharts[pl + 1][ch].numTracelines <= 1)
+					if (newCharts[pl + 1][ch].guards.size() + newCharts[pl + 1][ch].phrases.size() || newCharts[pl + 1][ch].tracelines.size() <= 1)
 						total2++;
 			}
 			total = total1 >= total2 ? total1 : total2;
 		}
-		section.size = 64 + 16 * section.numConditions;
+		section.charts.clear();
+		section.size = 64 + 16 * section.conditions.size();
 		for (unsigned pl = 0; pl < 4; pl++)
 		{
 			while (newCharts[pl].size() > section.numCharts)
@@ -2226,7 +2226,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 		banner(" " + song.shortname + ".CHC - Section " + section.name + " - Condition Selection ", 1.5);
 		cout << " i ||Condition Type || Argument ||      True Effect      ||      False Effect     ||\n";
 		cout << "======================================================================================||\n";
-		for (unsigned long condIndex = 0; condIndex < section.numConditions; condIndex++)
+		for (unsigned long condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 		{
 			cout << global.tabs << ' ' << condIndex << " || ";
 			switch (section.conditions[condIndex].type)
@@ -2255,8 +2255,8 @@ void CHC_Editor::conditionMenu(SongSection& section)
 		}
 		cout << "======================================================================================||\n";
 		cout << global.tabs << "Type the number for the condition that you wish to edit\n";
-		unsigned long val;
-		switch (valueInsert(val, false, 0UL, section.numConditions - 1))
+		size_t val;
+		switch (valueInsert(val, false, size_t(0), section.conditions.size() - 1))
 		{
 		case 0:
 			global.quit = true;
@@ -2309,7 +2309,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 						cout << "Go to Condition " << val - section.conditions[val].falseEffect << '\n';
 					choices += 'f';
 				}
-				if (section.numConditions > 1)
+				if (section.conditions.size() > 1)
 				{
 					cout << global.tabs << "D - Delete this condition\n";
 					choices += 'd';

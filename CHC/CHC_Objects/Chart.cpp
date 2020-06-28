@@ -16,35 +16,25 @@
 #include "Chart.h"
 
 //Creates Chart object with 1 Trace line
-Chart::Chart() : tracelines(1)
+Chart::Chart() : size(76), pivotTime(0), endTime(0), tracelines(1)
 {
 	size = 76;
 	pivotTime = endTime = 0;
-	numTracelines = 1;
-	numPhrases = 0;
-	numGuards = 0;
 }
 
-Chart::Chart(const Chart& chart) : tracelines(chart.tracelines), phrases(chart.phrases), guards(chart.guards)
-{
-	size = chart.size;
-	for (unsigned index = 0; index < 16; index++) junk[index] = chart.junk[index];
-	pivotTime = chart.pivotTime;
-	endTime = chart.endTime;
-	numTracelines = chart.numTracelines;
-	numPhrases = chart.numPhrases;
-	numGuards = chart.numGuards;
+Chart::Chart(const Chart& chart)
+	: size(chart.size), pivotTime(chart.pivotTime), endTime(chart.endTime), tracelines(chart.tracelines), phrases(chart.phrases), guards(chart.guards) {
+	for (unsigned index = 0; index < 16; index++)
+		junk[index] = chart.junk[index];
 }
 
 void Chart::operator=(const Chart chart)
 {
 	size = chart.size;
-	for (unsigned index = 0; index < 16; index++) junk[index] = chart.junk[index];
+	for (unsigned index = 0; index < 16; index++)
+		junk[index] = chart.junk[index];
 	pivotTime = chart.pivotTime;
 	endTime = chart.endTime;
-	numTracelines = chart.numTracelines;
-	numPhrases = chart.numPhrases;
-	numGuards = chart.numGuards;
 	tracelines = chart.tracelines;
 	phrases = chart.phrases;
 	guards = chart.guards;
@@ -74,7 +64,7 @@ Traceline& Chart::getTraceline(size_t index)
 	}
 	catch (...)
 	{
-		throw "Index out of Trace line range: " + std::to_string(numTracelines) + '.';
+		throw "Index out of Trace line range: " + std::to_string(tracelines.size()) + '.';
 	}
 }
 
@@ -86,7 +76,7 @@ Phrase& Chart::getPhrase(size_t index)
 	}
 	catch (...)
 	{
-		throw "Index out of Phrase bar range: " + std::to_string(numPhrases) + '.';
+		throw "Index out of Phrase bar range: " + std::to_string(phrases.size()) + '.';
 	}
 }
 
@@ -98,94 +88,49 @@ Guard& Chart::getGuard(size_t index)
 	}
 	catch (...)
 	{
-		throw "Index out of Guard mark range: " + std::to_string(numGuards) + '.';
+		throw "Index out of Guard mark range: " + std::to_string(guards.size()) + '.';
 	}
 }
 
 //Add a note to its corresponding List in ascending pivotAlpha order
-unsigned Chart::add(Note* note)
+size_t Chart::add(Note* note)
 {
 	if (dynamic_cast<Traceline*>(note) != nullptr)		//Checks if it's a Traceline object
 	{
-		Traceline* trace = static_cast<Traceline*>(note);
-		unsigned index = 0;
-		for (; index < numTracelines; index++)
-		{
-			if (*trace == tracelines[index])		//Replace the note values
-			{
-				tracelines[index] = *trace;
-				return index;
-			}
-			else if (*trace < tracelines[index])		//Insert before current iteration
-				break;
-		}
-		numTracelines++;
 		size += 16;
-		tracelines.insert(index, *trace);
-		return index;
+		return tracelines.emplace_ordered(*static_cast<Traceline*>(note));
 	}
 	else if (dynamic_cast<Phrase*>(note) != nullptr)		//Checks if it's a Phrase Bar object
 	{
-		Phrase* phrase = static_cast<Phrase*>(note);
-		unsigned index = 0;
-		for (; index < numPhrases; index++)
-		{
-			if (*phrase == phrases[index])		//Replace the note values
-			{
-				phrases[index] = *phrase;
-				return index;
-			}
-			else if (*phrase < phrases[index])		//Insert before current iteration
-				break;
-		}
-		numPhrases++;
 		size += 32;
-		phrases.insert(index, *phrase);
-		return index;
+		return phrases.emplace_ordered(*static_cast<Phrase*>(note));
 	}
 	else if (dynamic_cast<Guard*>(note) != nullptr)		//Checks if it's a Guard Mark object
 	{
-		Guard* guard = static_cast<Guard*>(note);
-		unsigned index = 0;
-		for (; index < numGuards; index++)
-		{
-			if (*guard == guards[index])		//Replace the note values
-			{
-				guards[index] = *guard;
-				return index;
-			}
-			else if (*guard < guards[index])		//Insert before current iteration
-				break;
-		}
-		numGuards++;
 		size += 16;
-		guards.insert(index, *guard);
-		return index;
+		return guards.emplace_ordered(*static_cast<Guard*>(note));
 	}
 	else
 		throw "Invalid note type";
 }
 
 //Quickly push a new note to the end of its corresponding list based on type
-void Chart::push_back(Note* note)
+void Chart::add_back(Note* note)
 {
 	if (dynamic_cast<Traceline*>(note) != nullptr)		//Checks if it's a Traceline object
 	{
-		numTracelines++;
 		size += 16;
-		tracelines.push_back(*static_cast<Traceline*>(note));
+		tracelines.emplace_back(*static_cast<Traceline*>(note));
 	}
 	else if (dynamic_cast<Phrase*>(note) != nullptr)	//Checks if it's a Phrase Bar object
 	{
-		numPhrases++;
 		size += 32;
-		phrases.push_back(*static_cast<Phrase*>(note));
+		phrases.emplace_back(*static_cast<Phrase*>(note));
 	}
 	else if (dynamic_cast<Guard*>(note) != nullptr)		//Checks if it's a Guard Mark object
 	{
-		numGuards++;
 		size += 16;
-		guards.push_back(*static_cast<Guard*>(note));
+		guards.emplace_back(*static_cast<Guard*>(note));
 	}
 	else
 	{
@@ -201,21 +146,18 @@ bool Chart::resize(long numElements, char type)
 	{
 	case 'T':
 	case 't':
+		size += 16 * (numElements - (long)tracelines.size());
 		tracelines.resize(numElements);
-		size += 16 * (numElements - numTracelines);
-		numTracelines = numElements;
 		return true;
 	case 'P':
 	case 'p':
+		size += 32 * (numElements - (long)phrases.size());
 		phrases.resize(numElements);
-		size += 32 * (numElements - numPhrases);
-		numPhrases = numElements;
 		return true;
 	case 'G':
 	case 'g':
+		size += 16 * (numElements - (long)guards.size());
 		guards.resize(numElements);
-		size += 16 * (numElements - numGuards);
-		numGuards = numElements;
 		return true;
 	default:
 		return false;
@@ -233,53 +175,50 @@ bool Chart::remove(unsigned index, char type, unsigned long extra)
 	{
 	case 'T':
 	case 't':
-		if ((numPhrases + numGuards || numTracelines > 1) && index < numTracelines)
+		if ((phrases.size() + guards.size() || tracelines.size() > 1) && index < tracelines.size())
 		{
-			tracelines.erase(index);
 			size -= 16;
-			numTracelines--;
+			tracelines.erase(index);
 			std::cout << "Trace line #" << index + extra << " removed" << std::endl;
 			return true;
 		}
 		else
 		{
-			if (numTracelines == 1)
+			if (tracelines.size() == 1)
 				std::cout << "Cannot delete this trace line as a chart must always have at least one note" << std::endl;
 			else
-				std::cout << "Index out of range - # of Trace Lines: " << numTracelines << std::endl;
+				std::cout << "Index out of range - # of Trace Lines: " << tracelines.size() << std::endl;
 			return false;
 		}
 	case 'P':
 	case 'p':
-		if (index < numPhrases)
+		if (index < phrases.size())
 		{
-			phrases.erase(index);
 			size -= 32;
-			numPhrases--;
+			phrases.erase(index);
 			std::cout << "Phrase bar #" << index + extra << " removed" << std::endl;
 			return true;
 		}
 		else
 		{
-			std::cout << "Index out of range - # of Phrase bars: " << numPhrases << std::endl;
+			std::cout << "Index out of range - # of Phrase bars: " << phrases.size() << std::endl;
 			return false;
 		}
 	case 'G':
 	case 'g':
-		if ((numPhrases + numTracelines || numGuards > 1) && index < numGuards)
+		if ((phrases.size() + tracelines.size() || guards.size() > 1) && index < guards.size())
 		{
-			guards.erase(index);
 			size -= 16;
-			numGuards--;
+			guards.erase(index);
 			std::cout << "Guard mark #" << index + extra << " removed" << std::endl;
 			return true;
 		}
 		else
 		{
-			if (numGuards == 1)
+			if (guards.size() == 1)
 				std::cout << "Cannot delete this Guard Mark as a chart must always have at least one note" << std::endl;
 			else
-				std::cout << "Index out of range - # of Guard mark: " << numGuards << std::endl;
+				std::cout << "Index out of range - # of Guard mark: " << guards.size() << std::endl;
 			return false;
 		}
 	default:
@@ -290,41 +229,34 @@ bool Chart::remove(unsigned index, char type, unsigned long extra)
 //Full clear minus 1 Trace line
 void Chart::clear()
 {
-	if (numTracelines > 1)
+	if (tracelines.size() > 1)
 	{
-		tracelines.erase(0, numTracelines - 1);
-		size -= 16 * (numTracelines - 1);
-		numTracelines = 1;
+		size -= 16 * (tracelines.size() - 1);
+		tracelines.erase(0, tracelines.size() - 1);
 	}
+	size -= 32 * phrases.size();
 	phrases.clear();
-	size -= 32 * numPhrases;
-	numPhrases = 0;
+	size -= 16 * guards.size();
 	guards.clear();
-	size -= 16 * numGuards;
-	numGuards = 0;
-
 }
 
 //Full clear of Trace lines
 void Chart::clearTracelines()
 {
+	size -= 16 * tracelines.size();
 	tracelines.clear();
-	size -= 16 * numTracelines;
-	numTracelines = 0;
 }
 
 //Full clear of Phrase bars
 void Chart::clearPhrases()
 {
+	size -= 32 * phrases.size();
 	phrases.clear();
-	size -= 32 * numPhrases;
-	numPhrases = 0;
 }
 
 //Full clear of Guard marks
 void Chart::clearGuards()
 {
+	size -= 16 * guards.size();
 	guards.clear();
-	size -= 16 * numGuards;
-	numGuards = 0;
 }

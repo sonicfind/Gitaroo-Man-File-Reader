@@ -526,8 +526,8 @@ void CHC_Main::printTxt()
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Tempo: %g\n", section.tempo);
 			fprintf(outTXT, "\t\t\t    Samples/Beat: %Lg\n", SAMPLES_PER_MIN / section.tempo);
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\tDuration: %lu samples\n", section.duration);
-			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t # of Conditions: %lu\n", section.numConditions);
-			for (unsigned condIndex = 0; condIndex < section.numConditions; condIndex++)
+			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t # of Conditions: %lu\n", section.conditions.size());
+			for (unsigned condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 			{
 				SongSection::Condition& cond = section.conditions[condIndex];
 				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Condition %lu:\n", condIndex + 1);

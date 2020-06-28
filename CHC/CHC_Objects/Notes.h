@@ -13,6 +13,7 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
+
 class Note
 {
 	friend class CHC_Editor;
@@ -97,6 +98,7 @@ private:
 	unsigned long curve = false;
 public:
 	Traceline() : Path(), angle(0), curve(false) {}
+	Traceline(FILE* inFile);
 	Traceline(long alpha, unsigned long dur = 1, float ang = 0, bool cur = false) : Path(alpha, dur), angle(ang), curve(cur) {}
 	Traceline(const Note& note);
 	Note& operator=(const Note& note);
@@ -133,7 +135,9 @@ private:
 	long color;
 public:
 	Phrase();
-	Phrase(long alpha, unsigned long dur = 1, bool st = true, bool ed = true, unsigned long anim = 0, char* jnk = nullptr, long clr = -1);
+	Phrase(FILE* inFile);
+	Phrase(long alpha, unsigned long dur = 1, bool st = true, bool ed = true, unsigned long anim = 0, long clr = -1)
+		: Path(alpha, dur), start(st), end(ed), animation(anim), color(clr) {}
 	Phrase(const Note& note);
 	Note& operator=(const Note& note);
 	~Phrase() {};
@@ -170,7 +174,12 @@ private:
 	unsigned long button = 0;
 public:
 	Guard() : Note(), button(1) {}
-	Guard(long alpha, unsigned long but = 0) : Note(alpha), button(but) {}
+	Guard(FILE* inFile);
+	Guard(long alpha, unsigned long but = 0) : Note(alpha), button(but)
+	{
+		if (button > 3)
+			throw "Error: Invalid button choice for Guard Mark";
+	}
 	~Guard() {};
 	Guard(const Note& note);
 	Note& operator=(const Note& note);

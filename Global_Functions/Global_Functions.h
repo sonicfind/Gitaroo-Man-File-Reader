@@ -30,8 +30,8 @@ struct FileType
 	{
 		const wchar_t* name;
 		HINSTANCE dll = nullptr;
-		dllPair() {}
-		dllPair(const wchar_t* nam) : name(nam) {}
+		dllPair() : name(nullptr), dll(nullptr) {}
+		dllPair(const wchar_t* nam) : name(nam), dll(nullptr) {}
 		//dllPair(dllPair& pair) : name(pair.name), dll(pair.dll) {}
 		~dllPair();
 	};

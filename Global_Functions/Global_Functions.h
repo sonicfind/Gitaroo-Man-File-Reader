@@ -70,19 +70,18 @@ extern "C" GLOBALFUNCTIONS_API GlobalVars global;
 
 extern "C" GLOBALFUNCTIONS_API bool LoadLib(FileType::dllPair& pair);
 extern "C" GLOBALFUNCTIONS_API bool FreeLib(HINSTANCE & lib);
-extern "C" GLOBALFUNCTIONS_API char loadProc(HINSTANCE & lib, std::string proc);
 /*
 Searches for a function with the given name (proc) inside the provided dll (lib).
 If found, it will use object as the parameter and return the result.
 Otherwise, it will return -1.
 */
-template<typename T>
-extern char loadProc(HINSTANCE& lib, std::string proc, T& object)
+template<class...Args>
+extern char loadProc(HINSTANCE& lib, std::string proc, Args&&... args)
 {
-	typedef bool(__cdecl* MYPROC)(T&);
+	typedef bool(__cdecl* MYPROC)(Args&&...);
 	MYPROC ProcAdd = (MYPROC)GetProcAddress(lib, proc.c_str());
 	if (ProcAdd)
-		return ProcAdd(object);
+		return ProcAdd(args...);
 	else
 	{
 		std::cout << global.tabs << proc << " failed to load" << std::endl;

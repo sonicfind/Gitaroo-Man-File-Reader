@@ -13,6 +13,7 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
+
 /*
 	A template class for holding a list of objects of any single type
 */
@@ -32,10 +33,17 @@ private:
 		T data;
 		Node* prev;
 		Node* next;
-		Node(Node* pr = nullptr, Node* nt = nullptr) : prev(pr), next(nt) {}
-		Node(T newData, Node* pr = nullptr, Node* nt = nullptr) : data(newData), prev(pr), next(nt) {}
-		template <typename... Args>
-		Node(Node* pr, Node* nt, Args... args) : prev(pr), next(nt), data(args...) {}
+		//Calls default constructor for data
+		Node() : data(), prev(nullptr), next(nullptr) {}
+		//Creates a shallow copy of the provided object
+		Node(T& data, Node* pr = nullptr, Node* nt = nullptr) : data(), prev(pr), next(nt)
+		{
+			this->data = data;
+		}
+		//Uses the arguments provided in "args" to create a new object.
+		//If args is an object of type T, it creates a deep copy.
+		template <class... Args>
+		Node(Node* pr, Node* nt, Args&... args) : prev(pr), next(nt), data(args...) {}
 	};
 	Node** root;
 	Node** tail;
@@ -87,7 +95,7 @@ private:
 				for (size_t i = lastAccessed->index; i > index; i--)
 					cur = cur->prev;
 			}
-			*lastAccessed = placeSaver{ index, cur };
+			*lastAccessed = { index, cur };
 			return cur;
 		}
 		else
@@ -104,8 +112,11 @@ public:
 		lastAccessed = new placeSaver{ 0, nullptr };
 	}
 
-	//Create list of specified size filled with default T objects (unless noted otherwise)
-	List<T>(size_t size, T data = T())
+	//Create list of specified size
+	//Every parameter after "size" is used in
+	//the construction of every new node
+	template <class... Args>
+	List<T>(size_t size, Args&&... args)
 	{
 		root = new Node*(nullptr);
 		tail = new Node*(nullptr);
@@ -113,38 +124,14 @@ public:
 		usedCount = new size_t(1);
 		lastAccessed = new placeSaver{ 0, nullptr };
 		for (unsigned i = 0; i < size; i++)
-			push_back(data);
-	}
-
-	//Create a list based off the provided initializer list
-	List<T>(const T* list, size_t listSize)
-	{
-		root = new Node * (nullptr);
-		tail = new Node * (nullptr);
-		count = new size_t(0);
-		usedCount = new size_t(1);
-		lastAccessed = new placeSaver{ 0, nullptr };
-		for (unsigned i = 0; i < listSize; i++)
-			push_back(list[i]);
-	}
-
-	//Converts the provided initializer list/array into a template List
-	List<T>(const std::initializer_list<T>& init)
-	{
-		root = new Node * (nullptr);
-		tail = new Node * (nullptr);
-		count = new size_t(0);
-		usedCount = new size_t(1);
-		lastAccessed = new placeSaver{ 0, nullptr };
-		for (unsigned i = 0; i < init.size(); i++)
-			push_back(init.begin()[i]);
+			emplace_back(args...);
 	}
 
 	//Creates a list based off the provided initializer list
-	//Each initializer element used as a parameter for a constructor
+	//Each initializer element is used as the parameter(s) for a constructor
 	//of object type 'T'
-	template <typename Param>
-	List<T>(const std::initializer_list<Param>& init)
+	template <class... Args>
+	List<T>(const std::initializer_list<Args...>& init)
 	{
 		root = new Node * (nullptr);
 		tail = new Node * (nullptr);
@@ -152,7 +139,7 @@ public:
 		usedCount = new size_t(1);
 		lastAccessed = new placeSaver{ 0, nullptr };
 		for (unsigned i = 0; i < init.size(); i++)
-			arg_emplace_back(init.begin()[i]);
+			emplace_back(init.begin()[i]...);
 	}
 
 	//Create a list with cloned elements from the provided list
@@ -166,13 +153,14 @@ public:
 		Node* cur = *list.root;
 		for (unsigned i = 0; i < *list.count; i++)
 		{
-			push_back(cur->data);
+			emplace_back(cur->data);
 			cur = cur->next;
 		}
 	}
 
 	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
-	List<T>& operator=(const std::initializer_list<T>& init)
+	template <class... Args>
+	List<T>& operator=(const std::initializer_list<Args...>& init)
 	{
 		if (*usedCount > 1)
 			(*usedCount)--;
@@ -191,7 +179,7 @@ public:
 		count = new size_t(0);
 		usedCount = new size_t(1);
 		for (unsigned i = 0; i < init.size(); i++)
-			push_back(init.begin()[i]);
+			emplace_back(init.begin()[i]...);
 		return *this;
 	}
 
@@ -235,85 +223,322 @@ public:
 	}
 
 	//Returns count
-	size_t& size() { return *count; }
+	size_t& size() const { return *count; }
 
-	//Copies the element provided into a new *tail node
-	void push_back(T data)
+	//Creates a new element at the end of the list using a copy of the provided object
+	//
+	//--CODING NOTE: Ensure that this object type has a operator= function.
+	//The compiler will throw an error if that is not the case.
+	void push_back(const T& data)
 	{
 		if (*count)
 			*tail = (*tail)->next = new Node(data, *tail);
 		else
 			*root = *tail = new Node(data);
-		*lastAccessed = placeSaver{ *count, *tail };
+		*lastAccessed = { *count, *tail };
 		(*count)++;
 	}
 
-	//Creates a new default element at the end
-	void emplace_back()
+	//Creates a new element at the beginning of the list using a copy of the provided object
+	//
+	//--CODING NOTE: Ensure that this object type has a operator= function.
+	//The compiler will throw an error if that is not the case.
+	void push_front(const T& data)
 	{
 		if (*count)
-			*tail = (*tail)->next = new Node(*tail);
+			*root = (*root)->prev = new Node(data, nullptr, *root);
 		else
-			*root = *tail = new Node();
-		*lastAccessed = placeSaver{ *count, *tail };
+			*root = *tail = new Node(data);
+		*lastAccessed = { 0, *root };
 		(*count)++;
 	}
 
-	//Creates a new element at the end using a constructor that takes the provided
-	//list of parameters
+	//Creates a new element at the end of the list using a constructor that 
+	//takes all the parameters provided to the function
 	//
-	//Ensure that there exists both a default constructor AND a specialized constructor
-	//for the element type. The compiler will throw an error otherwise
-	template <typename... Args>
-	void arg_emplace_back(Args... args)
+	//--CODING NOTE: Ensure that this specialized constructor for the element type
+	//exist. The compiler will throw an error if that is not the case.
+	template <class... Args>
+	void emplace_back(Args&&... args)
 	{
-		try
-		{
-			if (*count)
-				*tail = (*tail)->next = new Node(*tail, nullptr, args...);
-			else
-				*root = *tail = new Node(nullptr, nullptr, args...);
-			*lastAccessed = placeSaver{ *count, *tail };
-			(*count)++;
-		}
-		catch (...)
-		{
-			throw "This object type does not have a constructor that takes the list of objects provided.";
-		}
+		if (*count)
+			*tail = (*tail)->next = new Node(*tail, nullptr, args...);
+		else
+			*root = *tail = new Node(nullptr, nullptr, args...);
+		*lastAccessed = { *count, *tail };
+		(*count)++;
 	}
 
-	//Inserts a new node from the specified object at the given index, then returns the index
-	size_t insert(size_t index, T data)
+	//Creates a new element at the beginning of the list using a constructor that 
+	//takes all the parameters provided to the function
+	//
+	//--CODING NOTE: Ensure that this specialized constructor for the element type
+	//exist. The compiler will throw an error if that is not the case.
+	template <class... Args>
+	void emplace_front(Args&&... args)
 	{
+		if (*count)
+			*root = (*root)->prev = new Node(nullptr, *root, args...);
+		else
+			*root = *tail = new Node(nullptr, nullptr, args...);
+		*lastAccessed = { 0, *root };
+		(*count)++;
+	}
+
+	//Maneuvers to the specified index and then creates numElements number of new elements
+	//as shallow copies of T object "data"
+	size_t insert(size_t index, size_t numElements, const T& data)
+	{
+		Node* cur;
+		size_t curIndex;
 		if (!*count)
 		{
-			*root = *tail = new Node(data);
-			*lastAccessed = placeSaver{ 0, *tail };
+			cur = *root = *tail = new Node(data);
+			curIndex = 1;
 			(*count)++;
-			return 0;
 		}
 		else if (index == 0)
 		{
-			*root = (*root)->prev = new Node(data, nullptr, *root);
-			*lastAccessed = placeSaver{ 0, *root };
+			cur = *root = (*root)->prev = new Node(data, nullptr, *root);
+			curIndex = 1;
 			(*count)++;
-			return 0;
 		}
 		else if (index >= *count)
 		{
-			*tail = (*tail)->next = new Node(data, *tail);
-			*lastAccessed = placeSaver{ *count, *tail };
+			cur = *tail = (*tail)->next = new Node(data, *tail, nullptr);
+			curIndex = (*count) + 1;
 			(*count)++;
-			return *count;
 		}
 		else
 		{
-			Node* cur = find(index);
-			cur->prev = new Node(data, cur->prev, cur);
-			cur->prev->prev->next = cur->prev;
-			*lastAccessed = placeSaver{ index, cur->prev };
+			cur = find(index);
+			cur->prev = cur->prev->next = new Node(data, cur->prev, cur);
+			curIndex = index + 1;
 			(*count)++;
-			return index;
+		}
+		while (curIndex < index + numElements)
+		{
+			cur->prev = cur->prev->next = new Node(data, cur, cur->next);
+			curIndex++;
+			(*count)++;
+		}
+		*lastAccessed = { curIndex - 1, cur };
+		return curIndex - 1;
+	}
+
+	//Maneuvers to the specified index and then creates a new element 
+	//with a shallow copy of T object "data"
+	size_t insert(size_t index, const T& data)
+	{
+		return insert(index, 1, data);
+	}
+
+	//Uses "data" to find the proper position in the list then constructs
+	//a new element in that position with a shallow copy of "data"
+	size_t insert_ordered(const T& data)
+	{
+		size_t index = 0;
+		Node* prev = nullptr, *cur = *root;
+		while (cur != nullptr)
+		{
+			if (data == cur->data)
+			{
+				cur->data = data;
+				return index;
+			}
+			else if (data < cur->data)
+				break;
+			else
+			{
+				prev = cur;
+				cur = cur->next;
+				index++;
+			}
+		}
+		Node* newNode = new Node(data, prev, cur);
+		if (cur == nullptr)
+			*tail = newNode;
+		else
+			cur->prev = newNode;
+		if (prev == nullptr)
+			*root = newNode;
+		else
+			prev->next = newNode;
+		(*count)++;
+		return index;
+	}
+
+	//Maneuvers to the specified index and then creates numElements number of new elements
+	//using the args provided as the parameters for object T's constructor
+	template <class... Args>
+	size_t emplace(size_t index, size_t numElements, Args&&... args)
+	{
+		Node* cur;
+		size_t curIndex;
+		if (!*count)
+		{
+			cur = *root = *tail = new Node(nullptr, nullptr, args...);
+			curIndex = 1;
+			(*count)++;
+		}
+		else if (index == 0)
+		{
+			cur = *root = (*root)->prev = new Node(nullptr, *root, args...);
+			curIndex = 1;
+			(*count)++;
+		}
+		else if (index >= *count)
+		{
+			cur = *tail = (*tail)->next = new Node(*tail, nullptr, args...);
+			curIndex = (*count) + 1;
+			(*count)++;
+		}
+		else
+		{
+			cur = find(index);
+			 cur->prev = cur->prev->next = new Node(cur->prev, cur, args...);
+			curIndex = index + 1;
+			(*count)++;
+		}
+		while (curIndex < index + numElements)
+		{
+			cur->prev = cur->prev->next = new Node(cur, cur->next, args...);
+			curIndex++;
+			(*count)++;
+		}
+		*lastAccessed = { curIndex - 1, cur };
+		return curIndex - 1;
+	}
+
+	//Maneuvers to the specified index and then creates a new element using
+	//the args provided as the parameters for object T's constructor
+	template <class... Args>
+	size_t emplace(size_t index, Args&&... args)
+	{
+		return emplace(index, 1, args...);
+	}
+
+	//Constructs a new element using the values provided in parameter pack "args"
+	//and then finds that element's ordered placement in the list
+	template <class... Args>
+	size_t emplace_ordered(Args&&... args)
+	{
+		size_t index = 0;
+		Node* newNode = new Node(nullptr, *root, args...);
+		while (newNode->next != nullptr)
+		{
+			if (newNode->data == newNode->next->data)
+			{
+				newNode->next->data = newNode->data;
+				delete newNode;
+				return index;
+			}
+			else if (newNode->data < newNode->next->data)
+				break;
+			else
+			{
+				newNode->prev = newNode->next;
+				newNode->next = newNode->next->next;
+				index++;
+			}
+		}
+		if (newNode->next == nullptr)
+			*tail = newNode;
+		else
+			newNode->next->prev = newNode;
+		if (newNode->prev == nullptr)
+			*root = newNode;
+		else
+			newNode->prev->next = newNode;
+		(*count)++;
+		return index;
+	}
+
+	//Changes the size of a list
+	//
+	//--If newSize is bigger, the values inside parameter pack args
+	//are used to construct new elements at the end of the list. If
+	//args is simply an object of type T, create a deep copy.
+	//--If newSize is smaller, elements are removed starting from the end
+	template <class... Args>
+	void resize(size_t newSize, Args&&... args)
+	{
+		if (newSize > * count)
+		{
+			if (!*count)
+			{
+				*root = *tail = new Node(nullptr, nullptr, args...);
+				(*count)++;
+			}
+			while (*count < newSize)
+			{
+				*tail = (*tail)->next = new Node(*tail, nullptr, args...);
+				(*count)++;
+			}
+			*lastAccessed = { *count - 1, *tail };
+		}
+		else if (newSize < *count)
+		{
+			while (*count > newSize)
+			{
+				Node* cur = *tail;
+				*tail = (*tail)->prev;
+				delete cur;
+				(*count)--;
+			}
+			if (*count)
+			{
+				(*tail)->next = nullptr;
+				*lastAccessed = { *count - 1, *tail };
+			}
+			else
+			{
+				*root = nullptr;
+				*lastAccessed = { 0, nullptr };
+			}
+		}
+	}
+
+	//Changes the size of a list
+	//
+	//--If newSize is bigger, new elements are created at the end of the list
+	//as shallow copies of object "data"
+	//--If newSize is smaller, elements are removed starting from the end
+	void resize(const T& data, size_t newSize)
+	{
+		if (newSize > * count)
+		{
+			if (!*count)
+			{
+				*root = *tail = new Node(data);
+				(*count)++;
+			}
+			while (*count < newSize)
+			{
+				*tail = (*tail)->next = new Node(data, *tail);
+				(*count)++;
+			}
+			*lastAccessed = { *count - 1, *tail };
+		}
+		else if (newSize < *count)
+		{
+			while (*count > newSize)
+			{
+				Node* cur = *tail;
+				*tail = (*tail)->prev;
+				delete cur;
+				(*count)--;
+			}
+			if (*count)
+			{
+				(*tail)->next = nullptr;
+				*lastAccessed = { *count - 1, *tail };
+			}
+			else
+			{
+				*root = nullptr;
+				*lastAccessed = { 0, nullptr };
+			}
 		}
 	}
 
@@ -324,7 +549,7 @@ public:
 		{
 			Node* cur = *root;
 			if (cur == lastAccessed->prevNode)
-				*lastAccessed = placeSaver{ 0, nullptr };
+				*lastAccessed = { 0, nullptr };
 			else
 				lastAccessed->index--;
 			*root = (*root)->next;
@@ -344,7 +569,7 @@ public:
 		{
 			Node* cur = *tail;
 			if (cur == lastAccessed->prevNode)
-				*lastAccessed = placeSaver{ 0, nullptr };
+				*lastAccessed = { 0, nullptr };
 			*tail = (*tail)->prev;
 			delete cur;
 			(*count)--;
@@ -380,7 +605,7 @@ public:
 		if (cur != nullptr)
 			lastAccessed->prevNode = cur;
 		else
-			*lastAccessed = placeSaver{ 0, nullptr };
+			*lastAccessed = { 0, nullptr };
 		return result;
 	}
 
@@ -394,86 +619,8 @@ public:
 			*root = next;
 			(*count)--;
 		}
-		*lastAccessed = placeSaver{ 0, nullptr };
+		*lastAccessed = { 0, nullptr };
 		*tail = nullptr;
-	}
-
-	//Adds new default elements to the end of the list to make it bigger or removes elements from the end to make it smaller
-	void resize(size_t newSize)
-	{
-		if (newSize > *count)
-		{
-			if (!*count)
-			{
-				*root = *tail = new Node();
-				(*count)++;
-			}
-			while (*count < newSize)
-			{
-				*tail = (*tail)->next = new Node(*tail);
-				(*count)++;
-			}
-			*lastAccessed = placeSaver{ *count - 1, *tail };
-		}
-		else if (newSize < *count)
-		{
-			while (*count > newSize)
-			{
-				Node* cur = *tail;
-				*tail = (*tail)->prev;
-				delete cur;
-				(*count)--;
-			}
-			if (*count)
-			{
-				(*tail)->next = nullptr;
-				*lastAccessed = placeSaver{ *count - 1, *tail };
-			}
-			else
-			{
-				*root = nullptr;
-				*lastAccessed = placeSaver{ 0, nullptr };
-			}
-		}
-	}
-
-	//Adds clones of specified object "data" to the end of the list to make it bigger or removes elements from the end to make it smaller
-	void resize(size_t newSize, T& data)
-	{
-		if (newSize > *count)
-		{
-			if (!*count)
-			{
-				*root = *tail = new Node(data);
-				(*count)++;
-			}
-			while (*count < newSize)
-			{
-				*tail = (*tail)->next = new Node(data, *tail);
-				(*count)++;
-			}
-			*lastAccessed = placeSaver{ *count - 1, *tail };
-		}
-		else if (newSize < *count)
-		{
-			while (*count > newSize)
-			{
-				Node* cur = *tail;
-				*tail = (*tail)->prev;
-				delete cur;
-				(*count)--;
-			}
-			if (*count)
-			{
-				(*tail)->next = nullptr;
-				*lastAccessed = placeSaver{ *count - 1, *tail };
-			}
-			else
-			{
-				*root = nullptr;
-				*lastAccessed = placeSaver{ 0, nullptr };
-			}
-		}
 	}
 
 	//Returns element at *root if *count is at least 1
@@ -481,7 +628,7 @@ public:
 	{
 		if (*count)
 		{
-			*lastAccessed = placeSaver{ 0, *root };
+			*lastAccessed = { 0, *root };
 			return (*root)->data;
 		}
 		else
@@ -493,7 +640,7 @@ public:
 	{
 		if (*count)
 		{
-			*lastAccessed = placeSaver{ *count - 1, *tail };
+			*lastAccessed = { *count - 1, *tail };
 			return (*tail)->data;
 		}
 		else
@@ -522,7 +669,7 @@ public:
 			{
 				if (cur->data == compare)
 				{
-					*lastAccessed = placeSaver{ i, cur };
+					*lastAccessed = { i, cur };
 					index = (int)i;
 					break;
 				}
@@ -562,7 +709,7 @@ public:
 					beg->prev = pos->prev;
 					end->next = pos;
 					pos->prev = end;
-					*lastAccessed = placeSaver{ newPosition, beg };
+					*lastAccessed = { newPosition, beg };
 					return true;
 				}
 				else if (newPosition > index + numElements)
@@ -582,7 +729,7 @@ public:
 					end->next = pos->next;
 					beg->prev = pos;
 					pos->next = beg;
-					*lastAccessed = placeSaver{ newPosition, beg };
+					*lastAccessed = { newPosition, beg };
 					return true;
 				}
 			}

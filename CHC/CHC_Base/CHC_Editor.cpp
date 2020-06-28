@@ -23,48 +23,42 @@ bool CHC_Editor::editSong(bool multi)
 	{
 		banner(" " + song.shortname + ".CHC - Editor ");
 		//Holds addresses to the various functions that can be chosen in this menu prompt
-		List<void(CHC_Editor::*)()> results;
-
-		string choices = "";
-		results.push_back(&CHC_Editor::saveFile); choices += 's';
+		List<void(CHC_Editor::*)()> functions = { &CHC_Editor::saveFile, &CHC_Editor::audioSettings, &CHC_Editor::winLossSettings,
+											   &CHC_Editor::adjustSpeed, &CHC_Editor::sectionMenu, &CHC_Editor::adjustFactors };
+		string choices = "svagcd";
 		cout << global.tabs << "S - Save File\n";
 		if (!song.optimized)
 		{
-			results.push_back(&CHC_Editor::fixNotes); choices += 'f';
+			choices += 'f'; functions.push_back(&CHC_Editor::fixNotes);
 			cout << global.tabs << "F - Fix any problematic notes or trace lines\n";
 		}
 		if (song.unorganized)
 		{
-			results.push_back(&CHC_Editor::organizeAll); choices += 'o';
+			choices += 'o'; functions.push_back(&CHC_Editor::organizeAll);
 			cout << global.tabs << "O - Organize All Unorganized Sections\n";
 		}
 		if (strstr(song.imc, ".IMC"))
 		{
-			results.push_back(&CHC_Editor::swapIMC); choices += 'i';
+			choices += 'i'; functions.push_back(&CHC_Editor::swapIMC);
 			cout << global.tabs << "I - Swap IMC file (Current file: " << song.imc + 34 << ")\n";
 		}
 		else
 		{
-			results.push_back(&CHC_Editor::PSPToPS2); choices += 'p';
+			choices += 'p'; functions.push_back(&CHC_Editor::PSPToPS2);
 			cout << global.tabs << "P - Convert for PS2-Version Compatibility\n";
 		}
-		results.push_back(&CHC_Editor::audioSettings); choices += 'a';
 		cout << global.tabs << "V - Volume & Pan Settings\n";
-		results.push_back(&CHC_Editor::winLossSettings); choices += 'w';
 		cout << global.tabs << "A - Win/Loss Animations\n";
-		results.push_back(&CHC_Editor::adjustSpeed); choices += 'g';
 		cout << global.tabs << "G - Adjust Gameplay Speed: " << song.speed << endl;
-		results.push_back(&CHC_Editor::sectionMenu); choices += 'c';
 		cout << global.tabs << "C - SongSections (" << song.numSections << ")\n";
-		results.push_back(&CHC_Editor::adjustFactors); choices += 'd';
 		cout << global.tabs << "D - Player Damage/Energy Factors\n";
 		cout << global.tabs << "? - Help info\n";
 		if (multi)
 			cout << global.tabs << "Q - Close this file" << endl;
 		else
 			cout << global.tabs << "Q - Exit Detail Editor" << endl;
-		size_t index = menuChoices(choices);
-		switch (index)
+		size_t result = menuChoices(choices);
+		switch (result)
 		{
 		case -1:
 			if (!saved)
@@ -132,7 +126,7 @@ bool CHC_Editor::editSong(bool multi)
 			break;
 		default:
 			adjustTabs(2);
-			(this->*results[index])();
+			(this->*functions[result])();
 			adjustTabs(1);
 		}
 	} while (!global.quit);
@@ -442,7 +436,7 @@ void CHC_Editor::PSPToPS2()
 		if (section.numCharts & 1)
 		{
 			section.charts.emplace_back();
-			section.charts.insert(section.numCharts, Chart());
+			section.charts.emplace(section.numCharts);
 			section.numCharts++;
 		}
 		for (size_t c = 1; c < section.numCharts >> 1; c++)
@@ -1890,9 +1884,8 @@ void CHC_Editor::reorganize(SongSection& section)
 				newCharts[pl].emplace_back();
 			for (size_t i = 0; i < newCharts[pl].size(); i++)
 			{
-				Chart ch = newCharts[pl][i];
-				section.charts.push_back(ch);
-				section.size += ch.size;
+				section.size += newCharts[pl][i].size;
+				section.charts.push_back(newCharts[pl][i]);
 			}
 		}
 		cout << global.tabs << section.name << " organized - # of charts per player: " << section.numCharts;

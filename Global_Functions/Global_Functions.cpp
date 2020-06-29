@@ -346,7 +346,7 @@ string angleToFraction(double angle)
 		{
 			if (!(degree % factors[factor]))
 			{
-				fraction = to_string(degree / factor) + '/' + dems[factor];
+				fraction = to_string(degree / factors[factor]) + '/' + dems[factor];
 				break;
 			}
 			else if (factor + 1 == size)

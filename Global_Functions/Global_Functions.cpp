@@ -299,7 +299,7 @@ size_t menuChoices(string choices)
 char fileOverwriteCheck(string fileName)
 {
 	FILE* test;
-	while (fopen_s(&test, fileName.c_str(), "r") && !global.quit)
+	while (!global.quit && !fopen_s(&test, fileName.c_str(), "r"))
 	{
 		fclose(test);
 		cout << global.tabs << "Override/Replace " << fileName << "? [Y/N][C to recheck for file][Q to not generate a file]\n";
@@ -313,6 +313,7 @@ char fileOverwriteCheck(string fileName)
 			global.quit = true;
 		}
 	}
+	global.quit = false;
 	return 1;
 }
 

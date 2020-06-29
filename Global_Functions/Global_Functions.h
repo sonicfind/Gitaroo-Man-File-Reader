@@ -76,9 +76,9 @@ If found, it will use object as the parameter and return the result.
 Otherwise, it will return -1.
 */
 template<class...Args>
-extern char loadProc(HINSTANCE& lib, std::string proc, Args&&... args)
+extern char loadProc(HINSTANCE& lib, std::string proc, Args&... args)
 {
-	typedef bool(__cdecl* MYPROC)(Args&&...);
+	typedef bool(__cdecl* MYPROC)(Args...);
 	MYPROC ProcAdd = (MYPROC)GetProcAddress(lib, proc.c_str());
 	if (ProcAdd)
 		return ProcAdd(args...);

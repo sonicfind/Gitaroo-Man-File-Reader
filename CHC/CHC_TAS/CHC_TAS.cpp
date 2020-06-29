@@ -228,7 +228,7 @@ void PCSX2TAS::print(string filename)
 	fwrite(emulator, 1, 50, outp2m2);
 	fwrite(author, 1, 255, outp2m2);
 	fwrite(game, 1, 255, outp2m2);
-	fwrite('\0', 1, 1, outp2m2);
+	fwrite("\0", 1, 1, outp2m2);
 	fwrite(multi, 1, 8, outp2m2);
 	fwrite(&players[0].size(), 4, 1, outp2m2);
 	fwrite("\0\0\0\0", 1, 4, outp2m2);
@@ -1039,19 +1039,21 @@ bool TAS::buildTAS()
 		filename += "_" + to_string(int(pcsx2.framerate)) + "_" + to_string(orientation) + "_SP";
 	struct NotePoint
 	{
-		long pos = 0;
-		Note* note = nullptr;
-		size_t index = 0;
-		bool last = false;
+		long position;
+		Note* note;
+		size_t index;
+		bool last;
+		NotePoint(long pos, Note* note = nullptr, size_t index = 0, bool last = false) : position(pos), note(note), index(index), last(last) {}
 	};
 	struct SectPoint
 	{
-		long pos = 0;
+		long position = 0;
 		//0 - Technical
 		//1 - Visuals
 		//2 - Mixed
 		size_t visualType = 0;
 		long sustainLimit = 0;
+		SectPoint(long pos, size_t visuals = 0, long sus = 0) : position(pos), visualType(visuals), sustainLimit(sus) {}
 	};
 	List<NotePoint> timeline[4];
 	List<SectPoint> markers[4];
@@ -1170,7 +1172,7 @@ bool TAS::buildTAS()
 						long pos = chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position;
 						while (index < player.size())
 						{
-							if (pos <= player[index].pos)
+							if (pos <= player[index].position)
 								break;
 							else
 								index++;
@@ -1186,7 +1188,7 @@ bool TAS::buildTAS()
 						long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
 						while (index < player.size())
 						{
-							if (pos <= player[index].pos)
+							if (pos <= player[index].position)
 								break;
 							else
 								index++;
@@ -1231,7 +1233,7 @@ bool TAS::buildTAS()
 							long pos = chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position;
 							while (index < player.size())
 							{
-								if (pos <= player[index].pos)
+								if (pos <= player[index].position)
 									break;
 								else
 									index++;
@@ -1447,7 +1449,7 @@ bool TAS::buildTAS()
 							long pos = chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position;
 							while (index < timeline[0].size())
 							{
-								if (pos <= timeline[0][index].pos)
+								if (pos <= timeline[0][index].position)
 									break;
 								else
 									index++;
@@ -1463,7 +1465,7 @@ bool TAS::buildTAS()
 							long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
 							while (index < timeline[0].size())
 							{
-								if (pos <= timeline[0][index].pos)
+								if (pos <= timeline[0][index].position)
 									break;
 								else
 									index++;
@@ -1508,7 +1510,7 @@ bool TAS::buildTAS()
 								long pos = chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position;
 								while (index < timeline[0].size())
 								{
-									if (pos <= timeline[0][index].pos)
+									if (pos <= timeline[0][index].position)
 										break;
 									else
 										index++;
@@ -1540,23 +1542,23 @@ bool TAS::buildTAS()
 			else
 				fopen_s(&taslog, (filename + "_P" + to_string(playerIndex + 1) + ".txt").c_str(), "w");
 			fprintf(taslog, "Samples per frame: %Lf\n", SAMPLES_PER_FRAME);
-			fprintf(taslog, "////Section Marker 1 at sample %li\n", markers[playerIndex][sectIndex].pos);
+			fprintf(taslog, "////Section Marker 1 at sample %li\n", markers[playerIndex][sectIndex].position);
 			NotePoint* prevPhrase = nullptr;
 			for (unsigned long noteIndex = 0; noteIndex < timeline[playerIndex].size(); noteIndex++)
 			{
 				NotePoint& point = timeline[playerIndex][noteIndex];
-				while (sectIndex + 1ULL != markers[playerIndex].size() && point.pos >= markers[playerIndex][sectIndex + 1ULL].pos)
+				while (sectIndex + 1ULL != markers[playerIndex].size() && point.position >= markers[playerIndex][sectIndex + 1ULL].position)
 				{
 					sectIndex++;
-					fprintf(taslog, "////Section Marker %lu at sample %li", sectIndex + 1, markers[playerIndex][sectIndex].pos);
+					fprintf(taslog, "////Section Marker %lu at sample %li", sectIndex + 1, markers[playerIndex][sectIndex].position);
 				}
 				if (dynamic_cast<Guard*>(timeline[playerIndex][noteIndex].note) != nullptr)
 				{
-					size_t grdFrame = frameStart + (unsigned long)round(point.pos / SAMPLES_PER_FRAME);
+					size_t grdFrame = frameStart + (unsigned long)round(point.position / SAMPLES_PER_FRAME);
 					//If the next note, if it exists, is a guard mark
 					if (noteIndex + 1ULL != timeline[playerIndex].size() && dynamic_cast<Guard*>(timeline[playerIndex][noteIndex + 1ULL].note) != nullptr)
 					{
-						size_t distance = frameStart + (unsigned long)round(timeline[playerIndex][noteIndex + 1ULL].pos / SAMPLES_PER_FRAME) - grdFrame;
+						size_t distance = frameStart + (unsigned long)round(timeline[playerIndex][noteIndex + 1ULL].position / SAMPLES_PER_FRAME) - grdFrame;
 						//If two guard marks are within two frames of each other
 						if (distance < 2)
 						{
@@ -1566,9 +1568,9 @@ bool TAS::buildTAS()
 							if (distance == 0)
 							{
 								//Push the second mark back one frame
-								timeline[playerIndex][noteIndex + 1ULL].pos += unsigned long(SAMPLES_PER_FRAME);
+								timeline[playerIndex][noteIndex + 1ULL].position += unsigned long(SAMPLES_PER_FRAME);
 								//If pushing it back places it behind the note that *was* after it, fix the order
-								if (noteIndex + 2ULL != timeline[playerIndex].size() && timeline[playerIndex][noteIndex + 1ULL].pos >= timeline[playerIndex][noteIndex + 2ULL].pos)
+								if (noteIndex + 2ULL != timeline[playerIndex].size() && timeline[playerIndex][noteIndex + 1ULL].position >= timeline[playerIndex][noteIndex + 2ULL].position)
 									timeline[playerIndex].moveElements(noteIndex + 1ULL, noteIndex + 3ULL);
 							}
 						}
@@ -1643,7 +1645,7 @@ bool TAS::buildTAS()
 					//Clear the button on the previous frame, then add it on the current frame
 					pcsx2.players[playerIndex][grdFrame - 1].button |= (1 << exponent);
 					pcsx2.players[playerIndex][grdFrame].button &= 255 - (1 << exponent);
-					fprintf(taslog, "Guard Mark %03zu-  Landing at sample %li | Frame #%zu\n", point.index, point.pos, grdFrame - frameStart);
+					fprintf(taslog, "Guard Mark %03zu-  Landing at sample %li | Frame #%zu\n", point.index, point.position, grdFrame - frameStart);
 				}
 				else if (dynamic_cast<Traceline*>(timeline[playerIndex][noteIndex].note) != nullptr)
 				{
@@ -1656,28 +1658,28 @@ bool TAS::buildTAS()
 						}
 						else if (dynamic_cast<Traceline*>(timeline[playerIndex][testIndex].note) != nullptr)
 						{
-							if (!point.last || 10 * (timeline[playerIndex][testIndex].pos - (long double)point.pos) <= 3.0L * song.speed * SAMPLES_PER_FRAME)
+							if (!point.last || 10 * (timeline[playerIndex][testIndex].position - (long double)point.position) <= 3.0L * song.speed * SAMPLES_PER_FRAME)
 							{
 								if (point.last || timeline[playerIndex][testIndex].index - 1 == point.index)
 								{
 									if (point.last)
 										connected = true;
 									inTrace = true;
-									size_t currentFrame = frameStart + (unsigned long)round(point.pos / SAMPLES_PER_FRAME);
-									size_t endFrame = frameStart + (unsigned)round(timeline[playerIndex][testIndex].pos / SAMPLES_PER_FRAME);
+									size_t currentFrame = frameStart + (unsigned long)round(point.position / SAMPLES_PER_FRAME);
+									size_t endFrame = frameStart + (unsigned)round(timeline[playerIndex][testIndex].position / SAMPLES_PER_FRAME);
 									if (endFrame - currentFrame > 0)
 									{
-										float currentAngle = static_cast<Traceline*>(point.note)->getAngle();
-										float angleDif = 0;
+										long double currentAngle = static_cast<Traceline*>(point.note)->getAngle();
+										long double angleDif = 0;
 										if (!point.last)
 										{
 											if (!timeline[playerIndex][testIndex].last)
 											{
 												angleDif = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->getAngle() - currentAngle;
 												if (angleDif > M_PI)
-													angleDif -= float(2 * M_PI);
+													angleDif -= 2 * M_PI;
 												else if (angleDif < -M_PI)
-													angleDif += float(2 * M_PI);
+													angleDif += 2 * M_PI;
 											}
 										}
 										else
@@ -1746,16 +1748,16 @@ bool TAS::buildTAS()
 						unsigned long prevsectIndex = sectIndex;
 						//Check if the previous PB is close enough to justify connecting its
 						//sustain button press to the current PB
-						while (prevPhrase->pos < markers[playerIndex][prevsectIndex].pos)
+						while (prevPhrase->position < markers[playerIndex][prevsectIndex].position)
 								prevsectIndex--;
-						if ((markers[playerIndex][prevsectIndex].visualType == 2 && point.pos - prevPhrase->pos < markers[playerIndex][prevsectIndex].sustainLimit)
+						if ((markers[playerIndex][prevsectIndex].visualType == 2 && point.position - prevPhrase->position < markers[playerIndex][prevsectIndex].sustainLimit)
 							|| (markers[playerIndex][prevsectIndex].visualType == 1
-								&& point.pos - prevPhrase->pos < markers[playerIndex][prevsectIndex].sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
+								&& point.position - prevPhrase->position < markers[playerIndex][prevsectIndex].sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
 						{
-							phraseStart = frameStart + (size_t)round((point.pos - SAMPLES_PER_FRAME) / SAMPLES_PER_FRAME);
-							fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", point.pos, phraseStart - frameStart);
+							phraseStart = frameStart + (size_t)round((point.position - SAMPLES_PER_FRAME) / SAMPLES_PER_FRAME);
+							fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", point.position, phraseStart - frameStart);
 							size_t phraseEnd = frameStart
-							+ (size_t)ceil((SAMPLES_PER_FRAME + prevPhrase->pos + static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME);
+							+ (size_t)ceil((SAMPLES_PER_FRAME + prevPhrase->position + static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME);
 							for (; phraseEnd < phraseStart - 1; phraseEnd++)
 							{
 								//No need to check for button slots being occupied
@@ -1774,9 +1776,9 @@ bool TAS::buildTAS()
 							}
 						}
 					}
-					phraseStart = frameStart + (size_t)round(point.pos / SAMPLES_PER_FRAME);
-					size_t phraseEnd = frameStart + (size_t)ceil(((double)point.pos + static_cast<Phrase*>(point.note)->getDuration()) / SAMPLES_PER_FRAME);
-					fprintf(taslog, "Phrase Bar %03zu- Starting at sample %li | Frame #%zu\n", point.index, point.pos, phraseStart - frameStart);
+					phraseStart = frameStart + (size_t)round(point.position / SAMPLES_PER_FRAME);
+					size_t phraseEnd = frameStart + (size_t)ceil(((double)point.position + static_cast<Phrase*>(point.note)->getDuration()) / SAMPLES_PER_FRAME);
+					fprintf(taslog, "Phrase Bar %03zu- Starting at sample %li | Frame #%zu\n", point.index, point.position, phraseStart - frameStart);
 					pcsx2.players[playerIndex][phraseStart - 1].button = 255;
 					/*
 					//Square - 239
@@ -1818,7 +1820,7 @@ bool TAS::buildTAS()
 						else
 							pcsx2.players[playerIndex][phraseStart].button &= 255 - (1 << exponent);
 					}
-					fprintf(taslog, "\t      -   Ending at sample %li | Frame #%zu\n" , point.pos + static_cast<Phrase*>(point.note)->getDuration(), phraseEnd - frameStart);
+					fprintf(taslog, "\t      -   Ending at sample %li | Frame #%zu\n" , point.position + static_cast<Phrase*>(point.note)->getDuration(), phraseEnd - frameStart);
 					prevPhrase = &point;
 				}
 			}

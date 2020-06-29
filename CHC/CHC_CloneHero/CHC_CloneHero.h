@@ -22,27 +22,37 @@
 
 struct SyncTrack
 {
-	double position = 0;
-	unsigned long timeSig = 4;
-	unsigned long bpm = 120;
+	double position;
+	unsigned long timeSig;
+	unsigned long bpm;
+	SyncTrack() : position(0), timeSig(4), bpm(120) {}
+	SyncTrack(FILE* inFile);
+	SyncTrack(double pos, unsigned long ts = 4, unsigned long tempo = 120) : position(pos), timeSig(ts), bpm(tempo) {}
 };
 
 struct Event
 {
-	double position = 0;
-	std::string name = "";
+	double position;
+	std::string name;
+	Event() : position(0), name("") {}
+	Event(FILE* inFile);
+	Event(double pos, std::string nam = "") : position(pos), name(nam) {}
 };
 
 struct CHNote
 {
 	enum class NoteType { NOTE, EVENT, STAR };
 	enum class Modifier { NORMAL, FORCED, TAP };
-	double position = 0;
-	char fret = 1;
-	double sustain = 0;
-	Modifier mod = Modifier::NORMAL;
-	NoteType type = NoteType::NOTE;
-	std::string name = "";
+	double position;
+	char fret;
+	double sustain;
+	Modifier mod;
+	NoteType type;
+	std::string name;
+	CHNote() : position(0), fret(1), sustain(0), mod(Modifier::NORMAL), type(NoteType::NOTE), name("") {}
+	CHNote(FILE* inFile);
+	CHNote(double pos, char ft = 1, double sus = 0, Modifier md = Modifier::NORMAL, NoteType tp = NoteType::NOTE, std::string nam = "") 
+		: position(pos), fret(ft), sustain(sus), mod(md), type(tp), name(nam) {}
 };
 
 class Charter

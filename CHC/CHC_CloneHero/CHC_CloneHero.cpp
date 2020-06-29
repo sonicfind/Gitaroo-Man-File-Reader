@@ -17,6 +17,55 @@
 #include "CHC_CloneHero.h"
 using namespace std;
 
+SyncTrack::SyncTrack(FILE* inFile) : timeSig(4)
+{
+	char ignore[30];
+	fscanf_s(inFile, " %lf%[^B]s %lu", &position, ignore, 30, &bpm);
+}
+
+Event::Event(FILE* inFile)
+{
+	char ignore[4], bagel[100];
+	fscanf_s(inFile, " %lf%[^E]s", &position, ignore, 4);
+	fgets(bagel, 100, inFile);
+	name = bagel + 1;
+	if (name[0] == '\"')
+		name = name.substr(1, name.length() - 2); //Gets rid of ""
+};
+
+CHNote::CHNote(FILE* inFile)
+{
+	char type = 0;
+	//Only the second "type" insertion matters; First one is '=' character removal
+	fscanf_s(inFile, " %lf %c %c", &position, &type, 1, &type, 1);
+	if (type == 'E')
+	{
+		char bagel[100];
+		fgets(bagel, 100, inFile);
+		name = bagel + 1;
+		this->type = NoteType::EVENT;
+		fret = 1;
+		sustain = 0;
+		mod = Modifier::NORMAL;
+	}
+	else
+	{
+		name = "";
+		if (type == 'S')
+			this->type = NoteType::STAR;
+		else
+			this->type = NoteType::NOTE;
+		fscanf_s(inFile, " %c", &fret, 1);
+		if (fret == '5')
+			mod = Modifier::FORCED;
+		else if (fret == '6')
+			mod = Modifier::TAP;
+		else
+			mod = Modifier::NORMAL;
+		fscanf_s(inFile, " %lf", &sustain);
+	}
+};
+
 FILE* operator<<(FILE* outFile, SyncTrack sync)
 {
 	if (sync.timeSig)
@@ -30,24 +79,6 @@ FILE* operator<<(FILE* outFile, Event ev)
 {
 	fprintf(outFile, "%lu = E \"section %s\"\n", (unsigned long)round(ev.position), ev.name.c_str());
 	return outFile;
-};
-
-FILE* operator>>(FILE* inFile, SyncTrack& sync)
-{
-	char ignore[30];
-	fscanf_s(inFile, " %lf%[^B]s %lu", &sync.position, ignore, 30, &sync.bpm);
-	return inFile;
-};
-
-FILE* operator>>(FILE* inFile, Event& ev)
-{
-	char ignore[4], bagel[100];
-	fscanf_s(inFile, " %lf%[^E]s", &ev.position, ignore, 4);
-	fgets(bagel, 100, inFile);
-	ev.name = bagel + 1;
-	if (ev.name[0] == '\"')
-		ev.name = ev.name.substr(1, ev.name.length() - 2); //Gets rid of ""
-	return inFile;
 };
 
 FILE* operator<<(FILE* outFile, CHNote note)
@@ -77,34 +108,6 @@ FILE* operator<<(FILE* outFile, CHNote note)
 		fprintf(outFile, "%lu = E %s\n", (unsigned long)round(note.position), note.name.c_str());
 	}
 	return outFile;
-};
-
-FILE* operator>>(FILE* inFile, CHNote& note)
-{
-	char type = 0;
-	//Only the second "type" insertion matters; First one is '=' character removal
-	fscanf_s(inFile, " %lf %c %c", &note.position, &type, 1, &type, 1);
-	switch (type)
-	{
-	case 'E':
-	{
-		char bagel[100];
-		fgets(bagel, 100, inFile);
-		note.name = bagel + 1;
-		note.type = CHNote::NoteType::EVENT;
-		break;
-	}
-	case 'S':
-		note.type = CHNote::NoteType::STAR;
-	default:
-		fscanf_s(inFile, " %c", &note.fret, 1);
-		if (note.fret == '5')
-			note.mod = CHNote::Modifier::FORCED;
-		else if (note.fret == '6')
-			note.mod = CHNote::Modifier::TAP;
-		fscanf_s(inFile, " %lf", &note.sustain);
-	}
-	return inFile;
 };
 
 bool exportChart(CHC& song)
@@ -300,37 +303,37 @@ bool Charter::exportChart()
 	if (modchart)
 	{
 		//Set starting position for gnerating the modchart
-		sync.push_back(SyncTrack{ 0, 2, 12632 });
+		sync.emplace_back( 0, 2, 12632 );
 		position += TICKS_PER_BEAT;
 		if (song.shortname.find("ST01") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 77538 });
+			sync.emplace_back( position, 2, 77538 );
 		else if (song.shortname.find("ST02") != string::npos)
 		{
 			if (song.shortname.find("ST02_HE") != string::npos)
-				sync.push_back(SyncTrack{ position, 2, 73983 });
+				sync.emplace_back( position, 2, 73983 );
 			else
-				sync.push_back(SyncTrack{ position, 2, 74070 });
+				sync.emplace_back( position, 2, 74070 );
 		}
 		else if (song.shortname.find("ST03") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 76473 });
+			sync.emplace_back( position, 2, 76473 );
 		else if (song.shortname.find("ST04") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 79798 });
+			sync.emplace_back( position, 2, 79798 );
 		else if (song.shortname.find("ST05") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 74718 });
+			sync.emplace_back( position, 2, 74718 );
 		else if (song.shortname.find("ST06") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 79658 });
+			sync.emplace_back( position, 2, 79658 );
 		else if (song.shortname.find("ST07") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 73913 });
+			sync.emplace_back( position, 2, 73913 );
 		else if (song.shortname.find("ST08") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 76523 });
+			sync.emplace_back( position, 2, 76523 );
 		else if (song.shortname.find("ST09") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 74219 });
+			sync.emplace_back( position, 2, 74219 );
 		else if (song.shortname.find("ST10") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 75500 });
+			sync.emplace_back( position, 2, 75500 );
 		else if (song.shortname.find("ST11") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 80000 });
+			sync.emplace_back( position, 2, 80000 );
 		else if (song.shortname.find("ST12") != string::npos)
-			sync.push_back(SyncTrack{ position, 2, 80000 });
+			sync.emplace_back( position, 2, 80000 );
 		position += TICKS_PER_BEAT;
 	}
 	//Expert for modchart, reimport for... well you get it
@@ -421,22 +424,22 @@ bool Charter::exportChart()
 		switch (section.getPhase())
 		{
 		case SongSection::Phase::INTRO:
-			events.push_back(Event{ position, "INTRO - " + string(section.getName()) }); break;
+			events.emplace_back( position, "INTRO - " + string(section.getName()) ); break;
 		case SongSection::Phase::CHARGE: 
-			events.push_back(Event{ position, "CHARGE - " + string(section.getName()) }); break;
+			events.emplace_back( position, "CHARGE - " + string(section.getName()) ); break;
 		case SongSection::Phase::BATTLE: 
-			events.push_back(Event{ position, "BATTLE - " + string(section.getName()) }); break;
+			events.emplace_back( position, "BATTLE - " + string(section.getName()) ); break;
 		case SongSection::Phase::FINAL_AG: 
-			events.push_back(Event{ position, "FINAL_AG - " + string(section.getName()) }); break;
+			events.emplace_back( position, "FINAL_AG - " + string(section.getName()) ); break;
 		case SongSection::Phase::HARMONY: 
-			events.push_back(Event{ position, "HARMONY - " + string(section.getName()) }); break;
+			events.emplace_back( position, "HARMONY - " + string(section.getName()) ); break;
 		case SongSection::Phase::END: 
-			events.push_back(Event{ position, "END - " + string(section.getName()) }); break;
+			events.emplace_back( position, "END - " + string(section.getName()) ); break;
 		default: 
-			events.push_back(Event{ position, "FINAL_I - " + string(section.getName()) });
+			events.emplace_back( position, "FINAL_I - " + string(section.getName()) );
 		}
 		if (sync.size() == 0 || unsigned long(section.getTempo() * 1000) != sync.back().bpm)
-			sync.push_back(SyncTrack{ position, 4, unsigned long(section.getTempo() * 1000) });
+			sync.emplace_back( position, 4, unsigned long(section.getTempo() * 1000) );
 		if (section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK")) //If not INTRO phase or BRK section
 		{
 			if (modchart && sectOrientation)
@@ -461,7 +464,7 @@ bool Charter::exportChart()
 			global.quit = false;
 			const double TICKS_PER_SAMPLE = section.getTempo() * TICKS_PER_BEAT / SAMPLES_PER_MIN;
 			const double GUARD_OPEN_TICK_DISTANCE = GUARD_GAP * TICKS_PER_SAMPLE;
-			//Marking where in the list the current section starts
+			//Marking where each the list the current section starts
 			size_t startIndex[2][2] = { { expert[0].size(), expert[1].size() },
 										  { reimport[0].size(), reimport[1].size()} };
 
@@ -579,25 +582,23 @@ bool Charter::exportChart()
 						case 3:		//Orange
 							fret = 4;
 						}
-						CHNote grd = { position + TICKS_PER_SAMPLE * (chart.getGuard(i).getPivotAlpha() + double(chart.getPivotTime())), modfret };
+						double pos = position + TICKS_PER_SAMPLE * (chart.getGuard(i).getPivotAlpha() + double(chart.getPivotTime()));
 						if (modchart)
 						{
-							grd.mod = CHNote::Modifier::TAP;
 							while (index < player.size())
 							{
-								if (grd.position <= player[index].position)
+								if (pos <= player[index].position)
 									break;
 								else
 									index++;
 							}
-							player.insert(index, grd);
+							player.emplace(index, 1, pos, modfret, 0, CHNote::Modifier::TAP);
 							if (i == 0)
 								grdIndex = index;
 							index++;
 							if (i + 1 != chart.getNumGuards())
 							{
-								CHNote open;
-								open.fret = 7;
+								CHNote::Modifier mod;
 								unsigned dif = chart.getGuard(i + 1).getPivotAlpha() - chart.getGuard(i).getPivotAlpha();
 								if (dif >= 480000)		//If dif is >= ten seconds
 								{
@@ -625,7 +626,7 @@ bool Charter::exportChart()
 									else
 										mod = CHNote::Modifier::NORMAL;
 								}
-								player.emplace(index, pos, 7, 0, mod);
+								player.emplace(index, 1, pos, 7, 0, mod);
 								index++;
 							}
 							pos -= 960;
@@ -637,7 +638,7 @@ bool Charter::exportChart()
 							else
 								index2++;
 						}
-						rein.emplace(index2, pos, fret, 0, CHNote::Modifier::NORMAL);
+						rein.emplace(index2, 1, pos, fret, 0, CHNote::Modifier::NORMAL);
 						index2++;
 						
 					}
@@ -663,22 +664,22 @@ bool Charter::exportChart()
 							if (i + 1 != chart.getNumTracelines())
 							{
 								if (chart.getTraceline(i).getAngle() == 0)
-									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace");
+									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace");
 								else
-									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_" + to_string(radiansToDegrees(chart.getTraceline(i).getAngle())));
+									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_" + to_string(radiansToDegrees(chart.getTraceline(i).getAngle())));
 								index2++;
 								if (chart.getTraceline(i).getCurve())
 								{
-									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_curve");
+									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_curve");
 									index2++;
 								}
 							}
 							else
 							{
 								if (chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() >= (long)section.getDuration())
-									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_endP");
+									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_endP");
 								else
-									rein.emplace(index2, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_end");
+									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_end");
 							}
 						}
 					}
@@ -686,7 +687,7 @@ bool Charter::exportChart()
 					size_t phrIndex;
 					for (size_t i = 0, note = 1, piece = 1; i < chart.getNumPhrases(); i++)
 					{
-						CHNote phr = { position + TICKS_PER_SAMPLE * (chart.getPhrase(i).getPivotAlpha() + double(chart.getPivotTime())) };
+						double pos = position + TICKS_PER_SAMPLE * (chart.getPhrase(i).getPivotAlpha() + double(chart.getPivotTime()));
 						if (noteColor || chartColor || !phraseColor)
 						{
 							Phrase& phrase = chart.getPhrase(i);
@@ -718,13 +719,11 @@ bool Charter::exportChart()
 									return false;
 								}
 							}
-							phr.fret = strumFret;
+							double sus;
 							//Combine all pieces into one Note
 							while (i < chart.getNumPhrases())
 							{
-								if (!chart.getPhrase(i).getEnd())
-									i++;
-								else
+								if (chart.getPhrase(i).getEnd() || i + 1 == chart.getNumPhrases())
 								{
 									if (i + 1 != chart.getNumPhrases())
 									{
@@ -737,25 +736,26 @@ bool Charter::exportChart()
 									}
 									else
 										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
-									phr.sustain = TICKS_PER_SAMPLE * phrase.getDuration();
+									sus = TICKS_PER_SAMPLE * phrase.getDuration();
 									break;
 								}
+								else
+									i++;
 							}
+							CHNote::Modifier mod = CHNote::Modifier::NORMAL;
 							if (note == 1)
 							{
 								//With note == 1, fret > 5 can only mean it's the TAP variant
 								if (strumFret > 5)
 								{
-									phr.mod = CHNote::Modifier::TAP;
-									phr.fret = strumFret - 6;
+									mod = CHNote::Modifier::TAP;
+									strumFret -= 6;
 								}
 								else
 								{
 									//Open note is set to fret 7
 									if (strumFret == 5)
-										phr.fret = 7;
-									else
-										phr.fret = strumFret;
+										strumFret = 7;
 									if (modchart)
 									{
 										//Ensures that the modchart has the note set to strum
@@ -764,8 +764,8 @@ bool Charter::exportChart()
 										{
 											if (player[--p].type == CHNote::NoteType::NOTE)
 											{
-												if (phr.fret != player[p].fret && phr.position - player[p].position < 162.5)
-													phr.mod = CHNote::Modifier::FORCED;
+												if (strumFret != player[p].fret && pos - player[p].position < 162.5)
+													mod = CHNote::Modifier::FORCED;
 												break;
 											}
 										}
@@ -777,14 +777,12 @@ bool Charter::exportChart()
 							{
 								//Open note is set to fret 7
 								if (strumFret == 5)
-									phr.fret = 7;
-								else
-									phr.fret = strumFret;
+									strumFret = 7;
 								if (modchart)
 								{
 									//Ensures that the modchart has the note set to strum
-									if (phr.fret != player[index - 1].fret && phr.position - player[index - 1].position < 162.5)
-										phr.mod = CHNote::Modifier::FORCED;
+									if (strumFret != player[index - 1].fret && pos - player[index - 1].position < 162.5)
+										mod = CHNote::Modifier::FORCED;
 								}
 							}
 							//Find note placement in timeline
@@ -792,44 +790,43 @@ bool Charter::exportChart()
 							{
 								while (index < player.size())
 								{
-									if (phr.position <= player[index].position)
+									if (pos <= player[index].position)
 										break;
 									else
 										index++;
 								}
 								//In other words, disable the sustain for the modchart
 								if (phrase.getDuration() < 4800)
-									phr.name = "n";
-								player.insert(index, phr);
+									player.emplace(index, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "n");
+								else
+									player.emplace(index, 1, pos, strumFret, sus, mod);
 								if (note == 1)
 									phrIndex = index;
 								index++;
 								//To account for the two beats added by the extra synctracks
-								phr.position -= 960;
+								pos -= 960;
 							}
-							//For modchart exporting, TAP is used only on the first note of a subsection
-							//and only for a note too close to the guard mark that preceeded it.
-							//For normal exporting, the first note is instead forced.
-							if (phr.mod == CHNote::Modifier::TAP)
-								phr.mod = CHNote::Modifier::FORCED;
-							//Modchart requires all notes regular notes to be strums, so forcing is needed
-							//Normal export has no need for that rule.
-							else if (phr.mod == CHNote::Modifier::FORCED)
-								phr.mod = CHNote::Modifier::NORMAL;
-							//Override any names of "n"
-							if (phrase.getAnimation() > 0)
-								phr.name = "Anim_" + to_string(phrase.getAnimation());
-							else
-								phr.name = "";
 							while (index2 < rein.size())
 							{
-								if (phr.position <= rein[index2].position)
+								if (pos <= rein[index2].position)
 									break;
 								else
 									index2++;
 							}
-							rein.insert(index2, phr);
-							index2++;
+							//For modchart exporting, TAP is used only on the first note of a subsection
+							//and only for a note too close to the guard mark that preceeded it.
+							//For normal exporting, the first note is instead forced.
+							if (mod == CHNote::Modifier::TAP)
+								mod = CHNote::Modifier::FORCED;
+							//Modchart requires all notes regular notes to be strums, so forcing is needed
+							//Normal export has no need for that rule.
+							else if (mod == CHNote::Modifier::FORCED)
+								mod = CHNote::Modifier::NORMAL;
+							//Override any names of "n"
+							if (phrase.getAnimation() > 0)
+								rein.emplace(index2++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "Anim_" + to_string(phrase.getAnimation()));
+							else
+								rein.emplace(index2++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "");
 							note++;
 						}
 						else //In other words, if phraseColor is true
@@ -843,14 +840,15 @@ bool Charter::exportChart()
 								return false;
 							}
 							bool hopo = false;
+							CHNote::Modifier mod = CHNote::Modifier::NORMAL;
 							if (strumFret > 5)
 							{
 								//With piece == 1, strumFret > 5 is one of the tap options
 								//This also means that note == 1 as options 6-10 don't appear otherwise
 								if (piece == 1)
 								{
-									phr.mod = CHNote::Modifier::TAP;
-									phr.fret = strumFret - 6;
+									mod = CHNote::Modifier::TAP;
+									strumFret -= 6;
 								}
 								else
 								{
@@ -921,9 +919,7 @@ bool Charter::exportChart()
 							else
 							{
 								if (strumFret == 5)
-									phr.fret = 7;
-								else
-									phr.fret = strumFret;
+									strumFret = 7;
 								if (piece == 1)
 								{
 									if (modchart)
@@ -936,70 +932,68 @@ bool Charter::exportChart()
 											{
 												if (player[--p].type == CHNote::NoteType::NOTE)
 												{
-													if (phr.fret != player[p].fret && phr.position - player[p].position < 162.5)
-														phr.mod = CHNote::Modifier::FORCED;
+													if (strumFret != player[p].fret && pos - player[p].position < 162.5)
+														mod = CHNote::Modifier::FORCED;
 													break;
 												}
 											}
 										}
-										else if (phr.fret != player[index - 1].fret && phr.position - player[index - 1].position < 162.5)
-											phr.mod = CHNote::Modifier::FORCED;
+										else if (strumFret != player[index - 1].fret && pos - player[index - 1].position < 162.5)
+											mod = CHNote::Modifier::FORCED;
 									}
 								}
 								else
 								{
 									//Ensures that the modchart has the note set to a hopo... even in unusual cases
-									if (modchart && (phr.position - rein[index2 - 1].position >= 162.5 || phr.fret == player[index - 1].fret))
-										phr.mod = CHNote::Modifier::FORCED;
+									if (modchart && (pos - rein[index2 - 1].position >= 162.5 || strumFret == player[index - 1].fret))
+										mod = CHNote::Modifier::FORCED;
 									hopo = true;
 								}
 							}
-							phr.sustain = TICKS_PER_SAMPLE * chart.getPhrase(i).getDuration();
+							double sus = TICKS_PER_SAMPLE * chart.getPhrase(i).getDuration();
 							if (modchart)
 							{
-								//Disables the note's sustain for the modchart
-								if (chart.getPhrase(i).getDuration() < 4800)
-									phr.name = "n";
 								while (index < player.size())
 								{
-									if (phr.position <= player[index].position)
+									if (pos <= player[index].position)
 										break;
 									else
 										index++;
 								}
 								if (note == 1 && piece == 1)
 									phrIndex = index;
-								player.insert(index, phr);
-								index++;
+								//Disables the note's sustain for the modchart
+								if (chart.getPhrase(i).getDuration() < 4800)
+									player.emplace(index++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "n");
+								else
+									player.emplace(index++, 1, pos, strumFret, sus, mod);
 								//To account for the two beats added by the extra synctracks
-								phr.position -= 960;
+								pos -= 960;
 							}
-							//All hopos are taps... yea that's about it
-							if (hopo)
-								phr.mod = CHNote::Modifier::TAP;
-							//For modchart exporting, TAP is used only on the first note of a subsection
-							//and only for a note too close to the guard mark that preceeded it.
-							//For normal exporting, the first note is instead forced.
-							else if (phr.mod == CHNote::Modifier::TAP)
-								phr.mod = CHNote::Modifier::FORCED;
-							//Modchart requires all notes regular notes to be strums, so forcing is needed
-							//Normal export has no need for that rule.
-							else if (phr.mod == CHNote::Modifier::FORCED)
-								phr.mod = CHNote::Modifier::NORMAL;
-							//Overrides a disabled modchart sustain
-							if (piece == 1 && chart.getPhrase(i).getAnimation() > 0)
-								phr.name = "Anim_" + to_string(chart.getPhrase(i).getAnimation());
-							else
-								phr.name = "";
 							while (index2 < rein.size())
 							{
-								if (phr.position <= rein[index2].position)
+								if (pos <= rein[index2].position)
 									break;
 								else
 									index2++;
 							}
-							rein.insert(index2, phr);
-							index2++;
+							//All hopos are taps... yea that's about it
+							if (hopo)
+								mod = CHNote::Modifier::TAP;
+							//For modchart exporting, TAP is used only on the first note of a subsection
+							//and only for a note too close to the guard mark that preceeded it.
+							//For normal exporting, the first note is instead forced.
+							else if (mod == CHNote::Modifier::TAP)
+								mod = CHNote::Modifier::FORCED;
+							//Modchart requires all notes regular notes to be strums, so forcing is needed
+							//Normal export has no need for that rule.
+							else if (mod == CHNote::Modifier::FORCED)
+								mod = CHNote::Modifier::NORMAL;
+							//Overrides a disabled modchart sustain
+							if (piece == 1 && chart.getPhrase(i).getAnimation() > 0)
+								rein.emplace(index2++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "Anim_" + to_string(chart.getPhrase(i).getAnimation()));
+							else
+								rein.emplace(index2++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "");
 							if (chart.getPhrase(i).getEnd())
 							{
 								note++;
@@ -1020,7 +1014,7 @@ bool Charter::exportChart()
 						if (markIndex < rein.size())
 						{
 							chartMarker.position = (rein[markIndex].position + rein[markIndex - 1].position) / 2;
-							rein.insert(markIndex ,chartMarker);
+							rein.emplace(markIndex, 1, chartMarker);
 						}
 						else
 						{
@@ -1028,9 +1022,8 @@ bool Charter::exportChart()
 								chartMarker.position = rein[markIndex - 1].position + 160;
 							else
 								chartMarker.position = position + 160;
-							rein.push_back(chartMarker);
+							rein.emplace_back(chartMarker);
 						}
-						
 					}
 					//Sets star power phrases
 					if (modchart)
@@ -1039,23 +1032,17 @@ bool Charter::exportChart()
 						{
 						case SongSection::Phase::BATTLE:
 							if (chart.getNumGuards())
-							{
 								//Encapsulate all the guard marks in the subsection
-								CHNote starpower = { position + ((chart.getGuard(0).getPivotAlpha() + double(chart.getPivotTime())) / TICKS_PER_SAMPLE) };
-								starpower.sustain = 20 + TICKS_PER_SAMPLE * ((double)chart.getGuard(chart.getNumGuards() - 1).getPivotAlpha() - chart.getGuard(0).getPivotAlpha());
-								starpower.type = CHNote::NoteType::STAR;
-								player.insert(grdIndex, starpower);
-							}
+								player.emplace(grdIndex, 1, position + TICKS_PER_SAMPLE * (chart.getGuard(0).getPivotAlpha() + double(chart.getPivotTime())),
+														 1, 20 + TICKS_PER_SAMPLE * ((double)chart.getGuard(chart.getNumGuards() - 1).getPivotAlpha() - chart.getGuard(0).getPivotAlpha()),
+														 CHNote::Modifier::NORMAL, CHNote::NoteType::STAR);
 							break;
 						case SongSection::Phase::CHARGE:
 							if (chart.getNumPhrases())
-							{
 								//Encapsulate all the phrase bars in the subsection
-								CHNote starpower = { position + TICKS_PER_SAMPLE * (chart.getPhrase(0).getPivotAlpha() + double(chart.getPivotTime())) };
-								starpower.sustain = TICKS_PER_SAMPLE * ((double)chart.getPhrase(chart.getNumPhrases() - 1).getEndAlpha() - chart.getPhrase(0).getPivotAlpha());
-								starpower.type = CHNote::NoteType::STAR;
-								player.insert(phrIndex, starpower);
-							}
+								player.emplace(grdIndex, 1, position + TICKS_PER_SAMPLE * (chart.getPhrase(0).getPivotAlpha() + double(chart.getPivotTime())),
+													     1, TICKS_PER_SAMPLE * ((double)chart.getPhrase(chart.getNumPhrases() - 1).getEndAlpha() - chart.getPhrase(0).getPivotAlpha()),
+														 CHNote::Modifier::NORMAL, CHNote::NoteType::STAR);
 						}
 					}
 				}
@@ -1437,14 +1424,16 @@ bool Charter::importChart()
 	} while (!global.quit);
 	global.quit = false;
 	char ignore[400];
+	//Skips the info section
 	fscanf_s(inChart, " %[^}]", ignore, 400);
 	fscanf_s(inChart, " %[^{]", ignore, 400);
 	struct SubSection
 	{
 		struct Color
 		{
-			long position = 0;
-			char color = 0;
+			long position;
+			int color;
+			Color(long pos, int clr) : position(pos), color(clr) {}
 		};
 		Chart chart;
 		List<Color> colors;
@@ -1454,11 +1443,12 @@ bool Charter::importChart()
 	{
 		struct Tempo
 		{
-			unsigned long bpm = 0;
+			unsigned long bpm;
 			//In reference to the beginning of the song
-			double position_ticks = 0;
+			double position_ticks;
 			//In reference to the beginning of the section is resides in
-			double position_samples = 0;
+			double position_samples;
+			Tempo(unsigned long bpm = 120, double pos_ticks = 0, double pos_samples = 0) : bpm(bpm), position_ticks(pos_ticks), position_samples(pos_samples) {}
 		};
 		string name = "";
 		//In reference to the beginning of the song
@@ -1469,12 +1459,9 @@ bool Charter::importChart()
 		List<Tempo> tempos;
 		//Two lists for two players
 		List<SubSection> subs[2];
-		Section(string nam, double pos_T, double pos_S, unsigned long bpm)
+		Section(string nam, double pos_T = 0, double pos_S = 0, unsigned long bpm = 120) : name(nam), position_ticks(pos_T), position_samples(pos_S)
 		{
-			name = nam;
-			position_ticks = pos_T;
-			position_samples = pos_S;
-			tempos.push_back(Tempo{ bpm, position_ticks });
+			tempos.emplace_back( bpm, position_ticks );
 		}
 	};
 	List<Section> sections;
@@ -1487,9 +1474,8 @@ bool Charter::importChart()
 		while (test != '}')
 		{
 			fseek(inChart, -1, SEEK_CUR);
-			SyncTrack sync;
-			inChart >> sync;
-			tempos.push_back(sync);
+			//Creates new tempo object
+			tempos.emplace_back(inChart);
 			fscanf_s(inChart, " %c", &test, 1);
 		}
 		fscanf_s(inChart, " %[^{]", ignore, 400);
@@ -1499,8 +1485,7 @@ bool Charter::importChart()
 		while (test != '}')
 		{
 			fseek(inChart, -1, SEEK_CUR);
-			Event ev;
-			inChart >> ev;
+			Event ev(inChart);
 			//For example, if the name is "BATTLE - something,"
 			//only use "something."
 			if (ev.name.find('-') != string::npos)
@@ -1512,9 +1497,10 @@ bool Charter::importChart()
 				if (ev.position > tempos[tempoIndex + 1ULL].position)
 				{
 					Section::Tempo& prev = sections.back().tempos.back();
-					Section::Tempo tem{ tempos[tempoIndex + 1ULL].bpm, tempos[tempoIndex + 1ULL].position };
-					tem.position_samples = prev.position_samples + (tem.position_ticks - prev.position_ticks) * (SAMPLES_PER_MIN / (TICKS_PER_BEAT * prev.bpm / 1000));
-					sections.back().tempos.push_back(tem);
+					double pos_samples = prev.position_samples + (tempos[tempoIndex + 1ULL].position - prev.position_ticks)
+																 * (SAMPLES_PER_MIN / (TICKS_PER_BEAT * prev.bpm / 1000));
+					//Creates new tempo object
+					sections.back().tempos.emplace_back(tempos[tempoIndex + 1ULL].bpm, tempos[tempoIndex + 1ULL].position, pos_samples);
 				}
 				tempoIndex++;
 			}
@@ -1523,9 +1509,10 @@ bool Charter::importChart()
 			if (sections.size())
 			{
 				Section::Tempo& prev = sections.back().tempos.back();
-				pos_samples = sections.back().position_samples + prev.position_samples + (ev.position - prev.position_ticks) * (SAMPLES_PER_MIN / (TICKS_PER_BEAT * prev.bpm / 1000));
+				pos_samples = sections.back().position_samples + prev.position_samples + (ev.position - prev.position_ticks)
+																						 * (SAMPLES_PER_MIN / (TICKS_PER_BEAT * prev.bpm / 1000));
 			}
-			sections.push_back(Section(ev.name, ev.position, pos_samples, tempos[tempoIndex].bpm));
+			sections.emplace_back(ev.name, ev.position, pos_samples, tempos[tempoIndex].bpm);
 			fscanf_s(inChart, " %c", &test, 1);
 		}
 	}
@@ -1546,8 +1533,7 @@ bool Charter::importChart()
 		while (test != '}')
 		{
 			fseek(inChart, -1, SEEK_CUR);
-			CHNote note;
-			inChart >> note;
+			CHNote note(inChart);
 			while (sectIndex + 1ULL != sections.size() && note.position >= sections[sectIndex + 1ULL].position_ticks)
 			{
 				prevSub = currSub;
@@ -1581,7 +1567,6 @@ bool Charter::importChart()
 						currSub->chart.getTraceline(currSub->chart.getNumTracelines() - 1).setCurve(true);
 					else
 					{
-						Traceline trace;
 						double pos = ((note.position - sections[sectIndex].tempos[tempoIndex].position_ticks) * SAMPLES_PER_TICK) + sections[sectIndex].tempos[tempoIndex].position_samples;
 						//If endP
 						if ((note.name.find('P') != string::npos || note.name.find('p') != string::npos) && prevSub != nullptr)
@@ -1597,27 +1582,27 @@ bool Charter::importChart()
 								}
 								if (currSub->chart.getNumTracelines())
 									pos -= 1;
-								trace.setPivotAlpha((long)round(pos));
-								prevSub->chart.add(&trace);
+								prevSub->chart.addTraceline_back((long)round(pos));
 							}
 						}
 						else
 						{
-							trace.setPivotAlpha((long)round(pos));
 							//If the traceline is not and end piece AND has an angle tied to it
 							if (note.name.find("end") == string::npos && note.name.length() > 5)
 							{
 								try
 								{
-									trace.setAngle(float(stof(note.name.substr(6)) * M_PI / 180));
+									currSub->chart.addTraceline_back((long)round(pos), 1, float(stof(note.name.substr(6)) * M_PI / 180));
 								}
 								catch (...)
 								{
 									cout << global.tabs << "Trace line event at tick position " << note.position << " had extraneous data that could not be pulled." << endl;
 									cout << global.tabs << "Remember: trace events *must* be formatted as \"Trace\", \"Trace_[float angle value]\", \"Trace_end\", \"Trace_endP\", or \"Trace_curve\"" << endl;
+									currSub->chart.addTraceline_back((long)round(pos));
 								}
 							}
-							currSub->chart.add(&trace);
+							else
+								currSub->chart.addTraceline_back((long)round(pos));
 						}
 					}
 				}
@@ -1631,11 +1616,8 @@ bool Charter::importChart()
 					long pos = (long)round(((note.position - sections[sectIndex].tempos[tempoIndex].position_ticks) * SAMPLES_PER_TICK) + sections[sectIndex].tempos[tempoIndex].position_samples);
 					if (currSub->chart.getNumPhrases() == 0 || currSub->chart.getPhrase(currSub->chart.getNumPhrases() - 1).getPivotAlpha() < pos)
 					{
-						Phrase phr;
-						phr.setPivotAlpha(pos);
-						phr.setDuration((unsigned long)round(note.sustain * SAMPLES_PER_TICK));
-						currSub->chart.add(&phr);
-						currSub->colors.push_back(SubSection::Color{ pos, note.fret - 48 });
+						currSub->chart.addPhrase_back(pos, (unsigned long)round(note.sustain * SAMPLES_PER_TICK));
+						currSub->colors.emplace_back(pos, note.fret - 48);
 					}
 				}
 				else
@@ -1643,32 +1625,26 @@ bool Charter::importChart()
 					switch (note.mod)
 					{
 					case CHNote::Modifier::NORMAL: //Guard Mark
-					{
-						long pos = (long)round(((note.position - sections[sectIndex].tempos[tempoIndex].position_ticks) * SAMPLES_PER_TICK) + sections[sectIndex].tempos[tempoIndex].position_samples);
-						if (currSub->chart.getNumGuards() == 0 || currSub->chart.getGuard(currSub->chart.getNumGuards() - 1).getPivotAlpha() < pos)
 						{
-							Guard grd;
-							grd.setPivotAlpha(pos);
-							switch (note.fret)
+							long pos = (long)round(((note.position - sections[sectIndex].tempos[tempoIndex].position_ticks) * SAMPLES_PER_TICK) + sections[sectIndex].tempos[tempoIndex].position_samples);
+							if (currSub->chart.getNumGuards() == 0 || currSub->chart.getGuard(currSub->chart.getNumGuards() - 1).getPivotAlpha() < pos)
 							{
-							case '0':
-								grd.setButton(1);
-								currSub->chart.add(&grd);
-								break;
-							case '1':
-								grd.setButton(2);
-								currSub->chart.add(&grd);
-								break;
-							case '3':
-								grd.setButton(0);
-								currSub->chart.add(&grd);
-								break;
-							case '4':
-								grd.setButton(3);
-								currSub->chart.add(&grd);
+								switch (note.fret)
+								{
+								case '0':
+									currSub->chart.addGuard_back(pos, 1);
+									break;
+								case '1':
+									currSub->chart.addGuard_back(pos, 2);
+									break;
+								case '3':
+									currSub->chart.addGuard_back(pos, 0);
+									break;
+								case '4':
+									currSub->chart.addGuard_back(pos, 3);
+								}
 							}
 						}
-					}
 						break;
 					case CHNote::Modifier::FORCED: 
 						currSub->colors.back().color += 8;
@@ -1694,6 +1670,83 @@ bool Charter::importChart()
 
 	if (numPlayersCharted)
 	{
+		auto insertNotes = [&](Chart& imported, Chart& insertion)
+		{
+			insertion.clearPhrases();
+			for (unsigned long phraseIndex = 0; phraseIndex < imported.getNumPhrases(); phraseIndex++)
+			{
+				//Create a new copy so that pivot alpha values are maintained for the loop iterations
+				Phrase phr(imported.getPhrase(phraseIndex));
+				//Pivot alpha was previous set to total displacement from the start of the section
+				phr.adjustPivotAlpha(-insertion.getPivotTime());
+				if (!phr.getStart() && insertion.getNumPhrases())
+					insertion.getPhrase(insertion.getNumPhrases() - 1).changeEndAlpha(phr.getPivotAlpha());
+				if (!phr.getEnd() && phraseIndex + 1 == imported.getNumPhrases())
+					phr.setEnd(true);
+				insertion.addPhrase_back(phr);
+			}
+			if (imported.getNumTracelines() > 1)
+			{
+				insertion.clearTracelines();
+				for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < imported.getNumTracelines(); traceIndex++)
+				{
+					Traceline& trace = imported.getTraceline(traceIndex);
+					if (traceIndex)
+						insertion.getTraceline(insertion.getNumTracelines() - 1).changeEndAlpha(trace.getPivotAlpha() - insertion.getPivotTime());
+					insertion.addTraceline_back(trace.getPivotAlpha() - insertion.getPivotTime());
+				}
+			}
+			//Go through every phrase bar & trace line to find places where phrase bars
+			//should be split into two pieces
+			for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < insertion.getNumTracelines(); traceIndex++)
+			{
+				Traceline& trace = insertion.getTraceline(traceIndex);
+				while (phraseIndex < insertion.getNumPhrases())
+				{
+					Phrase* phr = &insertion.getPhrase(phraseIndex);
+					if (traceIndex == 0)
+					{
+						if (trace.getPivotAlpha() > phr->getPivotAlpha())
+							trace.changePivotAlpha(phr->getPivotAlpha());
+						break;
+					}
+					else if (trace.getPivotAlpha() >= phr->getEndAlpha())
+						phraseIndex++;
+					else if (trace.getPivotAlpha() > phr->getPivotAlpha())
+					{
+
+						unsigned long dur = phr->getEndAlpha() - trace.getPivotAlpha();
+						bool end = phr->getEnd();
+						phr->changeEndAlpha(trace.getPivotAlpha());
+						phr->setEnd(false);
+						insertion.addPhrase(trace.getPivotAlpha(), dur, false, end, 0, phr->getColor());
+						phraseIndex++;
+						break;
+					}
+					else if (traceIndex + 1 != insertion.getNumTracelines())
+						break;
+					//If the phrase bar lands at or after the last trace line, delete
+					else if (phr->getPivotAlpha() >= trace.getPivotAlpha())
+					{
+						if (!phr->getStart())
+							insertion.getPhrase(phraseIndex - 1).setEnd(true);
+						insertion.remove(phraseIndex, 'p');
+					}
+					else if (phr->getEndAlpha() > trace.getPivotAlpha())
+					{
+						phr->changeEndAlpha(trace.getPivotAlpha());
+						phr->setEnd(true);
+						phraseIndex++;
+					}
+				}
+			}
+			insertion.clearGuards();
+			for (unsigned long guardIndex = 0; guardIndex < imported.getNumGuards(); guardIndex++)
+			{
+				Guard& grd = imported.getGuard(guardIndex);
+				insertion.addGuard(grd.getPivotAlpha() - insertion.getPivotTime(), grd.getButton());
+			}
+		};
 		for (unsigned long sectIndex = 0; sectIndex < song.numSections; sectIndex++)
 		{
 			SongSection& section = song.sections[sectIndex];
@@ -1728,94 +1781,18 @@ bool Charter::importChart()
 										if (imp.getNumTracelines() > 1 || imp.getNumGuards())
 										{
 											section.setOrganized(false);
-											Chart& chart = section.getChart((unsigned long long)playerIndex * section.getNumCharts() + chartIndex);
-											chart.clearPhrases();
-											for (unsigned long phraseIndex = 0; phraseIndex < imp.getNumPhrases(); phraseIndex++)
-											{
-												Phrase phr = imp.getPhrase(phraseIndex);
-												phr.setPivotAlpha(phr.getPivotAlpha() - chart.getPivotTime());
-												//Create a new copy so that pivot alpha values are maintained for the loop iterations
-												//Pivot alpha was previous set to total displacement from the start of the section
-												if (!phr.getStart() && chart.getNumPhrases())
-													chart.getPhrase(chart.getNumPhrases() - 1).changeEndAlpha(phr.getPivotAlpha());
-												if (!phr.getEnd() && phraseIndex + 1 == imp.getNumPhrases())
-													phr.setEnd(true);
-												chart.add(&phr);
-											}
-											if (imp.getNumTracelines() > 1)
-											{
-												chart.clearTracelines();
-												for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < imp.getNumTracelines(); traceIndex++)
-												{
-													Traceline trace = imp.getTraceline(traceIndex);
-													trace.setPivotAlpha(trace.getPivotAlpha() - chart.getPivotTime());
-													if (traceIndex)
-														chart.getTraceline(chart.getNumTracelines() - 1).changeEndAlpha(trace.getPivotAlpha());
-													chart.add(&trace);
-												}
-											}
-											//Go through every phrase bar & trace line to find places where phrase bars
-											//should be split into two pieces
-											for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < chart.getNumTracelines(); traceIndex++)
-											{
-												Traceline& trace = chart.getTraceline(traceIndex);
-												while (phraseIndex < chart.getNumPhrases())
-												{
-													if (traceIndex == 0)
-													{
-														if (trace.getPivotAlpha() > chart.getPhrase(phraseIndex).getPivotAlpha())
-															trace.changePivotAlpha(chart.getPhrase(phraseIndex).getPivotAlpha());
-														break;
-													}
-													else if (trace.getPivotAlpha() >= chart.getPhrase(phraseIndex).getEndAlpha())
-														phraseIndex++;
-													else if (trace.getPivotAlpha() > chart.getPhrase(phraseIndex).getPivotAlpha())
-													{
-														Phrase phr;
-														phr.setPivotAlpha(trace.getPivotAlpha());
-														phr.changeEndAlpha(chart.getPhrase(phraseIndex).getEndAlpha());
-														chart.getPhrase(phraseIndex).changeEndAlpha(trace.getPivotAlpha());
-														phr.setStart(false);
-														phr.setEnd(chart.getPhrase(phraseIndex).getEnd());
-														chart.getPhrase(phraseIndex).setEnd(false);
-														chart.add(&phr);
-														phraseIndex++;
-														break;
-													}
-													else if (traceIndex + 1 != chart.getNumTracelines())
-														break;
-													else if (chart.getPhrase(phraseIndex).getPivotAlpha() >= trace.getPivotAlpha())
-													//If the phrase bar lands at or after the last trace line, delete
-													{
-														if (!chart.getPhrase(phraseIndex).getStart())
-															chart.getPhrase(phraseIndex - 1).setEnd(true);
-														chart.remove(phraseIndex, 'p');
-													}
-													else if (chart.getPhrase(phraseIndex).getEndAlpha() > trace.getPivotAlpha())
-													{
-														chart.getPhrase(phraseIndex).changeEndAlpha(trace.getPivotAlpha());
-														chart.getPhrase(phraseIndex).setEnd(true);
-														phraseIndex++;
-													}
-												}
-											}
-											chart.clearGuards();
-											for (unsigned long guardIndex = 0; guardIndex < imp.getNumGuards(); guardIndex++)
-											{
-												Guard grd = imp.getGuard(guardIndex);
-												grd.setPivotAlpha(grd.getPivotAlpha() - chart.getPivotTime());
-												chart.add(&grd);
-											}
+											insertNotes(imp, section.getChart((unsigned long long)playerIndex* section.getNumCharts() + chartIndex));
 											if (section.getPhase() == SongSection::Phase::BATTLE)
 											{
-												if (chart.getNumGuards() && chart.getNumTracelines() > 1)
+												if (imp.getNumGuards() && imp.getNumTracelines() > 1)
 												{
-													if (chart.getGuard(0).getPivotAlpha() < chart.getTraceline(0).getPivotAlpha())
+													//Determining which comes first
+													if (imp.getGuard(0).getPivotAlpha() < imp.getTraceline(0).getPivotAlpha())
 													{
 														if ((playerIndex & 1))
 															p2swapped = true;
 													}
-													else if (chart.getTraceline(0).getPivotAlpha() < chart.getGuard(0).getPivotAlpha())
+													else if (imp.getTraceline(0).getPivotAlpha() < imp.getGuard(0).getPivotAlpha())
 													{
 														if (!(playerIndex & 1))
 															p1swapped = true;
@@ -1844,84 +1821,7 @@ bool Charter::importChart()
 									if (imp.getNumTracelines() > 1 || imp.getNumGuards())
 									{
 										section.setOrganized(false);
-										Chart& chart = section.getChart(2ULL * playerIndex * section.getNumCharts() + chartIndex);
-										chart.clearPhrases();
-										for (unsigned long phraseIndex = 0; phraseIndex < imp.getNumPhrases(); phraseIndex++)
-										{
-											Phrase phr = imp.getPhrase(phraseIndex);
-											phr.setPivotAlpha(phr.getPivotAlpha() - chart.getPivotTime());
-											//Create a new copy so that pivot alpha values are maintained for the loop iterations
-											//Pivot alpha was previous set to total displacement from the start of the section
-											if (!phr.getStart() && chart.getNumPhrases())
-												chart.getPhrase(chart.getNumPhrases() - 1).changeEndAlpha(phr.getPivotAlpha());
-											if (!phr.getEnd() && phraseIndex + 1 == imp.getNumPhrases())
-												phr.setEnd(true);
-											chart.add(&phr);
-										}
-										if (imp.getNumTracelines() > 1)
-										{
-											chart.clearTracelines();
-											for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < imp.getNumTracelines(); traceIndex++)
-											{
-												Traceline trace = imp.getTraceline(traceIndex);
-												trace.setPivotAlpha(trace.getPivotAlpha() - chart.getPivotTime());
-												if (traceIndex)
-													chart.getTraceline(chart.getNumTracelines() - 1).changeEndAlpha(trace.getPivotAlpha());
-												chart.add(&trace);
-											}
-										}
-										//Go through every phrase bar & trace line to find places where phrase bars
-										//should be split into two pieces
-										for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < chart.getNumTracelines(); traceIndex++)
-										{
-											Traceline& trace = chart.getTraceline(traceIndex);
-											while (phraseIndex < chart.getNumPhrases())
-											{
-												if (traceIndex == 0)
-												{
-													if (trace.getPivotAlpha() > chart.getPhrase(phraseIndex).getPivotAlpha())
-														trace.changePivotAlpha(chart.getPhrase(phraseIndex).getPivotAlpha());
-													break;
-												}
-												else if (trace.getPivotAlpha() >= chart.getPhrase(phraseIndex).getEndAlpha())
-													phraseIndex++;
-												else if (trace.getPivotAlpha() > chart.getPhrase(phraseIndex).getPivotAlpha())
-												{
-													Phrase phr;
-													phr.setPivotAlpha(trace.getPivotAlpha());
-													phr.changeEndAlpha(chart.getPhrase(phraseIndex).getEndAlpha());
-													chart.getPhrase(phraseIndex).changeEndAlpha(trace.getPivotAlpha());
-													phr.setStart(false);
-													phr.setEnd(chart.getPhrase(phraseIndex).getEnd());
-													chart.getPhrase(phraseIndex).setEnd(false);
-													chart.add(&phr);
-													phraseIndex++;
-													break;
-												}
-												else if (traceIndex + 1 != chart.getNumTracelines())
-													break;
-												else if (chart.getPhrase(phraseIndex).getPivotAlpha() >= trace.getPivotAlpha())
-												//If the phrase bar lands at or after the last trace line, delete
-												{
-													if (!chart.getPhrase(phraseIndex).getStart())
-														chart.getPhrase(phraseIndex - 1).setEnd(true);
-													chart.remove(phraseIndex, 'p');
-												}
-												else if (chart.getPhrase(phraseIndex).getEndAlpha() > trace.getPivotAlpha())
-												{
-													chart.getPhrase(phraseIndex).changeEndAlpha(trace.getPivotAlpha());
-													chart.getPhrase(phraseIndex).setEnd(true);
-													phraseIndex++;
-												}
-											}
-										}
-										chart.clearGuards();
-										for (unsigned long guardIndex = 0; guardIndex < imp.getNumGuards(); guardIndex++)
-										{
-											Guard grd = imp.getGuard(guardIndex);
-											grd.setPivotAlpha(grd.getPivotAlpha() - chart.getPivotTime());
-											chart.add(&grd);
-										}
+										insertNotes(imp, section.getChart(2ULL * playerIndex * section.getNumCharts() + chartIndex));
 									}
 								}
 							}
@@ -1976,7 +1876,7 @@ bool Charter::importChart()
 		}
 		do
 		{
-			//Either yes or no will still overwrite the old CHC data currently held
+			//Either yes or no will still overwrite the old CHC data held
 			//in the current CHC_Main object
 			cout << global.tabs << "Save " << song.shortname << " externally? [Y/N]\n";
 			switch (menuChoices("yn"))

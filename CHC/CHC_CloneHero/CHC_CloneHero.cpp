@@ -20,15 +20,17 @@ using namespace std;
 SyncTrack::SyncTrack(FILE* inFile) : timeSig(4)
 {
 	char ignore[30];
-	fscanf_s(inFile, " %lf%[^B]s %lu", &position, ignore, 30, &bpm);
+	fscanf_s(inFile, " %lf%[^B]s", &position, ignore, 30);
+	fseek(inFile, 1, SEEK_CUR);
+	fscanf_s(inFile, " %lu", &bpm);
 }
 
 Event::Event(FILE* inFile)
 {
-	char ignore[4], bagel[100];
-	fscanf_s(inFile, " %lf%[^E]s", &position, ignore, 4);
-	fgets(bagel, 100, inFile);
-	name = bagel + 1;
+	char bagel[100];
+	fscanf_s(inFile, " %lf%[^\"]s", &position, bagel, 4);
+	fscanf_s(inFile, " %[^\n]s", bagel, 100);
+	name = bagel;
 	if (name[0] == '\"')
 		name = name.substr(1, name.length() - 2); //Gets rid of ""
 };
@@ -41,8 +43,8 @@ CHNote::CHNote(FILE* inFile)
 	if (type == 'E')
 	{
 		char bagel[100];
-		fgets(bagel, 100, inFile);
-		name = bagel + 1;
+		fscanf_s(inFile, " %[^\n]s", bagel, 100);
+		name = bagel;
 		this->type = NoteType::EVENT;
 		fret = 1;
 		sustain = 0;
@@ -69,15 +71,15 @@ CHNote::CHNote(FILE* inFile)
 FILE* operator<<(FILE* outFile, SyncTrack sync)
 {
 	if (sync.timeSig)
-		fprintf(outFile, "%lu = TS %lu\n", (unsigned long)round(sync.position), sync.timeSig);
+		fprintf(outFile, "  %lu = TS %lu\n", (unsigned long)round(sync.position), sync.timeSig);
 	if (sync.bpm)
-		fprintf(outFile, "%lu = B %lu\n", (unsigned long)round(sync.position), sync.bpm);
+		fprintf(outFile, "  %lu = B %lu\n", (unsigned long)round(sync.position), sync.bpm);
 	return outFile;
 };
 
 FILE* operator<<(FILE* outFile, Event ev)
 {
-	fprintf(outFile, "%lu = E \"section %s\"\n", (unsigned long)round(ev.position), ev.name.c_str());
+	fprintf(outFile, "  %lu = E \"section %s\"\n", (unsigned long)round(ev.position), ev.name.c_str());
 	return outFile;
 };
 
@@ -86,10 +88,10 @@ FILE* operator<<(FILE* outFile, CHNote note)
 	switch (note.type)
 	{
 	case CHNote::NoteType::STAR:
-		fprintf(outFile, "%lu = S 2 %lu\n", (unsigned long)round(note.position), (unsigned long)round(note.sustain));
+		fprintf(outFile, "  %lu = S 2 %lu\n", (unsigned long)round(note.position), (unsigned long)round(note.sustain));
 		break;
 	case CHNote::NoteType::NOTE:
-		fprintf(outFile, "%lu = N %u' '", (unsigned long)round(note.position), (unsigned)note.fret);
+		fprintf(outFile, "  %lu = N %u' '", (unsigned long)round(note.position), (unsigned)note.fret);
 		if (note.name.compare("n"))
 			fprintf(outFile, "%ul\n", (unsigned long)round(note.sustain));
 		else
@@ -97,15 +99,15 @@ FILE* operator<<(FILE* outFile, CHNote note)
 		switch (note.mod)
 		{
 		case CHNote::Modifier::FORCED:
-			fprintf(outFile, "%lu = S 5 0\n", (unsigned long)round(note.position));
+			fprintf(outFile, "  %lu = S 5 0\n", (unsigned long)round(note.position));
 			break;
 		case CHNote::Modifier::TAP:
-			fprintf(outFile, "%lu = S 6 0\n", (unsigned long)round(note.position));
+			fprintf(outFile, "  %lu = S 6 0\n", (unsigned long)round(note.position));
 		}
 		if (note.name.length() <= 1)
 			break;
 	case CHNote::NoteType::EVENT:
-		fprintf(outFile, "%lu = E %s\n", (unsigned long)round(note.position), note.name.c_str());
+		fprintf(outFile, "  %lu = E %s\n", (unsigned long)round(note.position), note.name.c_str());
 	}
 	return outFile;
 };
@@ -1427,6 +1429,7 @@ bool Charter::importChart()
 	//Skips the info section
 	fscanf_s(inChart, " %[^}]", ignore, 400);
 	fscanf_s(inChart, " %[^{]", ignore, 400);
+	fseek(inChart, 1, SEEK_CUR);
 	struct SubSection
 	{
 		struct Color
@@ -1479,6 +1482,7 @@ bool Charter::importChart()
 			fscanf_s(inChart, " %c", &test, 1);
 		}
 		fscanf_s(inChart, " %[^{]", ignore, 400);
+		fseek(inChart, 1, SEEK_CUR);
 		size_t tempoIndex = 0;
 		fscanf_s(inChart, " %c", &test, 1);
 		//Checking for the end of the event section
@@ -1488,8 +1492,7 @@ bool Charter::importChart()
 			Event ev(inChart);
 			//For example, if the name is "BATTLE - something,"
 			//only use "something."
-			if (ev.name.find('-') != string::npos)
-				ev.name = ev.name.substr(ev.name.find('-') + 2);
+			ev.name = ev.name.substr(ev.name.find_last_of(' ') + 1);
 			//Add all tempos between the current section event and the previous section
 			//to the previous section
 			while (tempoIndex + 1ULL < tempos.size() && ev.position >= tempos[tempoIndex + 1ULL].position)
@@ -1520,6 +1523,7 @@ bool Charter::importChart()
 	for (unsigned sectIndex = 0; numPlayersCharted < 2 && !feof(inChart); numPlayersCharted++, sectIndex = 0)
 	{
 		fscanf_s(inChart, " %[^{]", ignore, 400);
+		fseek(inChart, 1, SEEK_CUR);
 		if (feof(inChart))
 			break;
 		fscanf_s(inChart, " %c", &test, 1);
@@ -1690,10 +1694,11 @@ bool Charter::importChart()
 				insertion.clearTracelines();
 				for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < imported.getNumTracelines(); traceIndex++)
 				{
-					Traceline& trace = imported.getTraceline(traceIndex);
+					Traceline trace = imported.getTraceline(traceIndex);
+					trace.adjustPivotAlpha(-insertion.getPivotTime());
 					if (traceIndex)
-						insertion.getTraceline(insertion.getNumTracelines() - 1).changeEndAlpha(trace.getPivotAlpha() - insertion.getPivotTime());
-					insertion.addTraceline_back(trace.getPivotAlpha() - insertion.getPivotTime());
+						insertion.getTraceline(insertion.getNumTracelines() - 1).changeEndAlpha(trace.getPivotAlpha());
+					insertion.addTraceline_back(trace);
 				}
 			}
 			//Go through every phrase bar & trace line to find places where phrase bars
@@ -1923,7 +1928,7 @@ bool Charter::importChart()
 				{
 				case 0:
 				{
-					banner(" " + song.shortname + ".CHC - Color Sheet Creation From Import");
+					banner(" " + song.shortname + ".CHC - Color Sheet Creation From Import ");
 					bool multiplayer = false;
 					do
 					{

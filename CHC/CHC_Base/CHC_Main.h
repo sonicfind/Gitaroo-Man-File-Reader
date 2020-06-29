@@ -22,28 +22,16 @@
 class CHC_Editor
 {
 private:
-	CHC song;
-	bool duet;
-	bool saved;
-	bool overwritten;
+	CHC* song;
 public:
-	CHC_Editor() : duet(false), saved(true), overwritten(false) {}
-	CHC_Editor(CHC& song) : song(song), saved(true), overwritten(false)
-	{
-		duet = song.imc[0] == 0;
-	}
+	CHC_Editor() : song(nullptr) {}
+	CHC_Editor(CHC& song) : song(&song) {}
 	CHC_Editor& operator=(CHC_Editor& edtr)
 	{
 		song = edtr.song;
-		duet = edtr.duet;
-		saved = edtr.saved;
-		overwritten = edtr.overwritten;
 	}
 	//Songs
-	CHC& getSong() { return song; }
-	bool getDuet() { return duet; }
-	void saveFile();
-	bool editSong(bool multi = false);
+	void editSong(bool multi = false);
 	void fixNotes();
 	void organizeAll();
 	void PSPToPS2();
@@ -81,28 +69,19 @@ public:
 class CHC_Main
 {
 private:
-	CHC* song = nullptr;
-	bool duet = false;
+	CHC song;
 public:
-	CHC_Main(std::string filename)
-	{
-		song = new CHC(filename);
-		duet = song->imc[0] == 0;
-	}
-	~CHC_Main()
-	{
-		if (song != nullptr)
-			delete song;
-	}
+	CHC_Main(std::string filename) : song(filename) {}
 	bool menu(size_t fileCount = 0);
-	void printTxt();
-	bool applyChanges(bool fix, bool swap, bool save);
+	void saveFile();
+	void writeTxt();
+	bool applyChanges(bool fix, bool swap = false, bool save = false);
 	void edit(bool multi = false);
 	void makeTAS();
 	void exportChart();
 	void importChart();
 	bool createColorTemplate();
 };
-extern "C" CHCBASE_API bool quickFix(CHC & song);
+extern "C" CHCBASE_API bool quickFix(CHC& song);
 extern "C" CHCBASE_API bool loadSingleCHC(std::string& filename);
 extern "C" CHCBASE_API bool loadMultiCHC(List<std::string>* files);

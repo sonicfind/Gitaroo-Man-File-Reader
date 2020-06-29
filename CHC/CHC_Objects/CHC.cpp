@@ -24,7 +24,7 @@ CHC::CHC() : sections(1)
 	speed = 0;
 	unorganized = 0;
 	optimized = false;
-	numSections = 1;
+	saved = false;
 }
 
 CHC::CHC(const CHC& song) : sections(song.sections)
@@ -39,8 +39,8 @@ CHC::CHC(const CHC& song) : sections(song.sections)
 	speed = song.speed;
 	unorganized = song.unorganized;
 	optimized = song.optimized;
-	numSections = song.numSections;
 	memcpy_s(energyDamageFactors, sizeof(EnergyDamage) * 20, song.energyDamageFactors, sizeof(EnergyDamage) * 20);
+	saved = song.saved;
 }
 
 CHC& CHC::operator=(CHC& song)
@@ -55,9 +55,9 @@ CHC& CHC::operator=(CHC& song)
 	speed = song.speed;
 	unorganized = song.unorganized;
 	optimized = song.optimized;
-	numSections = song.numSections;
 	sections = song.sections;
 	memcpy_s(energyDamageFactors, sizeof(EnergyDamage) * 20, song.energyDamageFactors, sizeof(EnergyDamage) * 20);
+	saved = song.saved;
 	return *this;
 }
 
@@ -121,14 +121,14 @@ CHC::CHC(string filename)
 	fread(&events, sizeof(SSQ), 4, inFile);
 	fread(&audio, sizeof(AudioChannel), 8, inFile);
 	fread(&speed, 4, 1, inFile);
-	fread(&numSections, 4, 1, inFile);
-	unorganized = numSections;
+	fread(u.c, 4, 1, inFile);
+	unorganized = u.ui;
 	//Uses FILE* constructor to read section cue data
-	for (unsigned sectIndex = 0; sectIndex < numSections; sectIndex++)
+	for (unsigned sectIndex = 0; sectIndex < u.ui; sectIndex++)
 		sections.emplace_back(inFile);
 	fseek(inFile, 4, SEEK_CUR);
 	bool reorganized = false;
-	for (unsigned sectIndex = 0; sectIndex < numSections; sectIndex++) //SongSections
+	for (unsigned sectIndex = 0, numSections = u.ui; sectIndex < numSections; sectIndex++) //SongSections
 	{
 		fread(u.c, 1, 4, inFile);
 		if (!strstr(u.c, "CHLS"))
@@ -235,6 +235,7 @@ CHC::CHC(string filename)
 	}
 	fread(&energyDamageFactors, sizeof(EnergyDamage), 20, inFile);
 	fclose(inFile);
+	saved = true;
 }
 
 //Create or update a CHC file
@@ -257,8 +258,8 @@ bool CHC::create(string filename)
 	fwrite(events, sizeof(SSQ), 4, outFile);
 	fwrite(audio, sizeof(AudioChannel), 8, outFile);
 	fwrite(&speed, 4, 1, outFile);
-	fwrite(&numSections, 4, 1, outFile);
-	for (unsigned sectIndex = 0; sectIndex < numSections; sectIndex++)	//Cues
+	fwrite(&sections.size(), 4, 1, outFile);
+	for (unsigned sectIndex = 0; sectIndex < sections.size(); sectIndex++)	//Cues
 	{
 		fwrite(&sections[sectIndex].index, 4, 1, outFile);
 		fwrite(sections[sectIndex].name, 1, 16, outFile);
@@ -266,8 +267,8 @@ bool CHC::create(string filename)
 		fwrite(&sections[sectIndex].frames, 4, 2, outFile);
 		fwrite("\0\0\0\0", 1, 4, outFile);
 	}
-	fwrite(&numSections, 4, 1, outFile);
-	for (unsigned sectIndex = 0; sectIndex < numSections; sectIndex++) //SongSections
+	fwrite(&sections.size(), 4, 1, outFile);
+	for (unsigned sectIndex = 0; sectIndex < sections.size(); sectIndex++) //SongSections
 	{
 		SongSection& section = sections[sectIndex];
 		fputs("CHLS", outFile);
@@ -339,5 +340,6 @@ bool CHC::create(string filename)
 	fwrite(u.c, 1, 4, outFile);
 	fwrite(energyDamageFactors, sizeof(EnergyDamage), 20, outFile);
 	fclose(outFile);
+	saved = true;
 	return true;
 }

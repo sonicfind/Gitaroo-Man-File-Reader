@@ -51,8 +51,6 @@ private:
 	unsigned unorganized;
 	//Saves whether all notes were readjusted for minimal glitching
 	bool optimized;
-	//Number of sections
-	unsigned long numSections;
 	//List of all sections
 	List<SongSection> sections;
 	//Holds all life-value data for every player and phase type
@@ -67,6 +65,7 @@ private:
 		float chargeRelease = .025f;
 		float attackRelease = .025f;
 	} energyDamageFactors[4][5];
+	bool saved;
 public:
 	CHC();
 	CHC(const CHC&);

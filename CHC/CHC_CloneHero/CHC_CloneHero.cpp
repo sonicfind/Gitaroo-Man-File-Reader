@@ -132,11 +132,11 @@ bool importChart(CHC& song)
 
 bool Charter::exportChart()
 {
-	List<unsigned long> sectionIndexes;
+	List<size_t> sectionIndexes;
 	do
 	{
 		cout << global.tabs << "Type the number for each section that you wish to have charted - w/ spaces inbetween.\n";
-		for (unsigned sectIndex = 0; sectIndex < song.numSections; sectIndex++)
+		for (unsigned sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
 			cout << global.tabs << sectIndex << " - " << song.sections[sectIndex].getName() << '\n';
 		if (sectionIndexes.size())
 		{
@@ -145,7 +145,7 @@ bool Charter::exportChart()
 				cout << song.sections[sectionIndexes[index]].getName() << " ";
 			cout << endl;
 		}
-		switch (vectorValueInsert(sectionIndexes, "yn", song.numSections))
+		switch (vectorValueInsert(sectionIndexes, "yn", song.sections.size()))
 		{
 		case -1:
 
@@ -1752,7 +1752,7 @@ bool Charter::importChart()
 				insertion.addGuard(grd.getPivotAlpha() - insertion.getPivotTime(), grd.getButton());
 			}
 		};
-		for (unsigned long sectIndex = 0; sectIndex < song.numSections; sectIndex++)
+		for (unsigned long sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
 		{
 			SongSection& section = song.sections[sectIndex];
 			if (section.getPhase() == SongSection::Phase::INTRO || strstr(section.getName(), "BRK") || strstr(section.getName(), "BREAK"))
@@ -1985,7 +1985,7 @@ bool Charter::importChart()
 						dualvfprintf_s(outSheet, outSheet2, "[attack point palette]\nG: 00ff00\nR: ff0000\nY: ffff00\nB: 0000ff\nO: ff7f00\nP: ff00ff\nN: f89b44\ng: ffffff\nr: ffffff\ny: ffffff\nb: ffffff\no: ffffff\np: ffffff\n\n");
 						dualvfprintf_s(outSheet, outSheet2, "[phrase bar palette]\nG: 40ff40\nR: ff4040\nY: ffff40\nB: 4040c8\nO: ff9f40\nP: ff40ff\nN: f07b7b\ng: 40ff40\nr: ff4040\ny: ffff40\nb: 4040c8\no: ff9f40\np: ff40ff\n\n");
 						unsigned long chartCount = 0;
-						for (unsigned long sectIndex = 0; sectIndex < song.numSections; sectIndex++)
+						for (unsigned long sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
 						{
 							SongSection& section = song.sections[sectIndex];
 							unsigned long sectIndex2 = 0;

@@ -970,11 +970,11 @@ bool TAS::buildTAS()
 		}
 	} while (!global.quit);
 	global.quit = false;
-	List<unsigned long> sectionIndexes;
+	List<size_t> sectionIndexes;
 	do
 	{
 		cout << global.tabs << "Type the number for each section that you wish to TAS - in chronological order and w/ spaces in-between\n";
-		for (unsigned sectIndex = 0; sectIndex < song.numSections; sectIndex++)
+		for (unsigned sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
 			cout << global.tabs << sectIndex << " - " << song.sections[sectIndex].getName() << '\n';
 		if (sectionIndexes.size())
 		{
@@ -983,7 +983,7 @@ bool TAS::buildTAS()
 				cout << song.sections[sectionIndexes[index]].getName() << " ";
 			cout << '\n';
 		}
-		switch (vectorValueInsert(sectionIndexes, "yntmv", song.numSections))
+		switch (vectorValueInsert(sectionIndexes, "yntmv", song.sections.size()))
 		{
 		case -1:
 
@@ -1070,7 +1070,7 @@ bool TAS::buildTAS()
 		cout << global.tabs << section.getName() << endl;
 		if (!stage || (section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK"))) //If not INTRO phase or BRK section
 		{
-			if (section.getPhase() == SongSection::Phase::END || sectionIndexes[sectIndex] + 1 == song.numSections)
+			if (section.getPhase() == SongSection::Phase::END || sectionIndexes[sectIndex] + 1 == song.sections.size())
 				endReached = true; // If END phase or last section
 			{
 				//0 - Technical
@@ -1305,7 +1305,7 @@ bool TAS::buildTAS()
 			do
 			{
 				cout << global.tabs << "Type the number for each section that you wish to TAS from ST00B - in chronological order and w/ spaces in-between\n";
-				for (unsigned sectIndex = 0; sectIndex < tutorial->numSections; sectIndex++)
+				for (unsigned sectIndex = 0; sectIndex < tutorial->sections.size(); sectIndex++)
 					cout << global.tabs << sectIndex << " - " << tutorial->sections[sectIndex].getName() << '\n';
 				if (sectionIndexes.size())
 				{
@@ -1314,7 +1314,7 @@ bool TAS::buildTAS()
 						cout << tutorial->sections[sectionIndexes[index]].getName() << " ";
 					cout << '\n';
 				}
-				switch (vectorValueInsert(sectionIndexes, "yntmv", tutorial->numSections))
+				switch (vectorValueInsert(sectionIndexes, "yntmv", tutorial->sections.size()))
 				{
 				case -1:
 
@@ -1367,7 +1367,7 @@ bool TAS::buildTAS()
 			{
 				SongSection& section = tutorial->sections[sectionIndexes[sectIndex]];
 				cout << global.tabs << section.getName() << endl;
-				if (sectionIndexes[sectIndex] + 1 == tutorial->numSections)
+				if (sectionIndexes[sectIndex] + 1 == tutorial->sections.size())
 					endReached = true; // If END phase or last section
 				{
 					//0 - Technical

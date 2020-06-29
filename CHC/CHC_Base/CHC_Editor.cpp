@@ -17,30 +17,29 @@
 #include "CHC_Main.h"
 using namespace std;
 
-bool CHC_Editor::editSong(bool multi)
+void CHC_Editor::editSong(bool multi)
 {
 	do
 	{
-		banner(" " + song.shortname + ".CHC - Editor ");
+		banner(" " + song->shortname + ".CHC - Editor ");
 		//Holds addresses to the various functions that can be chosen in this menu prompt
-		List<void(CHC_Editor::*)()> functions = { &CHC_Editor::saveFile, &CHC_Editor::audioSettings, &CHC_Editor::winLossSettings,
+		List<void(CHC_Editor::*)()> functions = { &CHC_Editor::audioSettings, &CHC_Editor::winLossSettings,
 											   &CHC_Editor::adjustSpeed, &CHC_Editor::sectionMenu, &CHC_Editor::adjustFactors };
-		string choices = "svagcd";
-		cout << global.tabs << "S - Save File\n";
-		if (!song.optimized)
+		string choices = "vagcd";
+		if (!song->optimized)
 		{
 			choices += 'f'; functions.push_back(&CHC_Editor::fixNotes);
 			cout << global.tabs << "F - Fix any problematic notes or trace lines\n";
 		}
-		if (song.unorganized)
+		if (song->unorganized)
 		{
 			choices += 'o'; functions.push_back(&CHC_Editor::organizeAll);
 			cout << global.tabs << "O - Organize All Unorganized Sections\n";
 		}
-		if (strstr(song.imc, ".IMC"))
+		if (strstr(song->imc, ".IMC"))
 		{
 			choices += 'i'; functions.push_back(&CHC_Editor::swapIMC);
-			cout << global.tabs << "I - Swap IMC file (Current file: " << song.imc + 34 << ")\n";
+			cout << global.tabs << "I - Swap IMC file (Current file: " << song->imc + 34 << ")\n";
 		}
 		else
 		{
@@ -49,8 +48,8 @@ bool CHC_Editor::editSong(bool multi)
 		}
 		cout << global.tabs << "V - Volume & Pan Settings\n";
 		cout << global.tabs << "A - Win/Loss Animations\n";
-		cout << global.tabs << "G - Adjust Gameplay Speed: " << song.speed << endl;
-		cout << global.tabs << "C - SongSections (" << song.numSections << ")\n";
+		cout << global.tabs << "G - Adjust Gameplay Speed: " << song->speed << endl;
+		cout << global.tabs << "C - SongSections (" << song->sections.size() << ")\n";
 		cout << global.tabs << "D - Player Damage/Energy Factors\n";
 		cout << global.tabs << "? - Help info\n";
 		if (multi)
@@ -61,41 +60,23 @@ bool CHC_Editor::editSong(bool multi)
 		switch (result)
 		{
 		case -1:
-			if (!saved)
-			{
-				cout << global.tabs << endl;
-				cout << global.tabs << "Recent changes have not been saved externally to a file. Which action will you take?\n";
-				cout << global.tabs << "S - Save (two sub options), and Exit\n";
-				cout << global.tabs << "Q - Exit without saving\n";
-				cout << global.tabs << "C - Cancel" << endl;
-				switch (menuChoices("sc"))
-				{
-				case 0:
-					saveFile();
-					if (!saved)
-						break;
-				case -1:
-					global.quit = true;
-				}
-			}
-			else
-				global.quit = true;
+			global.quit = true;
 			break;
 		case -3:
 			cout << global.tabs << endl;
 			cout << global.tabs << "S - Save File:\n";
 			cout << global.tabs << "Pretty self-explanatory - save the file as an overwrite or as a new file.\n" << global.tabs << '\n';
 
-			if (strstr(song.imc, ".IMC"))
+			if (strstr(song->imc, ".IMC"))
 			{
-				cout << global.tabs << "I - Swap IMC file (Current file: " << song.imc + 34 << "):\n";
+				cout << global.tabs << "I - Swap IMC file (Current file: " << song->imc + 34 << "):\n";
 				cout << global.tabs << "PS2 compatible CHC files contain a string that points to the location of the .IMC audio file used for the stage.\n";
 				cout << global.tabs << "Use this option to change which specific .IMC file the CHC will point to;\n" << global.tabs << '\n';
 			}
 			else
 			{
 				cout << global.tabs << "P - Convert for PS2-Version Compatibility:\n";
-				cout << global.tabs << "Use this option to convert this (assumed) duet-made CHC into a PS2 compatible CHC. Doing so will open up a few other features\n";
+				cout << global.tabs << "Use this option to convert this (assumed) !song->imc[0]-made CHC into a PS2 compatible CHC. Doing so will open up a few other features\n";
 				cout << global.tabs << "- most prominently being TASing capability - at the cost of one of the player tracks: Player 1, Player 2, or the Enemy.\n";
 				cout << global.tabs << "This will also reorganize all unorganized sections for optimal compatibility.\n" << global.tabs << '\n';
 			}
@@ -107,11 +88,11 @@ bool CHC_Editor::editSong(bool multi)
 			cout << global.tabs << "Every stage in the game has a set of win and loss animations. These animations start at set points in a stage's frame data (located in the stage's SSQ file).\n";
 			cout << global.tabs << "This option will allow you to change what frame any of the four animations (two wins, two losses) start on - although you'll most likely never use this.\n" << global.tabs << '\n';
 
-			cout << global.tabs << "G - Adjust Gameplay Speed (Current speed: " << song.speed << "):\n";
+			cout << global.tabs << "G - Adjust Gameplay Speed (Current speed: " << song->speed << "):\n";
 			cout << global.tabs << "The speed of which trace lines, phrae bars, and guard marks approach the middle of the screen is determined by this value.\n";
 			cout << global.tabs << "This option will allow you to adjust the value to whatever you want (negative even). Note: lower = faster; higher = slower.\n" << global.tabs << '\n';
 
-			cout << global.tabs << "C - SongSections (" << song.numSections << "):\n";
+			cout << global.tabs << "C - SongSections (" << song->sections.size() << "):\n";
 			cout << global.tabs << "In the future, this option will be the gateway to digging into the nitty gritty of each section. It will allow you manually adjust a wide range\n";
 			cout << global.tabs << "of parameters, including a section's duration, conditions, and phase type while also allowing for manual adjustments on subsections and\n";
 			cout << global.tabs << "their trace lines, phrase bars, and guard marks. Currently, however, it will give you a choice of two features:\n";
@@ -131,85 +112,26 @@ bool CHC_Editor::editSong(bool multi)
 		}
 	} while (!global.quit);
 	global.quit = false;
-	return overwritten;
 }
 
 void CHC_Editor::organizeAll()
 {
-	banner(" " + song.shortname + ".CHC - Complete Reorganization ");
-	for (unsigned long sectIndex = 0; song.unorganized && sectIndex < song.numSections; sectIndex++)
+	banner(" " + song->shortname + ".CHC - Complete Reorganization ");
+	for (unsigned long sectIndex = 0; song->unorganized && sectIndex < song->sections.size(); sectIndex++)
 	{
-		if (!song.sections[sectIndex].organized)
-			reorganize(song.sections[sectIndex]);
+		if (!song->sections[sectIndex].organized)
+			reorganize(song->sections[sectIndex]);
 	}
 	cout << global.tabs << "All sections organized\n";
 }
 
-void CHC_Editor::saveFile()
-{
-	banner(" " + song.shortname + ".CHC Save Prompt ");
-	string ext = "_T";
-	string filename = song.name.substr(0, song.name.length() - 4);
-	do
-	{
-		cout << global.tabs << "S - Save & Overwrite Original File" << endl;
-		cout << global.tabs << "A - Save as \"" << song.shortname << "_T.CHC\"" << endl;
-		cout << global.tabs << "Q - Back Out" << endl;
-		switch (menuChoices("sa"))
-		{
-		case -1:
-			return;
-		case 0:
-			cout << global.tabs << "Saving " << song.shortname + ".CHC" << endl;
-			song.create(song.name);
-			saved = true;
-			overwritten = true;
-			global.quit = true;
-			break;
-		case 1:
-			do
-			{
-				switch (fileOverwriteCheck(filename + ext + ".CHC"))
-				{
-				case -1:
-					return;
-				case 0:
-					cout << global.tabs << endl;
-					ext += "_T";
-					break;
-				case 1:
-					song.create(filename + ext + ".CHC");
-					saved = true;
-					do
-					{
-						cout << global.tabs << endl;
-						cout << global.tabs << "Swap loaded file to " << filename + ext << ".CHC? [Y/N]" << endl;
-						switch (menuChoices("yn"))
-						{
-						case 0:
-							song.name = filename + ext + ".CHC";
-							song.shortname += ext;
-							overwritten = true;
-						case 1:
-						case -1:
-							global.quit = true;
-						}
-					} while (!global.quit);
-				}
-			} while (!global.quit);
-		}
-	} while (!global.quit);
-	global.quit = false;
-}
-
 void CHC_Editor::fixNotes()
 {
-	banner(" Fixing " + song.shortname + ".CHC ");
+	banner(" Fixing " + song->shortname + ".CHC ");
 	unsigned long tracelinesCurved = 0, tracelinesDeleted = 0, phrasesDeleted = 0, phrasesShortened = 0, guardsDeleted = 0;
-	bool duet = song.imc[0] == 0;
-	for (unsigned sectIndex = 0; sectIndex < song.numSections; sectIndex++) //SongSections
+	for (unsigned sectIndex = 0; sectIndex < song->sections.size(); sectIndex++) //SongSections
 	{
-		SongSection& section = song.sections[sectIndex];
+		SongSection& section = song->sections[sectIndex];
 		if (section.battlePhase == SongSection::Phase::INTRO)
 			continue;
 		for (unsigned playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
@@ -275,7 +197,7 @@ void CHC_Editor::fixNotes()
 				phrasesDeleted += barsRemoved;
 				for (unsigned guardIndex = 0; guardIndex < chart.guards.size(); guardIndex++)
 				{
-					while (guardIndex + 1 < chart.guards.size() && chart.guards[guardIndex].pivotAlpha + 1600 > chart.guards[guardIndex + 1ULL].pivotAlpha)
+					while (guardIndex + 1ULL < chart.guards.size() && chart.guards[guardIndex].pivotAlpha + 1600 > chart.guards[guardIndex + 1ULL].pivotAlpha)
 					{
 						cout << global.tabs << section.name << " - Subsection #" << playerIndex * section.numCharts + chartIndex << ": ";
 						chart.remove(guardIndex + 1, 'g');
@@ -284,9 +206,9 @@ void CHC_Editor::fixNotes()
 				}
 			}
 		}
-		if (section.battlePhase == SongSection::Phase::END || sectIndex + 1 == song.numSections)
+		if (section.battlePhase == SongSection::Phase::END || sectIndex + 1 == song->sections.size())
 			continue;
-		if (duet || section.battlePhase == SongSection::Phase::HARMONY)
+		if (!song->imc[0] || section.battlePhase == SongSection::Phase::HARMONY)
 		{
 			for (unsigned playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
 			{
@@ -303,7 +225,7 @@ void CHC_Editor::fixNotes()
 								{
 									Chart& chart = section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex];
 									long endTime = section.duration - (chart.phrases[chart.phrases.size() - 1].getEndAlpha() + chart.pivotTime);
-									Chart& chart2 = song.sections[*effect].charts[(unsigned long long)playerIndex * song.sections[*effect].numCharts];
+									Chart& chart2 = song->sections[*effect].charts[(unsigned long long)playerIndex * song->sections[*effect].numCharts];
 									if (chart2.phrases.size())
 									{
 										long startTime = chart2.phrases[0].pivotAlpha + chart2.pivotTime;
@@ -342,7 +264,7 @@ void CHC_Editor::fixNotes()
 									{
 										Chart& chart = section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex];
 										long endTime = section.duration - (chart.phrases[chart.phrases.size() - 1].getEndAlpha() + chart.pivotTime);
-										Chart& chart2 = song.sections[*effect].charts[(unsigned long long)p * song.sections[*effect].numCharts];
+										Chart& chart2 = song->sections[*effect].charts[(unsigned long long)p * song->sections[*effect].numCharts];
 										if (chart2.phrases.size())
 										{
 											long startTime = chart2.phrases[0].pivotAlpha + chart2.pivotTime;
@@ -378,16 +300,16 @@ void CHC_Editor::fixNotes()
 	if (tracelinesCurved || phrasesDeleted || phrasesShortened || guardsDeleted)
 	{
 		cout << global.tabs << '\n' << global.tabs << "Changes will be applied if you choose to save the file" << endl;
-		saved = false;
+		song->saved = false;
 	}
 	else
 		cout << global.tabs << "No changes made" << endl;
-	song.optimized = true;
+	song->optimized = true;
 }
 
 void CHC_Editor::PSPToPS2()
 {
-	banner(" " + song.shortname + ".CHC - Non-Duet Conversion ");
+	banner(" " + song->shortname + ".CHC - Non-Duet Conversion ");
 	bool p1 = false, p2 = false;
 	do
 	{
@@ -406,25 +328,25 @@ void CHC_Editor::PSPToPS2()
 		default:
 			p1 = value == 2;
 			p2 = value & 1;
-			song.name = song.name.substr(0, song.name.length() - 4) + "_PS2_" + to_string(p1 + 1) + 'v' + (!p2 ? 'E' : '2') + ".CHC";
+			song->name = song->name.substr(0, song->name.length() - 4) + "_PS2_" + to_string(p1 + 1) + 'v' + (!p2 ? 'E' : '2') + ".CHC";
 			{
-				size_t pos = song.name.find_last_of("\\");
+				size_t pos = song->name.find_last_of("\\");
 				if (pos != string::npos)
-					song.shortname = song.name.substr(pos + 1, song.name.length() - pos - 5);
+					song->shortname = song->name.substr(pos + 1, song->name.length() - pos - 5);
 				else
-					song.shortname = song.shortname.substr(0, song.shortname.length() - 4);
+					song->shortname = song->shortname.substr(0, song->shortname.length() - 4);
 			}
 			global.quit = true;
 		}
 	} while (!global.quit);
 	global.quit = false;
-	snprintf(song.imc, 44, "/PROJECTS/STDATA/STAGE%02d/SONGDATA/ST%02d.IMC", song.stage, song.stage);
-	song.audio[2].pan = song.audio[3].pan = song.audio[6].volume = song.audio[7].volume = 0;
-	song.audio[4].pan = song.audio[5].pan = 32767;
-	for (size_t i = 0; i < song.numSections; i++)
+	snprintf(song->imc, 44, "/PROJECTS/STDATA/STAGE%02d/SONGDATA/ST%02d.IMC", song->stage, song->stage);
+	song->audio[2].pan = song->audio[3].pan = song->audio[6].volume = song->audio[7].volume = 0;
+	song->audio[4].pan = song->audio[5].pan = 32767;
+	for (size_t i = 0; i < song->sections.size(); i++)
 	{
-		SongSection& section = song.sections[i];
-		if (!section.organized) //Organize with the duet setting
+		SongSection& section = song->sections[i];
+		if (!section.organized) //Organize with the !song->imc[0] setting
 			reorganize(section);
 		section.charts.erase(3ULL * section.numCharts, section.numCharts);
 		if (p1 || p2)
@@ -451,23 +373,22 @@ void CHC_Editor::PSPToPS2()
 	}
 	for (size_t s = 0; s < 5; s++)
 	{
-		song.energyDamageFactors[0][s].attackInitial *= 2;
-		song.energyDamageFactors[0][s].attackRelease *= 2;
-		song.energyDamageFactors[0][s].attackMiss *= 2;
-		song.energyDamageFactors[0][s].chargeInitial *= 2;
-		song.energyDamageFactors[0][s].chargeRelease *= 2;
-		song.energyDamageFactors[0][s].guardMiss *= 2;
+		song->energyDamageFactors[0][s].attackInitial *= 2;
+		song->energyDamageFactors[0][s].attackRelease *= 2;
+		song->energyDamageFactors[0][s].attackMiss *= 2;
+		song->energyDamageFactors[0][s].chargeInitial *= 2;
+		song->energyDamageFactors[0][s].chargeRelease *= 2;
+		song->energyDamageFactors[0][s].guardMiss *= 2;
 	}
-	duet = false;
-	saved = false;
+	song->saved = false;
 }
 
 void CHC_Editor::swapIMC()
 {
-	banner(" " + song.shortname + ".CHC - IMC Swap ");
+	banner(" " + song->shortname + ".CHC - IMC Swap ");
 	string newIMC;
 	cout << global.tabs << "Provide the name (just the name) of the .IMC file you wish to use (Or 'Q' to back out to Modify Menu)\n";
-	cout << global.tabs << "Current IMC File: " << song.imc << endl;
+	cout << global.tabs << "Current IMC File: " << song->imc << endl;
 	cout << global.tabs << "Input: ";
 	cin >> ws >> newIMC;
 	if (newIMC.length() != 1 || tolower(newIMC[0]) != 'q')
@@ -476,34 +397,33 @@ void CHC_Editor::swapIMC()
 			newIMC[i] = toupper(newIMC[i]);
 		if (newIMC.find(".IMC") == string::npos)
 			newIMC += ".IMC";
-		memcpy(song.imc + 34, newIMC.c_str(), newIMC.length());
-		song.imc[34 + newIMC.length()] = 0;
-		saved = false;
+		memcpy(song->imc + 34, newIMC.c_str(), newIMC.length());
+		song->imc[34 + newIMC.length()] = 0;
+		song->saved = false;
 	}
 }
 
 void CHC_Editor::audioSettings()
 {
-	bool duet = strstr(song.imc, ".IMC");
 	size_t channel;
 	do
 	{
-		if (duet)
+		if (!song->imc[0])
 		{
-			banner(" " + song.shortname + ".CHC - Audio Channels ");
+			banner(" " + song->shortname + ".CHC - Audio Channels ");
 			cout << global.tabs << "          ||        Volume        ||        Paning        ||\n";
 			cout << global.tabs << " Channels ||  Value  ||  Percent  ||   Left   |   Right   ||\n";
 			cout << global.tabs << "==========================================================||\n";
 			for (unsigned index = 0; index < 8; index++)
 			{
 				cout << global.tabs << "     " << index + 1 << "    ||";
-				cout << setw(7) << song.audio[index].volume << "  ||" << setw(7) << ((double)song.audio[index].volume) * 100 / 32767 << "%   ||";
-				switch (song.audio[index].pan)
+				cout << setw(7) << song->audio[index].volume << "  ||" << setw(7) << ((double)song->audio[index].volume) * 100 / 32767 << "%   ||";
+				switch (song->audio[index].pan)
 				{
 				case 0:     cout << "   Left   |           ||\n"; break;
 				case 16383: cout << "        Center        ||\n"; break;
 				case 32767: cout << "          |   Right   ||\n"; break;
-				default: cout << setw(8) << 100 - (((double)song.audio[index].pan) * 100 / 32767) << "% |" << setw(8) << ((double)song.audio[index].pan) * 100 / 32767 << "% ||\n";
+				default: cout << setw(8) << 100 - (((double)song->audio[index].pan) * 100 / 32767) << "% |" << setw(8) << ((double)song->audio[index].pan) * 100 / 32767 << "% ||\n";
 				}
 			}
 			cout << global.tabs << "==========================================================||\n";
@@ -512,13 +432,13 @@ void CHC_Editor::audioSettings()
 		}
 		else
 		{
-			banner(" " + song.shortname + ".CHC - Audio Channels [Duet Stages] ");
+			banner(" " + song->shortname + ".CHC - Audio Channels [Duet Stages] ");
 			cout << global.tabs << "          ||        Volume        ||\n";
 			cout << global.tabs << " Channels ||  Value  ||  Percent  ||\n";
 			cout << global.tabs << "==================================||\n";
 			cout << global.tabs << "   1 & 2  ||        Unused        ||\n";
 			for (unsigned index = 2; index < 8; index++)
-				cout << global.tabs << "     " << index + 1 << "    ||" << setw(7) << song.audio[index].volume << "  ||\n";
+				cout << global.tabs << "     " << index + 1 << "    ||" << setw(7) << song->audio[index].volume << "  ||\n";
 			cout << global.tabs << "==================================||" << endl;
 			cout << global.tabs << "Choose the channel you wish to edit [Type 'Q' to exit audio settings]" << endl;
 			channel = menuChoices("345678");
@@ -532,13 +452,13 @@ void CHC_Editor::audioSettings()
 		case -2:
 			break;
 		default:
-			if (duet) channel += 2;
+			if (!song->imc[0]) channel += 2;
 			do
 			{
-				banner(" " + song.shortname + ".CHC - Audio Channel " + to_string(channel + 1));
+				banner(" " + song->shortname + ".CHC - Audio Channel " + to_string(channel + 1));
 				string choices = "v";
 				cout << global.tabs << "V - Volume\n";
-				if (duet)
+				if (!song->imc[0])
 				{
 					cout << global.tabs << "P - Panning\n";
 					choices += 'p';
@@ -550,18 +470,18 @@ void CHC_Editor::audioSettings()
 				case 0:
 					do
 					{
-						banner(" " + song.shortname + ".CHC - Audio Channel " + to_string(channel + 1) + " - Volume");
+						banner(" " + song->shortname + ".CHC - Audio Channel " + to_string(channel + 1) + " - Volume");
 						cout << global.tabs << "Provide value for Volume (0 - 32767[100%]) ['B' for Volume/Panning Menu | 'Q' to exit audio settings]\n";
-						cout << global.tabs << "Current Volume: " << song.audio[channel].volume << " (" << 100.0 * song.audio[channel].volume / 32767 << "%)" << endl;
-						cout << global.tabs << "Input: "; unsigned long oldVol = song.audio[channel].volume;
-						switch (valueInsert(song.audio[channel].volume, false, 0UL, 32767UL, "b"))
+						cout << global.tabs << "Current Volume: " << song->audio[channel].volume << " (" << 100.0 * song->audio[channel].volume / 32767 << "%)" << endl;
+						cout << global.tabs << "Input: "; unsigned long oldVol = song->audio[channel].volume;
+						switch (valueInsert(song->audio[channel].volume, false, 0UL, 32767UL, "b"))
 						{
 						case 2:
 							global.quit = true;
 							break;
 						case 1:
-							if (song.audio[channel].volume != oldVol)
-								saved = false;
+							if (song->audio[channel].volume != oldVol)
+								song->saved = false;
 							break;
 						case 0:
 							return;
@@ -580,26 +500,26 @@ void CHC_Editor::audioSettings()
 				case 1:
 					do
 					{
-						banner(" " + song.shortname + ".CHC - Audio Channel " + to_string(channel + 1) + " - Panning");
+						banner(" " + song->shortname + ".CHC - Audio Channel " + to_string(channel + 1) + " - Panning");
 						cout << global.tabs << "Provide value for Panning (Left[0] - Center[16383] - Right[32767]) ['B' for Volume/Panning Menu | 'Q' to exit audio settings]\n";
-						cout << global.tabs << "Current Panning: "; unsigned long oldPan = song.audio[channel].pan;
-						switch (song.audio[channel].pan)
+						cout << global.tabs << "Current Panning: "; unsigned long oldPan = song->audio[channel].pan;
+						switch (song->audio[channel].pan)
 						{
 						case 0: cout << "Left (0)\n"; break;
 						case 16383: cout << "Center (16383)\n"; break;
 						case 32767: cout << "Right (32767)\n"; break;
-						default: cout << 100 - (song.audio[channel].pan * 100.0 / 32767) << "% Left | "
-							<< song.audio[channel].pan * 100.0 / 32767 << "% Right (" << song.audio[channel].pan << ")" << endl;
+						default: cout << 100 - (song->audio[channel].pan * 100.0 / 32767) << "% Left | "
+							<< song->audio[channel].pan * 100.0 / 32767 << "% Right (" << song->audio[channel].pan << ")" << endl;
 						}
 						cout << global.tabs << "Input: ";
-						switch (valueInsert(song.audio[channel].pan, false, 0UL, 32767UL, "b"))
+						switch (valueInsert(song->audio[channel].pan, false, 0UL, 32767UL, "b"))
 						{
 						case 2:
 							global.quit = true;
 							break;
 						case 1:
-							if (song.audio[channel].pan != oldPan)
-								saved = false;
+							if (song->audio[channel].pan != oldPan)
+								song->saved = false;
 							break;
 						case 0:
 							return;
@@ -634,15 +554,15 @@ void CHC_Editor::winLossSettings()
 {
 	do
 	{
-		banner(" " + song.shortname + ".CHC - Win/Loss Animations ");
+		banner(" " + song->shortname + ".CHC - Win/Loss Animations ");
 		static const string ssqStrings[] = { "Win A", "Win B", "Lost Pre", "Lost Post" };
 		cout << global.tabs << "            ||       Frames       ||\n";
 		cout << global.tabs << " Animations ||  First  ||   Last  ||\n";
 		cout << global.tabs << "==================================||\n";
-		cout << global.tabs << " 1 - Win A  ||" << setw(7) << song.events[0].first << "  ||" << setw(7) << song.events[0].last << "  ||\n";
-		cout << global.tabs << " 2 - Win B  ||" << setw(7) << song.events[1].first << "  ||" << setw(7) << song.events[1].last << "  ||\n";
-		cout << global.tabs << "3 - Lost Pre||" << setw(7) << song.events[2].first << "  ||" << setw(7) << song.events[2].last << "  ||\n";
-		cout << global.tabs << "4 - Lt. Loop||" << setw(7) << song.events[3].first << "  ||" << setw(7) << song.events[3].last << "  ||\n";
+		cout << global.tabs << " 1 - Win A  ||" << setw(7) << song->events[0].first << "  ||" << setw(7) << song->events[0].last << "  ||\n";
+		cout << global.tabs << " 2 - Win B  ||" << setw(7) << song->events[1].first << "  ||" << setw(7) << song->events[1].last << "  ||\n";
+		cout << global.tabs << "3 - Lost Pre||" << setw(7) << song->events[2].first << "  ||" << setw(7) << song->events[2].last << "  ||\n";
+		cout << global.tabs << "4 - Lt. Loop||" << setw(7) << song->events[3].first << "  ||" << setw(7) << song->events[3].last << "  ||\n";
 		cout << global.tabs << "\n\t\t      ||Select an SSQ event ('1'/'2'/'3'/'4') [Type 'Q' to exit win/loss anim. settings]" << endl;
 		size_t anim = menuChoices("1234");
 		switch (anim)
@@ -656,9 +576,9 @@ void CHC_Editor::winLossSettings()
 		default:
 			do
 			{
-				banner(" " + song.shortname + ".CHC - SSQ Animation:" + ssqStrings[anim]);
-				cout << global.tabs << "F - Adjust first frame: " << song.events[anim].first << '\n';
-				cout << global.tabs << "L - Adjust last  frame: " << song.events[anim].last << '\n';
+				banner(" " + song->shortname + ".CHC - SSQ Animation:" + ssqStrings[anim]);
+				cout << global.tabs << "F - Adjust first frame: " << song->events[anim].first << '\n';
+				cout << global.tabs << "L - Adjust last  frame: " << song->events[anim].last << '\n';
 				cout << global.tabs << "b - Choose different animation\n";
 				cout << global.tabs << "Q - Exit win/loss animation settings " << endl;
 				switch (menuChoices("flb"))
@@ -673,16 +593,16 @@ void CHC_Editor::winLossSettings()
 				case 0:
 					do
 					{
-						banner(" " + song.shortname + ".CHC - SSQ Animation: " + ssqStrings[anim] + " - First Frame");
+						banner(" " + song->shortname + ".CHC - SSQ Animation: " + ssqStrings[anim] + " - First Frame");
 						cout << global.tabs << "Enter a positive value to change to [Type 'b' to choose a different frame | 'Q' to exit win/loss anim. settings]\n";
-						cout << global.tabs << "(Can be a decimal)" << endl; float oldAnim = song.events[anim].first;
-						switch (valueInsert(song.events[anim].first, false, "b"))
+						cout << global.tabs << "(Can be a decimal)" << endl; float oldAnim = song->events[anim].first;
+						switch (valueInsert(song->events[anim].first, false, "b"))
 						{
 						case 0:
 							return;
 						case 1:
-							if (song.events[anim].first != oldAnim)
-								saved = false;
+							if (song->events[anim].first != oldAnim)
+								song->saved = false;
 							break;
 						case 2:
 							global.quit = true;
@@ -700,16 +620,16 @@ void CHC_Editor::winLossSettings()
 				case 1:
 					do
 					{
-						banner(" " + song.shortname + ".CHC - SSQ Animation: " + ssqStrings[anim] + " - Last Frame");
+						banner(" " + song->shortname + ".CHC - SSQ Animation: " + ssqStrings[anim] + " - Last Frame");
 						cout << global.tabs << "Enter a positive value to change to [Type 'b' to choose a different frame | 'Q' to exit win/loss anim. settings]\n";
-						cout << global.tabs << "(Can be a decimal)" << endl; float oldAnim = song.events[anim].last;
-						switch (valueInsert(song.events[anim].last, false, "b"))
+						cout << global.tabs << "(Can be a decimal)" << endl; float oldAnim = song->events[anim].last;
+						switch (valueInsert(song->events[anim].last, false, "b"))
 						{
 						case 0:
 							return;
 						case 1:
-							if (song.events[anim].last != oldAnim)
-								saved = false;
+							if (song->events[anim].last != oldAnim)
+								song->saved = false;
 							break;
 						case 2:
 							global.quit = true;
@@ -736,16 +656,16 @@ void CHC_Editor::adjustSpeed()
 {
 	do
 	{
-		banner(" " + song.shortname + ".CHC - Gameplay Speed Change ");
+		banner(" " + song->shortname + ".CHC - Gameplay Speed Change ");
 		cout << global.tabs << "Provide a value for the change [Type 'Q' to exit speed settings]\n";
 		cout << global.tabs << "Can be a decimal... and/or negative with weird effects\n";
-		cout << global.tabs << "Current Value: " << song.speed << endl;
-		cout << global.tabs << "Input: "; float oldSpeed = song.speed;
-		switch (valueInsert(song.speed, true))
+		cout << global.tabs << "Current Value: " << song->speed << endl;
+		cout << global.tabs << "Input: "; float oldSpeed = song->speed;
+		switch (valueInsert(song->speed, true))
 		{
 		case 1:
-			if (song.speed != oldSpeed)
-				saved = false;
+			if (song->speed != oldSpeed)
+				song->saved = false;
 			break;
 		case 0:
 			global.quit = true;
@@ -765,7 +685,7 @@ void CHC_Editor::sectionMenu()
 	functPointers results[5] = { &CHC_Editor::playOrder, &CHC_Editor::rearrange, &CHC_Editor::playerSwapAll, &CHC_Editor::sectionSubMenu, &CHC_Editor::fullPathTest };
 	do
 	{
-		banner(" " + song.shortname + ".CHC - Sections ");
+		banner(" " + song->shortname + ".CHC - Sections ");
 		cout << global.tabs << "P - Set Unconditional Play Order\n";
 		cout << global.tabs << "R - Rearrange Sections\n";
 		cout << global.tabs << "S - Swap Player 1 & Player 2 for All Sections\n";
@@ -791,22 +711,22 @@ void CHC_Editor::sectionMenu()
 
 void CHC_Editor::playerSwapAll()
 {
-	banner(" " + song.shortname + ".CHC - Complete Player Swap");
-	for (unsigned long sectIndex = 0; sectIndex < song.numSections; sectIndex++)
-		playerSwap(song.sections[sectIndex]);
-	saved = false;
+	banner(" " + song->shortname + ".CHC - Complete Player Swap");
+	for (unsigned long sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
+		playerSwap(song->sections[sectIndex]);
+	song->saved = false;
 }
 
 void CHC_Editor::playOrder()
 {
-	banner(" " + song.shortname + ".CHC - Play Order ");
-	List<unsigned long> sectionIndexes;
+	banner(" " + song->shortname + ".CHC - Play Order ");
+	List<size_t> sectionIndexes;
 	do
 	{
 		cout << global.tabs << "Type the index for each section in the order you wish - w/ spaces in-between.\n";
-		for (unsigned index = 0; index < song.numSections; index++)
-			cout << global.tabs << index << " - " << song.sections[index].name << endl;
-		switch (vectorValueInsert(sectionIndexes, "yn", song.numSections, false))
+		for (unsigned index = 0; index < song->sections.size(); index++)
+			cout << global.tabs << index << " - " << song->sections[index].name << endl;
+		switch (vectorValueInsert(sectionIndexes, "yn", song->sections.size(), false))
 		{
 		case -1:
 			break;
@@ -858,37 +778,37 @@ void CHC_Editor::playOrder()
 	{
 		if (index + 1ULL < sectionIndexes.size())
 		{
-			saved = false;
-			SongSection::Condition& cond = song.sections[sectionIndexes[index]].conditions.front();
+			song->saved = false;
+			SongSection::Condition& cond = song->sections[sectionIndexes[index]].conditions.front();
 			cond.type = 0;
-			cond.trueEffect = sectionIndexes[index + 1ULL];
+			cond.trueEffect = (long)sectionIndexes[index + 1ULL];
 		}
 		else
 		{
 			if (!pathTest(sectionIndexes[index]))
 			{
-				SongSection::Condition& cond = song.sections[sectionIndexes[index]].conditions.front();
+				SongSection::Condition& cond = song->sections[sectionIndexes[index]].conditions.front();
 				cond.type = 0;
-				cond.trueEffect = song.numSections;
+				cond.trueEffect = (long)song->sections.size();
 			}
 		}
-		cout << song.sections[sectionIndexes[index]].name << " ";
-		saved = false;
+		cout << song->sections[sectionIndexes[index]].name << " ";
+		song->saved = false;
 	}
 	cout << endl;
 }
 
 void CHC_Editor::rearrange()
 {
-	banner(" " + song.shortname + ".CHC - Section Rearrangement ");
-	unsigned long startIndex, numElements, position;
+	banner(" " + song->shortname + ".CHC - Section Rearrangement ");
+	size_t startIndex, numElements, position;
 	do
 	{
 		cout << global.tabs << "Provide the starting index for the range of sections you want to move.\n";
-		for (unsigned index = 0; index < song.numSections; index++)
-			cout << global.tabs << index << " - " << song.sections[index].name << '\n';
+		for (unsigned index = 0; index < song->sections.size(); index++)
+			cout << global.tabs << index << " - " << song->sections[index].name << '\n';
 		cout << global.tabs << "Input: ";
-		switch (valueInsert(startIndex, false, 0UL, song.numSections - 1))
+		switch (valueInsert(startIndex, false, 0ULL, song->sections.size() - 1))
 		{
 		case 1:
 			global.quit = true;
@@ -900,7 +820,7 @@ void CHC_Editor::rearrange()
 			cout << global.tabs << "Given value cannot be negative\n" << global.tabs << '\n';
 			break;
 		case -3:
-			cout << global.tabs << "Given value cannot be greater than " << song.numSections - 1 << '\n' << global.tabs << '\n';
+			cout << global.tabs << "Given value cannot be greater than " << song->sections.size() - 1 << '\n' << global.tabs << '\n';
 			break;
 		case -4:
 			cout << global.tabs << "\"" << global.invalid << "\" is not a valid response\n" << global.tabs << '\n';
@@ -908,15 +828,15 @@ void CHC_Editor::rearrange()
 		}
 	} while (!global.quit);
 	global.quit = false;
-	if (song.numSections - startIndex == 1)
+	if (song->sections.size() - startIndex == 1)
 		numElements = 1;
 	else
 	{
 		do
 		{
-			cout << global.tabs << "How many elements do you want to move? [Max # of movable elements: " << song.numSections - startIndex << "]\n";
+			cout << global.tabs << "How many elements do you want to move? [Max # of movable elements: " << song->sections.size() - startIndex << "]\n";
 			cout << global.tabs << "Input: ";
-			switch (valueInsert(numElements, false, 1UL, song.numSections - startIndex))
+			switch (valueInsert(numElements, false, 1ULL, song->sections.size() - startIndex))
 			{
 			case 1:
 				global.quit = true;
@@ -929,7 +849,7 @@ void CHC_Editor::rearrange()
 				cout << global.tabs << "Given value cannot be less than 1\n" << global.tabs << '\n';
 				break;
 			case -3:
-				cout << global.tabs << "Given value cannot be greater than " << song.numSections - startIndex << '\n' << global.tabs << '\n';
+				cout << global.tabs << "Given value cannot be greater than " << song->sections.size() - startIndex << '\n' << global.tabs << '\n';
 				break;
 			case -4:
 				cout << global.tabs << "\"" << global.invalid << "\" is not a valid response\n" << global.tabs << '\n';
@@ -938,15 +858,15 @@ void CHC_Editor::rearrange()
 		} while (!global.quit);
 		global.quit = false;
 	}
-	if (numElements < song.numSections)
+	if (numElements < song->sections.size())
 	{
 		long alpha;
-		if (song.numSections - numElements == 1)
+		if (song->sections.size() - numElements == 1)
 		{
 			if (!startIndex)
 			{
 				cout << global.tabs << "Moving elements to the end of the list" << endl;
-				position = song.numSections;
+				position = song->sections.size();
 				alpha = 1;
 			}
 			else
@@ -961,26 +881,26 @@ void CHC_Editor::rearrange()
 			do
 			{
 				cout << global.tabs << "Provide the index that these elements will be moved to.\n";
-				for (unsigned index = 0; index < song.numSections; index++)
+				for (unsigned index = 0; index < song->sections.size(); index++)
 				{
 					if (index < startIndex || index > startIndex + numElements)
-						cout << global.tabs << index << " - " << song.sections[index].name << '\n';
+						cout << global.tabs << index << " - " << song->sections[index].name << '\n';
 				}
-				if (song.numSections > startIndex + numElements)
-					cout << global.tabs << song.numSections << " - End of the list\n";
+				if (song->sections.size() > startIndex + numElements)
+					cout << global.tabs << song->sections.size() << " - End of the list\n";
 				cout << global.tabs << "Invalid position range: " << startIndex << " - " << startIndex + numElements << '\n';
 				cout << global.tabs << "Input: ";
-				switch (valueInsert(position, false, 0UL, song.numSections))
+				switch (valueInsert(position, false, 0ULL, song->sections.size()))
 				{
 				case 1:
 					if (position < startIndex)
 					{
-						alpha = position - startIndex;
+						alpha = long(position - startIndex);
 						global.quit = true;
 					}
 					else if (position > startIndex + numElements)
 					{
-						alpha = position - (startIndex + numElements);
+						alpha = long(position - (startIndex + numElements));
 						global.quit = true;
 					}
 					else
@@ -993,7 +913,7 @@ void CHC_Editor::rearrange()
 					cout << global.tabs << "Given value cannot be negative\n" << global.tabs << '\n';
 					break;
 				case -3:
-					cout << global.tabs << "Given value cannot be greater than " << song.numSections << '\n' << global.tabs << '\n';
+					cout << global.tabs << "Given value cannot be greater than " << song->sections.size() << '\n' << global.tabs << '\n';
 					break;
 				case -4:
 					cout << global.tabs << "\"" << global.invalid << "\" is not a valid response\n" << global.tabs << '\n';
@@ -1002,11 +922,11 @@ void CHC_Editor::rearrange()
 			} while (!global.quit);
 			global.quit = false;
 		}
-		for (unsigned sectIndex = 0; sectIndex < song.numSections; sectIndex++)
+		for (unsigned sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
 		{
-			for (unsigned condIndex = 0; condIndex < song.sections[sectIndex].conditions.size(); condIndex++)
+			for (unsigned condIndex = 0; condIndex < song->sections[sectIndex].conditions.size(); condIndex++)
 			{
-				long* effect = &song.sections[sectIndex].conditions[condIndex].trueEffect;
+				long* effect = &song->sections[sectIndex].conditions[condIndex].trueEffect;
 				for (size_t eff = 0; eff < 2; eff++, effect++)
 				{
 					if (*effect >= 0)
@@ -1014,19 +934,19 @@ void CHC_Editor::rearrange()
 						if (*effect < (long)startIndex)
 						{
 							if (*effect >= (long)position)
-								*effect += numElements;
+								*effect += (long)numElements;
 						}
 						else if (*effect < long(startIndex + numElements))
 							*effect += alpha;
 						else if (*effect < (long)position)
-							*effect -= numElements;
+							*effect -= (long)numElements;
 					}
 				}
 			}
 		}
-		song.sections.moveElements(startIndex, position, numElements);
-		for (unsigned index = 0; index < song.numSections; index++)
-			cout << global.tabs << index << " - " << song.sections[index].name << '\n';
+		song->sections.moveElements(startIndex, position, numElements);
+		for (unsigned index = 0; index < song->sections.size(); index++)
+			cout << global.tabs << index << " - " << song->sections[index].name << '\n';
 	}
 	else
 		cout << global.tabs << "Really? You didn't even do anything with that... *sigh*\n";
@@ -1037,7 +957,7 @@ void CHC_Editor::adjustFactors()
 {
 	do
 	{
-		banner(" " + song.shortname + ".CHC - Damage/Energy Factors ", 1.53f);
+		banner(" " + song->shortname + ".CHC - Damage/Energy Factors ", 1.53f);
 		static const string headers[] = { "||    Starting Energy   ||", "|| Initial-Press Energy ||", "|| Initial-Press Damage ||", "||   Guard Energy Gain  ||",
 							 "||  Attack Miss Damage  ||", "||   Guard Miss Damage  ||", "|| Sustain Energy Coef. ||", "|| Sustain Damage Coef. ||" };
 		for (unsigned player = 0; player < 4; player += 2)
@@ -1053,7 +973,7 @@ void CHC_Editor::adjustFactors()
 					cout << headers[factor];
 					for (unsigned phase = 0; phase < 5; phase++)
 					{
-						float* val = &song.energyDamageFactors[index][phase].start + factor;
+						float* val = &song->energyDamageFactors[index][phase].start + factor;
 						cout << "  " << setw(5) << (*val) * 100 << "% ||";
 					}
 				}
@@ -1073,7 +993,7 @@ void CHC_Editor::adjustFactors()
 		default:
 			do
 			{
-				banner(" " + song.shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " ");
+				banner(" " + song->shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " ");
 				cout << global.tabs << "        Player " << player + 1 << "      ||  Intro  ||  Charge ||  Battle || Harmony ||   End   ||\n";
 				cout << global.tabs << setw(79) << setfill('=') << "||" << setfill(' ');
 				for (char factor = 0; factor < 8; factor++)
@@ -1081,7 +1001,7 @@ void CHC_Editor::adjustFactors()
 					cout << endl << "\t      " << headers[factor];
 					for (unsigned phase = 0; phase < 5; phase++)
 					{
-						float* val = &song.energyDamageFactors[player][phase].start + factor;
+						float* val = &song->energyDamageFactors[player][phase].start + factor;
 						cout << "  " << setw(5) << *val * 100 << "% ||";
 					}
 				}
@@ -1101,17 +1021,17 @@ void CHC_Editor::adjustFactors()
 				default:
 					do
 					{
-						banner(" " + song.shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phaseName[phase] + " ");
+						banner(" " + song->shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phaseName[phase] + " ");
 						cout << global.tabs << "          Player " << player + 1 << "        || " << setw(7) << phaseName[phase] << " ||\n";
 						cout << global.tabs << setw(39) << setfill('=') << "||" << setfill(' ') << '\n';
-						cout << global.tabs << " 1 - Starting Energy      ||  " << setw(5) << song.energyDamageFactors[player][phase].start * 100 << "% ||\n";
-						cout << global.tabs << " 2 - Initial-Press Energy ||  " << setw(5) << song.energyDamageFactors[player][phase].chargeInitial * 100 << "% ||\n";
-						cout << global.tabs << " 3 - Initial-Press Damage ||  " << setw(5) << song.energyDamageFactors[player][phase].attackInitial * 100 << "% ||\n";
-						cout << global.tabs << " 4 - Guard Energy Gain    ||  " << setw(5) << song.energyDamageFactors[player][phase].guardEnergy * 100 << "% ||\n";
-						cout << global.tabs << " 5 - Attack Miss Damage   ||  " << setw(5) << song.energyDamageFactors[player][phase].attackMiss * 100 << "% ||\n";
-						cout << global.tabs << " 6 - Guard  Miss Damage   ||  " << setw(5) << song.energyDamageFactors[player][phase].guardMiss * 100 << "% ||\n";
-						cout << global.tabs << " 7 - Sustain Energy Coef. ||  " << setw(5) << song.energyDamageFactors[player][phase].chargeRelease * 100 << "% ||\n";
-						cout << global.tabs << " 8 - Sustain Damage Coef. ||  " << setw(5) << song.energyDamageFactors[player][phase].attackRelease * 100 << "% ||\n";
+						cout << global.tabs << " 1 - Starting Energy      ||  " << setw(5) << song->energyDamageFactors[player][phase].start * 100 << "% ||\n";
+						cout << global.tabs << " 2 - Initial-Press Energy ||  " << setw(5) << song->energyDamageFactors[player][phase].chargeInitial * 100 << "% ||\n";
+						cout << global.tabs << " 3 - Initial-Press Damage ||  " << setw(5) << song->energyDamageFactors[player][phase].attackInitial * 100 << "% ||\n";
+						cout << global.tabs << " 4 - Guard Energy Gain    ||  " << setw(5) << song->energyDamageFactors[player][phase].guardEnergy * 100 << "% ||\n";
+						cout << global.tabs << " 5 - Attack Miss Damage   ||  " << setw(5) << song->energyDamageFactors[player][phase].attackMiss * 100 << "% ||\n";
+						cout << global.tabs << " 6 - Guard  Miss Damage   ||  " << setw(5) << song->energyDamageFactors[player][phase].guardMiss * 100 << "% ||\n";
+						cout << global.tabs << " 7 - Sustain Energy Coef. ||  " << setw(5) << song->energyDamageFactors[player][phase].chargeRelease * 100 << "% ||\n";
+						cout << global.tabs << " 8 - Sustain Damage Coef. ||  " << setw(5) << song->energyDamageFactors[player][phase].attackRelease * 100 << "% ||\n";
 						cout << global.tabs << setw(39) << setfill('=') << "||\n";
 						cout << global.tabs << "Select a factor by number [Type 'P' to choose a different phase | 'Q' to exit factor settings]" << endl;
 						size_t factor = menuChoices("12345678p");
@@ -1130,8 +1050,8 @@ void CHC_Editor::adjustFactors()
 							{
 								static const string enders[] = { " | Starting Energy ", " | Initial-Press Energy ", " | Initial-Press Damage ", " | Guard Energy Gain ",
 													" | Attack Miss Damage ", " | Guard Miss Damage ", " | Sustain Energy Coef. ", " | Sustain Damage Coef. " };
-								banner(" " + song.shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phaseName[phase] + enders[factor]);
-								float* val = &song.energyDamageFactors[player][phase].start + factor;
+								banner(" " + song->shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phaseName[phase] + enders[factor]);
+								float* val = &song->energyDamageFactors[player][phase].start + factor;
 								cout << global.tabs << "        Player " << player + 1 << "      || " << setfill(' ') << setw(7) << phaseName[phase] << " ||\n";
 								cout << global.tabs << setw(35) << setfill('=') << "||" << setfill(' ') << '\n';
 								cout << "\t      " << headers[factor] << " " << setw(6) << *val << "  ||\n";
@@ -1145,7 +1065,7 @@ void CHC_Editor::adjustFactors()
 									global.quit = true;
 									break;
 								case 1:
-									if (*val != oldFac) saved = false;
+									if (*val != oldFac) song->saved = false;
 									break;
 								case 0:
 									return;
@@ -1168,36 +1088,36 @@ void CHC_Editor::adjustFactors()
 
 void CHC_Editor::fullPathTest()
 {
-	banner(" " + song.shortname + ".CHC - Section Transversal ");
+	banner(" " + song->shortname + ".CHC - Section Transversal ");
 	pathTest(0, true);
 }
 
 bool CHC_Editor::pathTest(size_t startIndex, bool show)
 {
-	if (startIndex < song.numSections)
+	if (startIndex < song->sections.size())
 	{
-		bool** conditionTested = new bool* [song.numSections]();
-		bool* results = new bool[song.numSections]();
-		for (size_t sectIndex = song.numSections; sectIndex > startIndex;)
+		bool** conditionTested = new bool* [song->sections.size()]();
+		bool* results = new bool[song->sections.size()]();
+		for (size_t sectIndex = song->sections.size(); sectIndex > startIndex;)
 			testSection(--sectIndex, conditionTested, results, nullptr);
 		if (show) //Only used for the full path test
 		{
-			for (size_t sectIndex = 0; sectIndex < song.numSections; sectIndex++)
+			for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
 			{
 				if (conditionTested[sectIndex] != nullptr)
 				{
-					for (size_t condIndex = 0; condIndex < song.sections[sectIndex].conditions.size(); sectIndex++)
+					for (size_t condIndex = 0; condIndex < song->sections[sectIndex].conditions.size(); sectIndex++)
 						conditionTested[sectIndex][condIndex] = false;
 				}
 			}
-			bool* reach = new bool[song.numSections]();
+			bool* reach = new bool[song->sections.size()]();
 			testSection(startIndex, conditionTested, results, reach);
 			cout << global.tabs << string(42, '=') << "||\n";
 			cout << global.tabs << " Section || Accessible? || Can Reach End? ||\n";
 			cout << setfill(' ');
-			for (size_t sectIndex = 0; sectIndex < song.numSections; sectIndex++)
+			for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
 			{
-				cout << global.tabs << setw(8) << right << song.sections[sectIndex].name << " ||      ";
+				cout << global.tabs << setw(8) << right << song->sections[sectIndex].name << " ||      ";
 				if (reach[sectIndex])
 					cout << "Y      ||        ";
 				else
@@ -1209,12 +1129,12 @@ bool CHC_Editor::pathTest(size_t startIndex, bool show)
 			}
 			cout << global.tabs << string(42, '=') << "||" << endl;
 		}
-		for (size_t sectIndex = 0; sectIndex < song.numSections; sectIndex++)
+		for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
 			if (conditionTested[sectIndex] != nullptr)
-				delete[song.sections[sectIndex].conditions.size()] conditionTested[sectIndex];
+				delete[song->sections[sectIndex].conditions.size()] conditionTested[sectIndex];
 		bool res = results[startIndex];
-		delete[song.numSections] results;
-		delete[song.numSections] conditionTested;
+		delete[song->sections.size()] results;
+		delete[song->sections.size()] conditionTested;
 		return res;
 	}
 	else
@@ -1228,8 +1148,8 @@ char CHC_Editor::testSection(size_t sectIndex, bool** conditionTested, bool* res
 		if (reach != nullptr)
 			reach[sectIndex] = true;
 		if (conditionTested[sectIndex] == nullptr)
-			conditionTested[sectIndex] = new bool[song.sections[sectIndex].conditions.size()]();
-		for (size_t c = 0; c < song.sections[sectIndex].conditions.size(); c++)
+			conditionTested[sectIndex] = new bool[song->sections[sectIndex].conditions.size()]();
+		for (size_t c = 0; c < song->sections[sectIndex].conditions.size(); c++)
 		{
 			if (!conditionTested[sectIndex][c])
 			{
@@ -1244,10 +1164,10 @@ char CHC_Editor::testSection(size_t sectIndex, bool** conditionTested, bool* res
 void CHC_Editor::traverseCondition(size_t sectIndex, size_t condIndex,bool** conditionTested, bool* results, bool* reach)
 {
 	conditionTested[sectIndex][condIndex] = true;
-	SongSection::Condition& cond = song.sections[sectIndex].conditions[condIndex];
+	SongSection::Condition& cond = song->sections[sectIndex].conditions[condIndex];
 	if (cond.trueEffect >= 0)
 	{
-		if (cond.trueEffect >= (long)song.numSections)
+		if (cond.trueEffect >= (long)song->sections.size())
 			results[sectIndex] = true;
 		else if (testSection(cond.trueEffect, conditionTested, results, reach))
 			results[sectIndex] = true;
@@ -1258,7 +1178,7 @@ void CHC_Editor::traverseCondition(size_t sectIndex, size_t condIndex,bool** con
 	{
 		if (cond.falseEffect >= 0)
 		{
-			if (cond.falseEffect >= (long)song.numSections)
+			if (cond.falseEffect >= (long)song->sections.size())
 				results[sectIndex] = true;
 			else if(testSection(cond.falseEffect, conditionTested, results, reach))
 				results[sectIndex] = true;
@@ -1272,12 +1192,12 @@ void CHC_Editor::sectionSubMenu()
 {
 	do
 	{
-		banner(" " + song.shortname + ".CHC - Section Selection");
+		banner(" " + song->shortname + ".CHC - Section Selection");
 		cout << global.tabs << "Type the number for the section that you wish to edit\n";
-		unsigned long val;
-		for (unsigned long sectIndex = 0; sectIndex < song.numSections; sectIndex++)
-			cout << global.tabs << sectIndex << " - " << song.sections[sectIndex].name << '\n';
-		switch (valueInsert(val, false, 0UL, song.numSections - 1))
+		size_t val;
+		for (unsigned long sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
+			cout << global.tabs << sectIndex << " - " << song->sections[sectIndex].name << '\n';
+		switch (valueInsert(val, false, 0ULL, song->sections.size() - 1))
 		{
 		case 0:
 			global.quit = true;
@@ -1287,7 +1207,7 @@ void CHC_Editor::sectionSubMenu()
 			cin.clear();
 			break;
 		case -3:
-			cout << global.tabs << "Given section value cannot exceed " << song.numSections - 1 << endl;
+			cout << global.tabs << "Given section value cannot exceed " << song->sections.size() - 1 << endl;
 			cin.clear();
 			break;
 		case -4:
@@ -1298,13 +1218,13 @@ void CHC_Editor::sectionSubMenu()
 			adjustTabs(4);
 			do
 			{
-				banner(" " + song.shortname + ".CHC - " + song.sections[val].name + " - Modify ");
+				banner(" " + song->shortname + ".CHC - " + song->sections[val].name + " - Modify ");
 				string choices = "nafptde"; //ENABLE CONDITION OPTION
 				cout << global.tabs << "N - Name\n";
 				cout << global.tabs << "A - Change the section of audio used\n";
 				cout << global.tabs << "F - Adjust SSQ frame range\n";
 				cout << global.tabs << "P - Phase: ";
-				switch (song.sections[val].battlePhase)
+				switch (song->sections[val].battlePhase)
 				{
 				case SongSection::Phase::INTRO: cout << "INTRO\n"; break;
 				case SongSection::Phase::CHARGE: cout << "CHARGE\n"; break;
@@ -1314,11 +1234,11 @@ void CHC_Editor::sectionSubMenu()
 				case SongSection::Phase::END: cout << "END\n";  break;
 				default: cout << "FINAL_I\n";
 				}
-				cout << global.tabs << "T - Tempo: " << song.sections[val].tempo << '\n';
-				cout << global.tabs << "D - Duration: " << song.sections[val].duration << '\n';
-				//cout << global.tabs << "C - Modify Conditions (" << song.sections[val].numConditions << ")\n";
+				cout << global.tabs << "T - Tempo: " << song->sections[val].tempo << '\n';
+				cout << global.tabs << "D - Duration: " << song->sections[val].duration << '\n';
+				//cout << global.tabs << "C - Modify Conditions (" << song->sections[val].numConditions << ")\n";
 				cout << global.tabs << "E - Check if stage-end is reachable\n";
-				if (!song.sections[val].organized)
+				if (!song->sections[val].organized)
 				{
 					cout << global.tabs << "O - Organize this section\n";
 					choices += 'o';
@@ -1341,41 +1261,41 @@ void CHC_Editor::sectionSubMenu()
 					switch (choices[index])
 					{
 					case 'n':
-						changeName(song.sections[val]);
+						changeName(song->sections[val]);
 						break;
 					case 'a':
-						changeAudio(song.sections[val]);
+						changeAudio(song->sections[val]);
 						break;
 					case 'f':
-						changeFrames(song.sections[val]);
+						changeFrames(song->sections[val]);
 						break;
 					case 'p':
-						changeFrames(song.sections[val]);
+						changeFrames(song->sections[val]);
 						break;
 					case 't':
-						adjustTempo(song.sections[val]);
+						adjustTempo(song->sections[val]);
 						break;
 					case 'd':
-						adjustDuration(song.sections[val]);
+						adjustDuration(song->sections[val]);
 						break;
 					case 'c':
-						conditionMenu(song.sections[val]);
+						conditionMenu(song->sections[val]);
 						break;
 					case 'e':
-						banner(" " + song.shortname + ".CHC - " + song.sections[val].name + " - Transversal ");
+						banner(" " + song->shortname + ".CHC - " + song->sections[val].name + " - Transversal ");
 						if (pathTest(val))
-							cout << global.tabs << song.sections[val].name << " can reach the end of the stage.\n";
+							cout << global.tabs << song->sections[val].name << " can reach the end of the stage.\n";
 						else
-							cout << global.tabs << song.sections[val].name << " is unable to reach the end of the stage.\n";
+							cout << global.tabs << song->sections[val].name << " is unable to reach the end of the stage.\n";
 						break;
 					case 'o':
-						banner(" " + song.shortname + ".CHC - " + song.sections[val].name + " - Organize ");
-						reorganize(song.sections[val]);
+						banner(" " + song->shortname + ".CHC - " + song->sections[val].name + " - Organize ");
+						reorganize(song->sections[val]);
 						break;
 					case 's':
-						banner(" " + song.shortname + ".CHC - " + song.sections[val].name + " - Player Swap ");
-						playerSwap(song.sections[val]);
-						saved = false;
+						banner(" " + song->shortname + ".CHC - " + song->sections[val].name + " - Player Swap ");
+						playerSwap(song->sections[val]);
+						song->saved = false;
 					}
 					adjustTabs(4);
 				}
@@ -1397,13 +1317,13 @@ void CHC_Editor::reorganize(SongSection& section)
 		for (unsigned pl = 0; pl < 4; pl++)
 		{
 			unsigned char currentPlayer;
-			if (!duet) currentPlayer = pl & 1;
+			if (song->imc[0]) currentPlayer = pl & 1;
 			else currentPlayer = pl;
 			List<sectNote>& player = notes[currentPlayer];
 			for (unsigned chIndex = 0; chIndex < section.numCharts; chIndex++)
 			{
 				unsigned playerIndex, chartIndex;
-				if (!duet)
+				if (song->imc[0])
 				{
 					playerIndex = ((2 * ((pl >> 1) ^ (chIndex & 1))) + (pl & 1)) * section.numCharts;
 					chartIndex = (section.numCharts >> 1) * (pl >> 1) + (((section.numCharts & 1) * (pl >> 1) + chIndex) >> 1);
@@ -1415,7 +1335,7 @@ void CHC_Editor::reorganize(SongSection& section)
 				}
 				Chart& ch = section.charts[(unsigned long long)playerIndex + chartIndex];
 				unsigned index = 0;
-				if (section.swapped >= 4 || ((!(pl & 1)) != (!duet && section.swapped & 1)))
+				if (section.swapped >= 4 || ((!(pl & 1)) != (song->imc[0] && section.swapped & 1)))
 				{
 					for (size_t i = 0; i < ch.getNumGuards(); i++)
 					{
@@ -1507,7 +1427,7 @@ void CHC_Editor::reorganize(SongSection& section)
 		}
 		section.numCharts = 1;
 		const long double SAMPLES_PER_BEAT = 2880000.0L / section.tempo;
-		for (unsigned pl = 0; pl < (!duet ? 2U : 4U); pl++)
+		for (unsigned pl = 0; pl < (song->imc[0] ? 2U : 4U); pl++)
 		{
 			unsigned chartDistance = 0;
 			unsigned currentPlayer = pl;
@@ -1551,7 +1471,7 @@ void CHC_Editor::reorganize(SongSection& section)
 							{
 								if (notes[pl][ntIndex].first + (long)tr->duration <= notes[pl][ntIndex + 1ULL].first)	//Outside the trace line
 								{
-									if (isPlayer != (!duet && section.swapped & 1))	//It's not the enemy's original charts
+									if (isPlayer != (song->imc[0] && section.swapped & 1))	//It's not the enemy's original charts
 									{
 										//Mark the end of the current chart
 										currentChart->setEndTime(notes[pl][ntIndex].first + tr->duration);
@@ -1569,7 +1489,7 @@ void CHC_Editor::reorganize(SongSection& section)
 												notes[pl].erase(ntIndex + 2ULL);
 									}
 									//If it's the enemy's original charts or the next-next note, if it exists, is a guard mark
-									if ((isPlayer == (!duet && section.swapped & 1)) || (ntIndex + 2ULL != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2ULL].second) == nullptr))
+									if ((isPlayer == (song->imc[0] && section.swapped & 1)) || (ntIndex + 2ULL != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2ULL].second) == nullptr))
 									{
 										long endAlpha = notes[pl][ntIndex + 1ULL].first - SongSection::SAMPLE_GAP - 1 - currentChart->pivotTime;
 										float angle = 0;
@@ -1624,7 +1544,7 @@ void CHC_Editor::reorganize(SongSection& section)
 											currentChart->add(tr2);
 											delete tr2;
 										}
-										if (isPlayer != (!duet && section.swapped & 1)) //It's not the enemy's original charts
+										if (isPlayer != (song->imc[0] && section.swapped & 1)) //It's not the enemy's original charts
 										{
 											//Mark the end of the current chart
 											currentChart->setEndTime(notes[pl][ntIndex + 1ULL].first - SongSection::SAMPLE_GAP);
@@ -1642,8 +1562,8 @@ void CHC_Editor::reorganize(SongSection& section)
 						{
 							if (dynamic_cast<Guard*>(notes[pl][ntIndex + 1ULL].second) != nullptr)	//If the next note is a guard mark
 							{
-								//If there is enough distance between these guard marks in a duet or tutorial stage
-								if ((duet || song.stage == 0 || song.stage == 11 || song.stage == 12) && notes[pl][ntIndex + 1ULL].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
+								//If there is enough distance between these guard marks in a !song->imc[0] or tutorial stage
+								if ((!song->imc[0] || song->stage == 0 || song->stage == 11 || song->stage == 12) && notes[pl][ntIndex + 1ULL].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
 								{
 									if (!currentChart->tracelines.size())
 									{
@@ -1680,8 +1600,8 @@ void CHC_Editor::reorganize(SongSection& section)
 									else
 										notes[pl].erase(ntIndex + 1ULL);
 									//With the next note now being a confirmed guard mark...
-									//If there is enough distance between these guard marks in the tutorial or a duet stage
-									if ((duet || song.stage == 0 || song.stage == 11 || song.stage == 12) && notes[pl][ntIndex + 1ULL].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
+									//If there is enough distance between these guard marks in the tutorial or a !song->imc[0] stage
+									if ((!song->imc[0] || song->stage == 0 || song->stage == 11 || song->stage == 12) && notes[pl][ntIndex + 1ULL].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
 									{
 										if (!currentChart->tracelines.size())
 										{
@@ -1700,7 +1620,7 @@ void CHC_Editor::reorganize(SongSection& section)
 								}
 								else
 								{
-									if (isPlayer != (!duet && section.swapped & 1))	//If it's not the enemy's original charts
+									if (isPlayer != (song->imc[0] && section.swapped & 1))	//If it's not the enemy's original charts
 									{
 										//Move chartPivot in between these two notes
 										//Calculate the value adjustment
@@ -1736,7 +1656,7 @@ void CHC_Editor::reorganize(SongSection& section)
 											notes[pl].erase(ntIndex + 2ULL);
 								}
 								//If it's the enemy's original charts or the next-next note, if it exists, is a guard mark
-								if ((isPlayer == (!duet && section.swapped & 1)) || (ntIndex + 2ULL != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2ULL].second) == nullptr))
+								if ((isPlayer == (song->imc[0] && section.swapped & 1)) || (ntIndex + 2ULL != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2ULL].second) == nullptr))
 								{
 									long endAlpha = notes[pl][ntIndex + 1ULL].first - SongSection::SAMPLE_GAP - 1 - currentChart->pivotTime;
 									float angle = 0;
@@ -1812,7 +1732,7 @@ void CHC_Editor::reorganize(SongSection& section)
 										currentChart->add(tr);
 										delete tr;
 									}
-									if (isPlayer != (!duet && section.swapped & 1)) //It's not the enemy's original charts
+									if (isPlayer != (song->imc[0] && section.swapped & 1)) //It's not the enemy's original charts
 									{
 										//Mark the end of the current chart
 										currentChart->setEndTime(notes[pl][ntIndex + 1ULL].first - SongSection::SAMPLE_GAP);
@@ -1825,7 +1745,7 @@ void CHC_Editor::reorganize(SongSection& section)
 						}
 						if (makeNewChart)
 						{
-							if (!duet && song.stage > 0)
+							if (song->imc[0] && song->stage > 0)
 							{
 								if (currentPlayer > 1)
 									currentPlayer -= 2;
@@ -1860,7 +1780,7 @@ void CHC_Editor::reorganize(SongSection& section)
 		if (chartCount != section.numCharts)
 			section.numCharts = (unsigned long)chartCount;
 		unsigned long total;
-		if (!duet)
+		if (song->imc[0])
 		{
 			unsigned long total1 = 0, total2 = 0;
 			for (unsigned pl = 0; pl < 4; pl += 2)
@@ -1889,21 +1809,21 @@ void CHC_Editor::reorganize(SongSection& section)
 			}
 		}
 		cout << global.tabs << section.name << " organized - # of charts per player: " << section.numCharts;
-		if (!duet)
+		if (song->imc[0])
 			cout << " (Pair total: " << total << ')' << endl;
 		else
 			cout << endl;
-		saved = false;
+		song->saved = false;
 	}
 	else
 		cout << global.tabs << section.name << ": [INTRO, HARMONY, END, & BRK sections are organized by default]" << endl;
 	section.organized = true;
-	song.unorganized--;
+	song->unorganized--;
 }
 
 void CHC_Editor::playerSwap(SongSection& section)
 {
-	if (!duet)
+	if (song->imc[0])
 	{
 		if (section.battlePhase != SongSection::Phase::HARMONY)
 		{
@@ -1938,7 +1858,7 @@ void CHC_Editor::playerSwap(SongSection& section)
 		{
 			do
 			{
-				cout << global.tabs << "How do you want this non-duet harmony section swapped?\n";
+				cout << global.tabs << "How do you want this non-!song->imc[0] harmony section swapped?\n";
 				cout << global.tabs << "A - Swap P1/P3 with P2/P4 respectively\n";
 				cout << global.tabs << "B - Swap P1/P2 with P3/P4 respectively\n";
 				cout << global.tabs << "Current Format: ";
@@ -2019,7 +1939,7 @@ void CHC_Editor::playerSwap(SongSection& section)
 
 void CHC_Editor::changeName(SongSection& section)
 {
-	banner(" " + song.shortname + ".CHC - " + section.name + " - Name Change ");
+	banner(" " + song->shortname + ".CHC - " + section.name + " - Name Change ");
 	string newName;
 	cout << global.tabs << "Provide a new name for this section (16 character max) ('Q' to back out to the Section Menu)\n";
 	cout << global.tabs << "Input: ";
@@ -2033,13 +1953,13 @@ void CHC_Editor::changeName(SongSection& section)
 		}
 		else
 			memcpy(section.name, newName.c_str(), 16);
-		saved = false;
+		song->saved = false;
 	}
 }
 
 void CHC_Editor::changeAudio(SongSection& section)
 {
-	banner(" " + song.shortname + ".CHC - " + section.name + " - Audio Change ");
+	banner(" " + song->shortname + ".CHC - " + section.name + " - Audio Change ");
 	string newAudio;
 	cout << global.tabs << "Provide the name for the section of audio you want to use (16 character max) ('Q' to back out to the Section Menu)\n";
 	cout << global.tabs << "Input: ";
@@ -2053,7 +1973,7 @@ void CHC_Editor::changeAudio(SongSection& section)
 		}
 		else
 			memcpy(section.audio, newAudio.c_str(), 16);
-		saved = false;
+		song->saved = false;
 	}
 }
 
@@ -2061,7 +1981,7 @@ void CHC_Editor::changeFrames(SongSection& section)
 {
 	do
 	{
-		banner(" " + song.shortname + ".CHC - " + section.name + " - SSQ Starting Index ");
+		banner(" " + song->shortname + ".CHC - " + section.name + " - SSQ Starting Index ");
 		cout << global.tabs << "Provide a value for the starting SSQ index [Type 'U' to leave this value unchanged; 'Q' to back out]\n";
 		cout << global.tabs << "Can be a decimal\n";
 		cout << global.tabs << "Current Value for Starting Index: " << section.frames.first << endl;
@@ -2072,7 +1992,7 @@ void CHC_Editor::changeFrames(SongSection& section)
 			return;
 		case 1:
 			if (section.frames.first != oldFirst)
-				saved = false;
+				song->saved = false;
 		case 2:
 			global.quit = true;
 			break;
@@ -2085,10 +2005,10 @@ void CHC_Editor::changeFrames(SongSection& section)
 		}
 	} while (!global.quit);
 	global.quit = false;
-	cout << global.tabs << '\n' << global.tabs << "Starting index saved.\n" << global.tabs << endl;
+	cout << global.tabs << '\n' << global.tabs << "Starting index song->saved.\n" << global.tabs << endl;
 	do
 	{
-		banner(" " + song.shortname + ".CHC - " + section.name + " - SSQ Ending Index ");
+		banner(" " + song->shortname + ".CHC - " + section.name + " - SSQ Ending Index ");
 		cout << global.tabs << "Provide a value for the Ending SSQ index [Type 'U' to leave this value unchanged; 'Q' to back out]\n";
 		cout << global.tabs << "Can be a decimal\n";
 		cout << global.tabs << "Current Value for Ending Index: " << section.frames.last << endl;
@@ -2099,7 +2019,7 @@ void CHC_Editor::changeFrames(SongSection& section)
 			return;
 		case 1:
 			if (section.frames.last != oldLast)
-				saved = false;
+				song->saved = false;
 		case 2:
 			global.quit = true;
 			break;
@@ -2112,7 +2032,7 @@ void CHC_Editor::changeFrames(SongSection& section)
 		}
 	} while (!global.quit);
 	global.quit = false;
-	cout << global.tabs << '\n' << global.tabs << "Ending index saved." << endl;
+	cout << global.tabs << '\n' << global.tabs << "Ending index song->saved." << endl;
 }
 
 void CHC_Editor::switchPhase(SongSection& section)
@@ -2120,7 +2040,7 @@ void CHC_Editor::switchPhase(SongSection& section)
 	string choices = "";
 	do
 	{
-		banner(" " + song.shortname + ".CHC - " + section.name + " - Phase Selection ");
+		banner(" " + song->shortname + ".CHC - " + section.name + " - Phase Selection ");
 		cout << global.tabs << "Select a phase type for this section\n";
 		cout << global.tabs << "Current Phase: ";
 		switch (section.battlePhase)
@@ -2152,7 +2072,7 @@ void CHC_Editor::switchPhase(SongSection& section)
 			if (ph > 2)
 				ph++;
 			if (section.battlePhase != static_cast<SongSection::Phase>(ph))
-				saved = false;
+				song->saved = false;
 			section.battlePhase = static_cast<SongSection::Phase>(ph);
 		}
 	} while (!global.quit);
@@ -2163,7 +2083,7 @@ void CHC_Editor::adjustTempo(SongSection& section)
 {
 	do
 	{
-		banner(" " + song.shortname + ".CHC - " + section.name + " - Tempo Change ");
+		banner(" " + song->shortname + ".CHC - " + section.name + " - Tempo Change ");
 		cout << global.tabs << "Provide a value for the change [Type 'Q' to exit tempo settings]\n";
 		cout << global.tabs << "Can be a decimal... and/or negative with weird effects on PSP\n";
 		cout << global.tabs << "Current Value: " << section.tempo << endl;
@@ -2172,7 +2092,7 @@ void CHC_Editor::adjustTempo(SongSection& section)
 		{
 		case 1:
 			if (section.tempo != oldTempo)
-				saved = false;
+				song->saved = false;
 			break;
 		case 0:
 			global.quit = true;
@@ -2189,7 +2109,7 @@ void CHC_Editor::adjustDuration(SongSection& section)
 {
 	do
 	{
-		banner(" " + song.shortname + ".CHC - " + section.name + " - Duration Change ");
+		banner(" " + song->shortname + ".CHC - " + section.name + " - Duration Change ");
 		cout << global.tabs << "Provide a value for the change [Type 'Q' to exit duration settings]\n";
 		cout << global.tabs << "Current Value: " << section.duration << endl;
 		cout << global.tabs << "Input: "; unsigned long oldDuration = section.duration;
@@ -2197,7 +2117,7 @@ void CHC_Editor::adjustDuration(SongSection& section)
 		{
 		case 1:
 			if (section.duration != oldDuration)
-				saved = false;
+				song->saved = false;
 			break;
 		case 0:
 			global.quit = true;
@@ -2216,7 +2136,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 {
 	do
 	{
-		banner(" " + song.shortname + ".CHC - Section " + section.name + " - Condition Selection ", 1.5);
+		banner(" " + song->shortname + ".CHC - Section " + section.name + " - Condition Selection ", 1.5);
 		cout << " i ||Condition Type || Argument ||      True Effect      ||      False Effect     ||\n";
 		cout << "======================================================================================||\n";
 		for (unsigned long condIndex = 0; condIndex < section.conditions.size(); condIndex++)
@@ -2233,13 +2153,13 @@ void CHC_Editor::conditionMenu(SongSection& section)
 			case 6: cout << "Left < Right? ||   n/a    || "; break;
 			}
 			if (section.conditions[condIndex].trueEffect >= 0)
-				cout << "Go to Section " << setw(7) << song.sections[section.conditions[condIndex].trueEffect].name << " || ";
+				cout << "Go to Section " << setw(7) << song->sections[section.conditions[condIndex].trueEffect].name << " || ";
 			else
 				cout << "Go to Condition " << setw(5) << condIndex - section.conditions[condIndex].trueEffect << " || ";
 			if (section.conditions[condIndex].type > 0)
 			{
 				if (section.conditions[condIndex].falseEffect >= 0)
-					cout << "Go to Section " << setw(7) << song.sections[section.conditions[condIndex].falseEffect].name << " ||\n";
+					cout << "Go to Section " << setw(7) << song->sections[section.conditions[condIndex].falseEffect].name << " ||\n";
 				else
 					cout << "Go to Condition " << setw(5) << condIndex - section.conditions[condIndex].falseEffect << " ||\n";
 			}
@@ -2259,7 +2179,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 			cin.clear();
 			break;
 		case -3:
-			cout << global.tabs << "Given section value cannot exceed " << song.numSections - 1 << endl;
+			cout << global.tabs << "Given section value cannot exceed " << song->sections.size() - 1 << endl;
 			cin.clear();
 			break;
 		case -4:
@@ -2270,7 +2190,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 			adjustTabs(6);
 			do
 			{
-				banner(" " + song.shortname + ".CHC - Section " + section.name + " - Condition " + to_string(val) + ' ', 1.5);
+				banner(" " + song->shortname + ".CHC - Section " + section.name + " - Condition " + to_string(val) + ' ', 1.5);
 				string choices = "ct";
 				cout << global.tabs << "c - Type: ";
 				switch (section.conditions[val].type)
@@ -2290,14 +2210,14 @@ void CHC_Editor::conditionMenu(SongSection& section)
 				}
 				cout << global.tabs << "T - True Effect: ";
 				if (section.conditions[val].trueEffect >= 0)
-					cout << "Go to Section " << song.sections[section.conditions[val].trueEffect].name << '\n';
+					cout << "Go to Section " << song->sections[section.conditions[val].trueEffect].name << '\n';
 				else
 					cout << "Go to Condition " << val - section.conditions[val].trueEffect << '\n';
 				if (section.conditions[val].type > 0)
 				{
 					cout << global.tabs << "F - False Effect: ";
 					if (section.conditions[val].falseEffect >= 0)
-						cout << "Go to Section " << song.sections[section.conditions[val].falseEffect].name << '\n';
+						cout << "Go to Section " << song->sections[section.conditions[val].falseEffect].name << '\n';
 					else
 						cout << "Go to Condition " << val - section.conditions[val].falseEffect << '\n';
 					choices += 'f';
@@ -2323,19 +2243,19 @@ void CHC_Editor::conditionMenu(SongSection& section)
 					switch (choices[index])
 					{
 					case 'c':
-						changeName(song.sections[val]);
+						changeName(song->sections[val]);
 						break;
 					case 'a':
-						changeAudio(song.sections[val]);
+						changeAudio(song->sections[val]);
 						break;
 					case 't':
-						changeFrames(song.sections[val]);
+						changeFrames(song->sections[val]);
 						break;
 					case 'f':
-						changeFrames(song.sections[val]);
+						changeFrames(song->sections[val]);
 						break;
 					case 'd':
-						adjustTempo(song.sections[val]);
+						adjustTempo(song->sections[val]);
 						break;
 					}
 					adjustTabs(6);
@@ -2355,11 +2275,11 @@ void CHC_Editor::conditionDelete(SongSection& section, size_t index)
 	{
 		if (section.conditions[condIndex].trueEffect < 0)
 		{
-			if (condIndex - section.conditions[condIndex].trueEffect == index)
+			if ((size_t)condIndex - section.conditions[condIndex].trueEffect == index)
 			{
 				cout << global.tabs << "Condition " << condIndex << "'s true effect points to this condition.";
 			}
-			else if (condIndex - section.conditions[condIndex].trueEffect > index)
+			else if ((size_t)condIndex - section.conditions[condIndex].trueEffect > index)
 				section.conditions[condIndex].trueEffect++;
 		}
 	}

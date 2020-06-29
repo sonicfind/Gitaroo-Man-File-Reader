@@ -114,7 +114,7 @@ void SongSection::clearConditions()
 {
 	if (conditions.size() > 1)
 	{
-		size -= 16 * (conditions.size() - 1);
+		size -= unsigned long(16 * (conditions.size() - 1));
 		conditions.erase(0, conditions.size() - 1); //Leave the last condition as it will ALWAYS point to another section
 	}
 }
@@ -124,7 +124,7 @@ void SongSection::operator++()
 {
 	size += numPlayers * 72;
 	for (size_t player = 0; player < numPlayers; player++)
-		charts.emplace(player + (player * numCharts) + numCharts);
+		charts.emplace(player + (player * numCharts) + numCharts, 1);
 	numCharts++;
 }
 

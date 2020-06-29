@@ -311,7 +311,7 @@ bool CHC_Main::menu(size_t fileCount)
 				cout << global.tabs << "For example: Stage 8 having two guard marks being only 2 samples away from eachother, or Stage 3 having a broken attack phrase note.\n";
 				cout << global.tabs << "This function aims to fix many of these issues while also applying an chart organization to evenly balance out chart counts amongst players.\n";
 				cout << global.tabs << "Note: if you come across an issue with it or have the program crash, send me the CHC file used in the Gitaroo Pals discord: https://discord.gg/ed6P8Jt \n";
-				cout << global.tabs << "(sonicfind#6404)" << global.tabs << "\n";
+				cout << global.tabs << "(sonicfind#6404)\n" << global.tabs << "\n";
 
 				cout << global.tabs << "B - Both 'S' & 'F'\n";
 				cout << global.tabs << "Does both option 'S' & option 'F' in a single function.\n" << global.tabs << "\n";

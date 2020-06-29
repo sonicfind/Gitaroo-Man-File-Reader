@@ -117,7 +117,7 @@ public:
 	//Sets the duration of the section to the provided value
 	void setDuration(unsigned long dur) { duration = dur; }
 	//Returns the number of conditions in the section
-	unsigned long getNumCondtions() const { return conditions.size(); }
+	size_t getNumCondtions() const { return conditions.size(); }
 	//Adds a new condition to the end of the section's condition list
 	template<class...Args>
 	size_t addCondition(size_t index, Args&&...args)

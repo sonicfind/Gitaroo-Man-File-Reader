@@ -64,7 +64,7 @@ public:
 	//Sets the end time for the chart/subsection to the provided value
 	void setEndTime(long piv) { endTime = piv; }
 	//Returns the number of the trace lines in the chart/subsection
-	unsigned long getNumTracelines() const { return tracelines.size(); }
+	size_t getNumTracelines() const { return tracelines.size(); }
 	//Returns the Trace line at the provided index
 	Traceline& getTraceline(size_t index);
 	template<class... Args>
@@ -74,13 +74,13 @@ public:
 		return tracelines.emplace_ordered(args...);
 	}
 	template<class... Args>
-	size_t addTraceline_back(Args&&... args)
+	void addTraceline_back(Args&&... args)
 	{
 		size += 16;
-		return tracelines.emplace_back(args...);
+		tracelines.emplace_back(args...);
 	}
 	//Returns the number of the phrase bars in the chart/subsection
-	unsigned long getNumPhrases() const { return phrases.size(); }
+	size_t getNumPhrases() const { return phrases.size(); }
 	//Returns the Phrase bar at the provided index
 	Phrase& getPhrase(size_t index);
 	template<class... Args>
@@ -91,13 +91,13 @@ public:
 	}
 
 	template<class... Args>
-	size_t addPhrase_back(Args&&... args)
+	void addPhrase_back(Args&&... args)
 	{
 		size += 32;
-		return phrases.emplace_back(args...);
+		phrases.emplace_back(args...);
 	}
 	//Returns the number of the guard marks in the chart/subsection
-	unsigned long getNumGuards() const { return guards.size(); }
+	size_t getNumGuards() const { return guards.size(); }
 	//Returns the Guard mark at the provided index
 	Guard& getGuard(size_t index);
 	template<class... Args>
@@ -108,15 +108,15 @@ public:
 	}
 
 	template<class... Args>
-	size_t addGuard_back(Args&&... args)
+	void addGuard_back(Args&&... args)
 	{
 		size += 16;
-		return guards.emplace_back(args...);
+		guards.emplace_back(args...);
 	}
 	size_t add(Note*);
 	void add_back(Note*);
 	bool resize(long numElements, char type = 't');
-	bool remove(unsigned, char type = 't', unsigned long extra = 0);
+	bool remove(size_t, char type = 't', unsigned long extra = 0);
 	void clearTracelines();
 	void clearPhrases();
 	void clearGuards();

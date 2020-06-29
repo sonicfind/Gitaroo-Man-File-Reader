@@ -1573,29 +1573,29 @@ void CHC_Editor::reorganize(SongSection& section)
 									{
 										long endAlpha = notes[pl][ntIndex + 1ULL].first - SongSection::SAMPLE_GAP - 1 - currentChart->pivotTime;
 										float angle = 0;
-										for (int t = currentChart->tracelines.size() - 1; t >= 0;)
+										for (size_t t = currentChart->tracelines.size(); t > 0;)
 										{
 											//If the new end point is less than or equal to the last trace line's pivot
-											if (!currentChart->tracelines[t].changeEndAlpha(endAlpha))
+											if (!currentChart->tracelines[--t].changeEndAlpha(endAlpha))
 											{
 												//Save angle value
 												angle = currentChart->tracelines[t].angle;
 												//Remove trace line
 												cout << global.tabs << section.name << ": ";
-												currentChart->remove(t--, 't');
+												currentChart->remove(t, 't');
 												if (currentChart->tracelines.size())
 												{
 													//Same idea for phrase bars
-													for (int p = currentChart->phrases.size() - 1; p >= 0;)
+													for (size_t p = currentChart->phrases.size(); p > 0;)
 													{
 														//If the phrase bar is past the trace line
-														if (currentChart->tracelines[t].getEndAlpha() <= currentChart->phrases[p].pivotAlpha)
+														if (currentChart->tracelines[t].getEndAlpha() <= currentChart->phrases[--p].pivotAlpha)
 														{
 															//Delete the phrase bar
 															if (!currentChart->phrases[p].start)
 																currentChart->phrases[p - 1ULL].end = true;
 															cout << global.tabs << section.name << ": ";
-															currentChart->remove(p--, 'p');
+															currentChart->remove(p, 'p');
 														}
 														else
 														{
@@ -1608,10 +1608,10 @@ void CHC_Editor::reorganize(SongSection& section)
 												}
 												else
 												{
-													for (int p = currentChart->phrases.size() - 1; p >= 0;)
+													for (size_t p = currentChart->phrases.size(); p > 0;)
 													{
 														cout << global.tabs << section.name << ": ";
-														currentChart->remove(p--, 'p');
+														currentChart->remove(--p, 'p');
 													}
 												}
 											}
@@ -1740,29 +1740,29 @@ void CHC_Editor::reorganize(SongSection& section)
 								{
 									long endAlpha = notes[pl][ntIndex + 1ULL].first - SongSection::SAMPLE_GAP - 1 - currentChart->pivotTime;
 									float angle = 0;
-									for (int t = currentChart->tracelines.size() - 1; t >= 0;)
+									for (size_t t = currentChart->tracelines.size(); t > 0;)
 									{
 										//If the new end point is less than or equal to the last trace line's pivot
-										if (!currentChart->tracelines[t].changeEndAlpha(endAlpha))
+										if (!currentChart->tracelines[--t].changeEndAlpha(endAlpha))
 										{
 											//Save angle value
 											angle = currentChart->tracelines[t].angle;
 											//Remove trace line
 											cout << global.tabs << section.name << ": ";
-											currentChart->remove(t--, 't');
+											currentChart->remove(t, 't');
 											if (currentChart->tracelines.size())
 											{
 												//Same idea for phrase bars
-												for (int p = currentChart->phrases.size() - 1; p >= 0;)
+												for (size_t p = currentChart->phrases.size(); p > 0;)
 												{
 													//If the phrase bar is past the trace line
-													if (currentChart->tracelines[t].getEndAlpha() <= currentChart->phrases[p].pivotAlpha)
+													if (currentChart->tracelines[t].getEndAlpha() <= currentChart->phrases[--p].pivotAlpha)
 													{
 														//Delete the phrase bar
 														if (!currentChart->phrases[p].start)
 															currentChart->phrases[p - 1ULL].end = true;
 														cout << global.tabs << section.name << ": ";
-														currentChart->remove(p--, 'p');
+														currentChart->remove(p, 'p');
 													}
 													else
 													{
@@ -1775,25 +1775,25 @@ void CHC_Editor::reorganize(SongSection& section)
 											}
 											else
 											{
-												for (int p = currentChart->phrases.size() - 1; p >= 0;)
+												for (size_t p = currentChart->phrases.size(); p > 0;)
 												{
 													cout << global.tabs << section.name << ": ";
-													currentChart->remove(p--, 'p');
+													currentChart->remove(--p, 'p');
 												}
 											}
 										}
 										else
 										{
-											for (int p = currentChart->phrases.size() - 1; p >= 0;)
+											for (size_t p = currentChart->phrases.size(); p > 0;)
 											{
 												//If the phrase bar is past the trace line
-												if (currentChart->tracelines[t].getEndAlpha() <= currentChart->phrases[p].pivotAlpha)
+												if (currentChart->tracelines[t].getEndAlpha() <= currentChart->phrases[--p].pivotAlpha)
 												{
 													//Delete the phrase bar
 													if (!currentChart->phrases[p].start)
 														currentChart->phrases[p - 1ULL].end = true;
 													cout << global.tabs << section.name << ": ";
-													currentChart->remove(p--, 'p');
+													currentChart->remove(p, 'p');
 												}
 												else
 												{
@@ -1875,7 +1875,7 @@ void CHC_Editor::reorganize(SongSection& section)
 			total = total1 >= total2 ? total1 : total2;
 		}
 		section.charts.clear();
-		section.size = 64 + 16 * section.conditions.size();
+		section.size = unsigned long(64 + 16 * section.conditions.size());
 		for (unsigned pl = 0; pl < 4; pl++)
 		{
 			while (newCharts[pl].size() > section.numCharts)

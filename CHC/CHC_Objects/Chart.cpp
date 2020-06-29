@@ -169,7 +169,7 @@ bool Chart::resize(long numElements, char type)
 //Otherwise, it'll print a failure and return false.
 //Type -- defaults to trace line ('t').
 //Extra - defaults to 0.
-bool Chart::remove(unsigned index, char type, unsigned long extra)
+bool Chart::remove(size_t index, char type, unsigned long extra)
 {
 	switch (type)
 	{
@@ -231,32 +231,32 @@ void Chart::clear()
 {
 	if (tracelines.size() > 1)
 	{
-		size -= 16 * (tracelines.size() - 1);
+		size -= unsigned long(16 * (tracelines.size() - 1));
 		tracelines.erase(0, tracelines.size() - 1);
 	}
-	size -= 32 * phrases.size();
+	size -= unsigned long(32 * phrases.size());
 	phrases.clear();
-	size -= 16 * guards.size();
+	size -= unsigned long(16 * guards.size());
 	guards.clear();
 }
 
 //Full clear of Trace lines
 void Chart::clearTracelines()
 {
-	size -= 16 * tracelines.size();
+	size -= unsigned long(16 * tracelines.size());
 	tracelines.clear();
 }
 
 //Full clear of Phrase bars
 void Chart::clearPhrases()
 {
-	size -= 32 * phrases.size();
+	size -= unsigned long(32 * phrases.size());
 	phrases.clear();
 }
 
 //Full clear of Guard marks
 void Chart::clearGuards()
 {
-	size -= 16 * guards.size();
+	size -= unsigned long(16 * guards.size());
 	guards.clear();
 }

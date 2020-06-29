@@ -82,7 +82,7 @@ public:
 	SongSection();
 	SongSection(FILE* inFile);
 	SongSection(const SongSection&);
-	void operator=(const SongSection);
+	void operator=(SongSection&);
 	//Returns name C-string (size: 16)
 	char* getName() { return name; }
 	//Returns audio C-string (size: 16)

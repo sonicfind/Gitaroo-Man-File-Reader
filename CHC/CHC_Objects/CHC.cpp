@@ -43,7 +43,7 @@ CHC::CHC(const CHC& song) : sections(song.sections)
 	memcpy_s(energyDamageFactors, sizeof(EnergyDamage) * 20, song.energyDamageFactors, sizeof(EnergyDamage) * 20);
 }
 
-CHC& CHC::operator=(const CHC& song)
+CHC& CHC::operator=(CHC& song)
 {
 	name = song.name;
 	shortname = song.shortname;

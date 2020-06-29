@@ -59,7 +59,7 @@ class Charter
 {
 	CHC song;
 public:
-	Charter(CHC& song) { this->song = song; }
+	Charter(CHC& song) : song(song) {}
 	CHC& getSong() { return song; }
 	bool exportChart();
 	bool importChart();

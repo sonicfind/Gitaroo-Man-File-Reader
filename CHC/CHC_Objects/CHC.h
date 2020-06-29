@@ -71,7 +71,7 @@ public:
 	CHC();
 	CHC(const CHC&);
 	CHC(std::string filename);
-	CHC& operator=(const CHC&);
+	CHC& operator=(CHC&);
 	bool create(std::string filename);
 };
 

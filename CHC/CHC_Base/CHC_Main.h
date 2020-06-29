@@ -27,20 +27,12 @@ private:
 	bool saved;
 	bool overwritten;
 public:
-	CHC_Editor()
+	CHC_Editor() : duet(false), saved(true), overwritten(false) {}
+	CHC_Editor(CHC& song) : song(song), saved(true), overwritten(false)
 	{
-		duet = false;
-		saved = true;
-		overwritten = false;
-	}
-	CHC_Editor(CHC& song)
-	{
-		this->song = song;
 		duet = song.imc[0] == 0;
-		saved = true;
-		overwritten = false;
 	}
-	CHC_Editor& operator=(const CHC_Editor& edtr)
+	CHC_Editor& operator=(CHC_Editor& edtr)
 	{
 		song = edtr.song;
 		duet = edtr.duet;

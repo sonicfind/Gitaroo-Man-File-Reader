@@ -111,7 +111,7 @@ private:
 	PCSX2TAS pcsx2;
 	PPSSPPTAS ppsspp;
 public:
-	TAS(CHC& song) { this->song = song; }
+	TAS(CHC& song) : song(song) {}
 	~TAS()
 	{
 		if (tutorial != nullptr)

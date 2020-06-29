@@ -55,7 +55,7 @@ SongSection::SongSection(const SongSection& section) : conditions(section.condit
 	numCharts = section.numCharts;
 }
 
-void SongSection::operator=(const SongSection section)
+void SongSection::operator=(SongSection& section)
 {
 	index = section.index;
 	frames = section.frames;

@@ -69,7 +69,6 @@ struct GlobalVars
 extern "C" GLOBALFUNCTIONS_API GlobalVars global;
 
 extern "C" GLOBALFUNCTIONS_API bool LoadLib(FileType::dllPair& pair);
-extern "C" GLOBALFUNCTIONS_API bool FreeLib(HINSTANCE & lib);
 /*
 Searches for a function with the given name (proc) inside the provided dll (lib).
 If found, it will use object as the parameter and return the result.

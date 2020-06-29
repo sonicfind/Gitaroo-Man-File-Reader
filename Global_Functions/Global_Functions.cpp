@@ -19,7 +19,8 @@ size_t dllCount = 0;
 
 FileType::dllPair::~dllPair()
 {
-	FreeLib(dll);
+	if (dll != nullptr)
+		FreeLibrary(dll);
 }
 
 /*
@@ -92,15 +93,6 @@ bool LoadLib(FileType::dllPair& pair)
 	if (pair.dll == nullptr)
 		pair.dll = LoadLibrary(pair.name);
 	return pair.dll != nullptr;
-}
-
-//If a dll with the given filename is loaded, attempt to unload it and return whether unloading was successful
-//Returns true for an already unloaded dll
-bool FreeLib(HINSTANCE& lib)
-{
-	if (lib != nullptr)
-		FreeLibrary(lib);
-	return lib == nullptr;
 }
 
 /*
@@ -196,7 +188,6 @@ char filenameInsertion(string& filename, string specials)
 			unsigned quotes = 0;
 			while (quotes != 2 && global.input != '\n' && global.input != ';')
 			{
-				global.input = toupper(global.input);
 				if (global.multi)
 					cout << global.input;
 				if (global.input != '"')

@@ -276,10 +276,18 @@ int main(int argc, char** argv)
 		//Free all loaded extensions
 		for (size_t i = 0; i < 20; i++)
 		{
-			if (dlls[i].libraries[0].dll != nullptr)
+			bool unloaded = true;
+			for (size_t h = 0; h < dlls[i].libraries.size(); h++)
 			{
-				loadProc(dlls[i].libraries[0].dll, "freeSubLibraries");
-				FreeLibrary(dlls[i].libraries[0].dll);
+				if (dlls[i].libraries[h].dll != nullptr)
+				{
+					FreeLibrary(dlls[i].libraries[h].dll);
+					if (dlls[i].libraries[h].dll == nullptr)
+						unloaded = true;
+				}
+			}
+			if (unloaded)
+			{
 				cout << "Unloaded ";
 				for (size_t s = 0; s < dlls[i].extensions.size(); s++)
 					cout << dlls[i].extensions[s].ext << ' ';

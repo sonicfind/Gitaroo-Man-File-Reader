@@ -227,23 +227,26 @@ public:
 	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
 	List<T>& operator=(const List<T>& list)
 	{
-		if (*usedCount > 1)
-			(*usedCount)--;
-		else
+		if (root != list.root)
 		{
-			clear();
-			delete root;
-			delete tail;
-			delete count;
-			delete lastAccessed;
-			delete usedCount;
+			if (*usedCount > 1)
+				(*usedCount)--;
+			else
+			{
+				clear();
+				delete root;
+				delete tail;
+				delete count;
+				delete lastAccessed;
+				delete usedCount;
+			}
+			root = list.root;
+			tail = list.tail;
+			count = list.count;
+			lastAccessed = list.lastAccessed;
+			usedCount = list.usedCount;
+			(*usedCount)++;
 		}
-		root = list.root;
-		tail = list.tail;
-		count = list.count;
-		lastAccessed = list.lastAccessed;
-		usedCount = list.usedCount;
-		(*usedCount)++;
 		return *this;
 	}
 

@@ -29,14 +29,14 @@ private:
 		//Calls default constructor for data
 		Node() : data(), prev(nullptr), next(nullptr) {}
 		//Creates a shallow copy of the provided object
-		Node(T& data, Node* pr = nullptr, Node* nt = nullptr) : data(), prev(pr), next(nt)
+		Node(const T& data, Node* pr = nullptr, Node* nt = nullptr) : data(), prev(pr), next(nt)
 		{
 			this->data = data;
 		}
 		//Uses the arguments provided in "args" to create a new object.
 		//If args is an object of type T, it creates a deep copy.
 		template <class... Args>
-		Node(Node* pr, Node* nt, Args&... args) : prev(pr), next(nt), data(args...) {}
+		Node(Node* pr, Node* nt, Args&&... args) : prev(pr), next(nt), data(args...) {}
 	};
 	Node** root;
 	Node** tail;
@@ -58,7 +58,7 @@ private:
 				cur = lastAccessed->prevNode;
 			else if (index == 0) //Return *root
 				cur = *root;
-			else if (index == *count - 1) //Return *tail
+			else if (index == (*count) - 1) //Return *tail
 				cur = *tail;
 			else if (lastAccessed->prevNode == nullptr || signed(index) <= signed(lastAccessed->index) - index)
 				//If *lastAccessed is empty, or if index is less than or equal to the difference between *lastAccessed and the given index
@@ -69,7 +69,7 @@ private:
 			}
 			else if (index > lastAccessed->index)
 			{
-				if (index - lastAccessed->index <= *count - 1) //Start from LA and go up
+				if (index - lastAccessed->index <= (*count) - 1) //Start from LA and go up
 				{
 					cur = lastAccessed->prevNode;
 					for (size_t i = lastAccessed->index; i < index; i++)
@@ -78,7 +78,7 @@ private:
 				else //Start from *tail and go down
 				{
 					cur = *tail;
-					for (size_t i = *count - 1; i > index; i--)
+					for (size_t i = (*count) - 1; i > index; i--)
 						cur = cur->prev;
 				}
 			}
@@ -156,13 +156,12 @@ public:
 	}
 
 	//Creates a list based off the provided initializer list
-	//Each initializer element is used as the parameter(s) for a constructor
-	//of object type 'T'
+	//Uses t
 	template <class... Args>
-	List<T>(const std::initializer_list<std::initializer_list<Args...>>& init) : List()
+	List<T>(const std::initializer_list<Args...>& init) : List()
 	{
 		for (unsigned i = 0; i < init.size(); i++)
-			emplace_back(init.begin()[i].begin()...);
+			emplace_back(init.begin()[i]);
 	}
 
 	//Create a list with cloned elements from the provided list
@@ -453,7 +452,7 @@ public:
 				*tail = (*tail)->next = new Node(*tail, nullptr, args...);
 				(*count)++;
 			}
-			*lastAccessed = { *count - 1, *tail };
+			*lastAccessed = { (*count) - 1, *tail };
 		}
 		else if (newSize < *count)
 		{
@@ -467,7 +466,7 @@ public:
 			if (*count)
 			{
 				(*tail)->next = nullptr;
-				*lastAccessed = { *count - 1, *tail };
+				*lastAccessed = { (*count) - 1, *tail };
 			}
 			else
 			{
@@ -496,7 +495,7 @@ public:
 				*tail = (*tail)->next = new Node(data, *tail);
 				(*count)++;
 			}
-			*lastAccessed = { *count - 1, *tail };
+			*lastAccessed = { (*count) - 1, *tail };
 		}
 		else if (newSize < *count)
 		{
@@ -510,7 +509,7 @@ public:
 			if (*count)
 			{
 				(*tail)->next = nullptr;
-				*lastAccessed = { *count - 1, *tail };
+				*lastAccessed = { (*count) - 1, *tail };
 			}
 			else
 			{
@@ -587,7 +586,7 @@ public:
 		if (cur != nullptr)
 			*lastAccessed = { index, cur };
 		else if (*count)
-			*lastAccessed = { *count - 1, tail };
+			*lastAccessed = { (*count) - 1, *tail };
 		else
 			*lastAccessed = { 0, nullptr };
 		return result;
@@ -624,7 +623,7 @@ public:
 	{
 		if (*count)
 		{
-			*lastAccessed = { *count - 1, *tail };
+			*lastAccessed = { (*count) - 1, *tail };
 			return (*tail)->data;
 		}
 		else
@@ -651,7 +650,7 @@ public:
 			if (cur->data == compare)
 			{
 				*lastAccessed = { startIndex, cur };
-				return startIndex;
+				return (int)startIndex;
 			}
 			else
 			{
@@ -667,9 +666,9 @@ public:
 	void moveElements(size_t index, size_t newPosition, size_t numElements = 1)
 	{
 		if (index >= *count)
-			throw "Error: list index out of range"
-		else if (newPosition > *count)
-			throw "Error: list newPosition index out of range"
+			throw "Error: list index out of range";
+		else if (newPosition > * count)
+			throw "Error: list newPosition index out of range";
 		else
 		{
 			if (index + numElements > *count)

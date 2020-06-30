@@ -227,7 +227,7 @@ void dualvfprintf_s(FILE* out1, FILE* out2, const char* format, ...)
 	@return -2 - User entered an invalid character
 	@return -3 - User entered the "help" or '?' character
 	*/
-size_t menuChoices(string choices)
+int menuChoices(string choices)
 {
 	cin.unsetf(ios::skipws);
 	size_t size = choices.length();

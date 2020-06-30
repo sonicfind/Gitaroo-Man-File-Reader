@@ -104,7 +104,7 @@ Universal menu function that accepts a list of characters as a std::string as op
 @return -2 - User entered an invalid character
 @return -3 - User entered the "help" or '?' character
 */
-extern "C" GLOBALFUNCTIONS_API size_t menuChoices(std::string choices);
+extern "C" GLOBALFUNCTIONS_API int menuChoices(std::string choices);
 
 /*
 Used to check if a file of the specified name already exists at its location.

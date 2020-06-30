@@ -227,7 +227,7 @@ public:
 	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
 	List<T>& operator=(const List<T>& list)
 	{
-		if (root != list.root)
+		if (UsedCount != list.UsedCount)
 		{
 			if (*usedCount > 1)
 				(*usedCount)--;

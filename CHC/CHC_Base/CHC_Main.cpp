@@ -66,7 +66,7 @@ bool loadMultiCHC(List<string>* files)
 	do
 	{
 		size_t result = 0;
-		string choices = "ewpfbdck";
+		string choices = "ewpfbdc";
 		if (files->size() > 1)
 		{
 			banner(" CHC Mode Selection ");
@@ -89,7 +89,19 @@ bool loadMultiCHC(List<string>* files)
 				choices += 'i';
 			}
 			cout << global.tabs << "C - Create a PCSX2 Phrase Bar Color Cheat template for each CHC" << endl;
-			cout << global.tabs << "K - CHC files will be skipped" << endl;
+			for (size_t i = 1; i < 20 && !global.quit; i++)
+			{
+				for (size_t s = 0; s < dlls[i].extensions.size() && !global.quit; s++)
+				{
+					if (dlls[i].extensions[s].files.size() > 0)
+					{
+						cout << global.tabs << "N - Proceed to the next filetype (" << dlls[i].extensions[s].ext << ")\n";
+						choices += 'n';
+						global.quit = true;
+					}
+				}
+			}
+			global.quit = false;
 			cout << global.tabs << "Q - Quit Program" << endl;
 			result = menuChoices(choices);
 		}
@@ -151,69 +163,70 @@ bool loadMultiCHC(List<string>* files)
 		case -2:
 			break;
 		default:
-			adjustTabs(1);
-			while (files->size())
+			if (choices[result] != 'n')
 			{
-				try
+				adjustTabs(1);
+				while (files->size())
 				{
-					CHC_Main chc(files->front());
-					switch (choices[result])
+					try
 					{
-					case 'e':
-						if (chc.menu(files->size()))
+						CHC_Main chc(files->front());
+						switch (choices[result])
 						{
-							adjustTabs(0);
-							return false;
-						}
-						else
+						case 'e':
+							if (chc.menu(files->size()))
+							{
+								adjustTabs(0);
+								return false;
+							}
+							else
+								break;
+						case 'w':
+							chc.writeTxt();
 							break;
-					case 'w':
-						chc.writeTxt();
-						break;
-					case 'p':
-						chc.applyChanges(false, true, true);
-						break;
-					case 'f':
-						chc.applyChanges(true, false, true);
-						break;
-					case 'b':
-						chc.applyChanges(true, true, true);
-						break;
-					case 'd':
-						chc.edit(true);
-						break;
-					case 't':
-						chc.makeTAS();
-						break;
-					case 'g':
-						chc.exportChart();
-						break;
-					case 'i':
-						chc.importChart();
-						break;
-					case 'c':
-						chc.createColorTemplate();
-						break;
-					case 'k':
-						adjustTabs(0);
-						return false;
+						case 'p':
+							chc.applyChanges(false, true, true);
+							break;
+						case 'f':
+							chc.applyChanges(true, false, true);
+							break;
+						case 'b':
+							chc.applyChanges(true, true, true);
+							break;
+						case 'd':
+							chc.edit(true);
+							break;
+						case 't':
+							chc.makeTAS();
+							break;
+						case 'g':
+							chc.exportChart();
+							break;
+						case 'i':
+							chc.importChart();
+							break;
+						case 'c':
+							chc.createColorTemplate();
+						}
 					}
+					catch (string str)
+					{
+						cout << global.tabs << str << endl;
+						cout << global.tabs << "Load cancelled for " << files->front() << ".CHC" << endl;
+					}
+					catch (const char* str)
+					{
+						cout << global.tabs << str << endl;
+						cout << global.tabs << "Load cancelled for " << files->front() << ".CHC" << endl;
+					}
+					files->pop_front();
 				}
-				catch (string str)
-				{
-					cout << global.tabs << str << endl;
-					cout << global.tabs << "Load cancelled for " << files->front() << ".CHC" << endl;
-				}
-				catch (const char* str)
-				{
-					cout << global.tabs << str << endl;
-					cout << global.tabs << "Load cancelled for " << files->front() << ".CHC" << endl;
-				}
-				files->pop_front();
+				adjustTabs(0);
+				global.quit = true;
+				break;
 			}
-			adjustTabs(0);
-			global.quit = true;
-			break;
+			else
+				return false;
 		}
 	} while (!global.quit);
 	global.quit = false;
@@ -227,7 +240,7 @@ Returns false if this is used from the multimenu and if the user wants to procee
 */
 bool CHC_Main::menu(size_t fileCount)
 {
-	while(!global.quit)
+	do
 	{
 		banner(" " + song.shortname + ".CHC - Mode Selection ");
 		string choices = "swpd";
@@ -295,7 +308,7 @@ bool CHC_Main::menu(size_t fileCount)
 			{
 				cout << global.tabs << endl;
 				cout << global.tabs << "Recent changes have not been saved externally to a CHC file. Which action will you take?\n";
-				cout << global.tabs << "S - Save CHC and Exit to Main Menu\n";
+				cout << global.tabs << "S - Save CHC and Exit\n";
 				cout << global.tabs << "Q - Exit without saving\n";
 				cout << global.tabs << "C - Cancel" << endl;
 				switch (menuChoices("sc"))
@@ -406,7 +419,8 @@ bool CHC_Main::menu(size_t fileCount)
 			}
 			adjustTabs(0);
 		}
-	}
+	} while (!global.quit);
+	global.quit = false;
 	return true;
 }
 
@@ -521,9 +535,9 @@ void CHC_Main::writeTxt()
 			}
 		}
 		dualvfprintf_s(outTXT, outSimpleTXT, "\t       Speed: %g\n", song.speed);
-		fputs("\t   # of Cues: %lu\n", outTXT);
+		fputs("\t   # of Cues: %zu\n", outTXT);
 		fputs("\t    SSQ Cues:\n", outTXT);
-		for (unsigned cueIndex = 0; cueIndex < song.sections.size(); cueIndex++)	//Cues
+		for (size_t cueIndex = 0; cueIndex < song.sections.size(); cueIndex++)	//Cues
 		{
 			SongSection& section = song.sections[cueIndex];
 			fprintf(outTXT, "\t       Cue %s:\n", section.name);
@@ -534,9 +548,9 @@ void CHC_Main::writeTxt()
 		}
 		fflush(outTXT);
 		fflush(outSimpleTXT);
-		dualvfprintf_s(outTXT, outSimpleTXT, "       # of Sections: %lu\n", song.sections.size());
+		dualvfprintf_s(outTXT, outSimpleTXT, "       # of Sections: %zu\n", song.sections.size());
 		dualvfprintf_s(outTXT, outSimpleTXT, "       Song Sections:\n");
-		for (unsigned sectIndex = 0; sectIndex < song.sections.size(); sectIndex++) //SongSections
+		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++) //SongSections
 		{
 			SongSection& section = song.sections[sectIndex];
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t       Section %s:\n", section.name);
@@ -600,11 +614,11 @@ void CHC_Main::writeTxt()
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Tempo: %g\n", section.tempo);
 			fprintf(outTXT, "\t\t\t    Samples/Beat: %Lg\n", SAMPLES_PER_MIN / section.tempo);
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\tDuration: %lu samples\n", section.duration);
-			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t # of Conditions: %lu\n", section.conditions.size());
-			for (unsigned condIndex = 0; condIndex < section.conditions.size(); condIndex++)
+			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t # of Conditions: %zu\n", section.conditions.size());
+			for (size_t condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 			{
 				SongSection::Condition& cond = section.conditions[condIndex];
-				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Condition %lu:\n", condIndex + 1);
+				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Condition %zu:\n", condIndex + 1);
 				switch (cond.type)
 				{
 				case 0:
@@ -646,7 +660,7 @@ void CHC_Main::writeTxt()
 				}
 				else
 				{
-					if ((unsigned long)cond.trueEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t True Effect: Move to Section %s.\n", song.sections[cond.trueEffect].name);
+					if ((size_t)cond.trueEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t True Effect: Move to Section %s.\n", song.sections[(size_t)cond.trueEffect].name);
 					else dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t True Effect: End song.\n");
 				}
 				if (cond.type != 0)
@@ -658,7 +672,7 @@ void CHC_Main::writeTxt()
 					}
 					else
 					{
-						if ((unsigned long)cond.falseEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: Move to Section %s.\n", song.sections[cond.trueEffect].name);
+						if ((size_t)cond.falseEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: Move to Section %s.\n", song.sections[(size_t)cond.trueEffect].name);
 						else dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: End song.\n");
 					}
 				}
@@ -685,12 +699,12 @@ void CHC_Main::writeTxt()
 			}
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t    # of Players: %lu\n", section.numPlayers);
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t       Charts per Player: %lu\n", section.numCharts);
-			for (unsigned playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
+			for (size_t playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
 			{
-				for (unsigned chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
+				for (size_t chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
 				{
-					Chart& chart = section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex];
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t Player %lu - Chart %02lu\n", playerIndex + 1, chartIndex + 1);
+					Chart& chart = section.charts[playerIndex * section.numCharts + chartIndex];
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t Player %zu - Chart %02zu\n", playerIndex + 1, chartIndex + 1);
 					fprintf(outTXT, "\t\t\t\t\t  Size (32bit): %lu\n", chart.getSize());
 					fprintf(outTXT, "\t\t\t\t\t\t  Junk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(chart.getJunk())));
 					fprintf(outTXT, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(chart.getJunk() + 4)));
@@ -698,11 +712,11 @@ void CHC_Main::writeTxt()
 					fprintf(outTXT, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(chart.getJunk() + 12)));
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t   Pivot Point: %lu samples\n", chart.getPivotTime());
 					fprintf(outTXT, "\t\t\t\t\t      End Time: %lu samples\n", chart.getEndTime());
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Trace Lines: %lu\n", chart.getNumTracelines());
-					for (unsigned traceIndex = 0; traceIndex < chart.getNumTracelines(); traceIndex++)
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Trace Lines: %zu\n", chart.getNumTracelines());
+					for (size_t traceIndex = 0; traceIndex < chart.getNumTracelines(); traceIndex++)
 					{
 						Traceline& trace = chart.getTraceline(traceIndex);
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Trace Line %03lu:\n", traceIndex + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Trace Line %03zu:\n", traceIndex + 1);
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", trace.getPivotAlpha());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", trace.getPivotAlpha() + chart.getPivotTime());
 						fprintf(outTXT, "\t\t\t\t\t\t\t    Duration: %lu samples\n", trace.getDuration());
@@ -714,17 +728,17 @@ void CHC_Main::writeTxt()
 							fprintf(outSimpleTXT, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", trace.getEndAlpha() + chart.getPivotTime());
 					}
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t # of Phrase Fragments: %lu\n", chart.getNumPhrases());
-					for (unsigned phraseIndex = 0, traceIndex = 0, note = 0, piece = 0; phraseIndex < chart.getNumPhrases(); phraseIndex++)
+					for (size_t phraseIndex = 0, traceIndex = 0, note = 0, piece = 0; phraseIndex < chart.getNumPhrases(); phraseIndex++)
 					{
 						Phrase& phrase = chart.getPhrase(phraseIndex);
 						for (; traceIndex < chart.getNumTracelines(); traceIndex++)
 							if (chart.getTraceline(traceIndex).contains(phrase.getPivotAlpha()))
 								break;
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     Phrase Fragment %03lu:\n", phraseIndex + 1);
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     [Note #%03lu", note + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     Phrase Fragment %03zu:\n", phraseIndex + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     [Note #%03zu", note + 1);
 						if (piece)
-							dualvfprintf_s(outTXT, outSimpleTXT, " - Piece ##%02lu", piece + 1);
-						fprintf(outTXT, "| Trace Line #%03lu]:\n", traceIndex + 1);
+							dualvfprintf_s(outTXT, outSimpleTXT, " - Piece ##%02zu", piece + 1);
+						fprintf(outTXT, "| Trace Line #%03zu]:\n", traceIndex + 1);
 						fputs("]:\n", outSimpleTXT);
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", phrase.getPivotAlpha());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", phrase.getPivotAlpha() + chart.getPivotTime());
@@ -752,11 +766,11 @@ void CHC_Main::writeTxt()
 						fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 4)));
 						fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 8)));
 					}
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Guard Marks: %lu\n", chart.getNumGuards());
-					for (unsigned guardIndex = 0; guardIndex < chart.getNumGuards(); guardIndex++)
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Guard Marks: %zu\n", chart.getNumGuards());
+					for (size_t guardIndex = 0; guardIndex < chart.getNumGuards(); guardIndex++)
 					{
 						Guard& guard = chart.getGuard(guardIndex);
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Guard Mark %03lu:\n", guardIndex + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Guard Mark %03zu:\n", guardIndex + 1);
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", guard.getPivotAlpha());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", guard.getPivotAlpha() + chart.getPivotTime());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t      Button: ");

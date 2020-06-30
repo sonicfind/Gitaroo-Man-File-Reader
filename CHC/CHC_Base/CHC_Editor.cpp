@@ -64,8 +64,16 @@ void CHC_Editor::editSong(bool multi)
 			break;
 		case -3:
 			cout << global.tabs << endl;
-			cout << global.tabs << "S - Save File:\n";
-			cout << global.tabs << "Pretty self-explanatory - save the file as an overwrite or as a new file.\n" << global.tabs << '\n';
+			cout << global.tabs << "F - Fix any problematic notes or trace lines:\n";
+			cout << global.tabs << "Does a few things: 1. fixes phrase bars that have their first piece cut off increcibly short by a trace line,\n";
+			cout << global.tabs << "2. forces straight trace lines to have an active curve value (helps with visual glitching of phrase bars),\n";
+			cout << global.tabs << "3. deletes guard marks that appear much too soon after a previous guard mark (two frames), &\n";
+			cout << global.tabs << "4. places an minimum spacing between two phrase bars that are too close to each other, including between different sections.\n" << global.tabs << '\n';
+
+			cout << global.tabs << "O - Organize All Unorganized Sections:\n";
+			cout << global.tabs << "Since some phrases are out of the regular order, the base game would tend split these int multiple subsections. This would lead\n";
+			cout << global.tabs << "to an unnecessarily bigger file size as new empty subsections need to then be added to the end of all other players' pieces.\n";
+			cout << global.tabs << "This reasseses the order of subsections and makes sure that a single pair of different phrases is in only one subsection.\n" << global.tabs << '\n';
 
 			if (strstr(song->imc, ".IMC"))
 			{

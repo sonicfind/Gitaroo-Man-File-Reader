@@ -84,27 +84,27 @@ SongSection::Condition& SongSection::getCondition(size_t index)
 	}
 	catch (...)
 	{
-		std::cout << global.tabs << "Index out of Condition range: " << conditions.size() << ". Returning the last condition." << std::endl;
+		printf("%sIndex out of Condition range: %zu. Returning the last condition.\n", global.tabs.c_str(), conditions.size());
 		return conditions.back();
 	}
 }
 
 //I think this is obvious
-bool SongSection::removeCondition(unsigned index)
+bool SongSection::removeCondition(size_t index)
 {
 	if (conditions.size() != 1 && index < conditions.size())
 	{
 		size -= 16;
 		conditions.erase(index);
-		std::cout << "Condition " << index + 1 << " removed" << std::endl;
+		printf("Condition %zu removed\n", index + 1);
 		return true;
 	}
 	else
 	{
 		if (conditions.size() == 1)
-			std::cout << global.tabs << "Cannot delete condition - a section must have at least 1 condition" << std::endl;
+			printf("%sCannot delete condition - a section must have at least 1 condition\n", global.tabs.c_str());
 		else
-			std::cout << global.tabs << "Index out of range - # of Conditions: " << conditions.size() << std::endl;
+			printf("%sIndex out of range - # of Conditions: %zu\n", global.tabs.c_str(), conditions.size());
 		return false;
 	}
 }

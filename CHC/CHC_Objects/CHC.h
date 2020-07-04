@@ -65,7 +65,10 @@ private:
 		float chargeRelease = .025f;
 		float attackRelease = .025f;
 	} energyDamageFactors[4][5];
-	bool saved;
+	//0 - Not saved
+	//1 - Saved
+	//2 - Saved at the currently pointed location
+	char saved;
 public:
 	CHC();
 	CHC(const CHC&);

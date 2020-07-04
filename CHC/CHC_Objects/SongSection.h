@@ -129,7 +129,7 @@ public:
 		return index;
 	}
 	Condition& getCondition(size_t index);
-	bool removeCondition(unsigned);
+	bool removeCondition(size_t);
 	//Returns the num of players assigned to this section.
 	//Will usually be 4
 	unsigned long getNumPlayers() const { return numPlayers; }

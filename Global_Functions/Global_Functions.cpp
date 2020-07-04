@@ -86,6 +86,20 @@ FileType dlls[20] =
 
 GlobalVars global;
 
+int peek()
+{
+	char val;
+	scanf_s("%c", &val, 1);
+	return ungetc(val, stdin);
+}
+
+void clearIn()
+{
+	char end = global.input;
+	while (end != '\n' && end != EOF)
+		end = getchar();
+}
+
 //If a dll with the given filename is not loaded, attempt to load it and return whether loading was successful
 //Returns true for an already loaded dll
 bool LoadLib(FileType::dllPair& pair)
@@ -100,25 +114,25 @@ bool LoadLib(FileType::dllPair& pair)
 	If found, return the result.
 	Otherwise, it will return -1.
 	*/
-extern "C" char loadProc(HINSTANCE & lib, string proc)
+extern "C" char loadProc(HINSTANCE & lib, const char* proc)
 {
 	typedef bool(__cdecl* MYPROC)();
-	MYPROC ProcAdd = (MYPROC)GetProcAddress(lib, proc.c_str());
+	MYPROC ProcAdd = (MYPROC)GetProcAddress(lib, proc);
 	if (ProcAdd)
 		return ProcAdd();
 	else
 	{
-		cout << global.tabs << proc << " failed to load" << endl;
+		printf("%s%s failed to load\n", global.tabs.c_str(), proc);
 		return -1;
 	}
 }
 
 //Generates banner
-void banner(string title, float coef)
+void banner(string title, double coef)
 {
-	size_t sep = title.length();
+	size_t sep = title.length() + 5;
 	int space = 2 * (int)round(32 * coef);
-	cout << string(space - (sep >> 1), '=') << title + "#BLM " << string(space + (sep >> 1) - sep, '=') << '\n';
+	printf("%s%s#BLM %s\n", string(space - (sep >> 1), '=').c_str(), title.c_str(), string(space + (sep >> 1) - sep, '=').c_str());
 }
 
 //Adjust pre-fix tab "||"s to the given length
@@ -132,54 +146,42 @@ char filenameInsertion(string& filename, string specials)
 {
 	if (global.multi)
 	{
-		cin.putback(global.input);
-		cout << '*';
+		ungetc(global.input, stdin);
+		putchar('*');
 	}
 	do
 	{
-		cin >> global.input;
+		scanf_s("%c", &global.input, 1); 
 	} while (global.input == ' ');
 	switch (global.input)
 	{
 	case ';':
 	case '\n':
-		cout << global.tabs << "Please remember to type SOMETHING before pressing 'Enter'\n";
-		cout << global.tabs << endl;
-		cin.sync();
-		return -2;
+		printf("%sPlease remember to type SOMETHING before pressing 'Enter'\n", global.tabs.c_str());
+		printf("%s\n", global.tabs.c_str());
+		clearIn();
+		return '*';
 	default:
-		switch (cin.peek())
+		switch (peek())
 		{
 		case '\n': //If the given input is only one character long before reaching either one of the "halt" characters
 		case ';':
 		{
-			char exitVal = -2;
-			if (tolower(global.input) == 'q')
-				exitVal = -1;
-			else
+			specials = 'q' + specials;
+			if (specials.find(tolower(global.input)))
 			{
-				for (unsigned char index = 0; index < specials.length(); index++)
-				{
-					if (tolower(global.input) == specials[index])
-					{
-						exitVal = index + 1;
-						break;
-					}
-				}
-			}
-			if (exitVal > -2)
-			{
+				char ret = global.input;
 				if (global.multi)
-					cout << toupper(global.input) << endl;
+					printf("%c\n", toupper(global.input));
 				do
 				{
-					cin >> global.input;
+					scanf_s("%c", &global.input, 1);
 				} while (global.input == ' ' || global.input == ';');
 				if (global.input != '\n')
 					global.multi = true;
 				else
 					global.multi = false;
-				return exitVal;
+				return ret;
 			}
 			//Continues to normal filename insertion code if exitVal is unchanged
 		}
@@ -189,22 +191,22 @@ char filenameInsertion(string& filename, string specials)
 			while (quotes != 2 && global.input != '\n' && global.input != ';')
 			{
 				if (global.multi)
-					cout << global.input;
+					printf("%c", global.input);
 				if (global.input != '"')
 					filename += global.input;
 				else
 					quotes++;
-				cin >> global.input;
+				scanf_s("%c", &global.input, 1); 
 			}
 			if (global.multi)
-				cout << endl;
+				putchar('\n');
 			while (global.input == ' ' || global.input == ';')
-				cin >> global.input;
+				scanf_s("%c", &global.input, 1); 
 			if (global.input != '\n')
 				global.multi = true;
 			else
 				global.multi = false;
-			return 0;
+			return '!';
 		}
 		}
 	}
@@ -219,68 +221,61 @@ void dualvfprintf_s(FILE* out1, FILE* out2, const char* format, ...)
 	va_end(args);
 }
 
-/*
-	Universal menu function that accepts a list of characters as a string as option choices
-	@param choices - List of characters that serves as the possible menu options
-	@return 0+ - Valid entry/Index of the character
-	@return -1 - User entered the "quit" or 'Q' character
-	@return -2 - User entered an invalid character
-	@return -3 - User entered the "help" or '?' character
-	*/
-int menuChoices(string choices)
+
+size_t menuChoices(string choices, bool indexMode)
 {
-	cin.unsetf(ios::skipws);
-	size_t size = choices.length();
-	cout << global.tabs << "Input: ";
+	choices = "q?" + choices;
+	printf("%sInput: ", global.tabs.c_str());
 	if (global.multi)
 	{
-		cin.putback(global.input);
-		cout << '*' << char(toupper(global.input)) << endl;
+		ungetc(global.input, stdin);
+		printf("*%c\n", toupper(global.input));
 		global.multi = false;
 	}
 	do
 	{
-		cin >> global.input;
+		scanf_s("%c", &global.input, 1); 
 	} while (global.input == ' ' || global.input == ';');
 	if (global.input == '\n')
 	{
-		cout << global.tabs << "Please remember to select a valid option before pressing 'Enter'\n";
-		cout << global.tabs << endl;
-		cin.sync();
-		return -2;
+		printf("%sPlease remember to select a valid option before pressing 'Enter'\n", global.tabs.c_str());
+		printf("%s\n", global.tabs.c_str());
+		clearIn();
+		return '*';
 	}
-	char ans = tolower(global.input);
+	size_t ret = choices.find(global.input);
 	do
 	{
-		cin >> global.input;
+		scanf_s("%c", &global.input, 1); 
 	} while (global.input == ' ' || global.input == ';');
 	if (global.input != '\n')
 		global.multi = true;
-	if (ans == '?')
-		return -3;
-	if (ans == 'q')
-		return -1;
-	for (size_t index = 0; index < size; index++)
-		if (ans == choices[index])
-			return index;
-	global.invalid = ans;
-	do
+	if (ret == string::npos)
 	{
-		switch (global.input)
+		global.invalid = global.input;
+		do
 		{
-		case '\n':
-			cin.clear();
-			global.multi = false;
-			global.quit = true;
-			break;
-		default:
-			global.invalid += global.input;
-			cin >> global.input;
-		}
-	} while (!global.quit);
-	global.quit = false;
-	cout << global.tabs << "\"" << global.invalid << "\" is not a valid response." << endl << global.tabs << endl;
-	return -2;
+			switch (global.input)
+			{
+			case '\n':
+				clearIn();
+				global.multi = false;
+				global.quit = true;
+				break;
+			default:
+				global.invalid += global.input;
+				scanf_s("%c", &global.input, 1);
+			}
+		} while (!global.quit);
+		global.quit = false;
+		printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
+		ret = '*';
+	}
+	else if (indexMode && ret >= 2) //Disregards the added "q?" in the index
+		ret -= 2;
+	else
+		ret = choices[ret];
+	return ret;
 }
 
 /*
@@ -290,22 +285,158 @@ int menuChoices(string choices)
 char fileOverwriteCheck(string fileName)
 {
 	FILE* test;
-	while (!global.quit && !fopen_s(&test, fileName.c_str(), "r"))
+	while (!fopen_s(&test, fileName.c_str(), "r"))
 	{
 		fclose(test);
-		cout << global.tabs << "Override/Replace " << fileName << "? [Y/N][C to recheck for file][Q to not generate a file]\n";
+		printf("%sOverride/Replace %s? [Y/N][C to recheck for file][Q to not generate a file]\n", global.tabs.c_str(), fileName.c_str());
 		switch (menuChoices("ync"))
 		{
-		case -1:
-			return -1;
-		case 1:
-			return 0;
-		case 0:
-			global.quit = true;
+		case 'q':
+			return 'q';
+		case 'n':
+			return 'n';
+		case 'y':
+			return 'y';
+		case '?':
+			printf("%sHelp: [TBD]\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 		}
 	}
-	global.quit = false;
-	return 1;
+	return 'y';
+}
+
+/*
+Function for inserting a list values all in one go from the std::cin input stream
+Return values:
+'!' -- End of the given list of input values
+'?' - User entered the "help"/'?' character
+'q' -- User entered the "quit"/'Q' character
+'*' - User entered an invalid character before the list ended
+or One of the special input characters
+*/
+char listValueInsert(List<size_t>& values, std::string outCharacters, size_t max, bool allowRepeats, size_t min)
+{
+	printf("%sInput: ", global.tabs.c_str());
+	if (global.multi)
+	{
+		ungetc(global.input, stdin);
+		std::putchar('*');
+	}
+	scanf_s("%c", &global.input, 1);
+	char ret = tolower(global.input);
+	do
+	{
+		switch (ret)
+		{
+		case ' ':
+			scanf_s("%c", &global.input, 1);
+			break;
+		case '?':
+			if (global.multi)
+			{
+				for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
+					printf("%zu ", values[valIndex]);
+				printf("?\n");
+			}
+			do
+			{
+				scanf_s("%c", &global.input, 1);
+			} while (global.input == ' ' || global.input == ';');
+			if (global.input != '\n')
+				global.multi = true;
+			else
+				global.multi = false;
+			return '?';
+		case 'q':
+			if (global.multi)
+			{
+				for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
+					printf("%zu ", values[valIndex]);
+				printf("Q\n");
+			}
+			do
+			{
+				scanf_s("%c", &global.input, 1);
+			} while (global.input == ' ' || global.input == ';');
+			if (global.input != '\n')
+				global.multi = true;
+			else
+				global.multi = false;
+			return 'q';
+		case '\n':
+			if (global.multi)
+			{
+				for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
+					printf("%zu ", values[valIndex]);
+				printf("\n");
+				global.multi = false;
+			}
+			return '!';
+		case ';':
+			if (global.multi)
+			{
+				for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
+					printf("%zu ", values[valIndex]);
+				printf("\n");
+			}
+			do
+			{
+				scanf_s("%c", &global.input, 1);
+			} while (global.input == ' ');
+			if (global.input != '\n')
+				global.multi = true;
+			return '!';
+		default:
+			if (global.input >= '0' && global.input <= '9')
+			{
+				ungetc(global.input, stdin);
+				double tmp;
+				scanf_s("%lg", &tmp);
+				size_t value = size_t(tmp);
+				if (value < min || value >= max)
+					printf("%s%zu is not within range. Skipping value.\n%s\n", global.tabs.c_str(), value, global.tabs.c_str());
+				else if (allowRepeats || values.search(value) == -1)
+					values.push_back(value);
+				else
+					printf("%s%zu is already in this list.\n%s\n", global.tabs.c_str(), value, global.tabs.c_str());
+				scanf_s("%c", &global.input, 1);
+			}
+			else
+			{
+				char ret = tolower(global.input);
+				if (outCharacters.find(ret) != std::string::npos)
+				{
+					if (global.multi)
+					{
+						for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
+							printf("%zu ", values[valIndex]);
+						putchar('\n');
+					}
+					else
+						global.multi = true;
+				}
+				else
+				{
+					ret = '*';
+					global.multi = false;
+					global.invalid = global.input;
+					do
+					{
+						scanf_s("%c", &global.input, 1);
+						if (global.input == '\n')
+						{
+							clearIn();
+							global.quit = true;
+						}
+						else
+							global.invalid += global.input;
+					} while (!global.quit);
+					global.quit = false;
+					printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
+				}
+				return ret;
+			}
+		}
+	} while (true);
 }
 
 long radiansToDegrees(double angle)

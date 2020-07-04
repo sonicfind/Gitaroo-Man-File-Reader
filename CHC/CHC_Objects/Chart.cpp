@@ -169,7 +169,7 @@ bool Chart::resize(long numElements, char type)
 //Otherwise, it'll print a failure and return false.
 //Type -- defaults to trace line ('t').
 //Extra - defaults to 0.
-bool Chart::remove(size_t index, char type, unsigned long extra)
+bool Chart::remove(size_t index, char type, size_t extra)
 {
 	switch (type)
 	{
@@ -179,15 +179,15 @@ bool Chart::remove(size_t index, char type, unsigned long extra)
 		{
 			size -= 16;
 			tracelines.erase(index);
-			std::cout << "Trace line #" << index + extra << " removed" << std::endl;
+			printf("Trace line #%zu removed\n", index + extra);
 			return true;
 		}
 		else
 		{
 			if (tracelines.size() == 1)
-				std::cout << "Cannot delete this trace line as a chart must always have at least one note" << std::endl;
+				printf("Cannot delete this trace line as a chart must always have at least one note\n");
 			else
-				std::cout << "Index out of range - # of Trace Lines: " << tracelines.size() << std::endl;
+				printf("Index out of range - # of Trace Lines: %zu\n", tracelines.size());
 			return false;
 		}
 	case 'P':
@@ -196,12 +196,12 @@ bool Chart::remove(size_t index, char type, unsigned long extra)
 		{
 			size -= 32;
 			phrases.erase(index);
-			std::cout << "Phrase bar #" << index + extra << " removed" << std::endl;
+			printf("Phrase bar #%zu removed\n", index + extra);
 			return true;
 		}
 		else
 		{
-			std::cout << "Index out of range - # of Phrase bars: " << phrases.size() << std::endl;
+			printf("Index out of range - # of Phrase bars: %zu\n", phrases.size());
 			return false;
 		}
 	case 'G':
@@ -210,15 +210,15 @@ bool Chart::remove(size_t index, char type, unsigned long extra)
 		{
 			size -= 16;
 			guards.erase(index);
-			std::cout << "Guard mark #" << index + extra << " removed" << std::endl;
+			printf("Guard mark #%zu removed\n", index + extra);
 			return true;
 		}
 		else
 		{
 			if (guards.size() == 1)
-				std::cout << "Cannot delete this Guard Mark as a chart must always have at least one note" << std::endl;
+				printf("Cannot delete this Guard Mark as a chart must always have at least one note\n");
 			else
-				std::cout << "Index out of range - # of Guard mark: " << guards.size() << std::endl;
+				printf("Index out of range - # of Guard mark: %zu\n", guards.size());
 			return false;
 		}
 	default:

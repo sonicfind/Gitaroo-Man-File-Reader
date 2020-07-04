@@ -116,7 +116,7 @@ public:
 	size_t add(Note*);
 	void add_back(Note*);
 	bool resize(long numElements, char type = 't');
-	bool remove(size_t, char type = 't', unsigned long extra = 0);
+	bool remove(size_t, char type = 't', size_t extra = 0);
 	void clearTracelines();
 	void clearPhrases();
 	void clearGuards();

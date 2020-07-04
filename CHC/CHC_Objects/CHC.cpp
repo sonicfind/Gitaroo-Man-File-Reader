@@ -17,30 +17,17 @@
 using namespace std;
 
 //Creates a CHC object with 1 songsection
-CHC::CHC() : sections(1) 
-{
-	name = shortname = "";
-	stage = 0;
-	speed = 0;
-	unorganized = 0;
-	optimized = false;
-	saved = false;
-}
+CHC::CHC() : sections(1), name(""), shortname(""), stage(0), speed(0), unorganized(0), optimized(false), saved(2) {}
 
-CHC::CHC(const CHC& song) : sections(song.sections)
+CHC::CHC(const CHC& song)
+	: sections(song.sections), name(song.name), shortname(song.shortname), stage(song.stage),
+		speed(song.speed), unorganized(song.unorganized), optimized(song.optimized), saved(song.saved)
 {
-	name = song.name;
-	shortname = song.shortname;
-	stage = song.stage;
 	memcpy_s(header, 36, song.header, 36);
 	memcpy_s(imc, 256, song.imc, 256);
 	memcpy_s(events, sizeof(SSQ) * 4, song.events, sizeof(SSQ) * 4);
 	memcpy_s(audio, sizeof(AudioChannel) * 8, song.audio, sizeof(AudioChannel) * 8);
-	speed = song.speed;
-	unorganized = song.unorganized;
-	optimized = song.optimized;
 	memcpy_s(energyDamageFactors, sizeof(EnergyDamage) * 20, song.energyDamageFactors, sizeof(EnergyDamage) * 20);
-	saved = song.saved;
 }
 
 CHC& CHC::operator=(CHC& song)
@@ -61,11 +48,11 @@ CHC& CHC::operator=(CHC& song)
 	return *this;
 }
 
-//Creates a CHC object using values from CHC file pointed to by the provided filename
-//Values chosen to be kept are based off the CHC tab in the Gitaroo Pals shoutwiki
-CHC::CHC(string filename)
+//Creates a CHC object using values from the CHC file pointed to by the provided filename.
+//
+//Value names chosen to be kept are based off the CHC tab in the Gitaroo Pals shoutwiki
+CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
 {
-	name = filename + ".CHC";
 	{
 		size_t pos = filename.find_last_of('\\');
 		shortname = filename.substr(pos != string::npos ? pos + 1 : 0);
@@ -79,23 +66,23 @@ CHC::CHC(string filename)
 	{
 		do
 		{
-			cout << global.tabs << "Which number do you wish to give this stage? (Think:\"ST##\") ('Q' to cancel CHC load)\n";
-			cout << global.tabs << "Warning: setting it the 0 alters how some functions behave (especially organizing)\n";
-			cout << global.tabs << "Input: ";
+			printf("%sWhich number do you wish to give this stage? (Think:\"ST##\") ('Q' to cancel CHC load)\n", global.tabs.c_str());
+			printf("%sWarning: setting it the 0 alters how some functions behave (especially organizing)\n", global.tabs.c_str());
+			printf("%sInput: ", global.tabs.c_str());
 			switch (valueInsert(stage, false))
 			{
-			case 1:
+			case '!':
 				global.quit = true;
 				break;
-			case -1:
-				cout << global.tabs << "Given value cannot be negative\n" << global.tabs << endl;
+			case '-':
+				printf("%sGiven value cannot be negative\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 				break;
-			case -4:
-				cout << global.tabs << "\"" << global.invalid << "\" is not a valid response\n" << global.tabs << endl;
+			case '*':
+				printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
 				break;
-			case 0:
-				cout << global.tabs << endl;
-				//cout << global.tabs << "CHC load cancelled" << endl;
+			case 'q':
+				printf("%s\n", global.tabs.c_str());
+				//printf("%s", global.tabs.c_str(), "CHC load cancelled\n";
 				throw "Stage number not provided.";
 			}
 		} while (!global.quit);
@@ -159,7 +146,7 @@ CHC::CHC(string filename)
 		if ((stage == 11 || stage == 12) && !duet && section.swapped < 4)
 		{
 			section.swapped += 4;
-			cout << global.tabs << "Section " << section.name << "'s swap value was adjusted to match current implementation for Duet->PS2 conversions. Make sure to save this file to apply this change." << endl;
+			printf("%sSection %s's swap value was adjusted to match current implementation for Duet->PS2 conversions. Make sure to save this file to apply this change.\n", global.tabs.c_str(), section.name);
 		}
 		fread(section.junk, 1, 16, inFile);
 		fread(&section.battlePhase, 4, 1, inFile);
@@ -174,16 +161,16 @@ CHC::CHC(string filename)
 		{
 			do
 			{
-				cout << global.tabs << "Are you sure you want value for the number of players used to read " << section.name << " to be " << section.numPlayers << "? [Y/N][Q to halt player swap from this point]\n";
-				cout << global.tabs << "Choosing 'N' force a read of 4 players\n";
+				printf("%sAre you sure you want value for the number of players used to read %s to be %lu? [Y/N][Q to halt player swap from this point]\n", global.tabs.c_str(), section.name, section.numPlayers);
+				printf("%sChoosing 'N' will force a read of 4 players\n", global.tabs.c_str());
 				switch (menuChoices("yn"))
 				{
-				case -1:
+				case '-':
 					fclose(inFile);
 					throw "Number of players for section " + to_string(sectIndex) + " left unspecified.";
-				case 1:
+				case '!':
 					section.numPlayers = 4;
-				case 0:
+				case 'q':
 					global.quit = true;
 				}
 			} while (!global.quit);
@@ -235,11 +222,10 @@ CHC::CHC(string filename)
 	}
 	fread(&energyDamageFactors, sizeof(EnergyDamage), 20, inFile);
 	fclose(inFile);
-	saved = true;
 }
 
 //Create or update a CHC file
-bool CHC::create(string filename)
+void CHC::create(string filename)
 {
 	{
 		size_t pos = filename.find_last_of('\\');
@@ -258,7 +244,7 @@ bool CHC::create(string filename)
 	fwrite(events, sizeof(SSQ), 4, outFile);
 	fwrite(audio, sizeof(AudioChannel), 8, outFile);
 	fwrite(&speed, 4, 1, outFile);
-	fwrite(&sections.size(), 4, 1, outFile);
+	fwrite((unsigned long*)&sections.size(), 4, 1, outFile);
 	for (unsigned sectIndex = 0; sectIndex < sections.size(); sectIndex++)	//Cues
 	{
 		fwrite(&sections[sectIndex].index, 4, 1, outFile);
@@ -267,7 +253,7 @@ bool CHC::create(string filename)
 		fwrite(&sections[sectIndex].frames, 4, 2, outFile);
 		fwrite("\0\0\0\0", 1, 4, outFile);
 	}
-	fwrite(&sections.size(), 4, 1, outFile);
+	fwrite((unsigned long*)&sections.size(), 4, 1, outFile);
 	for (unsigned sectIndex = 0; sectIndex < sections.size(); sectIndex++) //SongSections
 	{
 		SongSection& section = sections[sectIndex];
@@ -282,8 +268,8 @@ bool CHC::create(string filename)
 		fwrite(&section.tempo, 4, 1, outFile);
 		fwrite(&section.duration, 4, 1, outFile);
 		fwrite("\0\0\0\0", 1, 4, outFile);
-		fwrite(&section.conditions.size(), 4, 1, outFile);
-		for (unsigned condIndex = 0; condIndex < section.conditions.size(); condIndex++)
+		fwrite((unsigned long*)&section.conditions.size(), 4, 1, outFile);
+		for (size_t condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 			fwrite(&section.conditions[condIndex], 16, 1, outFile);
 		fwrite(&section.numPlayers, 4, 1, outFile);
 		fwrite(&section.numCharts, 4, 1, outFile);
@@ -291,7 +277,7 @@ bool CHC::create(string filename)
 		{
 			for (unsigned chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
 			{
-				Chart& chart = section.charts[(unsigned long long)playerIndex * section.numCharts + chartIndex];
+				Chart& chart = section.charts[(size_t)playerIndex * section.numCharts + chartIndex];
 				fputs("CHCH", outFile);
 				u.ui = 4864UL;
 				fwrite(u.c, 1, 4, outFile);
@@ -300,16 +286,16 @@ bool CHC::create(string filename)
 				fwrite(chart.junk, 1, 16, outFile);
 				fwrite(&chart.pivotTime, 4, 1, outFile);
 				fwrite(&chart.endTime, 4, 1, outFile);
-				fwrite(&chart.tracelines.size(), 4, 1, outFile);
-				for (unsigned traceIndex = 0; traceIndex < chart.tracelines.size(); traceIndex++)
+				fwrite((unsigned long*)&chart.tracelines.size(), 4, 1, outFile);
+				for (size_t traceIndex = 0; traceIndex < chart.tracelines.size(); traceIndex++)
 				{
 					fwrite(&chart.tracelines[traceIndex].pivotAlpha, 4, 1, outFile);
 					fwrite(&chart.tracelines[traceIndex].duration, 4, 1, outFile);
 					fwrite(&chart.tracelines[traceIndex].angle, 4, 1, outFile);
 					fwrite(&chart.tracelines[traceIndex].curve, 4, 1, outFile);
 				}
-				fwrite(&chart.phrases.size(), 4, 1, outFile);
-				for (unsigned phraseIndex = 0; phraseIndex < chart.phrases.size(); phraseIndex++)
+				fwrite((unsigned long*)&chart.phrases.size(), 4, 1, outFile);
+				for (size_t phraseIndex = 0; phraseIndex < chart.phrases.size(); phraseIndex++)
 				{
 					fwrite(&chart.phrases[phraseIndex].pivotAlpha, 4, 1, outFile);
 					fwrite(&chart.phrases[phraseIndex].duration, 4, 1, outFile);
@@ -324,8 +310,8 @@ bool CHC::create(string filename)
 					else
 						fwrite(chart.phrases[phraseIndex].junk, 1, 12, outFile);
 				}
-				fwrite(&chart.guards.size(), 4, 1, outFile);
-				for (unsigned guardIndex = 0; guardIndex < chart.guards.size(); guardIndex++)
+				fwrite((unsigned long*)&chart.guards.size(), 4, 1, outFile);
+				for (size_t guardIndex = 0; guardIndex < chart.guards.size(); guardIndex++)
 				{
 					fwrite(&chart.guards[guardIndex].pivotAlpha, 4, 1, outFile);
 					fwrite(&chart.guards[guardIndex].button, 4, 1, outFile);
@@ -340,6 +326,5 @@ bool CHC::create(string filename)
 	fwrite(u.c, 1, 4, outFile);
 	fwrite(energyDamageFactors, sizeof(EnergyDamage), 20, outFile);
 	fclose(outFile);
-	saved = true;
-	return true;
+	saved = 1;
 }

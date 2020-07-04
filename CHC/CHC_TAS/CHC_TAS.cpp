@@ -26,9 +26,9 @@ bool chcTAS(CHC& song)
 
 bool PCSX2TAS::loadValues(string filename)
 {
-	size_t pos = filename.find_last_of("\\"); string shortname = filename.substr(pos != string::npos ? pos + 1 : 0);
+	size_t pos = filename.find_last_of("\\");
+	const char* shortname = filename.substr(pos != string::npos ? pos + 1 : 0).c_str();
 	FILE* p2m2v;
-	(filename, ios::binary);
 	if (!fopen_s(&p2m2v, filename.c_str(), "r"))
 	{
 		frameValues.name = filename;
@@ -37,28 +37,28 @@ bool PCSX2TAS::loadValues(string filename)
 		for (int framerate = 0; framerate < 3; framerate++)
 		{
 			fscanf_s(p2m2v, " %[^;]s", ignore, 300);
-			for (int stage = 0; stage < 13; stage++)
+			for (size_t stage = 0; stage < 13; stage++)
 			{
-				for (int difficulty = 0; difficulty < 6; difficulty++)
+				for (size_t difficulty = 0; difficulty < 6; difficulty++)
 				{
 					if (!feof(p2m2v))
 					{
 						switch (valueInsertFromFile(p2m2v, frameValues.initialDisplacements[framerate][stage][difficulty], true))
 						{
-						case 1:
+						case '!':
 							failed = false;
 							break;
-						case -4:
-							cout << global.tabs << "Error: Invalid input (" << global.invalid << ")\n";
-						case 0:
-							cout << global.tabs << "Read stopped at (& not including): " << (!framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-							cout << "FPS [Initial Displacements] - Stage " << stage + 1;
+						case '*':
+							printf("%sError: Invalid input (%s)\n", global.tabs.c_str(), global.invalid.c_str());
+						case 'q':
+							printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+							printf("FPS [Initial Displacements] - Stage %zu", stage + 1);
 							switch (difficulty)
 							{
-							case 0: cout << " (Hard) [1]\n" << global.tabs << endl; break;
-							case 1: cout << " (Normal) [2]\n" << global.tabs << endl; break;
-							case 2: cout << " (Easy) [3]\n" << global.tabs << endl; break;
-							default: cout << " (Multiplayer) [" << difficulty + 1 << "]\n" << global.tabs << endl;
+							case 'q': printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+							case '!': printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+							case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
+							default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 							}
 							fclose(p2m2v);
 							global.quit = true;
@@ -66,14 +66,14 @@ bool PCSX2TAS::loadValues(string filename)
 					}
 					else
 					{
-						cout << global.tabs << "Read stopped at (& not including): " << (!framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-						cout << "FPS [Initial Displacements] - Stage " << stage + 1;
+						printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+						printf("FPS [Initial Displacements] - Stage %zu", stage + 1);
 						switch (difficulty)
 						{
-						case 0: cout << " (Hard) [1]\n" << global.tabs << endl; break;
-						case 1: cout << " (Normal) [2]\n" << global.tabs << endl; break;
-						case 2: cout << " (Easy) [3]\n" << global.tabs << endl; break;
-						default: cout << " (Multiplayer) [" << difficulty + 1 << "]\n" << global.tabs << endl;
+						case 'q': printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+						case '!': printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+						case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
+						default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 						}
 						fclose(p2m2v);
 						global.quit = true;
@@ -87,34 +87,34 @@ bool PCSX2TAS::loadValues(string filename)
 			if (global.quit)
 				break;
 			fscanf_s(p2m2v, " %[^;]s", ignore, 300);
-			for (int stage = 0; stage < 13; stage++)
+			for (size_t stage = 0; stage < 13; stage++)
 			{
-				for (int difficulty = 0; difficulty < 6; difficulty++)
+				for (size_t difficulty = 0; difficulty < 6; difficulty++)
 				{
 					if (!feof(p2m2v))
 					{
 						switch (valueInsertFromFile(p2m2v, frameValues.frames[framerate][stage][difficulty]))
 						{
-						case 1:
+						case '!':
 
 							break;
-						case -1:
-							cout << global.tabs << "Error: No Negative values\n";
-							cout << global.tabs << "Skipping " << (!framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-							cout << "FPS: Stage " << stage + 1 << " - Value " << difficulty + 1 << endl << global.tabs << endl;
+						case '-':
+							printf("%sError: No Negative values\n", global.tabs.c_str());
+							printf("%sSkipping %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+							printf("FPS: Stage %zu - Value %zu\n%s\n", stage + 1, difficulty + 1,global.tabs.c_str());
 							error = true;
 							break;
-						case -4:
-							cout << global.tabs << "Error: Invalid input (" << global.invalid << "\n";
-						case 0:
-							cout << global.tabs << "Read stopped at (& not including): " << (!framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-							cout << "FPS [Frame Displacements] - Stage " << stage + 1;
+						case '*':
+							printf("%sError: Invalid input (%s)\n", global.tabs.c_str(), global.invalid.c_str());
+						case 'q':
+							printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+							printf("FPS [Frame Displacements] - Stage %zu", stage + 1);
 							switch (difficulty)
 							{
-							case 0: cout << " (Hard) [1]\n" << global.tabs << endl; break;
-							case 1: cout << " (Normal) [2]\n" << global.tabs << endl; break;
-							case 2: cout << " (Easy) [3]\n" << global.tabs << endl; break;
-							default: cout << " (Multiplayer) [" << difficulty + 1 << "]\n" << global.tabs << endl;
+							case 'q': printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+							case '!': printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+							case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
+							default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 							}
 							fclose(p2m2v);
 							global.quit = true;
@@ -122,14 +122,14 @@ bool PCSX2TAS::loadValues(string filename)
 					}
 					else
 					{
-						cout << global.tabs << "Read stopped at (& not including): " << (!framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-						cout << "FPS [Frame Displacements] - Stage " << stage + 1;
+						printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+						printf("FPS [Frame Displacements] - Stage %zu", stage + 1);
 						switch (difficulty)
 						{
-						case 0: cout << " (Hard) [1]\n" << global.tabs << endl; break;
-						case 1: cout << " (Normal) [2]\n" << global.tabs << endl; break;
-						case 2: cout << " (Easy) [3]\n" << global.tabs << endl; break;
-						default: cout << " (Multiplayer) [" << difficulty + 1 << "]\n" << global.tabs << endl;
+						case 'q': printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+						case '!': printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+						case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
+						default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 						}
 						fclose(p2m2v);
 						global.quit = true;
@@ -146,19 +146,19 @@ bool PCSX2TAS::loadValues(string filename)
 		fclose(p2m2v);
 		if (!failed)
 		{
-			cout << global.tabs << shortname << " Loaded " << (error ? "with error(s)" : "") << endl;
+			printf("%s%s loaded%s\n", global.tabs.c_str(), shortname, error ? " with error(s)" : "");
 			frameValues.use = true;
 			return true;
 		}
 		else
 		{
-			cout << global.tabs << shortname << " Failed to Load" << endl;
+			printf("%s%s failed to load\n", global.tabs.c_str(), shortname);
 			return false;
 		}
 	}
 	else
 	{
-		cout << global.tabs << "\"" << shortname << "\" could not be found\n";
+		printf("%s%s could not be located\n", global.tabs.c_str(), shortname);
 		return false;
 	}
 }
@@ -168,10 +168,10 @@ void PCSX2TAS::resultScreen(size_t stage, size_t notes, bool singleplayer, bool 
 	unsigned toResult = 0;
 	switch (stage)
 	{
-	case 0: 
+	case 'q': 
 		toResult = 65;
 		break;
-	case 1:
+	case '!':
 		toResult = 611;
 		break;
 	case 2:
@@ -260,7 +260,7 @@ void PCSX2TAS::print(string filename)
 		}
 	}
 	fclose(outp2m2);
-	cout << global.tabs << "PCSX2 TAS Completed." << endl;
+	printf("%sPCSX2 TAS Completed.\n", global.tabs.c_str());
 }
 
 size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficulty, bool multi[2], size_t numFrames)
@@ -301,7 +301,7 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 				players[0][index++].button &= 191;	index += 34;	//X-button - Select Controller option
 				switch (orientation)
 				{
-				case 1:
+				case '!':
 					index += 3;		//Do nothing on the Controller screen
 					break;
 				case 2:
@@ -316,10 +316,10 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 			players[0][index++].button &= 239;	index += 111ULL + multi[0];	// /\-button - Exit Settings menu / To Main menu
 			switch (difficulty)
 			{
-			case 0:		//Master
+			case 'q':		//Master
 				players[0].resize(players[0].size() + 1);
 				players[0][index++].dpad &= 191;				//D-pad Down - To Master Play option
-			case 1:		//Hard		Stay on Single Play option
+			case '!':		//Hard		Stay on Single Play option
 			case 2:		//Normal	Stay on Single Play option
 				break;
 			case 3:
@@ -406,7 +406,7 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 				players[0][index++].button &= 191;	index += 34;	//X-button - Select Controller option
 				switch (orientation)
 				{
-				case 1:
+				case '!':
 					index += 3;		//Do nothing on the Controller screen
 					break;
 				case 2:
@@ -423,10 +423,10 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 			{
 				switch (difficulty)
 				{
-				case 0:		//Master
+				case 'q':		//Master
 					players[0].resize(players[0].size() + 1);
 					players[0][index++].dpad &= 191;				//D-pad Down - To Master Play option
-				case 1:		//Hard		Stay on Single Play option
+				case '!':		//Hard		Stay on Single Play option
 				case 2:		//Normal	Stay on Single Play option
 					break;
 				case 3:		//Multi-
@@ -516,7 +516,7 @@ bool TAS::buildTAS()
 {
 	if (song.imc[0] == 0)
 	{
-		cout << global.tabs << song.shortname << ".CHC is not compatible for PS2" << endl;
+		printf("%s%s.CHC is not compatible for PS2\n", global.tabs.c_str(), song.shortname.c_str());
 		return false;
 	}
 	banner(" " + song.shortname + " - TAS creation ");
@@ -525,15 +525,15 @@ bool TAS::buildTAS()
 		do
 		{
 			string p2m2vTemp = "";
-			cout << global.tabs << "Drag & drop a valid P2M2V file (or type only 'Q' to back out or only 'B' for base values): ";
+			printf("%sDrag & drop a valid P2M2V file (or type only 'Q' to back out or only 'B' for base values):", global.tabs.c_str());
 			switch (filenameInsertion(p2m2vTemp, "b"))
 			{
-			case -1:
+			case 'q':
 				return false;
-			case 1:
+			case 'b':
 				global.quit = true;
 				break;
-			case 0:
+			case '!':
 				if (p2m2vTemp.find(".P2M2V") == string::npos)
 					p2m2vTemp += ".P2M2V";
 				if (pcsx2.loadValues(p2m2vTemp))
@@ -550,25 +550,25 @@ bool TAS::buildTAS()
 		{
 			fclose(p2m2v);
 			size_t pos = PCSX2TAS::frameValues.name.find_last_of("\\");
-			string shortname = PCSX2TAS::frameValues.name.substr(pos != string::npos ? pos + 1 : 0);
+			const char* shortname = PCSX2TAS::frameValues.name.substr(pos != string::npos ? pos + 1 : 0).c_str();
 			do
 			{
-				cout << global.tabs << "Use \"" << shortname << "\"? [Y/N]\n";
+				printf("%sUse \"%s\"? [Y/N]\n", global.tabs.c_str(), shortname);
 				switch (menuChoices("yn"))
 				{
-				case 0:
+				case 'y':
 					pcsx2.loadValues();
 					global.quit = true;
 					break;
-				case 1:
+				case 'n':
 					if (load())
 					{
 						global.quit = true;
 						break;
 					}
-				case -1:
-					cout << global.tabs << endl;
-					cout << global.tabs << "TAS creation cancelled" << endl;
+				case 'q':
+					printf("%s\n", global.tabs.c_str());
+					printf("%sTAS creation cancelled\n", global.tabs.c_str());
 					return false;
 				}
 			} while (!global.quit);
@@ -579,56 +579,56 @@ bool TAS::buildTAS()
 		return false;
 	do
 	{
-		cout << global.tabs << "Select a framerate ('Q' to back out to Main Menu)\n";
-		cout << global.tabs << "0 - NTSC (59.94)\n";
-		cout << global.tabs << "1 - PAL  (50.00) [NOT YET SUPPORTED]\n";
-		cout << global.tabs << "2 - NTSC-C (60.00)\n";
-		cout << global.tabs << "3 - NTSC-Custom\n";
+		printf("%sSelect a framerate ('Q' to back out to Main Menu)\n", global.tabs.c_str());
+		printf("%s0 - NTSC (59.94)\n", global.tabs.c_str());
+		printf("%s1 - PAL  (50.00) [NOT YET SUPPORTED]\n", global.tabs.c_str());
+		printf("%s2 - NTSC-C (60.00)\n", global.tabs.c_str());
+		printf("%s3 - NTSC-Custom\n", global.tabs.c_str());
 		switch (menuChoices("0123"))
 		{
-		case 0:
-			cout << global.tabs << endl;
+		case '0':
+			printf("%s\n", global.tabs.c_str());
 			global.quit = true;
 			break;
-		case 1:
-			cout << global.tabs << "I do not own the PAl version, so optimizing for it is not something I can do just yet.\n";
-			cout << global.tabs << endl;
+		case '1':
+			printf("%sI do not own the PAl version, so optimizing for it is not something I can do just yet.\n", global.tabs.c_str());
+			printf("%s\n", global.tabs.c_str());
 			/*
 			pcsx2.framerate = 50.00;
 			global.quit = true;*/
 			break;
-		case 2:
-			cout << global.tabs << endl;
+		case '2':
+			printf("%s\n", global.tabs.c_str());
 			pcsx2.framerate = 60.00f;
 			global.quit = true;
 			break;
-		case 3:
-			cout << global.tabs << endl;
+		case '3':
+			printf("%s\n", global.tabs.c_str());
 			do
 			{
-				cout << global.tabs << "Provide an FPS value (minimum: 59.94) ('Q' to back out to Main Menu)\n";
-				cout << global.tabs << "Input: ";
+				printf("%sProvide an FPS value (minimum: 59.94) ('Q' to back out to Main Menu)\n", global.tabs.c_str());
+				printf("%sInput: ", global.tabs.c_str());
 				switch (valueInsert(pcsx2.framerate, false, 59.94f))
 				{
-				case 0:
-					cout << global.tabs << endl;
-					cout << global.tabs << "TAS creation cancelled" << endl;
+				case 'q':
+					printf("%s\n", global.tabs.c_str());
+					printf("%sTAS creation cancelled\n", global.tabs.c_str());
 					return true;
-				case -1:
-					cout << global.tabs << "What the hell is a negative FPS?!?\n" << global.tabs << endl;
+				case '-':
+					printf("%sWhat the hell is a negative FPS?!?\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 					break;
-				case -2:
-					cout << global.tabs << "Given FPS is lower than the 59.94 FPS minimum\n" << global.tabs << endl;
+				case '<':
+					printf("%sGiven FPS is lower than the 59.94 FPS minimum\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 					break;
-				case -4:
-					cout << global.tabs << "\"" << global.invalid << "\" is not a valid response.\n" << global.tabs << endl;
+				case '*':
+					printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
 				}
-				cout << global.tabs << endl;
+				printf("%s\n", global.tabs.c_str());
 			} while (!global.quit);
 			break;
-		case -1:
-			cout << global.tabs << endl;
-			cout << global.tabs << "TAS creation cancelled" << endl;
+		case 'q':
+			printf("%s\n", global.tabs.c_str());
+			printf("%sTAS creation cancelled\n", global.tabs.c_str());
 			return true;
 		}
 	} while (!global.quit);
@@ -796,26 +796,26 @@ bool TAS::buildTAS()
 	{
 		do
 		{
-			cout << global.tabs << "Which stage will be replaced? [1-10] ('Q' to back out to Main Menu)\n";
-			cout << global.tabs << "Input: ";
+			printf("%sWhich stage will be replaced? [1-10] ('Q' to back out to Main Menu)\n", global.tabs.c_str());
+			printf("%sInput: ", global.tabs.c_str());
 			switch (valueInsert(stage, false, (size_t)1, (size_t)10))
 			{
-			case 1:
+			case '!':
 				global.quit = true;
 				break;
-			case -1:
-			case -2:
-				cout << global.tabs << "Given value cannot be less than 1\n" << global.tabs << endl;
+			case '-':
+			case '<':
+				printf("%sGiven value cannot be less than 1\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 				break;
-			case -3:
-				cout << global.tabs << "Given value cannot be greater than 10\n" << global.tabs << endl;
+			case '>':
+				printf("%sGiven value cannot be greater than 10\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 				break;
-			case -4:
-				cout << global.tabs << "\"" << global.invalid << "\" is not a valid response\n" << global.tabs << endl;
+			case '*':
+				printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
 				break;
-			case 0:
-				cout << global.tabs << endl;
-				cout << global.tabs << "TAS creation cancelled" << endl;
+			case 'q':
+				printf("%s\n", global.tabs.c_str());
+				printf("%sTAS creation cancelled\n", global.tabs.c_str());
 				return true;
 			}
 		} while (!global.quit);
@@ -832,24 +832,24 @@ bool TAS::buildTAS()
 		{
 			do
 			{
-				cout << global.tabs << "Which difficulty is this chart for? ('Q' to back out to Main Menu)\n";
-				cout << global.tabs << " 0 - Hard/Master Play\n";
-				cout << global.tabs << " 1 - Normal\n";
-				cout << global.tabs << " 2 - Easy\n";
-				cout << global.tabs << " 3 - Multiplayer\n";
+				printf("%sWhich difficulty is this chart for? ('Q' to back out to Main Menu)\n", global.tabs.c_str());
+				printf("%s 0 - Hard/Master Play\n", global.tabs.c_str());
+				printf("%s 1 - Normal\n", global.tabs.c_str());
+				printf("%s 2 - Easy\n", global.tabs.c_str());
+				printf("%s 3 - Multiplayer\n", global.tabs.c_str());
 				difficulty = menuChoices("0123");
 				switch (difficulty)
 				{
-				case -1:
-					cout << global.tabs << endl;
-					cout << global.tabs << "TAS creation cancelled" << endl;
+				case 'q':
+					printf("%s\n", global.tabs.c_str());
+					printf("%sTAS creation cancelled\n", global.tabs.c_str());
 					return true;
-				case -3:
-					cout << global.tabs << endl;
-				case -2:
+				case '?':
+					printf("%s\n", global.tabs.c_str());
+				case '*':
 					break;
 				default:
-					cout << global.tabs << endl;
+					printf("%s\n", global.tabs.c_str());
 					global.quit = true;
 				}
 			} while (!global.quit);
@@ -861,26 +861,25 @@ bool TAS::buildTAS()
 	{
 		do
 		{
-			cout << global.tabs << "How many players for this multiplayer TAS [2/3/4]? ('Q' to back out to Main Menu)\n";
+			printf("%sHow many players for this multiplayer TAS [2/3/4]? ('Q' to back out to Main Menu)\n", global.tabs.c_str());
 			switch (menuChoices("234"))
 			{
-			case 2:
+			case '4':
 				multi[1] = true;
-			case 1:
+			case '3':
 				multi[0] = true;
-			case 0:
-				cout << global.tabs << endl;
+			case '2':
+				printf("%s\n", global.tabs.c_str());
 				global.quit = true;
 				break;
-			case -1:
-				cout << global.tabs << endl;
-				cout << global.tabs << "TAS creation cancelled" << endl;
+			case 'q':
+				printf("%s\n", global.tabs.c_str());
+				printf("%sTAS creation cancelled\n", global.tabs.c_str());
 				return true;
 			}
 		} while (!global.quit);
 		global.quit = false;
 	}
-	cout << global.tabs << "Stage " << stage << " - Diff. " << (unsigned int)difficulty << ": ";
 	char framerateIndex;
 	if (pcsx2.framerate == 59.94f)
 		framerateIndex = 0;
@@ -888,19 +887,20 @@ bool TAS::buildTAS()
 		framerateIndex = 1;
 	else
 		framerateIndex = 2;
-	cout << PCSX2TAS::frameValues.frames[framerateIndex][stage][difficulty + multi[0] + multi[1]] << " frames |";
-	cout << " Displacement: " << PCSX2TAS::frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]] << " samples\n" << global.tabs << endl;
-	cout << global.tabs << "Type the name of the author [255 character limit] (';' to notate the end of the name [for multi-step usage]) ('Q' to back out to Main Menu)\n";
-	cout << global.tabs << "Input: ";
+	printf("%sStage %zu - Diff. %zu: ", global.tabs.c_str(), stage, difficulty);
+	printf("%zu frames | ", PCSX2TAS::frameValues.frames[framerateIndex][stage][difficulty + multi[0] + multi[1]]);
+	printf("Displacement: %li samples\n%s\n", PCSX2TAS::frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]], global.tabs.c_str());
+	printf("%sType the name of the author [255 character limit] (';' to notate the end of the name [for multi-step usage]) ('Q' to back out to Main Menu)\n", global.tabs.c_str());
+	printf("%sInput: ", global.tabs.c_str());
 	if (global.multi)
 	{
-		cin.putback(global.input);
-		cout << '*';
+		ungetc(global.input, stdin);
+		putchar('*');
 	}
-	cin >> ws >> global.input;
-	if (tolower(global.input) == 'q' && cin.peek() == '\n')
+	scanf_s(" %c", &global.input, 1);
+	if (tolower(global.input) == 'q' && peek() == '\n')
 	{
-		cout << global.tabs << '\n' << global.tabs << "TAS creation cancelled" << endl;
+		printf("%s\n%sTAS creation cancelled\n", global.tabs.c_str(), global.tabs.c_str());
 		return true;
 	}
 	else
@@ -911,24 +911,23 @@ bool TAS::buildTAS()
 			if (index != 255)
 			{
 				pcsx2.author[index] = global.input;
-				cin >> global.input;
+				scanf_s("%c", &global.input, 1); 
 			}
 			else
 			{
 				pcsx2.author[254] = 0;
 				if (global.multi)
-					cout << pcsx2.author << endl;
+					printf("%s\n", pcsx2.author );
 				global.multi = false;
-				cout << endl;
-				cout << global.tabs << "Author insertion overflow - Input buffer flushed\n";
-				cin.sync();
+				printf("\n%sAuthor insertion overflow - Input buffer flushed\n", global.tabs.c_str());
+				clearIn();
 				break;
 			}
 		}
 		pcsx2.author[254] = 0;
 		if (global.multi)
-			cout << pcsx2.author << endl;
-		cout << global.tabs << endl;
+			printf("%s\n", pcsx2.author );
+		printf("%s\n", global.tabs.c_str());
 		if (global.input == '\n')
 			global.multi = false;
 		else
@@ -937,7 +936,7 @@ bool TAS::buildTAS()
 			{
 				do
 				{
-					cin >> global.input;
+					scanf_s("%c", &global.input, 1); 
 				} while (global.input == ' ');
 				if (global.input != '\n')
 					global.multi = true;
@@ -950,22 +949,24 @@ bool TAS::buildTAS()
 	size_t orientation;
 	do
 	{
-		cout << global.tabs << "Which orientation for all guard phrases? ('Q' to back out to Main Menu)\n";
-		cout << global.tabs << "0 - No Orientation Change\n";
-		cout << global.tabs << "1 - No Change - Open Config Menu\n";
-		cout << global.tabs << "2 - Change to Orientation 2\n";
-		cout << global.tabs << "3 - Change to Orientation 3\n";
+		printf("%sWhich orientation for all guard phrases? ('Q' to back out to Main Menu)\n", global.tabs.c_str());
+		printf("%s0 - No Orientation Change\n", global.tabs.c_str());
+		printf("%s1 - No Change - Open Config Menu\n", global.tabs.c_str());
+		printf("%s2 - Change to Orientation 2\n", global.tabs.c_str());
+		printf("%s3 - Change to Orientation 3\n", global.tabs.c_str());
 		orientation = menuChoices("0123");
 		switch (orientation)
 		{
-		case -1:
-			cout << global.tabs << endl;
-			cout << global.tabs << "TAS creation cancelled" << endl;
+		case 'q':
+			printf("%s\n", global.tabs.c_str());
+			printf("%sTAS creation cancelled\n", global.tabs.c_str());
 			return true;
-		case -2:
+		case '?':
+			printf("%s\n", global.tabs.c_str());
+		case '*':
 			break;
 		default:
-			cout << global.tabs << endl;
+			printf("%s\n", global.tabs.c_str());
 			global.quit = true;
 		}
 	} while (!global.quit);
@@ -973,50 +974,50 @@ bool TAS::buildTAS()
 	List<size_t> sectionIndexes;
 	do
 	{
-		cout << global.tabs << "Type the number for each section that you wish to TAS - in chronological order and w/ spaces in-between\n";
-		for (unsigned sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
-			cout << global.tabs << sectIndex << " - " << song.sections[sectIndex].getName() << '\n';
+		printf("%sType the number for each section that you wish to TAS - in chronological order and w/ spaces in-between\n", global.tabs.c_str());
+		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
+			printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, song.sections[sectIndex].getName());
 		if (sectionIndexes.size())
 		{
-			cout << global.tabs << "Current List: ";
-			for (unsigned index = 0; index < sectionIndexes.size(); index++)
-				cout << song.sections[sectionIndexes[index]].getName() << " ";
-			cout << '\n';
+			printf("%sCurrent List: ", global.tabs.c_str());
+			for (size_t index = 0; index < sectionIndexes.size(); index++)
+				printf("%s ", song.sections[sectionIndexes[index]].getName());
+			putchar('\n');
 		}
-		switch (vectorValueInsert(sectionIndexes, "yntmv", song.sections.size()))
+		switch (listValueInsert(sectionIndexes, "yntmv", song.sections.size()))
 		{
-		case -1:
+		case '?':
 
 			break;
-		case 0:
-			cout << global.tabs << endl;
-			cout << global.tabs << "TAS creation cancelled" << endl;
+		case 'q':
+			printf("%s\n", global.tabs.c_str());
+			printf("%sTAS creation cancelled\n", global.tabs.c_str());
 			return true;
-		case 2:
-		case 4:
-		case 5:
-		case 6:
+		case 'y':
+		case 't':
+		case 'm':
+		case 'v':
 			if (sectionIndexes.size())
 			{
 				global.quit = true;
 				break;
 			}
-		case 1:
+		case '!':
 			if (!sectionIndexes.size())
 			{
-				cout << global.tabs << endl;
+				printf("%s\n", global.tabs.c_str());
 				do
 				{
-					cout << global.tabs << "No sections have been selected. Quit TAS creation? [Y/N]\n";
+					printf("%sNo sections have been selected. Quit TAS creation? [Y/N]\n", global.tabs.c_str());
 					switch (menuChoices("yn"))
 					{
-					case -1:
-					case 0:
-						cout << global.tabs << endl;
-						cout << global.tabs << "TAS creation cancelled" << endl;
+					case 'q':
+					case 'y':
+						printf("%s\n", global.tabs.c_str());
+						printf("%sTAS creation cancelled\n", global.tabs.c_str());
 						return true;
-					case 1:
-						cout << global.tabs << endl;
+					case 'n':
+						printf("%s\n", global.tabs.c_str());
 						global.quit = true;
 					}
 				} while (!global.quit);
@@ -1025,10 +1026,10 @@ bool TAS::buildTAS()
 			else
 				global.quit = true;
 			break;
-		case 3:
-			cout << global.tabs << endl;
-			cout << global.tabs << "Ok... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n";
-			cout << global.tabs << endl;
+		case 'n':
+			printf("%s\n", global.tabs.c_str());
+			printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", global.tabs.c_str());
+			printf("%s\n", global.tabs.c_str());
 		}
 	} while (!global.quit);
 	global.quit = false;
@@ -1067,7 +1068,7 @@ bool TAS::buildTAS()
 	for (unsigned sectIndex = 0; sectIndex < sectionIndexes.size(); sectIndex++)
 	{
 		SongSection& section = song.sections[sectionIndexes[sectIndex]];
-		cout << global.tabs << section.getName() << endl;
+		printf("%s%s\n", global.tabs.c_str(), section.getName());
 		if (!stage || (section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK"))) //If not INTRO phase or BRK section
 		{
 			if (section.getPhase() == SongSection::Phase::END || sectionIndexes[sectIndex] + 1 == song.sections.size())
@@ -1088,48 +1089,50 @@ bool TAS::buildTAS()
 							{
 								do
 								{
-									cout << global.tabs << "How should " << section.getName() << "'s phrase bars be played?\n";
-									cout << global.tabs << "T - Technicality (Release at the end of all sustains)\n";
-									cout << global.tabs << "V - Visually (Hold past/through the end of all sustains)\n";
-									cout << global.tabs << "M - Mixed (Release only on sustain that exceeds a defined length)\n";
+									printf("%sHow should %s's phrase bars be played?\n", global.tabs.c_str(), section.getName());
+									printf("%sT - Technicality (Release at the end of all sustains)\n", global.tabs.c_str());
+									printf("%sV - Visually (Hold past/through the end of all sustains)\n", global.tabs.c_str());
+									printf("%sM - Mixed (Release only on sustain that exceeds a defined length)\n", global.tabs.c_str());
 									visualType = menuChoices("tvm");
 									switch (visualType)
 									{
-									case -1:
-										cout << global.tabs << endl;
-										cout << global.tabs << "TAS creation cancelled" << endl;
+									case 'q':
+										printf("%s\n", global.tabs.c_str());
+										printf("%sTAS creation cancelled\n", global.tabs.c_str());
 										return true;
-									case -2:
+									case '?':
+										printf("%s\n", global.tabs.c_str());
+									case '*':
 										break;
 									default:
-										cout << global.tabs << endl;
+										printf("%s\n", global.tabs.c_str());
 										if (visualType == 2)
 										{
 											do
 											{
-												cout << global.tabs << "Provide a value for the sustain limit coeffienct.\n";
-												cout << global.tabs << "AKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n";
-												cout << global.tabs << "Value can range from 0.5 to 4.0 [Default is 1].\n";
-												cout << global.tabs << "Input: ";
+												printf("%sProvide a value for the sustain limit coeffienct.\n", global.tabs.c_str());
+												printf("%sAKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n", global.tabs.c_str());
+												printf("%sValue can range from 0.5 to 4.0 [Default is 1].\n", global.tabs.c_str());
+												printf("%sInput: ", global.tabs.c_str());
 												switch (valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
 												{
-												case 1:
+												case '!':
 													global.quit = true;
 													break;
-												case 0:
-													cout << global.tabs << endl;
-													cout << global.tabs << "TAS creation cancelled" << endl;
+												case 'q':
+													printf("%s\n", global.tabs.c_str());
+													printf("%sTAS creation cancelled\n", global.tabs.c_str());
 													return true;
-												case -1:
-												case -2:
-													cout << global.tabs << "Provided value *must* be greater than or equal to 0.5.\n" << global.tabs << endl;
+												case '-':
+												case '<':
+													printf("%sProvided value *must* be greater than or equal to 0.5.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 													break;
-												case -3:
-													cout << global.tabs << "Provided value *must* be less than or equal to 4.0.\n" << global.tabs << endl;
+												case '>':
+													printf("%sProvided value *must* be less than or equal to 4.0.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 													break;
-												case -4:
-													cout << global.tabs << "\"" << global.invalid << "\" is not a valid response.\n" << global.tabs << endl;
-													cin.clear();
+												case '*':
+													printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
+													clearIn();
 												}
 											} while (!global.quit);
 										}
@@ -1262,17 +1265,17 @@ bool TAS::buildTAS()
 			do
 			{
 				tutorialName.clear();
-				cout << global.tabs << "Provide the ST00B.CHC file to use for this TAS (Or 'N' to only TAS ST00A): ";
+				printf("%sProvide the ST00B.CHC file to use for this TAS (Or 'N' to only TAS ST00A): ", global.tabs.c_str());
 				switch (filenameInsertion(tutorialName, "n"))
 				{
-				case -1:
-					cout << global.tabs << endl;
-					cout << global.tabs << "TAS creation cancelled" << endl;
+				case 'q':
+					printf("%s\n", global.tabs.c_str());
+					printf("%sTAS creation cancelled\n", global.tabs.c_str());
 					return false;
-				case 1:
+				case 'n':
 					global.quit = true;
 					break;
-				case 0:
+				case '!':
 					if (tutorialName.find("ST00B") != string::npos)
 					{
 						if (tutorialName.find(".CHC") != string::npos)
@@ -1280,16 +1283,16 @@ bool TAS::buildTAS()
 						try
 						{
 							tutorial = new CHC(tutorialName);
-							cout << global.tabs << endl;
+							printf("%s\n", global.tabs.c_str());
 							global.quit = true;
 						}
 						catch (...)
 						{
-							cout << global.tabs << "The given ST00B could not be successfully read." << endl;
+							printf("%sThe given ST00B could not be successfully read.\n", global.tabs.c_str());
 						}
 					}
 					else
-						cout << global.tabs << "Only an ST00B.CHC file can be accepted." << endl;
+						printf("%sOnly an ST00B.CHC file can be accepted.\n", global.tabs.c_str());
 				}
 			} while (!global.quit);
 			global.quit = false;
@@ -1297,57 +1300,57 @@ bool TAS::buildTAS()
 		
 		if (tutorial != nullptr)
 		{
-			cout << global.tabs << "Stage ST00B: ";
-			cout << PCSX2TAS::frameValues.frames[framerateIndex][0][1] << " frames during intermission |";
-			cout << " Post-intermission Displacement: " << PCSX2TAS::frameValues.initialDisplacements[framerateIndex][0][1] << " samples\n" << global.tabs << endl;
+			printf("%sStage ST00B: ", global.tabs.c_str());
+			printf("%zu frames during intermission |", PCSX2TAS::frameValues.frames[framerateIndex][0][1]);
+			printf(" Post-intermission Displacement: %li samples\n%s\n", PCSX2TAS::frameValues.initialDisplacements[framerateIndex][0][1], global.tabs.c_str());
 			sectionIndexes.clear();
 			position += long(((long)PCSX2TAS::frameValues.frames[framerateIndex][0][1] - 1000) * SAMPLES_PER_FRAME) + PCSX2TAS::frameValues.initialDisplacements[framerateIndex][0][1];
 			do
 			{
-				cout << global.tabs << "Type the number for each section that you wish to TAS from ST00B - in chronological order and w/ spaces in-between\n";
-				for (unsigned sectIndex = 0; sectIndex < tutorial->sections.size(); sectIndex++)
-					cout << global.tabs << sectIndex << " - " << tutorial->sections[sectIndex].getName() << '\n';
+				printf("%sType the number for each section that you wish to TAS from ST00B - in chronological order and w/ spaces in-between\n", global.tabs.c_str());
+				for (size_t sectIndex = 0; sectIndex < tutorial->sections.size(); sectIndex++)
+					printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, tutorial->sections[sectIndex].getName());
 				if (sectionIndexes.size())
 				{
-					cout << global.tabs << "Current List: ";
-					for (unsigned index = 0; index < sectionIndexes.size(); index++)
-						cout << tutorial->sections[sectionIndexes[index]].getName() << " ";
-					cout << '\n';
+					printf("%sCurrent List: ", global.tabs.c_str());
+					for (size_t index = 0; index < sectionIndexes.size(); index++)
+						printf("%s ", tutorial->sections[sectionIndexes[index]].getName());
+					putchar('\n');
 				}
-				switch (vectorValueInsert(sectionIndexes, "yntmv", tutorial->sections.size()))
+				switch (listValueInsert(sectionIndexes, "yntmv", song.sections.size()))
 				{
-				case -1:
+				case '?':
 
 					break;
-				case 0:
-					cout << global.tabs << endl;
-					cout << global.tabs << "TAS creation cancelled" << endl;
+				case 'q':
+					printf("%s\n", global.tabs.c_str());
+					printf("%sTAS creation cancelled\n", global.tabs.c_str());
 					return true;
-				case 2:
-				case 4:
-				case 5:
-				case 6:
+				case 'y':
+				case 't':
+				case 'm':
+				case 'v':
 					if (sectionIndexes.size())
 					{
 						global.quit = true;
 						break;
 					}
-				case 1:
+				case '!':
 					if (!sectionIndexes.size())
 					{
-						cout << global.tabs << endl;
+						printf("%s\n", global.tabs.c_str());
 						do
 						{
-							cout << global.tabs << "No sections have been selected. Quit TAS creation? [Y/N]\n";
+							printf("%sNo sections have been selected. Quit TAS creation? [Y/N]\n", global.tabs.c_str());
 							switch (menuChoices("yn"))
 							{
-							case -1:
-							case 0:
-								cout << global.tabs << endl;
-								cout << global.tabs << "TAS creation cancelled" << endl;
+							case 'q':
+							case 'y':
+								printf("%s\n", global.tabs.c_str());
+								printf("%sTAS creation cancelled\n", global.tabs.c_str());
 								return true;
-							case 1:
-								cout << global.tabs << endl;
+							case 'n':
+								printf("%s\n", global.tabs.c_str());
 								global.quit = true;
 							}
 						} while (!global.quit);
@@ -1356,17 +1359,17 @@ bool TAS::buildTAS()
 					else
 						global.quit = true;
 					break;
-				case 3:
-					cout << global.tabs << endl;
-					cout << global.tabs << "Ok... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n";
-					cout << global.tabs << endl;
+				case 'n':
+					printf("%s\n", global.tabs.c_str());
+					printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", global.tabs.c_str());
+					printf("%s\n", global.tabs.c_str());
 				}
 			} while (!global.quit);
 			global.quit = false;
 			for (unsigned sectIndex = 0; sectIndex < sectionIndexes.size(); sectIndex++)
 			{
 				SongSection& section = tutorial->sections[sectionIndexes[sectIndex]];
-				cout << global.tabs << section.getName() << endl;
+				printf("%s%s\n", global.tabs.c_str(), section.getName());
 				if (sectionIndexes[sectIndex] + 1 == tutorial->sections.size())
 					endReached = true; // If END phase or last section
 				{
@@ -1383,48 +1386,50 @@ bool TAS::buildTAS()
 							{
 								do
 								{
-									cout << global.tabs << "How should " << section.getName() << "'s phrase bars be played?\n";
-									cout << global.tabs << "T - Technicality (Release at the end of all sustains)\n";
-									cout << global.tabs << "V - Visually (Hold past/through the end of all sustains)\n";
-									cout << global.tabs << "M - Mixed (Release only on sustain that exceeds a defined length)\n";
+									printf("%sHow should %s's phrase bars be played?\n", global.tabs.c_str(), section.getName());
+									printf("%sT - Technicality (Release at the end of all sustains)\n", global.tabs.c_str());
+									printf("%sV - Visually (Hold past/through the end of all sustains)\n", global.tabs.c_str());
+									printf("%sM - Mixed (Release only on sustain that exceeds a defined length)\n", global.tabs.c_str());
 									visualType = menuChoices("tvm");
 									switch (visualType)
 									{
-									case -1:
-										cout << global.tabs << endl;
-										cout << global.tabs << "TAS creation cancelled" << endl;
+									case 'q':
+										printf("%s\n", global.tabs.c_str());
+										printf("%sTAS creation cancelled\n", global.tabs.c_str());
 										return true;
-									case -2:
+									case '?':
+										printf("%s\n", global.tabs.c_str());
+									case '*':
 										break;
 									default:
-										cout << global.tabs << endl;
+										printf("%s\n", global.tabs.c_str());
 										if (visualType == 2)
 										{
 											do
 											{
-												cout << global.tabs << "Provide a value for the sustain limit coeffienct.\n";
-												cout << global.tabs << "AKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n";
-												cout << global.tabs << "Value can range from 0.5 to 4.0 [Default is 1].\n";
-												cout << global.tabs << "Input: ";
+												printf("%sProvide a value for the sustain limit coeffienct.\n", global.tabs.c_str());
+												printf("%sAKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n", global.tabs.c_str());
+												printf("%sValue can range from 0.5 to 4.0 [Default is 1].\n", global.tabs.c_str());
+												printf("%sInput: ", global.tabs.c_str());
 												switch (valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
 												{
-												case 1:
+												case '!':
 													global.quit = true;
 													break;
-												case 0:
-													cout << global.tabs << endl;
-													cout << global.tabs << "TAS creation cancelled" << endl;
+												case 'q':
+													printf("%s\n", global.tabs.c_str());
+													printf("%sTAS creation cancelled\n", global.tabs.c_str());
 													return true;
-												case -1:
-												case -2:
-													cout << global.tabs << "Provided value *must* be greater than or equal to 0.5.\n" << global.tabs << endl;
+												case '-':
+												case '<':
+													printf("%sProvided value *must* be greater than or equal to 0.5.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 													break;
-												case -3:
-													cout << global.tabs << "Provided value *must* be less than or equal to 4.0.\n" << global.tabs << endl;
+												case '>':
+													printf("%sProvided value *must* be less than or equal to 4.0.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 													break;
-												case -4:
-													cout << global.tabs << "\"" << global.invalid << "\" is not a valid response.\n" << global.tabs << endl;
-													cin.clear();
+												case '*':
+													printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
+													clearIn();
 												}
 											} while (!global.quit);
 										}
@@ -1583,8 +1588,8 @@ bool TAS::buildTAS()
 					//Triangle - 127
 					switch (orientation)	//Determine button based on orientation
 					{
-					case 0:
-					case 1:
+					case 'q':
+					case '!':
 						switch (static_cast<Guard*>(point.note)->getButton())
 						{
 						case 3:
@@ -1593,7 +1598,7 @@ bool TAS::buildTAS()
 						case 2:
 							exponent -= 2;
 							break;
-						case 1:
+						case '!':
 							exponent--;
 						}
 						break;
@@ -1603,17 +1608,17 @@ bool TAS::buildTAS()
 						case 2:
 							exponent -= 3;
 							break;
-						case 1:
+						case '!':
 							exponent -= 2;
 							break;
-						case 0:
+						case 'q':
 							exponent--;
 						}
 						break;
 					case 3:
 						switch (static_cast<Guard*>(point.note)->getButton())
 						{
-						case 0:
+						case 'q':
 							exponent -= 3;
 							break;
 						case 3:
@@ -1763,8 +1768,8 @@ bool TAS::buildTAS()
 								//No need to check for button slots being occupied
 								switch (orientation)
 								{
-								case 0:
-								case 1:
+								case 'q':
+								case '!':
 									pcsx2.players[playerIndex][phraseEnd].button &= 191;
 									break;
 								case 2:
@@ -1791,8 +1796,8 @@ bool TAS::buildTAS()
 						char exponent = 7; //Triangle (base of orientation 3)
 						switch (orientation)
 						{
-						case 0:
-						case 1:
+						case 'q':
+						case '!':
 							exponent -= 3; //Square
 							break;
 						case 2:
@@ -1838,16 +1843,15 @@ bool TAS::buildTAS()
 	{
 		switch (fileOverwriteCheck(filename + ".p2m2"))
 		{
-		case 0:
-			cout << global.tabs << endl;
+		case 'n':
+			printf("%s\n", global.tabs.c_str());
 			filename += "_T";
 			break;
-		case 1:
+		case 'y':
 			pcsx2.print(filename);
 			return true;
-		case -1:
-			cout << global.tabs << endl;
-			cout << global.tabs << "PCSX2 TAS was completed, but the file generation was cancelled." << endl;
+		case 'q':
+			printf("%s\n%sPCSX2 TAS was completed, but the file generation was cancelled.\n", global.tabs.c_str(), global.tabs.c_str());
 			return false;
 		}
 	}

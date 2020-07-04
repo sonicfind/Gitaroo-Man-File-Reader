@@ -68,6 +68,10 @@ struct GlobalVars
 };
 extern "C" GLOBALFUNCTIONS_API GlobalVars global;
 
+extern "C" GLOBALFUNCTIONS_API int peek();
+
+extern "C" GLOBALFUNCTIONS_API void clearIn();
+
 extern "C" GLOBALFUNCTIONS_API bool LoadLib(FileType::dllPair& pair);
 /*
 Searches for a function with the given name (proc) inside the provided dll (lib).
@@ -75,20 +79,20 @@ If found, it will use object as the parameter and return the result.
 Otherwise, it will return -1.
 */
 template<class...Args>
-extern char loadProc(HINSTANCE& lib, std::string proc, Args&... args)
+extern char loadProc(HINSTANCE& lib, const char* proc, Args&... args)
 {
 	typedef bool(__cdecl* MYPROC)(Args...);
-	MYPROC ProcAdd = (MYPROC)GetProcAddress(lib, proc.c_str());
+	MYPROC ProcAdd = (MYPROC)GetProcAddress(lib, proc);
 	if (ProcAdd)
 		return ProcAdd(args...);
 	else
 	{
-		std::cout << global.tabs << proc << " failed to load" << std::endl;
+		printf("%s%s failed to load\n", global.tabs.c_str(), proc);
 		return -1;
 	}
 }
 //Generates banner
-extern "C" GLOBALFUNCTIONS_API void banner(std::string title, float coef = 1);
+extern "C" GLOBALFUNCTIONS_API void banner(std::string title, double coef = 1);
 //Adjust pre-fix tab "||"s to the given length
 extern "C" GLOBALFUNCTIONS_API void adjustTabs(char value);
 //Used for printing to a max of two files at once
@@ -97,14 +101,12 @@ extern "C" GLOBALFUNCTIONS_API void dualvfprintf_s(FILE* out1, FILE* out2, const
 extern "C" GLOBALFUNCTIONS_API char filenameInsertion(std::string& filename, std::string specials = "");
 
 /*
-Universal menu function that accepts a list of characters as a std::string as option choices
+The basic universal menu system that should be used for almost everything that deals with user choice
 @param choices - List of characters that serves as the possible menu options
-@return 0+ - Valid entry/Index of the character
-@return -1 - User entered the "quit" or 'Q' character
-@return -2 - User entered an invalid character
-@return -3 - User entered the "help" or '?' character
+@param indexMode - Determines whether to return the chosen character itself or the index of said character from "choices"
+@return The character that was pulled from the stream, or '*' if the choice was invalid. If indexMode is true, return the index from "choices". 
 */
-extern "C" GLOBALFUNCTIONS_API int menuChoices(std::string choices);
+extern "C" GLOBALFUNCTIONS_API size_t menuChoices(std::string choices, bool indexMode = false);
 
 /*
 Used to check if a file of the specified name already exists at its location.
@@ -114,54 +116,54 @@ extern "C" GLOBALFUNCTIONS_API char fileOverwriteCheck(std::string fileName);
 
 
 /*
-Function for inserting any value from the input stream
+Function for inserting any value from the standard input stream
 Return values:
-1 -- Valid Entry
-2+- One of the special input characters
-0 -- User entered the "quit" or 'Q' character
--1 - Input stream given a negative value with allowNegatives set to false
--2 - Input value less than minimum
--3 - Input value greater than maximum
--4 - User entered an invalid character
+'!' - Valid Entry
+'q' - User entered the "quit" or 'Q' character
+'-' - Input stream given a negative value with allowNegatives set to false
+'<' - Input value less than minimum
+'>' - Input value greater than maximum
+'*' - User entered an invalid character
+ or one of the special input characters
 */
 template<typename T>
 extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max = 0, std::string specials = "")
 {
 	if (global.multi)
 	{
-		std::cin.putback(global.input);
-		std::cout << '*' << char(toupper(global.input)) << std::endl;
+		ungetc(global.input, stdin);
+		printf("*%c\n", toupper(global.input));
 		global.multi = false;
 	}
 	do
 	{
-		std::cin >> global.input;
+		scanf_s("%c", &global.input, 1); 
 	} while (global.input == ' ');
 	switch (global.input)
 	{
 	case ';':
-		std::cin >> global.input;
+		scanf_s("%c", &global.input, 1); 
 	case '\n':
-		std::cout << global.tabs << "Please remember to type SOMETHING before pressing 'Enter'\n";
-		std::cout << global.tabs << std::endl;
-		std::cin.sync();
-		return -2;
+		printf("%sPlease remember to type SOMETHING before pressing 'Enter'\n", global.tabs.c_str());
+		printf("%s\n", global.tabs.c_str());
+		clearIn();
+		return '*';
 	default:
 		char ans = tolower(global.input);
 		if (ans == 'q')
 		{
 			do
 			{
-				std::cin >> global.input;
+				scanf_s("%c", &global.input, 1); 
 			} while (global.input == ' ' || global.input == ';');
 			if (global.input != '\n')
 				global.multi = true;
-			return 0;
+			return 'q';
 		}
 		auto rangeTest = [&]()
 		{
 			double tmp;
-			std::cin >> tmp;
+			scanf_s("%lg", &tmp);
 			if (!min)
 			{
 				if (!max)
@@ -169,11 +171,11 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 					value = (T)tmp;
 					do
 					{
-						std::cin >> global.input;
+						scanf_s("%c", &global.input, 1); 
 					} while (global.input == ' ');
 					if (global.input != '\n')
 						global.multi = true;
-					return 1;
+					return '!';
 				}
 				else
 				{
@@ -182,14 +184,14 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 						value = (T)tmp;
 						do
 						{
-							std::cin >> global.input;
+							scanf_s("%c", &global.input, 1); 
 						} while (global.input == ' ');
 						if (global.input != '\n')
 							global.multi = true;
-						return 1;
+						return '!';
 					}
 					else
-						return -3;
+						return '>';
 				}
 			}
 			else
@@ -201,11 +203,11 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 						value = (T)tmp;
 						do
 						{
-							std::cin >> global.input;
+							scanf_s("%c", &global.input, 1); 
 						} while (global.input == ' ');
 						if (global.input != '\n')
 							global.multi = true;
-						return 1;
+						return '!';
 					}
 					else
 					{
@@ -214,18 +216,18 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 							value = (T)tmp;
 							do
 							{
-								std::cin >> global.input;
+								scanf_s("%c", &global.input, 1); 
 							} while (global.input == ' ');
 							if (global.input != '\n')
 								global.multi = true;
-							return 1;
+							return '!';
 						}
 						else
-							return -3;
+							return '>';
 					}
 				}
 				else
-					return -2;
+					return '<';
 			}
 		};
 		auto inval = [&]()
@@ -233,7 +235,7 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 			global.invalid = ans;
 			do
 			{
-				std::cin >> global.input;
+				scanf_s("%c", &global.input, 1); 
 				switch (global.input)
 				{
 				case '\n':
@@ -243,31 +245,31 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 					global.invalid += global.input;
 				}
 			} while (!global.quit);
-			return -4;
+			return '*';
 		};
 		if (ans == '-')
 		{
 			if (allowNegatives)
 			{
-				char backup = std::cin.peek();
+				char backup = peek();
 				if (backup == '.')
 				{
-					std::cin.get();
-					if (std::cin.peek() >= '0' && std::cin.peek() <= '9')
+					getchar();
+					if (peek() >= '0' && peek() <= '9')
 					{
-						std::cin.putback(backup);
-						std::cin.putback(ans);
+						ungetc(backup, stdin);
+						ungetc(ans, stdin);
 						return rangeTest();
 					}
 					else
 					{
-						std::cin.putback(backup);
+						ungetc(backup, stdin);
 						return inval();
 					}
 				}
 				else if (backup >= '0' && backup <= '9')
 				{
-					std::cin.putback(ans);
+					ungetc(ans, stdin);
 					return rangeTest();
 				}
 				else
@@ -275,17 +277,17 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 			}
 			else
 			{
-				std::cin.putback(ans);
+				ungetc(ans, stdin);
 				double tmp;
-				std::cin >> tmp;
-				return -1;
+				scanf_s("%lg", &tmp);
+				return '-';
 			}
 		}
 		else if (ans == '.')
 		{
-			if (std::cin.peek() >= '0' && std::cin.peek() <= '9')
+			if (peek() >= '0' && peek() <= '9')
 			{
-				std::cin.putback(ans);
+				ungetc(ans, stdin);
 				return rangeTest();
 			}
 			else
@@ -293,20 +295,19 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 		}
 		else if (ans >= '0' && ans <= '9')
 		{
-			std::cin.putback(ans);
+			ungetc(ans, stdin);
 			return rangeTest();
 		}
 		else
 		{
-			for (unsigned char index = 0; index < specials.length(); index++)
+			if (specials.find(ans) != std::string::npos)
 			{
-				if (tolower(ans) == specials[index])
-				{
-					std::cin.putback(ans);
-					return index + 2;
-				}
+				global.multi = true;
+				global.input = ans;
+				return ans;
 			}
-			return inval();
+			else
+				return inval();
 		}
 	}
 }
@@ -314,13 +315,12 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 /*
 Function for inserting any value from a file
 Return values:
-1 -- Valid Entry
-2+- One of the special input characters
-0 -- User entered the "quit" or 'Q' character
--1 - Input stream given a negative value with allowNegatives set to false
--2 - Input value less than minimum
--3 - Input value greater than maximum
--4 - User entered an invalid character
+'!' - Valid Entry
+'q' - User entered the "quit" or 'Q' character
+'-' - Input stream given a negative value with allowNegatives set to false
+'<' - Input value less than minimum
+'>' - Input value greater than maximum
+'*' - User entered an invalid character
 */
 template<typename T>
 extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false, T min = 0, T max = 0)
@@ -329,27 +329,27 @@ extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false,
 	fscanf_s(in, " %c", &ans, 1);
 	ans = tolower(ans);
 	if (ans == 'q')
-		return 0;
+		return 'q';
 	auto rangeTest = [&]()
 	{
 		double tmp;
-		fscanf_s(in, " %lf", &tmp);
+		fscanf_s(in, " %lg", &tmp);
 		if (!min)
 		{
 			if (!max)
 			{
 				value = (T)tmp;
-				return 1;
+				return '!';
 			}
 			else
 			{
 				if ((T)tmp <= max)
 				{
 					value = (T)tmp;
-					return 1;
+					return '!';
 				}
 				else
-					return -3;
+					return '>';
 			}
 		}
 		else
@@ -359,21 +359,21 @@ extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false,
 				if (!max)
 				{
 					value = (T)tmp;
-					return 1;
+					return '!';
 				}
 				else
 				{
 					if ((T)tmp <= max)
 					{
 						value = (T)tmp;
-						return 1;
+						return '!';
 					}
 					else
-						return -3;
+						return '>';
 				}
 			}
 			else
-				return -2;
+				return '<';
 		}
 	};
 	auto inval = [&]()
@@ -391,7 +391,7 @@ extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false,
 				global.invalid += ans;
 			}
 		} while (!global.quit);
-		return -4;
+		return '*';
 	};
 	if (ans == '-')
 	{
@@ -427,8 +427,8 @@ extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false,
 		{
 			ungetc(ans, in);
 			double tmp;
-			fscanf_s(in, " %lf", &tmp);
-			return -1;
+			fscanf_s(in, " %lg", &tmp);
+			return '-';
 		}
 	}
 	else if (ans == '.')
@@ -455,11 +455,11 @@ extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false,
 /*
 Function for inserting any value from the input stream (with no set custom min or max) [has special characters]
 Return values:
-1 -- Valid Entry
-2+- One of the special input characters
-0 -- User entered the "quit" or 'Q' character
--1 - Input stream given a negative value with allowNegatives set to false
--4 - User entered an invalid character
+'!' - Valid Entry
+'q' - User entered the "quit"/'Q' character
+'-' - Input stream given a negative value with allowNegatives set to false
+'*' - User entered an invalid character
+ or one of the special input characters
 */
 template<typename T>
 extern char valueInsert(T& value, bool allowNegatives, std::string specials)
@@ -468,153 +468,15 @@ extern char valueInsert(T& value, bool allowNegatives, std::string specials)
 }
 
 /*
-Function for inserting any value from a file (with no set custom min or max) [has special characters]
-Return values:
-1 -- Valid Entry
-2+- One of the special input characters
-0 -- User entered the "quit" or 'Q' character
--1 - Input stream given a negative value with allowNegatives set to false
--4 - User entered an invalid character
-*/
-template<typename T>
-extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives, std::string specials)
-{
-	return valueInsertFromFile(in, value, allowNegatives, T(0), T(0), specials);
-}
-
-/*
 Function for inserting a list values all in one go from the std::cin input stream
 Return values:
-1 -- End of the given list of input values
-2+- One of the special input characters
-0 -- User entered the "quit" or 'Q' character
--1 - User entered the "help" or '?' character
--2 - User entered an invalid character before the list ended
+'!' -- End of the given list of input values
+'?' - User entered the "help"/'?' character
+'q' -- User entered the "quit"/'Q' character
+'*' - User entered an invalid character before the list ended
+or one of the special input characters
 */
-template<typename T>
-extern char vectorValueInsert(List<T>& values, std::string outCharacters, T max, bool allowRepeats = true, T min = 0)
-{
-	std::cout << global.tabs << "Input: ";
-	if (global.multi)
-	{
-		std::cin.putback(global.input);
-		std::cout << '*';
-	}
-	std::cin >> global.input;
-	do
-	{
-		switch (tolower(global.input))
-		{
-		case ' ':
-			std::cin >> global.input;
-			break;
-		case '?':
-			if (global.multi)
-			{
-				for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
-					std::cout << values[valIndex] << ' ';
-				std::cout << '?' << std::endl;
-			}
-			do
-			{
-				std::cin >> global.input;
-			} while (global.input == ' ' || global.input == ';');
-			if (global.input != '\n')
-				global.multi = true;
-			else
-				global.multi = false;
-			return -1;
-		case 'q':
-			if (global.multi)
-			{
-				for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
-					std::cout << values[valIndex] << ' ';
-				std::cout << 'Q' << std::endl;
-			}
-			do
-			{
-				std::cin >> global.input;
-			} while (global.input == ' ' || global.input == ';');
-			if (global.input != '\n')
-				global.multi = true;
-			else
-				global.multi = false;
-			return 0;
-		case '\n':
-			if (global.multi)
-			{
-				for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
-					std::cout << values[valIndex] << ' ';
-				std::cout << std::endl;
-				global.multi = false;
-			}
-			return 1;
-		case ';':
-			if (global.multi)
-			{
-				for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
-					std::cout << values[valIndex] << ' ';
-				std::cout << std::endl;
-			}
-			do
-			{
-				std::cin >> global.input;
-			} while (global.input == ' ');
-			if (global.input != '\n')
-				global.multi = true;
-			return 1;
-		default:
-			if (global.input >= '0' && global.input <= '9')
-			{
-				std::cin.putback(global.input);
-				T value;
-				std::cin >> value;
-				if (value < min || value >= max)
-					std::cout << global.tabs << value << " is not within range. Skipping value.\n" << global.tabs << '\n';
-				else if (allowRepeats || values.search(value) == -1)
-					values.push_back(value);
-				else
-					std::cout << global.tabs << value << " is already in this list.\n" << global.tabs << '\n';
-				std::cin >> global.input;
-			}
-			else
-			{
-				size_t size = outCharacters.length();
-				for (size_t index = 0; index < size; index++)
-				{
-					if (tolower(global.input) == outCharacters[index])
-					{
-						if (global.multi)
-						{
-							for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
-								std::cout << values[valIndex] << ' ';
-							std::cout << std::endl;
-						}
-						else
-							global.multi = true;
-						return (char)index + 2;
-					}
-				}
-				global.multi = false;
-				global.invalid = global.input;
-				do
-				{
-					std::cin >> global.input;
-					if (global.input == '\n')
-					{
-						std::cin.clear();
-						global.quit = true;
-					}
-					else
-						global.invalid += global.input;
-				} while (!global.quit);
-				global.quit = false;
-				std::cout << global.tabs << "\"" << global.invalid << "\" is not a valid response.\n" << global.tabs << '\n';
-				return -2;
-			}
-		}
-	} while (true);
-}
+extern "C" GLOBALFUNCTIONS_API char listValueInsert(List<size_t>& values, std::string outCharacters, size_t max, bool allowRepeats = true, size_t min = 0);
 
 extern "C" GLOBALFUNCTIONS_API long radiansToDegrees(double angle);
 

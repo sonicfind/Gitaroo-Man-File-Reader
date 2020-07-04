@@ -135,45 +135,45 @@ bool Charter::exportChart()
 	List<size_t> sectionIndexes;
 	do
 	{
-		cout << global.tabs << "Type the number for each section that you wish to have charted - w/ spaces inbetween.\n";
-		for (unsigned sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
-			cout << global.tabs << sectIndex << " - " << song.sections[sectIndex].getName() << '\n';
+		printf("%sType the number for each section that you wish to chart - w/ spaces inbetween.\n", global.tabs.c_str());
+		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
+			printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, song.sections[sectIndex].getName());
 		if (sectionIndexes.size())
 		{
-			cout << global.tabs << "Current List: ";
-			for (unsigned index = 0; index < sectionIndexes.size(); index++)
-				cout << song.sections[sectionIndexes[index]].getName() << " ";
-			cout << endl;
+			printf("%sCurrent List: ", global.tabs.c_str());
+			for (size_t index = 0; index < sectionIndexes.size(); index++)
+				printf("%s ", song.sections[sectionIndexes[index]].getName());
+			putchar('\n');
 		}
-		switch (vectorValueInsert(sectionIndexes, "yn", song.sections.size()))
+		switch (listValueInsert(sectionIndexes, "yn", song.sections.size()))
 		{
-		case -1:
+		case '?':
 
 			break;
-		case 0:
-			cout << global.tabs << "CH chart creation cancelled." << endl;
+		case 'q':
+			printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 			return false;
-		case 2:
+		case 'y':
 			if (sectionIndexes.size())
 			{
 				global.quit = true;
 				break;
 			}
-		case 1:
+		case '!':
 			if (!sectionIndexes.size())
 			{
 				do
 				{
-					cout << global.tabs << endl;
-					cout << global.tabs << "No sections have been selected. Quit CH chart creation? [Y/N]\n";
+					printf("%s\n", global.tabs.c_str());
+					printf("%sNo sections have been selected. Quit CH chart creation? [Y/N]\n", global.tabs.c_str());
 					switch (menuChoices("yn"))
 					{
-					case -1:
-					case 0:
-						cout << global.tabs << "CH chart creation cancelled." << endl;
+					case 'q':
+					case 'y':
+						printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 						return false;
-					case 1:
-						cout << global.tabs << endl;
+					case 'n':
+						printf("%s\n", global.tabs.c_str());
 						global.quit = true;
 					}
 				} while (!global.quit);
@@ -182,16 +182,17 @@ bool Charter::exportChart()
 			else
 				global.quit = true;
 			break;
-		case 3:
-			cout << global.tabs << "Ok... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n";
-			cout << global.tabs << endl;
+		case 'n':
+			printf("%s\n", global.tabs.c_str());
+			printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", global.tabs.c_str());
+			printf("%s\n", global.tabs.c_str());
 		}
 	} while (!global.quit);
 	global.quit = false;
-	cout << global.tabs;
+	printf("%s", global.tabs.c_str());
 	for (size_t sect = 0; sect < sectionIndexes.size(); sect++)
-		cout << song.sections[sectionIndexes[sect]].getName() << ' ';
-	cout << endl;
+		printf("%s ", song.sections[sectionIndexes[sect]].getName());
+	putchar('\n');
 	bool multiplayer = toupper(song.shortname[song.shortname.length() - 1]) == 'M';
 	bool sectOrientation = false, chartOrientation = false, chartColor = false, noteColor = false, phraseColor = false;
 	size_t orientation = 3;
@@ -223,31 +224,31 @@ bool Charter::exportChart()
 						{
 							do
 							{
-								cout << global.tabs << "How will guard phrases be handled? [Only effects the modchart version]" << endl;
-								cout << global.tabs << "B - Base Orientation Only" << endl;
-								cout << global.tabs << "G - Guitar Hero Conversion" << endl;
-								cout << global.tabs << "S - Determined per Section" << endl;
-								cout << global.tabs << "C - Determined per Chart" << endl;
+								printf("%sHow will guard phrases be handled? [Only effects the modchart version]\n", global.tabs.c_str());
+								printf("%sB - Base Orientation Only\n", global.tabs.c_str());
+								printf("%sG - Guitar Hero Conversion\n", global.tabs.c_str());
+								printf("%sS - Determined per Section\n", global.tabs.c_str());
+								printf("%sC - Determined per Chart\n", global.tabs.c_str());
 								switch (menuChoices("bgsc"))
 								{
-								case 0:
+								case 'b':
 									orientation = 0;
-								case 1:
-									cout << global.tabs << endl;
+								case 'g':
+									printf("%s\n", global.tabs.c_str());
 									grdFound = true;
 									global.quit = true;
 									break;
-								case 2:
-									cout << global.tabs << endl;
+								case 's':
+									printf("%s\n", global.tabs.c_str());
 									sectOrientation = grdFound = global.quit = true;
 									break;
-								case 3:
-									cout << global.tabs << endl;
+								case 'c':
+									printf("%s\n", global.tabs.c_str());
 									chartOrientation = grdFound = global.quit = true;
 									break;
-								case -1:
-									cout << global.tabs << endl;
-									cout << global.tabs << "CH chart creation cancelled." << endl;
+								case 'q':
+									printf("%s\n", global.tabs.c_str());
+									printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 									return false;
 								}
 							} while (!global.quit);
@@ -257,37 +258,37 @@ bool Charter::exportChart()
 						{
 							do
 							{
-								cout << global.tabs << "How will strum phrases be handled?" << endl;
-								cout << global.tabs << "Y - Test color only (Yellow)" << endl;
-								cout << global.tabs << "C - Determined per Chart" << endl;
-								cout << global.tabs << "N - Determined per Note" << endl;
-								cout << global.tabs << "P - Determined per Phrase Bar" << endl;
-								//cout << global.tabs << "Note for C, N, & P: if a phrase bar has a pre-set color from a .chart import, that color will be used." << endl;
+								printf("%sHow will strum phrases be handled?\n", global.tabs.c_str());
+								printf("%sY - Test color only (Yellow)\n", global.tabs.c_str());
+								printf("%sC - Determined per Chart\n", global.tabs.c_str());
+								printf("%sN - Determined per Note\n", global.tabs.c_str());
+								printf("%sP - Determined per Phrase Bar\n", global.tabs.c_str());
+								//printf("%s", global.tabs.c_str(), "Note for C, N, & P: if a phrase bar has a pre-set color from a .chart import, that color will be used.\n";
 								switch (menuChoices("ycnp"))
 								{
-								case 0:
-									cout << global.tabs << endl;
+								case 'y':
+									printf("%s\n", global.tabs.c_str());
 									phrFound = true;
 									global.quit = true;
 									break;
-								case 1:
-									cout << global.tabs << endl;
+								case 'c':
+									printf("%s\n", global.tabs.c_str());
 									phrFound = true;
 									chartColor = global.quit = true;
 									break;
-								case 2:
-									cout << global.tabs << endl;
+								case 'n':
+									printf("%s\n", global.tabs.c_str());
 									phrFound = true;
 									noteColor = global.quit = true;
 									break;
-								case 3:
-									cout << global.tabs << endl;
+								case 'p':
+									printf("%s\n", global.tabs.c_str());
 									phrFound = true;
 									phraseColor = global.quit = true;
 									break;
-								case -1:
-									cout << global.tabs << endl;
-									cout << global.tabs << "CH chart creation cancelled." << endl;
+								case 'q':
+									printf("%s\n", global.tabs.c_str());
+									printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 									return false;
 								}
 							} while (!global.quit);
@@ -344,28 +345,31 @@ bool Charter::exportChart()
 
 	List<Event> events;
 	//Yellow (GRYBO)
-	char strumFret = 2;
+	size_t strumFret = 2;
 	//Essentially selectin which controller setup to correspond to
-	auto getOrientation = [&](string sectionName, size_t player = 0, size_t chart = 0)
+	auto getOrientation = [&](const char* sectionName, size_t player = 0, size_t chart = 0)
 	{
 		while (true)
 		{
-			cout << global.tabs << "Choose orientation for " << sectionName; player ? cout << ": Player " << player + 1 << " - Chart " << chart << endl : cout << endl;
-			cout << global.tabs << "   ||U|L|R|D||   T - Triangle" << endl;
-			cout << global.tabs << "===============  S - Square" << endl;
-			cout << global.tabs << " 1 ||T|S|O|X||   O - Circle" << endl;
-			cout << global.tabs << " 2 ||S|X|T|O||   X - Cross" << endl;
-			cout << global.tabs << " 3 ||O|T|X|S||" << endl;
-			orientation = menuChoices("123");
+			printf("%sChoose orientation for %s", global.tabs.c_str(), sectionName);
+			player ? printf(": Player %zu - Chart %zu\n", player + 1, chart) : putchar('\n');
+			printf("%s   ||U|L|R|D||   T - Triangle\n", global.tabs.c_str());
+			printf("%s===============  S - Square\n", global.tabs.c_str());
+			printf("%s 1 ||T|S|O|X||   O - Circle\n", global.tabs.c_str());
+			printf("%s 2 ||S|X|T|O||   X - Cross\n", global.tabs.c_str());
+			printf("%s 3 ||O|T|X|S||\n", global.tabs.c_str());
+			orientation = menuChoices("123", true);
 			switch (orientation)
 			{
-			case -1:
-				cout << global.tabs << endl;
+			case 'q':
+				printf("%s\n", global.tabs.c_str());
 				return false;
-			case -2:
+			case '?':
+				printf("%s\n", global.tabs.c_str());
+			case '*':
 				break;
 			default:
-				cout << global.tabs << endl;
+				printf("%s\n", global.tabs.c_str());
 				return true;
 			}
 		};
@@ -380,39 +384,43 @@ bool Charter::exportChart()
 	====6 - Continue previous color for one extra piece
 	====7 - Extend previous color until an end piece
 	*/
-	auto fretting = [&](string sectionName, SongSection::Phase phase, size_t player, size_t chart, size_t note = 0, size_t piece = 1)
+	auto fretting = [&](const char* sectionName, SongSection::Phase phase, size_t player, size_t chart, size_t note = 0, size_t piece = 1)
 	{
 		while (true)		//Ask for the fret color in each iteration
 		{
-			cout << global.tabs << "Choose the fret for " << sectionName << ": Player " << player + 1 << " - Chart " << chart << endl;
-			if (note) cout << global.tabs << "Note " << note << endl;
-			if (piece > 1) cout << global.tabs << "Piece " << piece << endl;
+			printf("%sChoose the fret for %s: Player %zu - Chart %zu\n", global.tabs.c_str(), sectionName, player + 1, chart );
+			if (note)
+				printf("%sNote %zu\n", global.tabs.c_str(), note );
+			if (piece > 1)
+				printf("%sPiece %zu\n", global.tabs.c_str(), piece );
 			string choices = "grybon";
-			cout << global.tabs << "==============================================================||" << endl;
-			cout << global.tabs << "                         No Color (N)                         ||" << endl;
-			cout << global.tabs << " Green (G) || Red (R) || Yellow (Y) || Blue (B) || Orange (O) ||" << endl;
+			printf("%s==============================================================||\n", global.tabs.c_str());
+			printf("%s                         No Color (N)                         ||\n", global.tabs.c_str());
+			printf("%s Green (G) || Red (R) || Yellow (Y) || Blue (B) || Orange (O) ||\n", global.tabs.c_str());
 			if (phase == SongSection::Phase::BATTLE && note == 1 && piece == 1)
 			{
-				cout << global.tabs << "   Tap (1) || Tap (2) ||   Tap (3)  ||  Tap (4) ||    Tap (5) ||" << endl;
+				printf("%s   Tap (1) || Tap (2) ||   Tap (3)  ||  Tap (4) ||    Tap (5) ||\n", global.tabs.c_str());
 				choices += "12345";
 			}
 			else if (piece > 1)
 			{
-				cout << global.tabs << "              Continue with the previous color (C)            ||" << endl;
-				cout << global.tabs << "        Extend previous color to the end of the note (E)      ||" << endl;
+				printf("%s              Continue with the previous color (C)            ||\n", global.tabs.c_str());
+				printf("%s        Extend previous color to the end of the note (E)      ||\n", global.tabs.c_str());
 				choices += "ce";
 			}
-			cout << global.tabs << "==============================================================||" << endl;
-			strumFret = (char)menuChoices(choices);
+			printf("%s==============================================================||\n", global.tabs.c_str());
+			strumFret = (char)menuChoices(choices, true);
 			switch (strumFret)
 			{
-			case -1:
-				cout << global.tabs << endl;
+			case 'q':
+				printf("%s\n", global.tabs.c_str());
 				return false;
-			case -2:
+			case '?':
+				printf("%s\n", global.tabs.c_str());
+			case '*':
 				break;
 			default:
-				cout << global.tabs << endl;
+				printf("%s\n", global.tabs.c_str());
 				return true;
 			}
 		};
@@ -426,22 +434,22 @@ bool Charter::exportChart()
 		switch (section.getPhase())
 		{
 		case SongSection::Phase::INTRO:
-			events.emplace_back( position, "INTRO - " + string(section.getName()) ); break;
+			events.emplace_back( position, "INTRO - " + string(section.getName())); break;
 		case SongSection::Phase::CHARGE: 
-			events.emplace_back( position, "CHARGE - " + string(section.getName()) ); break;
+			events.emplace_back( position, "CHARGE - " + string(section.getName())); break;
 		case SongSection::Phase::BATTLE: 
-			events.emplace_back( position, "BATTLE - " + string(section.getName()) ); break;
+			events.emplace_back( position, "BATTLE - " + string(section.getName())); break;
 		case SongSection::Phase::FINAL_AG: 
-			events.emplace_back( position, "FINAL_AG - " + string(section.getName()) ); break;
+			events.emplace_back( position, "FINAL_AG - " + string(section.getName())); break;
 		case SongSection::Phase::HARMONY: 
-			events.emplace_back( position, "HARMONY - " + string(section.getName()) ); break;
+			events.emplace_back( position, "HARMONY - " + string(section.getName())); break;
 		case SongSection::Phase::END: 
-			events.emplace_back( position, "END - " + string(section.getName()) ); break;
+			events.emplace_back( position, "END - " + string(section.getName())); break;
 		default: 
-			events.emplace_back( position, "FINAL_I - " + string(section.getName()) );
+			events.emplace_back( position, "FINAL_I - " + string(section.getName()));
 		}
 		if (sync.size() == 0 || unsigned long(section.getTempo() * 1000) != sync.back().bpm)
-			sync.emplace_back( position, 4, unsigned long(section.getTempo() * 1000) );
+			sync.emplace_back( position, 4, unsigned long(section.getTempo() * 1000));
 		if (section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK")) //If not INTRO phase or BRK section
 		{
 			if (modchart && sectOrientation)
@@ -455,7 +463,7 @@ bool Charter::exportChart()
 
 							if (!getOrientation(section.getName()))
 							{
-								cout << global.tabs << "CH chart creation cancelled." << endl;
+								printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 								return false;
 							}
 							global.quit = true;
@@ -490,13 +498,13 @@ bool Charter::exportChart()
 					List<CHNote>& rein = reimport[currentPlayer];
 					if (modchart && chartOrientation && chart.getNumGuards() && !getOrientation(section.getName(), playerIndex, chartIndex))
 					{
-						cout << global.tabs << "CH chart creation cancelled." << endl;
+						printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 						return false;
 					}
 					size_t markIndex = rein.size();
 					if (chartColor && chart.getNumPhrases() && !fretting(section.getName(), section.getPhase(), playerIndex, chartIndex))
 					{
-						cout << global.tabs << "CH chart creation cancelled." << endl;
+						printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 						return false;
 					}
 					size_t index = startIndex[0][currentPlayer], index2 = startIndex[1][currentPlayer];
@@ -506,13 +514,13 @@ bool Charter::exportChart()
 						char fret, modfret;
 						switch (orientation)	//Determine button based on orientation
 						{
-						case 0:
+						case 'q':
 							switch (chart.getGuard(i).getButton())
 							{
-							case 0:		//Red
+							case 'q':		//Red
 								modfret = 1;
 								break;
-							case 1:		//Blue
+							case '!':		//Blue
 								modfret = 3;
 								break;
 							case 2:		//Orange
@@ -522,13 +530,13 @@ bool Charter::exportChart()
 								modfret = 0;
 							}
 							break;
-						case 1:
+						case '!':
 							switch (chart.getGuard(i).getButton())
 							{
-							case 0:		//Blue
+							case 'q':		//Blue
 								modfret = 3;
 								break;
-							case 1:		//Orange
+							case '!':		//Orange
 								modfret = 4;
 								break;
 							case 2:		//Green
@@ -541,10 +549,10 @@ bool Charter::exportChart()
 						case 2:
 							switch (chart.getGuard(i).getButton())
 							{
-							case 0:		//Orange
+							case 'q':		//Orange
 								modfret = 4;
 								break;
-							case 1:		//Green
+							case '!':		//Green
 								modfret = 0;
 								break;
 							case 2:		//Red
@@ -557,10 +565,10 @@ bool Charter::exportChart()
 						case 3:
 							switch (chart.getGuard(i).getButton())
 							{
-							case 0:		//Red
+							case 'q':		//Red
 								modfret = 3;
 								break;
-							case 1:		//Green
+							case '!':		//Green
 								modfret = 0;
 								break;
 							case 2:		//Blue
@@ -572,10 +580,10 @@ bool Charter::exportChart()
 						}
 						switch (chart.getGuard(i).getButton())
 						{
-						case 0:		//Red
+						case 'q':		//Red
 							fret = 3;
 							break;
-						case 1:		//Green
+						case '!':		//Green
 							fret = 0;
 							break;
 						case 2:		//Blue
@@ -703,7 +711,7 @@ bool Charter::exportChart()
 										strumFret = (char)phrase.getColor();
 									else if (!fretting(section.getName(), section.getPhase(), playerIndex, chartIndex))
 									{
-										cout << global.tabs << "CH chart creation cancelled." << endl;
+										printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 										return false;
 									}
 								}
@@ -717,7 +725,7 @@ bool Charter::exportChart()
 									strumFret = (char)phrase.getColor();
 								else if (!fretting(section.getName(), section.getPhase(), playerIndex, chartIndex, note))
 								{
-									cout << global.tabs << "CH chart creation cancelled." << endl;
+									printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 									return false;
 								}
 							}
@@ -799,9 +807,9 @@ bool Charter::exportChart()
 								}
 								//In other words, disable the sustain for the modchart
 								if (phrase.getDuration() < 4800)
-									player.emplace(index, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "n");
+									player.emplace(index, 1, pos, (char)strumFret, sus, mod, CHNote::NoteType::NOTE, "n");
 								else
-									player.emplace(index, 1, pos, strumFret, sus, mod);
+									player.emplace(index, 1, pos, (char)strumFret, sus, mod);
 								if (note == 1)
 									phrIndex = index;
 								index++;
@@ -826,9 +834,9 @@ bool Charter::exportChart()
 								mod = CHNote::Modifier::NORMAL;
 							//Override any names of "n"
 							if (phrase.getAnimation() > 0)
-								rein.emplace(index2++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "Anim_" + to_string(phrase.getAnimation()));
+								rein.emplace(index2++, 1, pos, (char)strumFret, sus, mod, CHNote::NoteType::NOTE, "Anim_" + to_string(phrase.getAnimation()));
 							else
-								rein.emplace(index2++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "");
+								rein.emplace(index2++, 1, pos, (char)strumFret, sus, mod, CHNote::NoteType::NOTE, "");
 							note++;
 						}
 						else //In other words, if phraseColor is true
@@ -838,7 +846,7 @@ bool Charter::exportChart()
 								strumFret = (char)chart.getPhrase(i).getColor();
 							else if (!fretting(section.getName(), section.getPhase(), playerIndex, chartIndex, note, piece))
 							{
-								cout << global.tabs << "CH chart creation cancelled." << endl;
+								printf("%sCH chart creation cancelled.\n", global.tabs.c_str());
 								return false;
 							}
 							bool hopo = false;
@@ -966,9 +974,9 @@ bool Charter::exportChart()
 									phrIndex = index;
 								//Disables the note's sustain for the modchart
 								if (chart.getPhrase(i).getDuration() < 4800)
-									player.emplace(index++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "n");
+									player.emplace(index++, 1, pos, (char)strumFret, sus, mod, CHNote::NoteType::NOTE, "n");
 								else
-									player.emplace(index++, 1, pos, strumFret, sus, mod);
+									player.emplace(index++, 1, pos, (char)strumFret, sus, mod);
 								//To account for the two beats added by the extra synctracks
 								pos -= 960;
 							}
@@ -993,9 +1001,9 @@ bool Charter::exportChart()
 								mod = CHNote::Modifier::NORMAL;
 							//Overrides a disabled modchart sustain
 							if (piece == 1 && chart.getPhrase(i).getAnimation() > 0)
-								rein.emplace(index2++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "Anim_" + to_string(chart.getPhrase(i).getAnimation()));
+								rein.emplace(index2++, 1, pos, (char)strumFret, sus, mod, CHNote::NoteType::NOTE, "Anim_" + to_string(chart.getPhrase(i).getAnimation()));
 							else
-								rein.emplace(index2++, 1, pos, strumFret, sus, mod, CHNote::NoteType::NOTE, "");
+								rein.emplace(index2++, 1, pos, (char)strumFret, sus, mod, CHNote::NoteType::NOTE, "");
 							if (chart.getPhrase(i).getEnd())
 							{
 								note++;
@@ -1050,12 +1058,12 @@ bool Charter::exportChart()
 				}
 			}
 		}
-		cout << global.tabs << section.getName() << " converted" << endl;
+		printf("%s%s converted\n", global.tabs.c_str(), section.getName());
 		position += TICKS_PER_BEAT * round(double(section.getDuration()) * section.getTempo() / SAMPLES_PER_MIN);
 		if (modchart)
 			totalDur += (SAMPLES_PER_MIN / section.getTempo()) * round(double(section.getDuration()) * section.getTempo() / SAMPLES_PER_MIN);
 	}
-	cout << global.tabs << endl;
+	printf("%s\n", global.tabs.c_str());
 	string filename = song.name.substr(0, song.name.length() - 4);
 	FILE* outFile;
 	if (modchart)
@@ -1065,7 +1073,7 @@ bool Charter::exportChart()
 		{
 			switch (fileOverwriteCheck(filenameMod + ".chart"))
 			{
-			case -1:
+			case 'q':
 				for (size_t i = 0; i < sync.size();)
 				{
 					sync[i].position -= 960;
@@ -1079,11 +1087,11 @@ bool Charter::exportChart()
 					events[i].position -= 960;
 				global.quit = true;
 				break;
-			case 0:
+			case 'n':
 				filenameMod += "_T";
-				cout << global.tabs << endl;
+				printf("%s\n", global.tabs.c_str());
 				break;
-			case 1:
+			case 'y':
 				FILE * outFile;
 				fopen_s(&outFile, (song.name.substr(0, song.name.length() - 4) + ".ini").c_str(), "w");
 				//Generate the ini file if it's a chart from the original games (stage 2 also including separate EN & JP charts)
@@ -1347,7 +1355,7 @@ bool Charter::exportChart()
 				fclose(outFile);
 				global.quit = true;
 			}
-			cout << global.tabs << endl;
+			printf("%s\n", global.tabs.c_str());
 		} while (!global.quit);
 		global.quit = false;
 	}
@@ -1356,14 +1364,14 @@ bool Charter::exportChart()
 	{
 		switch (fileOverwriteCheck(filename + ".chart"))
 		{
-		case -1:
+		case 'q':
 			global.quit = true;
 			break;
-		case 0:
-			cout << global.tabs << endl;
+		case 'n':
+			printf("%s\n", global.tabs.c_str());
 			filename += "_T";
 			break;
-		case 1:
+		case 'y':
 			fopen_s(&outFile, (filename + ".chart").c_str(), "w");
 			fputs("[CHC]\n{\n", outFile);
 			fputs("  Offset = 0\n", outFile);
@@ -1403,7 +1411,7 @@ bool Charter::importChart()
 	FILE* inChart = nullptr;
 	do
 	{
-		cout << global.tabs << "Provide the name of the .CHART file you wish to use (Or 'Q' to exit): ";
+		printf("%sProvide the name of the .CHART file you wish to use (Or 'Q' to exit): ", global.tabs.c_str());
 		string chartName = "";
 		char val = filenameInsertion(chartName);
 		if (val == -1)
@@ -1418,9 +1426,9 @@ bool Charter::importChart()
 			{
 				size_t pos = chartName.find_last_of('\\');
 				if (pos != string::npos)
-					cout << global.tabs << '\"' << chartName.substr(pos + 1) << "\" is not a valid file of extension \".CHART\"\n";
+					printf("%s\"%s\" is not a valid file of extension \".CHART\"\n", global.tabs.c_str(), chartName.substr(pos + 1).c_str());
 				else
-					cout << global.tabs << '\"' << chartName << "\" is not a valid file of extension \".CHART\"\n";
+					printf("%s\"%s\" is not a valid file of extension \".CHART\"\n", global.tabs.c_str(), chartName.c_str());
 			}
 		}
 	} while (!global.quit);
@@ -1600,8 +1608,8 @@ bool Charter::importChart()
 								}
 								catch (...)
 								{
-									cout << global.tabs << "Trace line event at tick position " << note.position << " had extraneous data that could not be pulled." << endl;
-									cout << global.tabs << "Remember: trace events *must* be formatted as \"Trace\", \"Trace_[float angle value]\", \"Trace_end\", \"Trace_endP\", or \"Trace_curve\"" << endl;
+									printf("%sTrace line event at tick position %lu had extraneous data that could not be pulled.\n", global.tabs.c_str(), (unsigned long)note.position);
+									printf("%sRemember: trace events *must* be formatted as \"Trace\", \"Trace_[float angle value]\", \"Trace_end\", \"Trace_endP\", or \"Trace_curve\"\n", global.tabs.c_str());
 									currSub->chart.addTraceline_back((long)round(pos));
 								}
 							}
@@ -1834,24 +1842,24 @@ bool Charter::importChart()
 					}
 					if (!section.getOrganized())
 						song.unorganized++;
-					cout << global.tabs << "Replaced " << section.getName() << endl;
+					printf("%sReplaced %s\n", global.tabs.c_str(), section.getName());
 					break;
 				}
 			}
 		}
 		do
 		{
-			cout << global.tabs << "Fix & reorganize the newly imported notes for safety? [Y/N][or Q to cancel save]\n";
-			cout << global.tabs << "Choosing not to do so will leave all newly imported sections in an unorganized/possibly glitchy state.\n";
+			printf("%sFix & reorganize the newly imported notes for safety? [Y/N][or Q to cancel save]\n", global.tabs.c_str());
+			printf("%sChoosing not to do so will leave all newly imported sections in an unorganized/possibly glitchy state.\n", global.tabs.c_str());
 			switch (menuChoices("yn"))
 			{
-			case -1:
+			case 'q':
 				return false;
-			case 0:
+			case 'y':
 				if (!loadProc(dlls[DLL_INDEX].libraries[0].dll, "quickFix", song))
-					cout << global.tabs << "An error was ecountered while attempting to alter " << song.shortname << endl;
-			case 1:
-				cout << global.tabs << endl;
+					printf("%sAn error was ecountered while attempting to alter %s\n", global.tabs.c_str(), song.shortname.c_str());
+			case 'n':
+				printf("%s\n", global.tabs.c_str());
 				global.quit = true;
 				break;
 			}
@@ -1861,18 +1869,18 @@ bool Charter::importChart()
 		{
 			do
 			{
-				cout << global.tabs << "How should the file be named?\n";
-				cout << global.tabs << "K - Keep filename as " << song.shortname << '\n';
-				cout << global.tabs << "C - Change filename to " << song.shortname + "_IMPORTED\n";
+				printf("%sHow should the file be named?\n", global.tabs.c_str());
+				printf("%sK - Keep filename as %s\n", global.tabs.c_str(), song.shortname.c_str());
+				printf("%sC - Change filename to %s_IMPORTED\n", global.tabs.c_str(), song.shortname.c_str());
 				switch (menuChoices("kc"))
 				{
-				case -1:
+				case 'q':
 					return false;
-				case 1:
+				case 'k':
 					song.name = song.name.substr(0, song.name.length() - 4) + "_IMPORTED.CHC";
 					song.shortname += "_IMPORTED";
-				case 0:
-					cout << global.tabs << endl;
+				case 'c':
+					printf("%s\n", global.tabs.c_str());
 					global.quit = true;
 					break;
 				}
@@ -1883,37 +1891,39 @@ bool Charter::importChart()
 		{
 			//Either yes or no will still overwrite the old CHC data held
 			//in the current CHC_Main object
-			cout << global.tabs << "Save " << song.shortname << " externally? [Y/N]\n";
+			printf("%sSave %s externally? [Y/N]\n", global.tabs.c_str(), song.shortname.c_str());
+			printf("%sNote: after this point, import changes will be applied if 'Q' is not used.\n", global.tabs.c_str());
 			switch (menuChoices("yn"))
 			{
-			case -1:
+			case 'q':
 				return false;
-			case 0:
+			case 'y':
 			{
-				cout << global.tabs << endl;
+				printf("%s\n", global.tabs.c_str());
 				string filename = song.name.substr(0, song.name.length() - 4);
 				string ext = "";
 				do
 				{
 					switch (fileOverwriteCheck(filename + ext + ".CHC"))
 					{
-					case 0:
-						cout << global.tabs << endl;
+					case 'n':
+						printf("%s\n", global.tabs.c_str());
 						ext += "_T";
 						break;
-					case 1:
+					case 'y':
 						song.create(filename + ext + ".CHC");
 						song.name = filename + ext + ".CHC";
 						song.shortname += ext;
+						song.saved = 2;
 						global.quit = true;
 						break;
-					case -1:
-						cout << global.tabs << endl;
+					case 'q':
+						printf("%s\n", global.tabs.c_str());
 						global.quit = true;
 					}
 				} while (!global.quit);
 			}
-			case 1:
+			case 'n':
 				global.quit = true;
 				break;
 			}
@@ -1923,23 +1933,23 @@ bool Charter::importChart()
 		{
 			do
 			{
-				cout << global.tabs << "Generate a color sheet to go with the imported chart? [Y/N]\n";
+				printf("%sGenerate a color sheet to go with the imported chart? [Y/N]\n", global.tabs.c_str());
 				switch (menuChoices("yn"))
 				{
-				case 0:
+				case 'y':
 				{
 					banner(" " + song.shortname + ".CHC - Color Sheet Creation From Import ");
 					bool multiplayer = false;
 					do
 					{
-						cout << global.tabs << "Is this chart for multiplayer? [Y/N]\n";
+						printf("%sIs this chart for multiplayer? [Y/N]\n", global.tabs.c_str());
 						switch (menuChoices("yn"))
 						{
-						case -1:
+						case 'q':
 							return true;
-						case 0:
+						case 'y':
 							multiplayer = true;
-						case 1:
+						case 'n':
 							global.quit = true;
 							break;
 						}
@@ -1952,29 +1962,29 @@ bool Charter::importChart()
 					{
 						switch (fileOverwriteCheck(filename + ".txt"))
 						{
-						case 0:
-							cout << global.tabs << endl;
+						case 'n':
+							printf("%s\n", global.tabs.c_str());
 							filename += "_T";
 							break;
-						case 1:
+						case 'y':
 							fopen_s(&outSheet, (filename + ".txt").c_str(), "w");
-						case -1:
+						case 'q':
 							global.quit = true;
 						}
 					} while (!global.quit);
-					cout << global.tabs << endl;
+					printf("%s\n", global.tabs.c_str());
 					global.quit = false;
 					do
 					{
 						switch (fileOverwriteCheck(filename2 + ".txt"))
 						{
-						case 0:
-							cout << global.tabs << endl;
+						case 'n':
+							printf("%s\n", global.tabs.c_str());
 							filename2 += "_T";
 							break;
-						case 1:
+						case 'y':
 							fopen_s(&outSheet2,(filename2 + ".txt").c_str(), "w");
-						case -1:
+						case 'q':
 							global.quit = true;
 						}
 					} while (!global.quit);
@@ -2053,7 +2063,7 @@ bool Charter::importChart()
 								}
 							}
 							if (sectIndex2 < sections.size())
-								cout << global.tabs  << "Colored " << section.getName()<< endl;
+								printf("%sColored %s\n", global.tabs.c_str(), section.getName());
 						}
 						if (outSheet != nullptr)
 							fclose(outSheet);
@@ -2061,8 +2071,8 @@ bool Charter::importChart()
 							fclose(outSheet2);
 					}
 				}
-				case -1:
-				case 1:
+				case 'n':
+				case 'q':
 					global.quit = true;
 					break;
 				}
@@ -2073,8 +2083,8 @@ bool Charter::importChart()
 	}
 	else
 	{
-		cout << global.tabs << endl;
-		cout << global.tabs << "No players were fully imported." << endl;
+		printf("%s\n", global.tabs.c_str());
+		printf("%sCould not import any notes.\n", global.tabs.c_str());
 		return false;
 	}
 }

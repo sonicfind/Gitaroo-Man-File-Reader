@@ -29,7 +29,7 @@ bool quickFix(CHC& song)
 	}
 	catch (exception e)
 	{
-		cout << global.tabs << "QuickFix - Exception Caught: " << e.what() << endl;
+		printf("%sQuickFix - Exception Caught: %s\n", global.tabs.c_str(), e.what());
 		return false;
 	}
 }
@@ -45,13 +45,13 @@ bool loadSingleCHC(string& filename)
 	}
 	catch (string str)
 	{
-		cout << global.tabs << str << endl;
-		cout << global.tabs << "Load cancelled for " << filename << ".CHC" << endl;
+		printf("%s%s\n", global.tabs.c_str(), str.c_str());
+		printf("%sLoad cancelled for %s.CHC\n", global.tabs.c_str(), filename.c_str());
 	}
 	catch (const char* str)
 	{
-		cout << global.tabs << str << endl;
-		cout << global.tabs << "Load cancelled for " << filename << ".CHC" << endl;
+		printf("%s%s\n", global.tabs.c_str(), str);
+		printf("%sLoad cancelled for %s.CHC\n", global.tabs.c_str(), filename.c_str());
 	}
 	adjustTabs(0);
 	return val;
@@ -66,171 +66,167 @@ bool loadMultiCHC(List<string>* files)
 	do
 	{
 		size_t result = 0;
-		string choices = "ewpfbdc";
+		string choices = "ewpfbdck";
 		if (files->size() > 1)
 		{
 			banner(" CHC Mode Selection ");
-			cout << global.tabs << "E - Evaluate each CHC individually" << endl;
-			cout << global.tabs << "W - Write all CHCs included to readable .txts" << endl;
-			cout << global.tabs << "P - Swap players in all CHCs" << endl;
-			cout << global.tabs << "F - Fix & organize all CHCs where necessary (may not fix all bugs)" << endl;
-			cout << global.tabs << "B - Both 'S' & 'F'" << endl;
-			cout << global.tabs << "D - Perform detailed modifications on each CHC" << endl;
+			printf("%sE - Evaluate each CHC individually\n", global.tabs.c_str());
+			printf("%sW - Write all CHCs included to readable .txts\n", global.tabs.c_str());
+			printf("%sP - Swap players in all CHCs\n", global.tabs.c_str());
+			printf("%sF - Fix & organize all CHCs where necessary (may not fix all bugs)\n", global.tabs.c_str());
+			printf("%sB - Both 'S' & 'F'\n", global.tabs.c_str());
+			printf("%sD - Perform detailed modifications on each CHC\n", global.tabs.c_str());
 			if (LoadLib(dlls[DLL_INDEX].libraries[1]))
 			{
-				cout << global.tabs << "T - Convert each CHC into a PCSX2 TAS (only works with CHCs compatible with the PS2 version)" << endl;
+				printf("%sT - Convert each CHC into a PCSX2 TAS (only works with CHCs compatible with the PS2 version)\n", global.tabs.c_str());
 				choices += 't';
 			}
 			if (LoadLib(dlls[DLL_INDEX].libraries[2]))
 			{
-				cout << global.tabs << "G - Export each CHC as a \".chart\" file for Clone/Guitar Hero" << endl;
+				printf("%sG - Export each CHC as a \".chart\" file for Clone/Guitar Hero\n", global.tabs.c_str());
 				choices += 'g';
-				cout << global.tabs << "I - Import notes from Clone/Guitar Hero \".chart\"s into the CHC files" << endl;
+				printf("%sI - Import notes from Clone/Guitar Hero \".chart\"s into the CHC files\n", global.tabs.c_str());
 				choices += 'i';
 			}
-			cout << global.tabs << "C - Create a PCSX2 Phrase Bar Color Cheat template for each CHC" << endl;
+			printf("%sC - Create a PCSX2 Phrase Bar Color Cheat template for each CHC\n", global.tabs.c_str());
 			for (size_t i = 1; i < 20 && !global.quit; i++)
 			{
 				for (size_t s = 0; s < dlls[i].extensions.size() && !global.quit; s++)
 				{
 					if (dlls[i].extensions[s].files.size() > 0)
 					{
-						cout << global.tabs << "N - Proceed to the next filetype (" << dlls[i].extensions[s].ext << ")\n";
+						printf("%sN - Proceed to the next filetype (%s)\n", global.tabs.c_str(), dlls[i].extensions[s].ext.c_str());
 						choices += 'n';
 						global.quit = true;
 					}
 				}
 			}
-			global.quit = false;
-			cout << global.tabs << "Q - Quit Program" << endl;
+			printf("%sQ - Quit Program\n", global.tabs.c_str());
 			result = menuChoices(choices);
 		}
 		switch (result)
 		{
-		case -1:
+		case 'q':
 			return true;
-		case -3:
-			cout << global.tabs << "W - Write all CHC's included to readable .txts" << endl;
-			cout << global.tabs << "Writes out the data present in each CHC file to a readable txt file. This would include all SSQ & cue data, audio values,\n";
-			cout << global.tabs << "section & subsection data - including values for every separate note -, and damage & energy factors. Creates two files -\n";
-			cout << global.tabs << "with one being a simplistic form with only the bare minimum necessary information.\n" << global.tabs << "\n";
+		case '?':
+			printf("%sW - Write all CHC's included to readable .txts\n", global.tabs.c_str());
+			printf("%sWrites out the data present in each CHC file to a readable txt file. This would include all SSQ & cue data, audio values,\n", global.tabs.c_str());
+			printf("%ssection & subsection data - including values for every separate note -, and damage & energy factors. Creates two files -\n", global.tabs.c_str());
+			printf("%swith one being a simplistic form with only the bare minimum necessary information.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 
-			cout << global.tabs << "P - Swap players in all CHCs" << endl;
-			cout << global.tabs << "Goes through and swaps the charts between the two main payers. For PS2 compatible CHCs, this will swap all charts for P1/P3 with\n";
-			cout << global.tabs << "P2/P4 respectively. For duet CHCs, this will only swap the charts of P1 with P3 as P2 is not important enough to warrant a swap & P4 is empty.\n";
-			cout << global.tabs << "Note: only use this on either 1. A base CHC that was not swapped using an alternate method, or 2. a CHC pre-swapped with this program.\n" << global.tabs << "\n";
+			printf("%sP - Swap players in all CHCs\n", global.tabs.c_str());
+			printf("%sGoes through and swaps the charts between the two main payers. For PS2 compatible CHCs, this will swap all charts for P1/P3 with\n", global.tabs.c_str());
+			printf("%sP2/P4 respectively. For duet CHCs, this will only swap the charts of P1 with P3 as P2 is not important enough to warrant a swap & P4 is empty.\n", global.tabs.c_str());
+			printf("%sNote: only use this on either 1. A base CHC that was not swapped using an alternate method, or 2. a CHC pre-swapped with this program.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 
-			cout << global.tabs << "F - Fix & organize all CHCs where necessary (may not fix all bugs)\n";
-			cout << global.tabs << "Many CHC files provided from the base game are very prone to a multitude of glitches or contain sizable mistakes.\n";
-			cout << global.tabs << "For example: Stage 8 having two guard marks being only 2 samples away from eachother, or Stage 3 having a broken attack phrase note.\n";
-			cout << global.tabs << "This function aims to fix many of these issues while also applying an chart organization to evenly balance out chart counts amongst players.\n";
-			cout << global.tabs << "Note: if you come across an issue with it or have the program crash, send me the CHC file used in the Gitaroo Pals discord: https://discord.gg/ed6P8Jt \n";
-			cout << global.tabs << "(sonicfind#6404)" << global.tabs << "\n";
+			printf("%sF - Fix & organize all CHCs where necessary (may not fix all bugs)\n", global.tabs.c_str());
+			printf("%sMany CHC files provided from the base game are very prone to a multitude of glitches or contain sizable mistakes.\n", global.tabs.c_str());
+			printf("%sFor example: Stage 8 having two guard marks being only 2 samples away from eachother, or Stage 3 having a broken attack phrase note.\n", global.tabs.c_str());
+			printf("%sThis function aims to fix many of these issues while also applying an chart organization to evenly balance out chart counts amongst players.\n", global.tabs.c_str());
+			printf("%sNote: if you come across an issue with it or have the program crash, send me the CHC file used in the Gitaroo Pals discord: https://discord.gg/ed6P8Jt \n", global.tabs.c_str());
+			printf("%s(sonicfind#6404)%s\n", global.tabs.c_str(), global.tabs.c_str());
 
-			cout << global.tabs << "B - Both 'P' & 'F'\n";
-			cout << global.tabs << "Does both option 'S' & option 'F' in a single function.\n" << global.tabs << "\n";
+			printf("%sB - Both 'P' & 'F'\n", global.tabs.c_str());
+			printf("%sDoes both option 'P' & option 'F' in a single function.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 
-			cout << global.tabs << "D - Perform detailed modifications on each CHC\n";
-			cout << global.tabs << "Takes you to a menu where you can manually edit some of the smaller details of each CHC file, including but not limited to: IMC and audio settings,\n";
-			cout << global.tabs << "gameplay speed/speed of all notes, .SSQ data, and player damage/energy multiplier factors.\n" << global.tabs << "\n";
+			printf("%sD - Perform detailed modifications on each CHC\n", global.tabs.c_str());
+			printf("%sTakes you to a menu where you can manually edit some of the smaller details of each CHC file, including but not limited to: IMC and audio settings,\n", global.tabs.c_str());
+			printf("%sgameplay speed/speed of all notes, .SSQ data, and player damage/energy multiplier factors.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 
 			if (LoadLib(dlls[DLL_INDEX].libraries[1]))
 			{
-				cout << global.tabs << "T - Convert each CHC into a PCSX2 TAS (only works with CHCs compatible with the PS2 version)\n";
-				cout << global.tabs << "Generates a TAS file that can be played in PCSX2 from each CHC's note data. Very useful for testing charts that have been edited.\n";
-				cout << global.tabs << "Note 1: obviously, this only works on CHCs compatible with the PS2 version of the game.\n";
-				cout << global.tabs << "Note 2: currently requires using a custom build (for multitap support and optimized file sizes);\n";
-				cout << global.tabs << "Contact sonicfind#6404 in the Gitaroo Pals discord for the build (https://discord.gg/5BdQnsN).\n" << global.tabs << "\n";
+				printf("%sT - Convert each CHC into a PCSX2 TAS (only works with CHCs compatible with the PS2 version)\n", global.tabs.c_str());
+				printf("%sGenerates a TAS file that can be played in PCSX2 from each CHC's note data. Very useful for testing charts that have been edited.\n", global.tabs.c_str());
+				printf("%sNote 1: obviously, this only works on CHCs compatible with the PS2 version of the game.\n", global.tabs.c_str());
+				printf("%sNote 2: currently requires using a custom build (for multitap support and optimized file sizes);\n", global.tabs.c_str());
+				printf("%sContact sonicfind#6404 in the Gitaroo Pals discord for the build (https://discord.gg/5BdQnsN).\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 			}
 
 			if (LoadLib(dlls[DLL_INDEX].libraries[2]))
 			{
-				cout << global.tabs << "G - Export each CHC as a \".chart\" file for Clone/Guitar Hero\n";
-				cout << global.tabs << "Converts each CHC into a .chart for use in the Guitar Hero/Clone Hero chart editor, Moonscraper. You can download Moonscraper from the #test-builds channel.\n";
-				cout << global.tabs << "in their discord: https://discord.gg/5BdQnsN \n";
-				cout << global.tabs << "Note: this can only be used with CHCs that are fixed & organized.\n" << global.tabs << "\n";
+				printf("%sG - Export each CHC as a \".chart\" file for Clone/Guitar Hero\n", global.tabs.c_str());
+				printf("%sConverts each CHC into a .chart for use in the Guitar Hero/Clone Hero chart editor, Moonscraper. You can download Moonscraper from the #test-builds channel.\n", global.tabs.c_str());
+				printf("%sin their discord: https://discord.gg/5BdQnsN \n", global.tabs.c_str());
+				printf("%sNote: this can only be used with CHCs that are fixed & organized.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 
-				cout << global.tabs << "I - Import notes from Clone/Guitar Hero \".chart\"s into the CHC files\n";
-				cout << global.tabs << "Inserts & replaces section and note data from correctly formatted .chart files into each given CHC file. This is will not generate any new files or \n";
-				cout << global.tabs << "overwrite the current file automatically. That decision will be made during the process with each separate CHC.\n";
-				cout << global.tabs << "(Further formatting details in the Import_Readme.txt)\n";
-				cout << global.tabs << "Note: this can only be used with CHCs that are fixed & organized.\n" << global.tabs << "\n";
+				printf("%sI - Import notes from Clone/Guitar Hero \".chart\"s into the CHC files\n", global.tabs.c_str());
+				printf("%sInserts & replaces section and note data from correctly formatted .chart files into each given CHC file. This is will not generate any new files or \n", global.tabs.c_str());
+				printf("%soverwrite the current file automatically. That decision will be made during the process with each separate CHC.\n", global.tabs.c_str());
+				printf("%s(Further formatting details in the Import_Readme.txt)\n", global.tabs.c_str());
+				printf("%sNote: this can only be used with CHCs that are fixed & organized.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 			}
 
-			cout << global.tabs << "C - Create PCSX2 Phrase Bar Color Cheat templates for each CHC\n";
-			cout << global.tabs << "Generates outline .txt files for use in conjunction with BoringPerson#2570's phrase bar coloring Pyhton script. It will leave all chosen\n";
-			cout << global.tabs << "sections blank for you to fill in and all others filled with a base color. Feel free to change the colors after the files are generated.\n" << global.tabs << "\n";
-		case -2:
+			printf("%sC - Create PCSX2 Phrase Bar Color Cheat templates for each CHC\n", global.tabs.c_str());
+			printf("%sGenerates outline .txt files for use in conjunction with BoringPerson#2570's phrase bar coloring Pyhton script. It will leave all chosen\n", global.tabs.c_str());
+			printf("%ssections blank for you to fill in and all others filled with a base color. Feel free to change the colors after the files are generated.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
+		case '*':
 			break;
+		case 'n':
+			return false;
 		default:
-			if (choices[result] != 'n')
+			adjustTabs(1);
+			while (files->size())
 			{
-				adjustTabs(1);
-				while (files->size())
+				try
 				{
-					try
+					CHC_Main chc(files->front());
+					switch (result)
 					{
-						CHC_Main chc(files->front());
-						switch (choices[result])
+					case 'e':
+						if (chc.menu(files->size()))
 						{
-						case 'e':
-							if (chc.menu(files->size()))
-							{
-								adjustTabs(0);
-								return false;
-							}
-							else
-								break;
-						case 'w':
-							chc.writeTxt();
-							break;
-						case 'p':
-							chc.applyChanges(false, true, true);
-							break;
-						case 'f':
-							chc.applyChanges(true, false, true);
-							break;
-						case 'b':
-							chc.applyChanges(true, true, true);
-							break;
-						case 'd':
-							chc.edit(true);
-							break;
-						case 't':
-							chc.makeTAS();
-							break;
-						case 'g':
-							chc.exportChart();
-							break;
-						case 'i':
-							chc.importChart();
-							break;
-						case 'c':
-							chc.createColorTemplate();
+							adjustTabs(0);
+							return false;
 						}
+						else
+							break;
+					case 'w':
+						chc.writeTxt();
+						break;
+					case 'p':
+						chc.applyChanges(false, true, true);
+						break;
+					case 'f':
+						chc.applyChanges(true, false, true);
+						break;
+					case 'b':
+						chc.applyChanges(true, true, true);
+						break;
+					case 'd':
+						chc.edit(true);
+						break;
+					case 't':
+						chc.makeTAS();
+						break;
+					case 'g':
+						chc.exportChart();
+						break;
+					case 'i':
+						chc.importChart();
+						break;
+					case 'c':
+						chc.createColorTemplate();
 					}
-					catch (string str)
-					{
-						cout << global.tabs << str << endl;
-						cout << global.tabs << "Load cancelled for " << files->front() << ".CHC" << endl;
-					}
-					catch (const char* str)
-					{
-						cout << global.tabs << str << endl;
-						cout << global.tabs << "Load cancelled for " << files->front() << ".CHC" << endl;
-					}
-					files->pop_front();
 				}
-				adjustTabs(0);
-				global.quit = true;
-				break;
+				catch (string str)
+				{
+					printf("%s%s\n", global.tabs.c_str(), str.c_str());
+					printf("%sLoad cancelled for %s.CHC\n", global.tabs.c_str(), files->front().c_str());
+				}
+				catch (const char* str)
+				{
+					printf("%s%s\n", global.tabs.c_str(), str);
+					printf("%sLoad cancelled for %s.CHC\n", global.tabs.c_str(), files->front().c_str());
+				}
+				files->pop_front();
 			}
-			else
-				return false;
+			adjustTabs(0);
+			global.quit = true;
+			break;
 		}
 	} while (!global.quit);
 	global.quit = false;
-	cout << "All provided CHC files have been evaluated." << endl;
+	printf("%sAll provided CHC files have been evaluated.\n", global.tabs.c_str());
 	return false;
 }
 
@@ -240,46 +236,46 @@ Returns false if this is used from the multimenu and if the user wants to procee
 */
 bool CHC_Main::menu(size_t fileCount)
 {
-	do
+	while(!global.quit)
 	{
 		banner(" " + song.shortname + ".CHC - Mode Selection ");
 		string choices = "swpd";
-		cout << global.tabs << "S - Save\n";
-		cout << global.tabs << "W - Write " << song.shortname << ".txt\n";
-		cout << global.tabs << "P - Swap players\n";
+		printf("%sS - Save\n", global.tabs.c_str());
+		printf("%sW - Write %s.txt\n", global.tabs.c_str(), song.shortname.c_str());
+		printf("%sP - Swap players\n", global.tabs.c_str());
 		if (song.unorganized || !song.optimized)
 		{
-			cout << global.tabs << "F - Fix & organize " << song.shortname << ".CHC where necessary (may not get all present bugs)\n";
-			cout << global.tabs << "B - Both 'P' & 'F'\n";
+			printf("%sF - Fix & organize %s.CHC where necessary (may not get all present bugs)\n", global.tabs.c_str(), song.shortname.c_str());
+			printf("%sB - Both 'P' & 'F'\n", global.tabs.c_str());
 			choices += "fb";
 		}
-		cout << global.tabs << "D - Detailed modification\n";
+		printf("%sD - Detailed modification\n", global.tabs.c_str());
 		if (song.imc[0])
 		{
 			if (LoadLib(dlls[DLL_INDEX].libraries[1]))
 			{
-				cout << global.tabs << "T - Convert into a PCSX2 TAS (only works with songs available in the PS2 version)\n";
+				printf("%sT - Convert into a PCSX2 TAS (only works with songs available in the PS2 version)\n", global.tabs.c_str());
 				choices += 't';
 			}
 		}
 		if (LoadLib(dlls[DLL_INDEX].libraries[2]))
 		{
-			cout << global.tabs << "G - Export as \".chart\" for chart editing in Moonscraper\n";
+			printf("%sG - Export as \".chart\" for chart editing in Moonscraper\n", global.tabs.c_str());
 			choices += 'g';
-			cout << global.tabs << "I - Import notes from a Clone/Guitar Hero \".chart\" file\n";
+			printf("%sI - Import notes from a Clone/Guitar Hero \".chart\" file\n", global.tabs.c_str());
 			choices += 'i';
 		}
 		if (song.imc[0])
 		{
-			cout << global.tabs << "C - Create a PCSX2 Phrase Bar Color Cheat template\n";
+			printf("%sC - Create a PCSX2 Phrase Bar Color Cheat template\n", global.tabs.c_str());
 			choices += 'c';
 		}
 		if (fileCount > 1)
 		{
-			cout << global.tabs << "N - Next CHC file\n";
+			printf("%sN - Next CHC file\n", global.tabs.c_str());
 			choices += 'n';
 		}
-		cout << global.tabs << "? - Help info\n";
+		printf("%s? - Help info\n", global.tabs.c_str());
 		if (fileCount > 0)
 		{
 			for (size_t i = 1; i < 20 && !global.quit; i++)
@@ -288,7 +284,7 @@ bool CHC_Main::menu(size_t fileCount)
 				{
 					if (dlls[i].extensions[s].files.size() > 0)
 					{
-						cout << global.tabs << "Q - Proceed to the next filetype (" << dlls[i].extensions[s].ext << ")\n";
+						printf("%sQ - Proceed to the next filetype (%s)\n", global.tabs.c_str(), dlls[i].extensions[s].ext.c_str());
 						global.quit = true;
 					}
 				}
@@ -296,92 +292,94 @@ bool CHC_Main::menu(size_t fileCount)
 			if (global.quit)
 				global.quit = false;
 			else
-				cout << global.tabs << "Q - Quit Program" << endl;
+				printf("%sQ - Quit Program\n", global.tabs.c_str());
 		}
 		else
-			cout << global.tabs << "Q - Main Menu" << endl;
-		size_t value = menuChoices(choices);
-		switch (value)
+			printf("%sQ - Main Menu\n", global.tabs.c_str());
+		size_t result = menuChoices(choices);
+		switch (result)
 		{
-		case -1:
+		case 'q':
 			if (!song.saved)
 			{
-				cout << global.tabs << endl;
-				cout << global.tabs << "Recent changes have not been saved externally to a CHC file. Which action will you take?\n";
-				cout << global.tabs << "S - Save CHC and Exit\n";
-				cout << global.tabs << "Q - Exit without saving\n";
-				cout << global.tabs << "C - Cancel" << endl;
+				printf("%s\n", global.tabs.c_str());
+				printf("%sRecent changes have not been saved externally to a CHC file. Which action will you take?\n", global.tabs.c_str());
+				printf("%sS - Save CHC and Exit to Main Menu\n", global.tabs.c_str());
+				printf("%sQ - Exit without saving\n", global.tabs.c_str());
+				printf("%sC - Cancel\n", global.tabs.c_str());
 				switch (menuChoices("sc"))
 				{
-				case 0:
+				case 's':
 					saveFile();
 					if (!song.saved)
 						break;
-				case -1:
+				case 'q':
 					global.quit = true;
 				}
 			}
 			else
 				global.quit = true;
 			break;
-		case -3:
-			cout << global.tabs << "W - Write " << song.shortname << ".txt" << endl;
-			cout << global.tabs << "Writes out the data present in the CHC file to a readable txt file. This would include all SSQ & cue data, audio values,\n";
-			cout << global.tabs << "section & subsection data - including values for every separate note -, and damage & energy factors. Creates two files -\n";
-			cout << global.tabs << "with one being a simplistic form with only the bare minimum necessary information.\n" << global.tabs << "\n";
+		case '?':
+			printf("%sW - Write %s.txt\n", global.tabs.c_str(), song.shortname.c_str());
+			printf("%sWrites out the data present in the CHC file to a readable txt file. This would include all SSQ & cue data, audio values,\n", global.tabs.c_str());
+			printf("%ssection & subsection data - including values for every separate note -, and damage & energy factors. Creates two files -\n", global.tabs.c_str());
+			printf("%swith one being a simplistic form with only the bare minimum necessary information.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 
-			cout << global.tabs << "P - Swap players" << endl;
-			cout << global.tabs << "Goes through and swaps the charts between the two main payers. For PS2 compatible CHCs, this will swap all charts for P1/P3 with\n";
-			cout << global.tabs << "P2/P4 respectively. For duet CHCs, this will only swap the charts of P1 with P3 as P2 is not important enough to warrant a swap & P4 is empty.\n";
-			cout << global.tabs << "Note: only use this on either 1. A base CHC that was not swapped using an alternate method, or 2. a CHC pre-swapped with this program.\n" << global.tabs << "\n";
+			printf("%sP - Swap players\n", global.tabs.c_str());
+			printf("%sGoes through and swaps the charts between the two main payers. For PS2 compatible CHCs, this will swap all charts for P1/P3 with\n", global.tabs.c_str());
+			printf("%sP2/P4 respectively. For duet CHCs, this will only swap the charts of P1 with P3 as P2 is not important enough to warrant a swap & P4 is empty.\n", global.tabs.c_str());
+			printf("%sNote: only use this on either 1. A base CHC that was not swapped using an alternate method, or 2. a CHC pre-swapped with this program.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 
 			if (song.unorganized > 0 || !song.optimized)
 			{
-				cout << global.tabs << "F - Fix & organize " << song.shortname << ".CHC where necessary (may not get all present bugs)\n";
-				cout << global.tabs << "Many CHC files provided from the base game are very prone to a multitude of glitches or contain sizable mistakes.\n";
-				cout << global.tabs << "For example: Stage 8 having two guard marks being only 2 samples away from eachother, or Stage 3 having a broken attack phrase note.\n";
-				cout << global.tabs << "This function aims to fix many of these issues while also applying an chart organization to evenly balance out chart counts amongst players.\n";
-				cout << global.tabs << "Note: if you come across an issue with it or have the program crash, send me the CHC file used in the Gitaroo Pals discord: https://discord.gg/ed6P8Jt \n";
-				cout << global.tabs << "(sonicfind#6404)\n" << global.tabs << "\n";
+				printf("%sF - Fix & organize %s.CHC where necessary (may not get all present bugs)\n", global.tabs.c_str(), song.shortname.c_str());
+				printf("%sMany CHC files provided from the base game are very prone to a multitude of glitches or contain sizable mistakes.\n", global.tabs.c_str());
+				printf("%sFor example: Stage 8 having two guard marks being only 2 samples away from eachother, or Stage 3 having a broken attack phrase note.\n", global.tabs.c_str());
+				printf("%sThis function aims to fix many of these issues while also applying an chart organization to evenly balance out chart counts amongst players.\n", global.tabs.c_str());
+				printf("%sNote: if you come across an issue with it or have the program crash, send me the CHC file used in the Gitaroo Pals discord: https://discord.gg/ed6P8Jt \n", global.tabs.c_str());
+				printf("%s(sonicfind#6404)\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 
-				cout << global.tabs << "B - Both 'P' & 'F'\n";
-				cout << global.tabs << "Does both option 'S' & option 'F' in a single function.\n" << global.tabs << "\n";
+				printf("%sB - Both 'P' & 'F'\n", global.tabs.c_str());
+				printf("%sDoes both option 'S' & option 'F' in a single function.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 			}
 
-			cout << global.tabs << "D - Detailed modification\n";
-			cout << global.tabs << "Takes you to a menu where you can manually edit some of the smaller details of the CHC, including but not limited to: IMC and audio settings,\n";
-			cout << global.tabs << "gameplay speed/speed of all notes, .SSQ data, and player damage/energy multiplier factors.\n" << global.tabs << "\n";
+			printf("%sD - Detailed modification\n", global.tabs.c_str());
+			printf("%sTakes you to a menu where you can manually edit some of the smaller details of the CHC, including but not limited to: IMC and audio settings,\n", global.tabs.c_str());
+			printf("%sgameplay speed/speed of all notes, .SSQ data, and player damage/energy multiplier factors.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 			
 			if (LoadLib(dlls[DLL_INDEX].libraries[1]))
 			{
-				cout << global.tabs << "T - Convert into a PCSX2 TAS (only works with songs compatible with the PS2 version)\n";
-				cout << global.tabs << "Generates a TAS file that can be played in PCSX2 from the CHC's note data. Very useful for testing charts that have been edited.\n";
-				cout << global.tabs << "Note 1: obviously, this only works on CHCs compatible with the PS2 version of the game.\n";
-				cout << global.tabs << "Note 2: currently requires using my own custom build (for multitap support and optimized file sizes)\n" << global.tabs << "\n";
+				printf("%sT - Convert into a PCSX2 TAS (only works with songs compatible with the PS2 version)\n", global.tabs.c_str());
+				printf("%sGenerates a TAS file that can be played in PCSX2 from the CHC's note data. Very useful for testing charts that have been edited.\n", global.tabs.c_str());
+				printf("%sNote 1: obviously, this only works on CHCs compatible with the PS2 version of the game.\n", global.tabs.c_str());
+				printf("%sNote 2: currently requires using my own custom build (for multitap support and optimized file sizes)\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 			}
 
 			if (LoadLib(dlls[DLL_INDEX].libraries[2]))
 			{
-				cout << global.tabs << "G - Export as \".chart\" for chart editing in Moonscraper\n";
-				cout << global.tabs << "Converts the CHC into .chart for use in the Guitar Hero/Clone Hero chart editor, Moonscraper. You can download Moonscraper from the #test-builds channel.\n";
-				cout << global.tabs << "in their discord: https://discord.gg/5BdQnsN \n";
-				cout << global.tabs << "Note: this can only be used with CHCs that are fixed & organized.\n" << global.tabs << "\n";
+				printf("%sG - Export as \".chart\" for chart editing in Moonscraper\n", global.tabs.c_str());
+				printf("%sConverts the CHC into .chart for use in the Guitar Hero/Clone Hero chart editor, Moonscraper. You can download Moonscraper from the #test-builds channel.\n", global.tabs.c_str());
+				printf("%sin their discord: https://discord.gg/5BdQnsN \n", global.tabs.c_str());
+				printf("%sNote: this can only be used with CHCs that are fixed & organized.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 
-				cout << global.tabs << "I - Import notes from a Clone/Guitar Hero \".chart\" file\n";
-				cout << global.tabs << "Inserts & replaces section and note data from correctly formatted .chart files into each given CHC file. This is will not generate any new files or \n";
-				cout << global.tabs << "overwrite the current file automatically. That decision will be made during the process with each separate CHC.\n";
-				cout << global.tabs << "Refer to the included Chart_import_README.txt for details on formatting a .chart file for this use\n";
-				cout << global.tabs << "Note: this can only be used with CHCs that are fixed & organized.\n" << global.tabs << "\n";
+				printf("%sI - Import notes from a Clone/Guitar Hero \".chart\" file\n", global.tabs.c_str());
+				printf("%sInserts & replaces section and note data from correctly formatted .chart files into each given CHC file. This is will not generate any new files or \n", global.tabs.c_str());
+				printf("%soverwrite the current file automatically. That decision will be made during the process with each separate CHC.\n", global.tabs.c_str());
+				printf("%sRefer to the included Chart_import_README.txt for details on formatting a .chart file for this use\n", global.tabs.c_str());
+				printf("%sNote: this can only be used with CHCs that are fixed & organized.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 			}
 
-			cout << global.tabs << "C - Create a PCSX2 Phrase Bar Color Cheat template\n";
-			cout << global.tabs << "Generates a outline txt file for use in conjunction with BoringPerson#2570's phrase bar coloring Pyhton script. It will leave all chosen\n";
-			cout << global.tabs << "sections blank for you to fill in and all others filled with a base color. Feel free to change the colors in the file after it's generated.\n" << global.tabs << "\n";
-		case -2:
+			printf("%sC - Create a PCSX2 Phrase Bar Color Cheat template\n", global.tabs.c_str());
+			printf("%sGenerates a outline txt file for use in conjunction with BoringPerson#2570's phrase bar coloring Pyhton script. It will leave all chosen\n", global.tabs.c_str());
+			printf("%ssections blank for you to fill in and all others filled with a base color. Feel free to change the colors in the file after it's generated.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
+		case '*':
 			break;
+		case 'n':
+			return false;
 		default:
 			adjustTabs(1);
-			switch (choices[value])
+			switch (result)
 			{
 			case 's':
 				saveFile();
@@ -412,15 +410,10 @@ bool CHC_Main::menu(size_t fileCount)
 				break;
 			case 'c':
 				createColorTemplate();
-				break;
-			case 'n':
-				return false;
-				break;
 			}
 			adjustTabs(0);
 		}
-	} while (!global.quit);
-	global.quit = false;
+	}
 	return true;
 }
 
@@ -431,41 +424,47 @@ void CHC_Main::saveFile()
 	string filename = song.name.substr(0, song.name.length() - 4);
 	do
 	{
-		cout << global.tabs << "S - Save & Overwrite Original File" << endl;
-		cout << global.tabs << "A - Save as \"" << song.shortname << "_T.CHC\"" << endl;
-		cout << global.tabs << "Q - Back Out" << endl;
-		switch (menuChoices("sa"))
+		string choices = "a";
+		if (song.saved != 2)
 		{
-		case -1:
+			printf("%sS - Save & Overwrite %s.CHC\n", global.tabs.c_str(), song.shortname.c_str());
+			choices += 's';
+		}
+		printf("%sA - Save as \"%s_T.CHC\"\n", global.tabs.c_str(), song.shortname.c_str());
+		printf("%sQ - Back Out\n", global.tabs.c_str());
+		switch (menuChoices(choices))
+		{
+		case 'q':
 			return;
-		case 0:
-			cout << global.tabs << "Saving " << song.shortname + ".CHC" << endl;
+		case 's':
+			printf("%sSaving %s.CHC\n", global.tabs.c_str(), song.shortname.c_str());
 			song.create(song.name);
+			song.saved = 2;
 			global.quit = true;
-			break;
-		case 1:
+		case 'a':
 			do
 			{
 				switch (fileOverwriteCheck(filename + ext + ".CHC"))
 				{
-				case -1:
+				case 'q':
 					return;
-				case 0:
-					cout << global.tabs << endl;
+				case 'n':
+					printf("%s\n", global.tabs.c_str());
 					ext += "_T";
 					break;
-				case 1:
+				case 'y':
 					song.create(filename + ext + ".CHC");
 					do
 					{
-						cout << global.tabs << "Swap loaded file to " << filename + ext << ".CHC? [Y/N]" << endl;
+						printf("%sSwap loaded file to %s.CHC? [Y/N]\n", global.tabs.c_str(), (filename + ext).c_str());
 						switch (menuChoices("yn"))
 						{
-						case 0:
+						case 'y':
 							song.name = filename + ext + ".CHC";
 							song.shortname += ext;
-						case 1:
-						case -1:
+							song.saved = 2;
+						case 'n':
+						case 'q':
 							global.quit = true;
 						}
 					} while (!global.quit);
@@ -494,12 +493,12 @@ void CHC_Main::writeTxt()
 		song.imc[0] ? dualvfprintf_s(outTXT, outSimpleTXT, song.imc)		//IMC
 			: dualvfprintf_s(outTXT, outSimpleTXT, "Unused in PSP version");
 		dualvfprintf_s(outTXT, outSimpleTXT, "\n\t   SSQ Events:\n");
-		for (unsigned index = 0; index < 4; index++)
+		for (size_t index = 0; index < 4; index++)
 		{
 			switch (index)
 			{
-			case 0: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t    Win A:\n"); break;
-			case 1: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t    Win B:\n"); break;
+			case 'q': dualvfprintf_s(outTXT, outSimpleTXT, "\t\t    Win A:\n"); break;
+			case '!': dualvfprintf_s(outTXT, outSimpleTXT, "\t\t    Win B:\n"); break;
 			case 2: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t Lose Pre:\n"); break;
 			case 3: dualvfprintf_s(outTXT, outSimpleTXT, "\t\tLose Loop:\n");
 			}
@@ -509,13 +508,13 @@ void CHC_Main::writeTxt()
 		dualvfprintf_s(outTXT, outSimpleTXT, "       Audio Channels:\n");
 		if (song.imc[0])
 		{
-			for (unsigned index = 0; index < 8; index++)
+			for (size_t index = 0; index < 8; index++)
 			{
 				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t Channel %u:\n", index + 1);
 				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t       Volume: %lu (%g%%)\n", song.audio[index].volume, song.audio[index].volume * 100.0 / 32767);
 				switch (song.audio[index].pan)
 				{
-				case 0: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Left (0)\n"); break;
+				case 'q': dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Left (0)\n"); break;
 				case 16383: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Center (16383)\n"); break;
 				case 32767: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Right (32767)\n"); break;
 				default: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: %g%% Left | %g%% Right (%lu)\n", 100 - (song.audio[index].pan * 100.0 / 32767),
@@ -535,7 +534,7 @@ void CHC_Main::writeTxt()
 			}
 		}
 		dualvfprintf_s(outTXT, outSimpleTXT, "\t       Speed: %g\n", song.speed);
-		fputs("\t   # of Cues: %zu\n", outTXT);
+		fputs("\t   # of Cues: %lu\n", outTXT);
 		fputs("\t    SSQ Cues:\n", outTXT);
 		for (size_t cueIndex = 0; cueIndex < song.sections.size(); cueIndex++)	//Cues
 		{
@@ -548,7 +547,7 @@ void CHC_Main::writeTxt()
 		}
 		fflush(outTXT);
 		fflush(outSimpleTXT);
-		dualvfprintf_s(outTXT, outSimpleTXT, "       # of Sections: %zu\n", song.sections.size());
+		dualvfprintf_s(outTXT, outSimpleTXT, "       # of Sections: %lu\n", song.sections.size());
 		dualvfprintf_s(outTXT, outSimpleTXT, "       Song Sections:\n");
 		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++) //SongSections
 		{
@@ -614,18 +613,18 @@ void CHC_Main::writeTxt()
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Tempo: %g\n", section.tempo);
 			fprintf(outTXT, "\t\t\t    Samples/Beat: %Lg\n", SAMPLES_PER_MIN / section.tempo);
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\tDuration: %lu samples\n", section.duration);
-			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t # of Conditions: %zu\n", section.conditions.size());
+			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t # of Conditions: %lu\n", section.conditions.size());
 			for (size_t condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 			{
 				SongSection::Condition& cond = section.conditions[condIndex];
-				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Condition %zu:\n", condIndex + 1);
+				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Condition %lu:\n", condIndex + 1);
 				switch (cond.type)
 				{
-				case 0:
+				case 'q':
 					fputs("\t\t\t\t\t\tType: Unconditional\n", outTXT);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: Always true.\n");
 					break;
-				case 1:
+				case '!':
 					fputs("\t\t\t\t\t\tType: Left Side Energy", outTXT);
 					fprintf(outTXT, "\t\t\t\t\t    Argument: %g\n", cond.argument);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: True if Left Side's energy is less than %g%%. False otherwise.\n", cond.argument * 100.0);
@@ -660,7 +659,7 @@ void CHC_Main::writeTxt()
 				}
 				else
 				{
-					if ((size_t)cond.trueEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t True Effect: Move to Section %s.\n", song.sections[(size_t)cond.trueEffect].name);
+					if ((unsigned long)cond.trueEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t True Effect: Move to Section %s.\n", song.sections[cond.trueEffect].name);
 					else dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t True Effect: End song.\n");
 				}
 				if (cond.type != 0)
@@ -672,30 +671,10 @@ void CHC_Main::writeTxt()
 					}
 					else
 					{
-						if ((size_t)cond.falseEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: Move to Section %s.\n", song.sections[(size_t)cond.trueEffect].name);
+						if ((unsigned long)cond.falseEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: Move to Section %s.\n", song.sections[cond.trueEffect].name);
 						else dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: End song.\n");
 					}
 				}
-			}
-			if (section.numPlayers != 4)
-			{
-				do
-				{
-					cout << global.tabs << "Are you sure you want value for the number of players used to read " << section.name << " to be " << section.numPlayers << "? [Y/N][Q to halt player swap from this point]\n";
-					cout << global.tabs << "Choosing 'N' force a read of 4 players\n";
-					switch (menuChoices("yn"))
-					{
-					case -1:
-						fclose(outTXT);
-						fclose(outSimpleTXT);
-						return;
-					case 1:
-						section.numPlayers = 4;
-					case 0:
-						global.quit = true;
-					}
-				} while (!global.quit);
-				global.quit = false;
 			}
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t    # of Players: %lu\n", section.numPlayers);
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t       Charts per Player: %lu\n", section.numCharts);
@@ -704,7 +683,7 @@ void CHC_Main::writeTxt()
 				for (size_t chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
 				{
 					Chart& chart = section.charts[playerIndex * section.numCharts + chartIndex];
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t Player %zu - Chart %02zu\n", playerIndex + 1, chartIndex + 1);
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t Player %lu - Chart %02lu\n", playerIndex + 1, chartIndex + 1);
 					fprintf(outTXT, "\t\t\t\t\t  Size (32bit): %lu\n", chart.getSize());
 					fprintf(outTXT, "\t\t\t\t\t\t  Junk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(chart.getJunk())));
 					fprintf(outTXT, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(chart.getJunk() + 4)));
@@ -712,11 +691,11 @@ void CHC_Main::writeTxt()
 					fprintf(outTXT, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(chart.getJunk() + 12)));
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t   Pivot Point: %lu samples\n", chart.getPivotTime());
 					fprintf(outTXT, "\t\t\t\t\t      End Time: %lu samples\n", chart.getEndTime());
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Trace Lines: %zu\n", chart.getNumTracelines());
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Trace Lines: %lu\n", chart.getNumTracelines());
 					for (size_t traceIndex = 0; traceIndex < chart.getNumTracelines(); traceIndex++)
 					{
 						Traceline& trace = chart.getTraceline(traceIndex);
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Trace Line %03zu:\n", traceIndex + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Trace Line %03lu:\n", traceIndex + 1);
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", trace.getPivotAlpha());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", trace.getPivotAlpha() + chart.getPivotTime());
 						fprintf(outTXT, "\t\t\t\t\t\t\t    Duration: %lu samples\n", trace.getDuration());
@@ -734,10 +713,10 @@ void CHC_Main::writeTxt()
 						for (; traceIndex < chart.getNumTracelines(); traceIndex++)
 							if (chart.getTraceline(traceIndex).contains(phrase.getPivotAlpha()))
 								break;
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     Phrase Fragment %03zu:\n", phraseIndex + 1);
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     [Note #%03zu", note + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     Phrase Fragment %03lu:\n", phraseIndex + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     [Note #%03lu", note + 1);
 						if (piece)
-							dualvfprintf_s(outTXT, outSimpleTXT, " - Piece ##%02zu", piece + 1);
+							dualvfprintf_s(outTXT, outSimpleTXT, " - Piece ##%02lu", piece + 1);
 						fprintf(outTXT, "| Trace Line #%03zu]:\n", traceIndex + 1);
 						fputs("]:\n", outSimpleTXT);
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", phrase.getPivotAlpha());
@@ -766,18 +745,18 @@ void CHC_Main::writeTxt()
 						fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 4)));
 						fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 8)));
 					}
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Guard Marks: %zu\n", chart.getNumGuards());
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Guard Marks: %lu\n", chart.getNumGuards());
 					for (size_t guardIndex = 0; guardIndex < chart.getNumGuards(); guardIndex++)
 					{
 						Guard& guard = chart.getGuard(guardIndex);
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Guard Mark %03zu:\n", guardIndex + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Guard Mark %03lu:\n", guardIndex + 1);
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", guard.getPivotAlpha());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", guard.getPivotAlpha() + chart.getPivotTime());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t      Button: ");
 						switch (guard.getButton())
 						{
-						case 0: fputs("Left\n", outTXT); fputs("Square\n", outSimpleTXT); break;
-						case 1: fputs("Down\n", outTXT); fputs("X/Cross\n", outSimpleTXT); break;
+						case 'q': fputs("Left\n", outTXT); fputs("Square\n", outSimpleTXT); break;
+						case '!': fputs("Down\n", outTXT); fputs("X/Cross\n", outSimpleTXT); break;
 						case 2: fputs("Right\n", outTXT); fputs("Circle\n", outSimpleTXT); break;
 						case 3: fputs("Up\n", outTXT); fputs("Triangle\n", outSimpleTXT);
 						}
@@ -798,8 +777,8 @@ void CHC_Main::writeTxt()
 			{
 				switch (section)
 				{
-				case 0: dualvfprintf_s(outTXT, outSimpleTXT, "\t  Intro ||"); break;
-				case 1: dualvfprintf_s(outTXT, outSimpleTXT, "\t Charge ||"); break;
+				case 'q': dualvfprintf_s(outTXT, outSimpleTXT, "\t  Intro ||"); break;
+				case '!': dualvfprintf_s(outTXT, outSimpleTXT, "\t Charge ||"); break;
 				case 2: dualvfprintf_s(outTXT, outSimpleTXT, "\t Battle ||"); break;
 				case 3: dualvfprintf_s(outTXT, outSimpleTXT, "\tHarmony ||"); break;
 				case 4: dualvfprintf_s(outTXT, outSimpleTXT, "\t    End ||");
@@ -819,11 +798,11 @@ void CHC_Main::writeTxt()
 	}
 	catch (string str)
 	{
-		cout << global.tabs << str << endl;
+		printf("%s%s\n", global.tabs.c_str(), str.c_str());
 	}
 	catch (const char* str)
 	{
-		cout << global.tabs << str << endl;
+		printf("%s%s\n", global.tabs.c_str(), str);
 	}
 	fclose(outTXT);
 	fclose(outSimpleTXT);
@@ -858,7 +837,7 @@ bool CHC_Main::applyChanges(bool fix, bool swap, bool save)
 	}
 	catch (exception e)
 	{
-		cout << global.tabs << "Exception Caught: " << e.what() << endl;
+		printf("%sException Caught: %s\n", global.tabs.c_str(), e.what());
 		return false;
 	}
 }
@@ -887,18 +866,18 @@ void CHC_Main::exportChart()
 	{
 		do
 		{
-			cout << global.tabs << "To use the CH Chart Export option on " << song.shortname << ".CHC, the file must fully fixed & organized.\n";
-			cout << global.tabs << "Fix & organize the file now? [Y/N]" << endl;
+			printf("%sTo use the CH Chart Export option on %s.CHC, the file must fully fixed & organized.\n", global.tabs.c_str(), song.shortname.c_str());
+			printf("%sFix & organize the file now? [Y/N]\n", global.tabs.c_str());
 			switch (menuChoices("yn"))
 			{
-			case 0:
+			case 'y':
 				applyChanges(true, false);
 				banner(" " + song.shortname + " - .CHART creation ");
 				global.quit = true;
 				break;
-			case -1:
-			case 1:
-				cout << global.tabs << "CH Chart Export on " << song.shortname << " aborted due to not being fully organized." << endl;
+			case 'n':
+			case 'q':
+				printf("%sCH Chart Export on %s aborted due to not being fully organized.\n", global.tabs.c_str(), song.shortname.c_str());
 				return;
 			}
 		} while (!global.quit);
@@ -914,18 +893,18 @@ void CHC_Main::importChart()
 	{
 		do
 		{
-			cout << global.tabs << "To use the CH Chart Import option on " << song.shortname << ".CHC, the file must fully fixed & organized.\n";
-			cout << global.tabs << "Fix & organize the file now? [Y/N]" << endl;
+			printf("%sTo use the CH Chart Import option on %s.CHC, the file must fully fixed & organized.\n", global.tabs.c_str(), song.shortname.c_str());
+			printf("%sFix & organize the file now? [Y/N]\n", global.tabs.c_str());
 			switch (menuChoices("yn"))
 			{
-			case 0:
+			case 'y':
 				applyChanges(true, false);
 				banner(" " + song.shortname + " - .CHART Note Import/Replacement ");
 				global.quit = true;
 				break;
-			case -1:
-			case 1:
-				cout << global.tabs << "CH Chart Import on " << song.shortname << " aborted due to not being fully organized." << endl;
+			case 'n':
+			case 'q':
+				printf("%sCH Chart Import on %s aborted due to not being fully organized.\n", global.tabs.c_str(), song.shortname.c_str());
 				return;
 			}
 		} while (!global.quit);
@@ -941,37 +920,37 @@ bool CHC_Main::createColorTemplate()
 	List<size_t> sectionIndexes;
 	do
 	{
-		cout << global.tabs << "Type the number for each section that you wish to outline colors for - w/ spaces inbetween." << endl;
-		for (unsigned index = 0; index < song.sections.size(); index++)
-			cout << global.tabs << index << " - " << song.sections[index].name << endl;
+		printf("%sType the number for each section that you wish to outline colors for - w/ spaces inbetween.\n", global.tabs.c_str());
+		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
+			printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, song.sections[sectIndex].getName());
 		if (sectionIndexes.size())
 		{
-			cout << global.tabs << "Current List: ";
-			for (unsigned index = 0; index < sectionIndexes.size(); index++)
-				cout << song.sections[sectionIndexes[index]].name << " ";
-			cout << '\n';
+			printf("%sCurrent List: ", global.tabs.c_str());
+			for (size_t index = 0; index < sectionIndexes.size(); index++)
+				printf("%s ", song.sections[sectionIndexes[index]].getName());
+			putchar('\n');
 		}
-		switch (vectorValueInsert(sectionIndexes, "yn", song.sections.size(), false))
+		switch (listValueInsert(sectionIndexes, "yn", song.sections.size(), false))
 		{
-		case -1:
-
+		case '?':
+			printf("%sHelp: [TBD]\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 			break;
-		case 0:
-			cout << global.tabs << "Color Sheet creation cancelled." << endl;
+		case 'q':
+			printf("%sColor Sheet creation cancelled.\n", global.tabs.c_str());
 			return false;
-		case 1:
+		case '!':
 			if (!sectionIndexes.size())
 			{
 				do
 				{
-					cout << global.tabs << "No sections have been selected. Quit Color Sheet creation? [Y/N]" << endl;
+					printf("%sNo sections have been selected. Quit Color Sheet creation? [Y/N]\n", global.tabs.c_str());
 					switch (menuChoices("yn"))
 					{
-					case -1:
-					case 0:
-						cout << global.tabs << "Color Sheet creation cancelled." << endl;
+					case 'q':
+					case 'y':
+						printf("%sColor Sheet creation cancelled.\n", global.tabs.c_str());
 						return false;
-					case 1:
+					case 'n':
 						global.quit = true;
 					}
 				} while (!global.quit);
@@ -980,10 +959,10 @@ bool CHC_Main::createColorTemplate()
 			else
 				global.quit = true;
 			break;
-		case 2:
+		case 'y':
 			if (!sectionIndexes.size())
 			{
-				cout << global.tabs << "Color Sheet creation cancelled." << endl;
+				printf("%sColor Sheet creation cancelled.\n", global.tabs.c_str());
 				return false;
 			}
 			else
@@ -991,9 +970,10 @@ bool CHC_Main::createColorTemplate()
 				global.quit = true;
 				break;
 			}
-		case 3:
-			cin.get();
-			cout << global.tabs << "Ok... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n";
+		case 'n':
+			printf("%s\n", global.tabs.c_str());
+			printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", global.tabs.c_str());
+			printf("%s\n", global.tabs.c_str());
 		}
 	} while (!global.quit);
 	global.quit = false;
@@ -1004,29 +984,29 @@ bool CHC_Main::createColorTemplate()
 	{
 		switch (fileOverwriteCheck(filename + ".txt"))
 		{
-		case 0:
-			cout << global.tabs << endl;
+		case 'n':
+			printf("%s\n", global.tabs.c_str());
 			filename += "_T";
 			break;
-		case 1:
+		case 'y':
 			fopen_s(&outSheet, (filename + ".txt").c_str(), "w");
-		case -1:
+		case 'q':
 			global.quit = true;
 		}
 	} while (!global.quit);
-	cout << global.tabs << endl;
+	printf("%s\n", global.tabs.c_str());
 	global.quit = false;
 	do
 	{
 		switch (fileOverwriteCheck(filename2 + ".txt"))
 		{
-		case 0:
-			cout << global.tabs << endl;
+		case 'n':
+			printf("%s\n", global.tabs.c_str());
 			filename2 += "_T";
 			break;
-		case 1:
+		case 'y':
 			fopen_s(&outSheet2, (filename2 + ".txt").c_str(), "w");
-		case -1:
+		case 'q':
 			global.quit = true;
 		}
 	} while (!global.quit);
@@ -1097,7 +1077,7 @@ bool CHC_Main::createColorTemplate()
 				}
 			}
 			if (inputs[sectIndex])
-				cout << global.tabs << "Colored " << section.getName() << endl;
+				printf("%sColored %s\n", global.tabs.c_str(), section.getName());
 		}
 		delete[song.sections.size()] inputs;
 		if (outSheet != nullptr)
@@ -1108,7 +1088,7 @@ bool CHC_Main::createColorTemplate()
 	}
 	else
 	{ 
-		cout << global.tabs << "Color Sheet creation cancelled." << endl;
+		printf("%sColor Sheet creation cancelled.\n", global.tabs.c_str());
 		return false;
 	}
 }

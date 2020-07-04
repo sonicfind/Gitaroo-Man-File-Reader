@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 			}
 			if (unloaded)
 			{
-				puts("Unloaded ");
+				printf("Unloaded ");
 				for (size_t s = 0; s < dlls[i].extensions.size(); s++)
 					printf("%s ", dlls[i].extensions[s].ext.c_str());
 				putchar('\n');
@@ -66,13 +66,13 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		puts("No BASE filetype extensions found.\n To use this program, you must have at least *one* of the available BASE extensions in its respective folder.\n");
-		puts("You can get all currently available extentions from the pinned message board in the #hacking channel in the \"Gitaroo Pals\" discord.\n");
-		puts("If you're getting this error despite having the dlls, you most likely don't have them in the right folder. A file type's extensions *must* be in their own designated folder.\n");
-		puts("Example: CHC_Base & other CHC extensions go in a folder named CHC. The base extension is the most important. Any non-file type specific dll stays next to the exe.\n");
-		puts("Discord Link: https://discord.gg/ed6P8Jt\n");
+		printf("No BASE filetype extensions found.\n To use this program, you must have at least *one* of the available BASE extensions in its respective folder.\n");
+		printf("You can get all currently available extentions from the pinned message board in the #hacking channel in the \"Gitaroo Pals\" discord.\n");
+		printf("If you're getting this error despite having the dlls, you most likely don't have them in the right folder. A file type's extensions *must* be in their own designated folder.\n");
+		printf("Example: CHC_Base & other CHC extensions go in a folder named CHC. The base extension is the most important. Any non-file type specific dll stays next to the exe.\n");
+		printf("Discord Link: https://discord.gg/ed6P8Jt\n");
 	}
-	puts("Press 'enter' to close the window...");
+	printf("Press 'enter' to close the window...");
 	char end;
 	if (global.multi)
 		clearIn();
@@ -87,6 +87,7 @@ int main(int argc, char** argv)
 bool multi(int fileCount, char** files)
 {
 	string filename = "";
+	int filesInsert = 0;
 	if (fileCount > 1)
 	{
 		for (int index = 1; index < fileCount; index++)
@@ -125,7 +126,7 @@ bool multi(int fileCount, char** files)
 								if (dlls[i].libraries[0].dll != nullptr)
 								{
 									dlls[i].extensions[s].files.push_back(filename.substr(0, filename.find_last_of('.')));
-									fileCount++;
+									filesInsert++;
 								}
 								else
 								{
@@ -163,7 +164,7 @@ bool multi(int fileCount, char** files)
 							{
 								dlls[i].extensions[s].files.push_back(filename);
 								valid = true;
-								fileCount++;
+								filesInsert++;
 							}
 							else
 							{
@@ -201,7 +202,7 @@ bool multi(int fileCount, char** files)
 		}
 		global.quit = false;
 	}
-	return fileCount;
+	return filesInsert;
 }
 
 bool single()
@@ -220,7 +221,6 @@ bool single()
 	putchar('\n');
 	printf("%sProvide the name of the file you wish to use (Or 'Q' to exit): ", global.tabs.c_str());
 	//Breaks the loop if quit character is choosen
-	char val = filenameInsertion(filename);
 	switch (filenameInsertion(filename))
 	{
 	case 'q':

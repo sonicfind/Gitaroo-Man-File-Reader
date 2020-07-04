@@ -999,13 +999,13 @@ void CHC_Editor::adjustFactors()
 		{
 			printf("%s        Player %zu      ||  Intro  ||  Charge ||  Battle || Harmony ||   End   ||", global.tabs.c_str(), player + 1);
 			printf("||        Player %zu      ||  Intro  ||  Charge ||  Battle || Harmony ||   End   ||\n", player + 2);
-			printf("%s%s||||%s||", global.tabs.c_str(), string(81, '=').c_str(), string(79, '=').c_str());
+			printf("%s%s||||%s||", global.tabs.c_str(), string(77, '=').c_str(), string(77, '=').c_str());
 			for (size_t factor = 0; factor < 8; factor++)
 			{
 				printf("\n\t      ");
 				for (size_t index = player; index < player + 2; index++)
 				{
-					puts(headers[factor]);
+					printf(headers[factor]);
 					for (size_t phase = 0; phase < 5; phase++)
 					{
 						float* val = &song->energyDamageFactors[index][phase].start + factor;
@@ -1013,7 +1013,7 @@ void CHC_Editor::adjustFactors()
 					}
 				}
 			}
-			printf("\n%s%s||\n", global.tabs.c_str(), string(160, '=').c_str());
+			printf("\n%s%s||\n", global.tabs.c_str(), string(158, '=').c_str());
 		}
 		printf("%sSelect a player ('1'/'2'/'3'/'4') [Type 'Q' to exit factor settings]\n", global.tabs.c_str());
 		size_t player = menuChoices("1234", true);
@@ -1031,7 +1031,7 @@ void CHC_Editor::adjustFactors()
 			{
 				banner(" " + song->shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " ");
 				printf("%s        Player %zu      ||  Intro  ||  Charge ||  Battle || Harmony ||   End   ||\n", global.tabs.c_str(), player + 1);
-				printf("%s%s||", global.tabs.c_str(), string(79, '=').c_str());
+				printf("%s%s||", global.tabs.c_str(), string(77, '=').c_str());
 				for (size_t factor = 0; factor < 8; factor++)
 				{
 					printf("\n\t      %s", headers[factor]);
@@ -1041,10 +1041,10 @@ void CHC_Editor::adjustFactors()
 						printf("  %5g%% ||", (*val) * 100.0);
 					}
 				}
-				printf("\n%s%s||\n", global.tabs.c_str(), string(79, '=').c_str());
+				printf("\n%s%s||\n", global.tabs.c_str(), string(77, '=').c_str());
 				printf("%sSelect a phase ('I'/'C'/'B'/'H'/'E') [Type 'P' to choose a different player | 'Q' to exit factor settings]\n", global.tabs.c_str());
 				size_t phase = menuChoices("icbhep", true);
-				const char* phaseName[5] = { "Intro", "Charge", "Battle", "Harmony", "End" };
+				const string phaseName[5] = { "Intro", "Charge", "Battle", "Harmony", "End" };
 				switch (phase)
 				{
 				case 'q':
@@ -1060,19 +1060,19 @@ void CHC_Editor::adjustFactors()
 					do
 					{
 						banner(" " + song->shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phaseName[phase] + " ");
-						printf("%s          Player %zu        || %7s ||\n", global.tabs.c_str(), player + 1, phaseName[phase]);
-						printf("%s%s||\n", global.tabs.c_str(), string(39, '=').c_str());
-						printf("%s 1 - Starting Energy      ||  %5g%% ||\n", global.tabs.c_str(), song->energyDamageFactors[player][phase].start * 100.0);
-						printf("%s 2 - Initial-Press Energy ||  %5g%% ||\n", global.tabs.c_str(), song->energyDamageFactors[player][phase].chargeInitial * 100.0);
-						printf("%s 3 - Initial-Press Damage ||  %5g%% ||\n", global.tabs.c_str(), song->energyDamageFactors[player][phase].attackInitial * 100.0);
-						printf("%s 4 - Guard Energy Gain    ||  %5g%% ||\n", global.tabs.c_str(), song->energyDamageFactors[player][phase].guardEnergy * 100.0);
-						printf("%s 5 - Attack Miss Damage   ||  %5g%% ||\n", global.tabs.c_str(), song->energyDamageFactors[player][phase].attackMiss * 100.0);
-						printf("%s 6 - Guard  Miss Damage   ||  %5g%% ||\n", global.tabs.c_str(), song->energyDamageFactors[player][phase].guardMiss * 100.0);
-						printf("%s 7 - Sustain Energy Coef. ||  %5g%% ||\n", global.tabs.c_str(), song->energyDamageFactors[player][phase].chargeRelease * 100.0);
-						printf("%s 8 - Sustain Damage Coef. ||  %5g%% ||\n", global.tabs.c_str(), song->energyDamageFactors[player][phase].attackRelease * 100.0);
-						printf("%s%s||\n", global.tabs.c_str(), string(39, '=').c_str());
-						printf("%sSelect a factor by number [Type 'P' to choose a different phase | 'Q' to exit factor settings]\n", global.tabs.c_str());
-						size_t factor = menuChoices("12345678p", true);
+						printf("%s          Player %zu        || %*s ||\n", global.tabs.c_str(), player + 1, phaseName[phase].length() + 1, phaseName[phase].c_str());
+						printf("%s%s||\n", global.tabs.c_str(), string(31 + phaseName[phase].length(), '=').c_str());
+						printf("%s 1 - Starting Energy      || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].start * 100.0);
+						printf("%s 2 - Initial-Press Energy || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].chargeInitial * 100.0);
+						printf("%s 3 - Initial-Press Damage || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].attackInitial * 100.0);
+						printf("%s 4 - Guard Energy Gain    || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].guardEnergy * 100.0);
+						printf("%s 5 - Attack Miss Damage   || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].attackMiss * 100.0);
+						printf("%s 6 - Guard  Miss Damage   || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].guardMiss * 100.0);
+						printf("%s 7 - Sustain Energy Coef. || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].chargeRelease * 100.0);
+						printf("%s 8 - Sustain Damage Coef. || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].attackRelease * 100.0);
+						printf("%s%s||\n", global.tabs.c_str(), string(31 + phaseName[phase].length(), '=').c_str());
+						printf("%sSelect a factor by number [Type 'B' to choose a different phase | 'Q' to exit factor settings]\n", global.tabs.c_str());
+						size_t factor = menuChoices("12345678b", true);
 						switch (factor)
 						{
 						case 'q':
@@ -1081,7 +1081,7 @@ void CHC_Editor::adjustFactors()
 							printf("%sHelp: [TBD]\n%s\n", global.tabs.c_str(), global.tabs.c_str());
 						case '*':
 							break;
-						case 8:
+						case 8: // 'b'
 							global.quit = true;
 							break;
 						default:
@@ -1091,17 +1091,17 @@ void CHC_Editor::adjustFactors()
 													" | Attack Miss Damage ", " | Guard Miss Damage ", " | Sustain Energy Coef. ", " | Sustain Damage Coef. " };
 								banner(" " + song->shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phaseName[phase] + enders[factor]);
 								float* val = &song->energyDamageFactors[player][phase].start + factor;
-								printf("%s        Player %zu      || %7s ||\n", global.tabs.c_str(), player + 1, phaseName[phase]);
-								printf("%s%s||\n", global.tabs.c_str(), string(35, '=').c_str());
-								printf("\t      %s %6g  ||\n", headers[factor], *val);
-								printf("%s%s||\n", global.tabs.c_str(), string(35, '=').c_str());
-								printf("%sProvide a new value for this factor [Type 'F' to choose a different factor | 'Q' to exit factor settings]\n", global.tabs.c_str());
+								printf("%s        Player %zu      || %s ||\n", global.tabs.c_str(), player + 1, phaseName[phase].c_str());
+								printf("%s%s||\n", global.tabs.c_str(), string(26 + phaseName[phase].length(), '=').c_str());
+								printf("\t      %s %*g ||\n", headers[factor], phaseName[phase].length(), *val);
+								printf("%s%s||\n", global.tabs.c_str(), string(26 + phaseName[phase].length(), '=').c_str());
+								printf("%sProvide a new value for this factor [Type 'B' to choose a different factor | 'Q' to exit factor settings]\n", global.tabs.c_str());
 								printf("%sCan be a decimal... and/or negative with weird effects\n", global.tabs.c_str());
 								printf("%sInput: ", global.tabs.c_str());
 								float oldFac = *val;
-								switch (valueInsert(*val, true, 0.0f, 0.0f, "f"))
+								switch (valueInsert(*val, true, 0.0f, 0.0f, "b"))
 								{
-								case 2:
+								case 'b':
 									global.quit = true;
 									break;
 								case '!':
@@ -1152,21 +1152,21 @@ bool CHC_Editor::pathTest(size_t startIndex, bool show)
 			}
 			bool* reach = new bool[song->sections.size()]();
 			testSection(startIndex, conditionTested, results, reach);
-			printf("%s%s||\n", global.tabs.c_str(), string(42, '=').c_str());
+			printf("%s%s||\n", global.tabs.c_str(), string(40, '=').c_str());
 			printf("%s Section || Accessible? || Can Reach End? ||\n", global.tabs.c_str());
 			for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
 			{
 				printf("%s%8s ||      ", global.tabs.c_str(), song->sections[sectIndex].name);
 				if (reach[sectIndex])
-					puts("Y      ||        ");
+					printf("Y      ||        ");
 				else
-					puts("N      ||        ");
+					printf("N      ||        ");
 				if (results[sectIndex])
-					puts("Y       ||\n");
+					printf("Y       ||\n");
 				else
-					puts("N       ||\n");
+					printf("N       ||\n");
 			}
-			printf("%s%s||\n", global.tabs.c_str(), string(42, '=').c_str());
+			printf("%s%s||\n", global.tabs.c_str(), string(40, '=').c_str());
 		}
 		for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
 			if (conditionTested[sectIndex] != nullptr)
@@ -1265,13 +1265,13 @@ void CHC_Editor::sectionSubMenu()
 				printf("%sP - Phase: ", global.tabs.c_str());
 				switch (song->sections[val].battlePhase)
 				{
-				case SongSection::Phase::INTRO: puts("INTRO\n"); break;
-				case SongSection::Phase::CHARGE: puts("CHARGE\n"); break;
-				case SongSection::Phase::BATTLE: puts("BATTLE\n");  break;
-				case SongSection::Phase::FINAL_AG: puts("FINAL_AG\n");  break;
-				case SongSection::Phase::HARMONY: puts("HARMONY\n"); break;
-				case SongSection::Phase::END: puts("END\n");  break;
-				default: puts("FINAL_I\n");
+				case SongSection::Phase::INTRO: printf("INTRO\n"); break;
+				case SongSection::Phase::CHARGE: printf("CHARGE\n"); break;
+				case SongSection::Phase::BATTLE: printf("BATTLE\n");  break;
+				case SongSection::Phase::FINAL_AG: printf("FINAL_AG\n");  break;
+				case SongSection::Phase::HARMONY: printf("HARMONY\n"); break;
+				case SongSection::Phase::END: printf("END\n");  break;
+				default: printf("FINAL_I\n");
 				}
 				printf("%sT - Tempo: %g\n", global.tabs.c_str(), song->sections[val].tempo );
 				printf("%sD - Duration: %lu\n", global.tabs.c_str(), song->sections[val].duration );
@@ -1863,13 +1863,13 @@ void CHC_Editor::playerSwap(SongSection& section)
 				printf("%sB - Swap P1/P2 with P3/P4 respectively\n", global.tabs.c_str());
 				printf("%sCurrent Format: ", global.tabs.c_str());
 				if (!section.swapped)
-					puts("P1/P2/P3/P4\n");
+					printf("P1/P2/P3/P4\n");
 				else if (section.swapped == 1)
-					puts("P2/P1/P4/P3\n");
+					printf("P2/P1/P4/P3\n");
 				else if (section.swapped == 2)
-					puts("P3/P4/P1/P2\n");
+					printf("P3/P4/P1/P2\n");
 				else if (section.swapped == 3)
-					puts("P4/P3/P2/P1\n");
+					printf("P4/P3/P2/P1\n");
 				switch (menuChoices("ab"))
 				{
 				case 'q':
@@ -2037,13 +2037,13 @@ void CHC_Editor::switchPhase(SongSection& section)
 		printf("%sCurrent Phase: ", global.tabs.c_str());
 		switch (section.battlePhase)
 		{
-		case SongSection::Phase::INTRO: puts("INTRO\n"); break;
-		case SongSection::Phase::CHARGE: puts("CHARGE\n"); break;
-		case SongSection::Phase::BATTLE: puts("BATTLE\n");  break;
-		case SongSection::Phase::FINAL_AG: puts("FINAL_AG\n");  break;
-		case SongSection::Phase::HARMONY: puts("HARMONY\n"); break;
-		case SongSection::Phase::END: puts("END\n");  break;
-		default: puts("FINAL_I\n");
+		case SongSection::Phase::INTRO: printf("INTRO\n"); break;
+		case SongSection::Phase::CHARGE: printf("CHARGE\n"); break;
+		case SongSection::Phase::BATTLE: printf("BATTLE\n");  break;
+		case SongSection::Phase::FINAL_AG: printf("FINAL_AG\n");  break;
+		case SongSection::Phase::HARMONY: printf("HARMONY\n"); break;
+		case SongSection::Phase::END: printf("END\n");  break;
+		default: printf("FINAL_I\n");
 		}
 		printf("%sI/0 - Intro\n", global.tabs.c_str());
 		printf("%sC/1 - Charge\n", global.tabs.c_str());
@@ -2140,13 +2140,13 @@ void CHC_Editor::conditionMenu(SongSection& section)
 			printf("%s %zu || ", global.tabs.c_str(), condIndex);
 			switch (section.conditions[condIndex].type)
 			{
-			case 'q': puts("Unconditional ||   n/a    || "); break;
+			case 'q': printf("Unconditional ||   n/a    || "); break;
 			case '!': printf("Left Side < # ||   %-4g   || ", section.conditions[condIndex].argument); break;
 			case 2: printf("Right Side < #||   %-4g   || ", section.conditions[condIndex].argument); break;
 			case 3: printf("Random < #    ||   %-4g   || ", section.conditions[condIndex].argument); break;
-			case 4: puts("No Player 3?  ||   n/a    || "); break;
-			case 5: puts("No Player 4?  ||   n/a    || "); break;
-			case 6: puts("Left < Right? ||   n/a    || "); break;
+			case 4: printf("No Player 3?  ||   n/a    || "); break;
+			case 5: printf("No Player 4?  ||   n/a    || "); break;
+			case 6: printf("Left < Right? ||   n/a    || "); break;
 			}
 			if (section.conditions[condIndex].trueEffect >= 0)
 				printf("Go to Section %7s || ", song->sections[section.conditions[condIndex].trueEffect].name);
@@ -2160,9 +2160,9 @@ void CHC_Editor::conditionMenu(SongSection& section)
 					printf("Go to Condition %5zu ||\n", condIndex - section.conditions[condIndex].falseEffect);
 			}
 			else
-				puts("         n/a         ||\n");
+				printf("         n/a         ||\n");
 		}
-		puts("==================================================================================||\n");
+		printf("==================================================================================||\n");
 		printf("%sType the number for the condition that you wish to edit\n", global.tabs.c_str());
 		size_t val;
 		switch (valueInsert(val, false, 0ULL, section.conditions.size() - 1))
@@ -2191,13 +2191,13 @@ void CHC_Editor::conditionMenu(SongSection& section)
 				printf("%sc - Type: ", global.tabs.c_str());
 				switch (section.conditions[val].type)
 				{
-				case 'q': puts("Unconditional\n"); break;
-				case '!': puts("Left Side < #\n"); break;
-				case 2: puts("Right Side < #\n"); break;
-				case 3: puts("Random < #\n"); break;
-				case 4: puts("No Player 3?\n"); break;
-				case 5: puts("No Player 4?\n"); break;
-				case 6: puts("Left < Right?\n"); break;
+				case 'q': printf("Unconditional\n"); break;
+				case '!': printf("Left Side < #\n"); break;
+				case 2: printf("Right Side < #\n"); break;
+				case 3: printf("Random < #\n"); break;
+				case 4: printf("No Player 3?\n"); break;
+				case 5: printf("No Player 4?\n"); break;
+				case 6: printf("Left < Right?\n"); break;
 				}
 				if (section.conditions[val].type > 0 && section.conditions[val].type < 4)
 				{

@@ -168,7 +168,7 @@ char filenameInsertion(string& filename, string specials)
 		case ';':
 		{
 			specials = 'q' + specials;
-			if (specials.find(tolower(global.input)))
+			if (specials.find(tolower(global.input)) != string::npos)
 			{
 				char ret = global.input;
 				if (global.multi)

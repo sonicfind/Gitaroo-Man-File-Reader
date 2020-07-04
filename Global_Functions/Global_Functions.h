@@ -302,8 +302,12 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 		{
 			if (specials.find(ans) != std::string::npos)
 			{
-				global.multi = true;
-				global.input = ans;
+				do
+				{
+					scanf_s("%c", &global.input, 1);
+				} while (global.input == ' ' || global.input == ';');
+				if (global.input != '\n')
+					global.multi = true;
 				return ans;
 			}
 			else

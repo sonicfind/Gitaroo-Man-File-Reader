@@ -47,7 +47,7 @@ private:
 	};
 	placeSaver* lastAccessed;
 	size_t* count;
-	size_t* usedCount;
+	size_t* UsedCount;
 	//Returns the pointer of the node at the given index. Returns "nullptr" if index >= count.
 	Node* find(size_t index)
 	{
@@ -134,7 +134,7 @@ public:
 		root = new Node*(nullptr);
 		tail = new Node*(nullptr);
 		count = new size_t(0);
-		usedCount = new size_t(1);
+		UsedCount = new size_t(1);
 		lastAccessed = new placeSaver{ 0, nullptr };
 	}
 
@@ -178,8 +178,8 @@ public:
 	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
 	List<T>& operator=(const std::initializer_list<T>& init)
 	{
-		if (*usedCount > 1)
-			(*usedCount)--;
+		if (*UsedCount > 1)
+			(*UsedCount)--;
 		else
 		{
 			clear();
@@ -187,13 +187,13 @@ public:
 			delete tail;
 			delete count;
 			delete lastAccessed;
-			delete usedCount;
+			delete UsedCount;
 		}
 		root = new Node*(nullptr);
 		tail = new Node*(nullptr);
 		lastAccessed = new placeSaver{ 0, nullptr };
 		count = new size_t(0);
-		usedCount = new size_t(1);
+		UsedCount = new size_t(1);
 		for (unsigned i = 0; i < init.size(); i++)
 			push_back(init.begin()[i]);
 		return *this;
@@ -203,8 +203,8 @@ public:
 	template <class... Args>
 	List<T>& operator=(const std::initializer_list<std::initializer_list<Args...>>& init)
 	{
-		if (*usedCount > 1)
-			(*usedCount)--;
+		if (*UsedCount > 1)
+			(*UsedCount)--;
 		else
 		{
 			clear();
@@ -212,13 +212,13 @@ public:
 			delete tail;
 			delete count;
 			delete lastAccessed;
-			delete usedCount;
+			delete UsedCount;
 		}
 		root = new Node*(nullptr);
 		tail = new Node*(nullptr);
 		lastAccessed = new placeSaver{ 0, nullptr };
 		count = new size_t(0);
-		usedCount = new size_t(1);
+		UsedCount = new size_t(1);
 		for (unsigned i = 0; i < init.size(); i++)
 			emplace_back(init.begin()[i].begin()...);
 		return *this;
@@ -229,8 +229,8 @@ public:
 	{
 		if (UsedCount != list.UsedCount)
 		{
-			if (*usedCount > 1)
-				(*usedCount)--;
+			if (*UsedCount > 1)
+				(*UsedCount)--;
 			else
 			{
 				clear();
@@ -238,14 +238,14 @@ public:
 				delete tail;
 				delete count;
 				delete lastAccessed;
-				delete usedCount;
+				delete UsedCount;
 			}
 			root = list.root;
 			tail = list.tail;
 			count = list.count;
 			lastAccessed = list.lastAccessed;
-			usedCount = list.usedCount;
-			(*usedCount)++;
+			UsedCount = list.UsedCount;
+			(*UsedCount)++;
 		}
 		return *this;
 	}
@@ -253,8 +253,8 @@ public:
 	//Calls clear, then deletes all pointers
 	~List<T>()
 	{
-		if (*usedCount > 1)
-			(*usedCount)--;
+		if (*UsedCount > 1)
+			(*UsedCount)--;
 		else
 		{
 			clear();
@@ -262,7 +262,7 @@ public:
 			delete tail;
 			delete count;
 			delete lastAccessed;
-			delete usedCount;
+			delete UsedCount;
 		}
 	}
 
@@ -722,17 +722,17 @@ public:
 	void swap(List<T>& other)
 	{
 		Node** rootbuf = root, tailbuf = tail;
-		size_t* countbuf = count, usedBuf = usedCount;
+		size_t* countbuf = count, usedBuf = UsedCount;
 		placeSaver* placebuf = lastAccessed;
 		root = other.root;
 		tail = other.tail;
 		count = other.count;
 		lastAccessed = other.lastAccessed;
-		usedCount = other.usedCount;
+		UsedCount = other.UsedCount;
 		other.root = rootbuf;
 		other.tail = tailbuf;
 		other.*count = countbuf;
 		other.lastAccessed = placebuf;
-		other.usedCount = usedBuf;
+		other.UsedCount = usedBuf;
 	}
 };

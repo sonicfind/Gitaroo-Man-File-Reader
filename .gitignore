@@ -46,3 +46,7 @@
 *.enc
 *.txt
 *.aps
+*.xml
+*.pchast
+*.sarif
+*.lastcodeanalysissucceeded

@@ -2,14 +2,14 @@
 *Gitaroo Man* is a rhythm action video game released in 2001 for the Playstation 2. It was re-released as *Gitaroo Man Lives* in 2006 for the Playstation Portable.
 Gitaroo Man File Reader is a wide-range (Windows-Only) program for reading and editing the variety of file types found in either of these two games.
 
-##Usage
+## Usage
 [WIP]
 Users can choose whatever supported features they want to apply through specialized dlls. Simply plop in the proper dlls into their respective locations and load GMFR.
 
-##Filetype(s) Currently Supported
-###CHC
+## Filetype(s) Currently Supported
+### CHC
 These files are where the game stores and reads chart data. All info pertaining to sections and note placements will be found here, along with some other relevant data.
-####Sub-Extensions
+#### Sub-Extensions
 [WIP]
 
 ## Resources

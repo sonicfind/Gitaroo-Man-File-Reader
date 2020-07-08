@@ -845,7 +845,7 @@ void CHC_Editor::rearrange()
 		for (size_t index = 0; index < song->sections.size(); index++)
 			printf("%s%zu - %s\n", global.tabs.c_str(), index, song->sections[index].name );
 		printf("%sInput: ", global.tabs.c_str());
-		switch (valueInsert(startIndex, false, 0ULL, song->sections.size() - 1))
+		switch (valueInsert(startIndex, false, size_t(0), song->sections.size() - 1))
 		{
 		case '!':
 			global.quit = true;
@@ -873,7 +873,7 @@ void CHC_Editor::rearrange()
 		{
 			printf("%sHow many elements do you want to move? [Max # of movable elements: %zu]\n", global.tabs.c_str(), song->sections.size() - startIndex);
 			printf("%sInput: ", global.tabs.c_str());
-			switch (valueInsert(numElements, false, 1ULL, song->sections.size() - startIndex))
+			switch (valueInsert(numElements, false, size_t(1), song->sections.size() - startIndex))
 			{
 			case '!':
 				global.quit = true;
@@ -925,7 +925,7 @@ void CHC_Editor::rearrange()
 					printf("%s%zu - End of the list\n", global.tabs.c_str(), song->sections.size());
 				printf("%sInvalid position range: %zu - %zu\n", global.tabs.c_str(), startIndex, startIndex + numElements );
 				printf("%sInput: ", global.tabs.c_str());
-				switch (valueInsert(position, false, 0ULL, song->sections.size()))
+				switch (valueInsert(position, false, size_t(0), song->sections.size()))
 				{
 				case '!':
 					if (position < startIndex)
@@ -1236,7 +1236,7 @@ void CHC_Editor::sectionSubMenu()
 		size_t val;
 		for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
 			printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, song->sections[sectIndex].name );
-		switch (valueInsert(val, false, 0ULL, song->sections.size() - 1))
+		switch (valueInsert(val, false, size_t(0), song->sections.size() - 1))
 		{
 		case 'q':
 			global.quit = true;
@@ -2165,7 +2165,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 		printf("==================================================================================||\n");
 		printf("%sType the number for the condition that you wish to edit\n", global.tabs.c_str());
 		size_t val;
-		switch (valueInsert(val, false, 0ULL, section.conditions.size() - 1))
+		switch (valueInsert(val, false, size_t(0), section.conditions.size() - 1))
 		{
 		case 'q':
 			global.quit = true;

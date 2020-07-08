@@ -1060,16 +1060,16 @@ void CHC_Editor::adjustFactors()
 					do
 					{
 						banner(" " + song->shortname + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phaseName[phase] + " ");
-						printf("%s          Player %zu        || %*s ||\n", global.tabs.c_str(), player + 1, phaseName[phase].length() + 1, phaseName[phase].c_str());
+						printf("%s          Player %zu        || %*s ||\n", global.tabs.c_str(), player + 1, unsigned(phaseName[phase].length() + 1), phaseName[phase].c_str());
 						printf("%s%s||\n", global.tabs.c_str(), string(31 + phaseName[phase].length(), '=').c_str());
-						printf("%s 1 - Starting Energy      || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].start * 100.0);
-						printf("%s 2 - Initial-Press Energy || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].chargeInitial * 100.0);
-						printf("%s 3 - Initial-Press Damage || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].attackInitial * 100.0);
-						printf("%s 4 - Guard Energy Gain    || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].guardEnergy * 100.0);
-						printf("%s 5 - Attack Miss Damage   || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].attackMiss * 100.0);
-						printf("%s 6 - Guard  Miss Damage   || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].guardMiss * 100.0);
-						printf("%s 7 - Sustain Energy Coef. || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].chargeRelease * 100.0);
-						printf("%s 8 - Sustain Damage Coef. || %*g%% ||\n", global.tabs.c_str(), phaseName[phase].length(), song->energyDamageFactors[player][phase].attackRelease * 100.0);
+						printf("%s 1 - Starting Energy      || %*g%% ||\n", global.tabs.c_str(), (unsigned)phaseName[phase].length(), song->energyDamageFactors[player][phase].start * 100.0);
+						printf("%s 2 - Initial-Press Energy || %*g%% ||\n", global.tabs.c_str(), (unsigned)phaseName[phase].length(), song->energyDamageFactors[player][phase].chargeInitial * 100.0);
+						printf("%s 3 - Initial-Press Damage || %*g%% ||\n", global.tabs.c_str(), (unsigned)phaseName[phase].length(), song->energyDamageFactors[player][phase].attackInitial * 100.0);
+						printf("%s 4 - Guard Energy Gain    || %*g%% ||\n", global.tabs.c_str(), (unsigned)phaseName[phase].length(), song->energyDamageFactors[player][phase].guardEnergy * 100.0);
+						printf("%s 5 - Attack Miss Damage   || %*g%% ||\n", global.tabs.c_str(), (unsigned)phaseName[phase].length(), song->energyDamageFactors[player][phase].attackMiss * 100.0);
+						printf("%s 6 - Guard  Miss Damage   || %*g%% ||\n", global.tabs.c_str(), (unsigned)phaseName[phase].length(), song->energyDamageFactors[player][phase].guardMiss * 100.0);
+						printf("%s 7 - Sustain Energy Coef. || %*g%% ||\n", global.tabs.c_str(), (unsigned)phaseName[phase].length(), song->energyDamageFactors[player][phase].chargeRelease * 100.0);
+						printf("%s 8 - Sustain Damage Coef. || %*g%% ||\n", global.tabs.c_str(), (unsigned)phaseName[phase].length(), song->energyDamageFactors[player][phase].attackRelease * 100.0);
 						printf("%s%s||\n", global.tabs.c_str(), string(31 + phaseName[phase].length(), '=').c_str());
 						printf("%sSelect a factor by number [Type 'B' to choose a different phase | 'Q' to exit factor settings]\n", global.tabs.c_str());
 						size_t factor = menuChoices("12345678b", true);
@@ -1093,7 +1093,7 @@ void CHC_Editor::adjustFactors()
 								float* val = &song->energyDamageFactors[player][phase].start + factor;
 								printf("%s        Player %zu      || %s ||\n", global.tabs.c_str(), player + 1, phaseName[phase].c_str());
 								printf("%s%s||\n", global.tabs.c_str(), string(26 + phaseName[phase].length(), '=').c_str());
-								printf("\t      %s %*g ||\n", headers[factor], phaseName[phase].length(), *val);
+								printf("\t      %s %*g ||\n", headers[factor], (unsigned)phaseName[phase].length(), *val);
 								printf("%s%s||\n", global.tabs.c_str(), string(26 + phaseName[phase].length(), '=').c_str());
 								printf("%sProvide a new value for this factor [Type 'B' to choose a different factor | 'Q' to exit factor settings]\n", global.tabs.c_str());
 								printf("%sCan be a decimal... and/or negative with weird effects\n", global.tabs.c_str());
@@ -1810,7 +1810,7 @@ void CHC_Editor::reorganize(SongSection& section)
 		}
 		printf("%s%s organized - # of charts per player: %lu", global.tabs.c_str(), section.name, section.numCharts);
 		if (song->imc[0])
-			printf(" (Pair total: %lu)\n", total);
+			printf(" (Pair total: %zu)\n", total);
 		else
 			putchar('\n');
 		song->saved = false;

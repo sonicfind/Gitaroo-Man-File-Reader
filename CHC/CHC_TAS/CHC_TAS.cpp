@@ -1555,7 +1555,7 @@ bool TAS::buildTAS()
 				while (sectIndex + 1ULL != markers[playerIndex].size() && point.position >= markers[playerIndex][sectIndex + 1ULL].position)
 				{
 					sectIndex++;
-					fprintf(taslog, "////Section Marker %lu at sample %li", sectIndex + 1, markers[playerIndex][sectIndex].position);
+					fprintf(taslog, "////Section Marker %zu at sample %li", sectIndex + 1, markers[playerIndex][sectIndex].position);
 				}
 				if (dynamic_cast<Guard*>(timeline[playerIndex][noteIndex].note) != nullptr)
 				{

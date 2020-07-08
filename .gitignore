@@ -50,3 +50,5 @@
 *.pchast
 *.sarif
 *.lastcodeanalysissucceeded
+*.iobj
+*.ipdb

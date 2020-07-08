@@ -497,24 +497,24 @@ void CHC_Main::writeTxt()
 		{
 			switch (index)
 			{
-			case 'q': dualvfprintf_s(outTXT, outSimpleTXT, "\t\t    Win A:\n"); break;
-			case '!': dualvfprintf_s(outTXT, outSimpleTXT, "\t\t    Win B:\n"); break;
+			case 0: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t    Win A:\n"); break;
+			case 1: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t    Win B:\n"); break;
 			case 2: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t Lose Pre:\n"); break;
 			case 3: dualvfprintf_s(outTXT, outSimpleTXT, "\t\tLose Loop:\n");
 			}
-			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\tFirst Frame: %.1f\n", song.events[index].first);
-			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t Last Frame: %.1f\n", song.events[index].last);
+			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\tFirst Frame: %g\n", song.events[index].first);
+			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t Last Frame: %g\n", song.events[index].last);
 		}
 		dualvfprintf_s(outTXT, outSimpleTXT, "       Audio Channels:\n");
 		if (song.imc[0])
 		{
 			for (size_t index = 0; index < 8; index++)
 			{
-				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t Channel %u:\n", index + 1);
+				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t Channel %zu:\n", index + 1);
 				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t       Volume: %lu (%g%%)\n", song.audio[index].volume, song.audio[index].volume * 100.0 / 32767);
 				switch (song.audio[index].pan)
 				{
-				case 'q': dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Left (0)\n"); break;
+				case 0: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Left (0)\n"); break;
 				case 16383: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Center (16383)\n"); break;
 				case 32767: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Right (32767)\n"); break;
 				default: dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: %g%% Left | %g%% Right (%lu)\n", 100 - (song.audio[index].pan * 100.0 / 32767),
@@ -526,15 +526,15 @@ void CHC_Main::writeTxt()
 		{
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t Channel 1: Unused in PSP version\n");
 			dualvfprintf_s(outTXT, outSimpleTXT, "\t\t Channel 2: Unused in PSP version\n");
-			for (unsigned index = 2; index < 8; index++)
+			for (size_t index = 2; index < 8; index++)
 			{
-				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t Channel ", index + 1, ":\n");
+				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t Channel %zu:\n", index + 1);
 				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t       Volume: %lu (%g%%)\n", song.audio[index].volume, song.audio[index].volume * 100.0 / 32767);
 				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t  Pan: Unused in PSP version\n");
 			}
 		}
 		dualvfprintf_s(outTXT, outSimpleTXT, "\t       Speed: %g\n", song.speed);
-		fputs("\t   # of Cues: %lu\n", outTXT);
+		fprintf(outTXT, "\t   # of Cues: %zu\n", song.sections.size());
 		fputs("\t    SSQ Cues:\n", outTXT);
 		for (size_t cueIndex = 0; cueIndex < song.sections.size(); cueIndex++)	//Cues
 		{
@@ -547,7 +547,7 @@ void CHC_Main::writeTxt()
 		}
 		fflush(outTXT);
 		fflush(outSimpleTXT);
-		dualvfprintf_s(outTXT, outSimpleTXT, "       # of Sections: %lu\n", song.sections.size());
+		dualvfprintf_s(outTXT, outSimpleTXT, "       # of Sections: %zu\n", song.sections.size());
 		dualvfprintf_s(outTXT, outSimpleTXT, "       Song Sections:\n");
 		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++) //SongSections
 		{
@@ -617,7 +617,7 @@ void CHC_Main::writeTxt()
 			for (size_t condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 			{
 				SongSection::Condition& cond = section.conditions[condIndex];
-				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Condition %lu:\n", condIndex + 1);
+				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Condition %zu:\n", condIndex + 1);
 				switch (cond.type)
 				{
 				case 'q':
@@ -625,30 +625,30 @@ void CHC_Main::writeTxt()
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: Always true.\n");
 					break;
 				case '!':
-					fputs("\t\t\t\t\t\tType: Left Side Energy", outTXT);
+					fputs("\t\t\t\t\t\tType: Left Side Energy\n", outTXT);
 					fprintf(outTXT, "\t\t\t\t\t    Argument: %g\n", cond.argument);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: True if Left Side's energy is less than %g%%. False otherwise.\n", cond.argument * 100.0);
 					break;
 				case 2:
-					fputs("\t\t\t\t\t\tType: Right Side Energy", outTXT);
+					fputs("\t\t\t\t\t\tType: Right Side Energy\n", outTXT);
 					fprintf(outTXT, "\t\t\t\t\t    Argument: %g\n", cond.argument);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: True if Right Side's energy is less than %g%%. False otherwise.\n", cond.argument * 100.0);
 					break;
 				case 3:
-					fputs("\t\t\t\t\t\tType: Random", outTXT);
+					fputs("\t\t\t\t\t\tType: Random\n", outTXT);
 					fprintf(outTXT, "\t\t\t\t\t    Argument: %g\n", cond.argument);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: Generates a random number between 0.0 and 1.0, True if the random number is less than %g%%. False otherwise.\n", cond.argument);
 					break;
 				case 4:
-					fputs("\t\t\t\t\t\tType: Left Side Unavailable", outTXT);
+					fputs("\t\t\t\t\t\tType: Left Side Unavailable\n", outTXT);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: False if this match has a Player 3 participating (only possible in Versus mode). True otherwise.\n");
 					break;
 				case 5:
-					fputs("\t\t\t\t\t\tType: Right Side Unavailable", outTXT);
+					fputs("\t\t\t\t\t\tType: Right Side Unavailable\n", outTXT);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: False if this match has a Player 4 participating (only possible in Versus mode). True otherwise.\n");
 					break;
 				case 6:
-					fputs("\t\t\t\t\t\tType: Left Side < Right Side", outTXT);
+					fputs("\t\t\t\t\t\tType: Left Side < Right Side\n", outTXT);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: True if Left Side's energy is less than Right Side's energy. False otherwise.\n");
 					break;
 				}
@@ -659,7 +659,7 @@ void CHC_Main::writeTxt()
 				}
 				else
 				{
-					if ((unsigned long)cond.trueEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t True Effect: Move to Section %s.\n", song.sections[cond.trueEffect].name);
+					if ((size_t)cond.trueEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t True Effect: Move to Section %s.\n", song.sections[cond.trueEffect].name);
 					else dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t True Effect: End song.\n");
 				}
 				if (cond.type != 0)
@@ -671,7 +671,7 @@ void CHC_Main::writeTxt()
 					}
 					else
 					{
-						if ((unsigned long)cond.falseEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: Move to Section %s.\n", song.sections[cond.trueEffect].name);
+						if ((size_t)cond.falseEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: Move to Section %s.\n", song.sections[cond.trueEffect].name);
 						else dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: End song.\n");
 					}
 				}
@@ -683,7 +683,7 @@ void CHC_Main::writeTxt()
 				for (size_t chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
 				{
 					Chart& chart = section.charts[playerIndex * section.numCharts + chartIndex];
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t Player %lu - Chart %02lu\n", playerIndex + 1, chartIndex + 1);
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t Player %zu - Chart %02zu\n", playerIndex + 1, chartIndex + 1);
 					fprintf(outTXT, "\t\t\t\t\t  Size (32bit): %lu\n", chart.getSize());
 					fprintf(outTXT, "\t\t\t\t\t\t  Junk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(chart.getJunk())));
 					fprintf(outTXT, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(chart.getJunk() + 4)));
@@ -691,11 +691,11 @@ void CHC_Main::writeTxt()
 					fprintf(outTXT, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(chart.getJunk() + 12)));
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t   Pivot Point: %lu samples\n", chart.getPivotTime());
 					fprintf(outTXT, "\t\t\t\t\t      End Time: %lu samples\n", chart.getEndTime());
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Trace Lines: %lu\n", chart.getNumTracelines());
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Trace Lines: %zu\n", chart.getNumTracelines());
 					for (size_t traceIndex = 0; traceIndex < chart.getNumTracelines(); traceIndex++)
 					{
 						Traceline& trace = chart.getTraceline(traceIndex);
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Trace Line %03lu:\n", traceIndex + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Trace Line %03zu:\n", traceIndex + 1);
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", trace.getPivotAlpha());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", trace.getPivotAlpha() + chart.getPivotTime());
 						fprintf(outTXT, "\t\t\t\t\t\t\t    Duration: %lu samples\n", trace.getDuration());
@@ -706,17 +706,17 @@ void CHC_Main::writeTxt()
 						if (traceIndex + 1 == chart.getNumTracelines())
 							fprintf(outSimpleTXT, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", trace.getEndAlpha() + chart.getPivotTime());
 					}
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t # of Phrase Fragments: %lu\n", chart.getNumPhrases());
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t # of Phrase Fragments: %zu\n", chart.getNumPhrases());
 					for (size_t phraseIndex = 0, traceIndex = 0, note = 0, piece = 0; phraseIndex < chart.getNumPhrases(); phraseIndex++)
 					{
 						Phrase& phrase = chart.getPhrase(phraseIndex);
 						for (; traceIndex < chart.getNumTracelines(); traceIndex++)
 							if (chart.getTraceline(traceIndex).contains(phrase.getPivotAlpha()))
 								break;
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     Phrase Fragment %03lu:\n", phraseIndex + 1);
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     [Note #%03lu", note + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     Phrase Fragment %03zu:\n", phraseIndex + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     [Note #%03zu", note + 1);
 						if (piece)
-							dualvfprintf_s(outTXT, outSimpleTXT, " - Piece ##%02lu", piece + 1);
+							dualvfprintf_s(outTXT, outSimpleTXT, " - Piece ##%02zu", piece + 1);
 						fprintf(outTXT, "| Trace Line #%03zu]:\n", traceIndex + 1);
 						fputs("]:\n", outSimpleTXT);
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", phrase.getPivotAlpha());
@@ -745,11 +745,11 @@ void CHC_Main::writeTxt()
 						fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 4)));
 						fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 8)));
 					}
-					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Guard Marks: %lu\n", chart.getNumGuards());
+					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Guard Marks: %zu\n", chart.getNumGuards());
 					for (size_t guardIndex = 0; guardIndex < chart.getNumGuards(); guardIndex++)
 					{
 						Guard& guard = chart.getGuard(guardIndex);
-						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Guard Mark %03lu:\n", guardIndex + 1);
+						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Guard Mark %03zu:\n", guardIndex + 1);
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", guard.getPivotAlpha());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", guard.getPivotAlpha() + chart.getPivotTime());
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t      Button: ");
@@ -767,18 +767,18 @@ void CHC_Main::writeTxt()
 			fflush(outSimpleTXT);
 		}
 		dualvfprintf_s(outTXT, outSimpleTXT, "Damage/Energy Factors:\n");
-		for (unsigned player = 0; player < 4; player++)
+		for (size_t player = 0; player < 4; player++)
 		{
-			dualvfprintf_s(outTXT, outSimpleTXT, "       Player %u ||", player + 1);
+			dualvfprintf_s(outTXT, outSimpleTXT, "       Player %zu ||", player + 1);
 			dualvfprintf_s(outTXT, outSimpleTXT, " Starting Energy || Initial-Press Energy || Initial-Press Damage || Guard Energy Gain ||");
 			dualvfprintf_s(outTXT, outSimpleTXT, " Attack Miss Damage || Guard Miss Damage || Release Max Energy || Release Max Damage ||\n");
 			dualvfprintf_s(outTXT, outSimpleTXT, "       %s||\n", string(184, '='));
-			for (unsigned section = 0; section < 5; section++)
+			for (size_t section = 0; section < 5; section++)
 			{
 				switch (section)
 				{
-				case 'q': dualvfprintf_s(outTXT, outSimpleTXT, "\t  Intro ||"); break;
-				case '!': dualvfprintf_s(outTXT, outSimpleTXT, "\t Charge ||"); break;
+				case 0: dualvfprintf_s(outTXT, outSimpleTXT, "\t  Intro ||"); break;
+				case 1: dualvfprintf_s(outTXT, outSimpleTXT, "\t Charge ||"); break;
 				case 2: dualvfprintf_s(outTXT, outSimpleTXT, "\t Battle ||"); break;
 				case 3: dualvfprintf_s(outTXT, outSimpleTXT, "\tHarmony ||"); break;
 				case 4: dualvfprintf_s(outTXT, outSimpleTXT, "\t    End ||");

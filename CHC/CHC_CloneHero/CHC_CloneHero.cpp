@@ -609,7 +609,7 @@ bool Charter::exportChart()
 							if (i + 1 != chart.getNumGuards())
 							{
 								CHNote::Modifier mod;
-								unsigned dif = chart.getGuard(i + 1).getPivotAlpha() - chart.getGuard(i).getPivotAlpha();
+								long dif = chart.getGuard(i + 1).getPivotAlpha() - chart.getGuard(i).getPivotAlpha();
 								if (dif >= 480000)		//If dif is >= ten seconds
 								{
 									pos += 240000 * TICKS_PER_SAMPLE;
@@ -1528,7 +1528,7 @@ bool Charter::importChart()
 		}
 	}
 	unsigned numPlayersCharted = 0;
-	for (unsigned sectIndex = 0; numPlayersCharted < 2 && !feof(inChart); numPlayersCharted++, sectIndex = 0)
+	for (size_t sectIndex = 0; numPlayersCharted < 2 && !feof(inChart); numPlayersCharted++, sectIndex = 0)
 	{
 		fscanf_s(inChart, " %[^{]", ignore, 400);
 		fseek(inChart, 1, SEEK_CUR);
@@ -1541,7 +1541,7 @@ bool Charter::importChart()
 		SubSection* prevSub = nullptr;
 		currSub->chart.clearTracelines();
 		Section::Tempo* prev = &sections[0].tempos[0];
-		unsigned tempoIndex = 0;
+		size_t tempoIndex = 0;
 		while (test != '}')
 		{
 			fseek(inChart, -1, SEEK_CUR);
@@ -1685,7 +1685,7 @@ bool Charter::importChart()
 		auto insertNotes = [&](Chart& imported, Chart& insertion)
 		{
 			insertion.clearPhrases();
-			for (unsigned long phraseIndex = 0; phraseIndex < imported.getNumPhrases(); phraseIndex++)
+			for (size_t phraseIndex = 0; phraseIndex < imported.getNumPhrases(); phraseIndex++)
 			{
 				//Create a new copy so that pivot alpha values are maintained for the loop iterations
 				Phrase phr(imported.getPhrase(phraseIndex));
@@ -1700,7 +1700,7 @@ bool Charter::importChart()
 			if (imported.getNumTracelines() > 1)
 			{
 				insertion.clearTracelines();
-				for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < imported.getNumTracelines(); traceIndex++)
+				for (size_t traceIndex = 0, phraseIndex = 0; traceIndex < imported.getNumTracelines(); traceIndex++)
 				{
 					Traceline trace = imported.getTraceline(traceIndex);
 					trace.adjustPivotAlpha(-insertion.getPivotTime());
@@ -1711,7 +1711,7 @@ bool Charter::importChart()
 			}
 			//Go through every phrase bar & trace line to find places where phrase bars
 			//should be split into two pieces
-			for (unsigned long traceIndex = 0, phraseIndex = 0; traceIndex < insertion.getNumTracelines(); traceIndex++)
+			for (size_t traceIndex = 0, phraseIndex = 0; traceIndex < insertion.getNumTracelines(); traceIndex++)
 			{
 				Traceline& trace = insertion.getTraceline(traceIndex);
 				while (phraseIndex < insertion.getNumPhrases())
@@ -1754,18 +1754,18 @@ bool Charter::importChart()
 				}
 			}
 			insertion.clearGuards();
-			for (unsigned long guardIndex = 0; guardIndex < imported.getNumGuards(); guardIndex++)
+			for (size_t guardIndex = 0; guardIndex < imported.getNumGuards(); guardIndex++)
 			{
 				Guard& grd = imported.getGuard(guardIndex);
 				insertion.addGuard(grd.getPivotAlpha() - insertion.getPivotTime(), grd.getButton());
 			}
 		};
-		for (unsigned long sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
+		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
 		{
 			SongSection& section = song.sections[sectIndex];
 			if (section.getPhase() == SongSection::Phase::INTRO || strstr(section.getName(), "BRK") || strstr(section.getName(), "BREAK"))
 				continue;
-			for (unsigned long sectIndex2 = 0; sectIndex2 < sections.size(); sectIndex2++)
+			for (size_t sectIndex2 = 0; sectIndex2 < sections.size(); sectIndex2++)
 			{
 				if (string(section.getName()).substr(0, sections[sectIndex2].name.length()).find(sections[sectIndex2].name) != string::npos)
 				{
@@ -1794,7 +1794,7 @@ bool Charter::importChart()
 										if (imp.getNumTracelines() > 1 || imp.getNumGuards())
 										{
 											section.setOrganized(false);
-											insertNotes(imp, section.getChart((unsigned long long)playerIndex* section.getNumCharts() + chartIndex));
+											insertNotes(imp, section.getChart((size_t)playerIndex* section.getNumCharts() + chartIndex));
 											if (section.getPhase() == SongSection::Phase::BATTLE)
 											{
 												if (imp.getNumGuards() && imp.getNumTracelines() > 1)
@@ -1994,11 +1994,11 @@ bool Charter::importChart()
 						fputs("[phrasemode fragments]\n", outSheet2);
 						dualvfprintf_s(outSheet, outSheet2, "[attack point palette]\nG: 00ff00\nR: ff0000\nY: ffff00\nB: 0000ff\nO: ff7f00\nP: ff00ff\nN: f89b44\ng: ffffff\nr: ffffff\ny: ffffff\nb: ffffff\no: ffffff\np: ffffff\n\n");
 						dualvfprintf_s(outSheet, outSheet2, "[phrase bar palette]\nG: 40ff40\nR: ff4040\nY: ffff40\nB: 4040c8\nO: ff9f40\nP: ff40ff\nN: f07b7b\ng: 40ff40\nr: ff4040\ny: ffff40\nb: 4040c8\no: ff9f40\np: ff40ff\n\n");
-						unsigned long chartCount = 0;
-						for (unsigned long sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
+						size_t chartCount = 0;
+						for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
 						{
 							SongSection& section = song.sections[sectIndex];
-							unsigned long sectIndex2 = 0;
+							size_t sectIndex2 = 0;
 							for (; sectIndex2 < sections.size(); sectIndex2++)
 								if (string(section.getName()).substr(0, sections[sectIndex2].name.length()).find(sections[sectIndex2].name) != string::npos)
 									break;
@@ -2008,7 +2008,7 @@ bool Charter::importChart()
 								{
 									if (!(playerIndex & 1) || multiplayer)
 									{
-										Chart& chart = section.getChart((unsigned long long)playerIndex * section.getNumCharts() + chartIndex);
+										Chart& chart = section.getChart((size_t)playerIndex * section.getNumCharts() + chartIndex);
 										if (chart.getNumPhrases())
 										{
 											dualvfprintf_s(outSheet, outSheet2, "#SongSection %lu [%s], P%lu CHCH %lu\n", sectIndex, section.getName(), playerIndex + 1, chartIndex);
@@ -2016,8 +2016,8 @@ bool Charter::importChart()
 											if (sectIndex2 < sections.size() && 2ULL * chartIndex + (playerIndex >> 1) < sections[sectIndex2].subs[playerIndex & 1].size())
 											{
 												List<SubSection::Color>& colors = sections[sectIndex2].subs[playerIndex & 1][2ULL * chartIndex + (playerIndex >> 1)].colors;
-												unsigned long colorIndex = 0;
-												for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
+												size_t colorIndex = 0;
+												for (size_t phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
 												{
 													Phrase& phr = chart.getPhrase(phrIndex);
 													while (colorIndex + 1ULL != colors.size() && long(chart.getPivotTime() + phr.getPivotAlpha()) >= colors[colorIndex + 1ULL].position)
@@ -2039,7 +2039,7 @@ bool Charter::importChart()
 											}
 											else
 											{
-												for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
+												for (size_t phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
 												{
 													if (!phrIndex)
 													{

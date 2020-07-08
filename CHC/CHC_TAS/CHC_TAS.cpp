@@ -165,7 +165,7 @@ bool PCSX2TAS::loadValues(string filename)
 
 void PCSX2TAS::resultScreen(size_t stage, size_t notes, bool singleplayer, bool multi[2])
 {
-	unsigned toResult = 0;
+	size_t toResult = 0;
 	switch (stage)
 	{
 	case 'q': 
@@ -232,7 +232,7 @@ void PCSX2TAS::print(string filename)
 	fwrite(multi, 1, 8, outp2m2);
 	fwrite(&players[0].size(), 4, 1, outp2m2);
 	fwrite("\0\0\0\0", 1, 4, outp2m2);
-	for (unsigned index = 0; index < players[0].size(); index++)
+	for (size_t index = 0; index < players[0].size(); index++)
 	{
 		for (long player = 0; player < 4; player++)
 		{
@@ -348,7 +348,7 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 					players[0][index++].dpad &= 191;				//D-pad Down - Stage Scrolling
 					if (mStage - stageIndex - 1) index++;
 				}
-				players[0][index++].button &= 191; index += 2 * (9 - stage + 16 * ((unsigned long long)multi[0] + multi[1]) - ((stage - 1) / 3) + (stage / 10)) + 1;		//X-button - Stage Selection
+				players[0][index++].button &= 191; index += 2 * (9 - stage + 16 * ((size_t)multi[0] + multi[1]) - ((stage - 1) / 3) + (stage / 10)) + 1;		//X-button - Stage Selection
 				players[0][index++].button &= 191; index++;		//X-button - Character Selection
 				players[0][index++].button &= 191;	index++;		//X-button - Health Handicap Selection
 			}
@@ -905,7 +905,7 @@ bool TAS::buildTAS()
 	}
 	else
 	{
-		unsigned char index = 0;
+		size_t index = 0;
 		for (; global.input != '\n' && global.input != ';'; index++)
 		{
 			if (index != 255)
@@ -1065,7 +1065,7 @@ bool TAS::buildTAS()
 	long position = PCSX2TAS::frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]];
 	//Places every single note that will appear in all chosen sections
 	//into one huge timeline.
-	for (unsigned sectIndex = 0; sectIndex < sectionIndexes.size(); sectIndex++)
+	for (size_t sectIndex = 0; sectIndex < sectionIndexes.size(); sectIndex++)
 	{
 		SongSection& section = song.sections[sectionIndexes[sectIndex]];
 		printf("%s%s\n", global.tabs.c_str(), section.getName());
@@ -1366,7 +1366,7 @@ bool TAS::buildTAS()
 				}
 			} while (!global.quit);
 			global.quit = false;
-			for (unsigned sectIndex = 0; sectIndex < sectionIndexes.size(); sectIndex++)
+			for (size_t sectIndex = 0; sectIndex < sectionIndexes.size(); sectIndex++)
 			{
 				SongSection& section = tutorial->sections[sectionIndexes[sectIndex]];
 				printf("%s%s\n", global.tabs.c_str(), section.getName());
@@ -1445,7 +1445,7 @@ bool TAS::buildTAS()
 				size_t startIndex = timeline[0].size();
 				for (unsigned chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
 				{
-					for (size_t playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); playerIndex++)
+					for (unsigned playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); playerIndex++)
 					{
 						Chart& chart = section.getChart(chartIndex);
 						size_t index = startIndex;
@@ -1538,7 +1538,7 @@ bool TAS::buildTAS()
 	{
 		if (markers[playerIndex].size())
 		{
-			unsigned long sectIndex = 0;
+			size_t sectIndex = 0;
 			bool inTrace = false;
 			bool connected = false;
 			FILE* taslog;
@@ -1549,7 +1549,7 @@ bool TAS::buildTAS()
 			fprintf(taslog, "Samples per frame: %Lf\n", SAMPLES_PER_FRAME);
 			fprintf(taslog, "////Section Marker 1 at sample %li\n", markers[playerIndex][sectIndex].position);
 			NotePoint* prevPhrase = nullptr;
-			for (unsigned long noteIndex = 0; noteIndex < timeline[playerIndex].size(); noteIndex++)
+			for (size_t noteIndex = 0; noteIndex < timeline[playerIndex].size(); noteIndex++)
 			{
 				NotePoint& point = timeline[playerIndex][noteIndex];
 				while (sectIndex + 1ULL != markers[playerIndex].size() && point.position >= markers[playerIndex][sectIndex + 1ULL].position)
@@ -1559,11 +1559,11 @@ bool TAS::buildTAS()
 				}
 				if (dynamic_cast<Guard*>(timeline[playerIndex][noteIndex].note) != nullptr)
 				{
-					size_t grdFrame = frameStart + (unsigned long)round(point.position / SAMPLES_PER_FRAME);
+					size_t grdFrame = frameStart + (size_t)round(point.position / SAMPLES_PER_FRAME);
 					//If the next note, if it exists, is a guard mark
 					if (noteIndex + 1ULL != timeline[playerIndex].size() && dynamic_cast<Guard*>(timeline[playerIndex][noteIndex + 1ULL].note) != nullptr)
 					{
-						size_t distance = frameStart + (unsigned long)round(timeline[playerIndex][noteIndex + 1ULL].position / SAMPLES_PER_FRAME) - grdFrame;
+						size_t distance = frameStart + (size_t)round(timeline[playerIndex][noteIndex + 1ULL].position / SAMPLES_PER_FRAME) - grdFrame;
 						//If two guard marks are within two frames of each other
 						if (distance < 2)
 						{
@@ -1573,7 +1573,7 @@ bool TAS::buildTAS()
 							if (distance == 0)
 							{
 								//Push the second mark back one frame
-								timeline[playerIndex][noteIndex + 1ULL].position += unsigned long(SAMPLES_PER_FRAME);
+								timeline[playerIndex][noteIndex + 1ULL].position += long(SAMPLES_PER_FRAME);
 								//If pushing it back places it behind the note that *was* after it, fix the order
 								if (noteIndex + 2ULL != timeline[playerIndex].size() && timeline[playerIndex][noteIndex + 1ULL].position >= timeline[playerIndex][noteIndex + 2ULL].position)
 									timeline[playerIndex].moveElements(noteIndex + 1ULL, noteIndex + 3ULL);
@@ -1654,7 +1654,7 @@ bool TAS::buildTAS()
 				}
 				else if (dynamic_cast<Traceline*>(timeline[playerIndex][noteIndex].note) != nullptr)
 				{
-					for (unsigned long testIndex = noteIndex + 1; testIndex < timeline[playerIndex].size(); testIndex++)
+					for (size_t testIndex = noteIndex + 1; testIndex < timeline[playerIndex].size(); testIndex++)
 					{
 						if (dynamic_cast<Guard*>(timeline[playerIndex][testIndex].note) != nullptr && point.last)
 						{
@@ -1670,8 +1670,8 @@ bool TAS::buildTAS()
 									if (point.last)
 										connected = true;
 									inTrace = true;
-									size_t currentFrame = frameStart + (unsigned long)round(point.position / SAMPLES_PER_FRAME);
-									size_t endFrame = frameStart + (unsigned)round(timeline[playerIndex][testIndex].position / SAMPLES_PER_FRAME);
+									size_t currentFrame = frameStart + (size_t)round(point.position / SAMPLES_PER_FRAME);
+									size_t endFrame = frameStart + (size_t)round(timeline[playerIndex][testIndex].position / SAMPLES_PER_FRAME);
 									if (endFrame - currentFrame > 0)
 									{
 										long double currentAngle = static_cast<Traceline*>(point.note)->getAngle();
@@ -1750,7 +1750,7 @@ bool TAS::buildTAS()
 					//if the current & following trace lines are close enough together without interruptions
 					if (prevPhrase != nullptr && !point.index && connected)
 					{
-						unsigned long prevsectIndex = sectIndex;
+						size_t prevsectIndex = sectIndex;
 						//Check if the previous PB is close enough to justify connecting its
 						//sustain button press to the current PB
 						while (prevPhrase->position < markers[playerIndex][prevsectIndex].position)
@@ -1835,9 +1835,9 @@ bool TAS::buildTAS()
 	if (endReached)
 	{
 		if (notes[0] + notes[2] > notes[1] + notes[3])
-			pcsx2.resultScreen(stage, (unsigned long long)notes[0] + notes[2], difficulty != 3, multi);
+			pcsx2.resultScreen(stage, (size_t)notes[0] + notes[2], difficulty != 3, multi);
 		else
-			pcsx2.resultScreen(stage, (unsigned long long)notes[1] + notes[3], false, multi);
+			pcsx2.resultScreen(stage, (size_t)notes[1] + notes[3], false, multi);
 	}
 	while (true)
 	{

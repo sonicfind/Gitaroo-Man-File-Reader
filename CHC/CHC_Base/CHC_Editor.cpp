@@ -117,7 +117,7 @@ void CHC_Editor::editSong(bool multi)
 void CHC_Editor::organizeAll()
 {
 	banner(" " + song->shortname + ".CHC - Complete Reorganization ");
-	for (unsigned long sectIndex = 0; song->unorganized && sectIndex < song->sections.size(); sectIndex++)
+	for (size_t sectIndex = 0; song->unorganized && sectIndex < song->sections.size(); sectIndex++)
 	{
 		if (!song->sections[sectIndex].organized)
 			reorganize(song->sections[sectIndex]);
@@ -369,7 +369,7 @@ void CHC_Editor::PSPToPS2()
 			section.charts.moveElements((c << 1) + section.numCharts, c + section.numCharts);
 		}
 		section.numCharts >>= 1;
-		section.charts.moveElements((unsigned long long)section.numCharts << 1, section.numCharts, section.numCharts);
+		section.charts.moveElements((size_t)section.numCharts << 1, section.numCharts, section.numCharts);
 		if (enemy)
 			section.swapped = (section.swapped >> 1) + 4;
 	}
@@ -410,7 +410,7 @@ void CHC_Editor::swapIMC()
 					string strIMC = newIMC;
 					if (strIMC.find(".IMC") == string::npos)
 						strIMC += ".IMC";
-					for (unsigned i = 0; i < strIMC.length(); i++)
+					for (size_t i = 0; i < strIMC.length(); i++)
 						song->imc[34 + i] = toupper(strIMC[i]);
 					song->imc[34 + strIMC.length()] = 0;
 					song->saved = 0;
@@ -749,7 +749,7 @@ void CHC_Editor::sectionMenu()
 void CHC_Editor::playerSwapAll()
 {
 	banner(" " + song->shortname + ".CHC - Complete Player Swap");
-	for (unsigned long sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
+	for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
 		playerSwap(song->sections[sectIndex]);
 	song->saved = false;
 }
@@ -811,7 +811,7 @@ void CHC_Editor::playOrder()
 	} while (!global.quit);
 	global.quit = false;
 	printf("%s", global.tabs.c_str());
-	for (unsigned index = 0; index < sectionIndexes.size(); index++)
+	for (size_t index = 0; index < sectionIndexes.size(); index++)
 	{
 		if (index + 1ULL < sectionIndexes.size())
 		{
@@ -1513,7 +1513,7 @@ void CHC_Editor::reorganize(SongSection& section)
 			if (notes[pl].size())
 			{
 				currentChart->clearTracelines();
-				for (unsigned long ntIndex = 0, startingIndex = 0; ntIndex < notes[pl].size(); ntIndex++)
+				for (size_t ntIndex = 0, startingIndex = 0; ntIndex < notes[pl].size(); ntIndex++)
 				{
 					//If not empty, set pivotAlpha to a value based off the current index
 					if (ntIndex == startingIndex)
@@ -1612,7 +1612,7 @@ void CHC_Editor::reorganize(SongSection& section)
 										//Adjust the chartAlpha
 										currentChart->adjustPivotTime(pivotDifference);
 										//Adjust the pivot alphas of inserted notes
-										for (unsigned long grdIndex = 0; grdIndex < currentChart->guards.size(); grdIndex++)
+										for (size_t grdIndex = 0; grdIndex < currentChart->guards.size(); grdIndex++)
 											currentChart->guards[grdIndex].adjustPivotAlpha(-pivotDifference);
 									}
 									currentChart->setEndTime(notes[pl][ntIndex].first + long(SAMPLES_PER_BEAT));
@@ -1650,7 +1650,7 @@ void CHC_Editor::reorganize(SongSection& section)
 											//Adjust the chartAlpha
 											currentChart->adjustPivotTime(pivotDifference);
 											//Adjust the pivot alphas of inserted notes
-											for (unsigned long grdIndex = 0; grdIndex < currentChart->guards.size(); grdIndex++)
+											for (size_t grdIndex = 0; grdIndex < currentChart->guards.size(); grdIndex++)
 												currentChart->guards[grdIndex].adjustPivotAlpha(-pivotDifference);
 										}
 										currentChart->setEndTime(notes[pl][ntIndex].first + long(SAMPLES_PER_BEAT));
@@ -1667,7 +1667,7 @@ void CHC_Editor::reorganize(SongSection& section)
 										//Adjust the chartAlpha
 										currentChart->adjustPivotTime(pivotDifference);
 										//Adjust the pivot alphas of inserted notes
-										for (unsigned long grdIndex = 0; grdIndex < currentChart->guards.size(); grdIndex++)
+										for (size_t grdIndex = 0; grdIndex < currentChart->guards.size(); grdIndex++)
 											currentChart->guards[grdIndex].adjustPivotAlpha(-pivotDifference);
 									}
 									else
@@ -1774,21 +1774,21 @@ void CHC_Editor::reorganize(SongSection& section)
 		for (size_t pl = 0; pl < 4; pl++)
 		{
 			size_t perChart = newCharts[pl].size();
-			for (unsigned ch = 0; ch < newCharts[pl].size(); ch++)
+			for (size_t ch = 0; ch < newCharts[pl].size(); ch++)
 				if (perChart > section.numCharts && !(newCharts[pl][ch].guards.size() + newCharts[pl][ch].phrases.size()) && newCharts[pl][ch].tracelines.size() <= 1)
 					perChart--;
 			section.numCharts = (unsigned long)perChart;
 		}
-		unsigned long total;
+		size_t total;
 		if (song->imc[0])
 		{
-			unsigned long total1 = 0, total2 = 0;
+			size_t total1 = 0, total2 = 0;
 			for (unsigned pl = 0; pl < 4; pl += 2)
 			{
-				for (unsigned ch = 0; ch < newCharts[pl].size(); ch++)
+				for (size_t ch = 0; ch < newCharts[pl].size(); ch++)
 					if (newCharts[pl][ch].guards.size() + newCharts[pl][ch].phrases.size() || newCharts[pl][ch].tracelines.size() <= 1)
 						total1++;
-				for (unsigned ch = 0; ch < newCharts[pl + 1].size(); ch++)
+				for (size_t ch = 0; ch < newCharts[pl + 1].size(); ch++)
 					if (newCharts[pl + 1][ch].guards.size() + newCharts[pl + 1][ch].phrases.size() || newCharts[pl + 1][ch].tracelines.size() <= 1)
 						total2++;
 			}
@@ -1825,10 +1825,10 @@ void CHC_Editor::playerSwap(SongSection& section)
 {
 	if (song->imc[0])
 	{
-		if (section.battlePhase != SongSection::Phase::HARMONY && section.battlePhase != SongSection::Phase::HARMONY)
+		if (section.battlePhase != SongSection::Phase::HARMONY && section.battlePhase != SongSection::Phase::END)
 		{
 			for (long playerIndex = section.numPlayers - 1; playerIndex > 0; playerIndex -= 2)
-				section.charts.moveElements((unsigned long long)playerIndex * section.numCharts, (playerIndex - 1ULL) * section.numCharts, section.numCharts);
+				section.charts.moveElements((size_t)playerIndex * section.numCharts, (playerIndex - 1ULL) * section.numCharts, section.numCharts);
 			if (!(section.swapped & 1))
 			{
 				if (section.swapped == 0)
@@ -1876,7 +1876,7 @@ void CHC_Editor::playerSwap(SongSection& section)
 					return;
 				case 'a':
 					for (long playerIndex = section.numPlayers - 1; playerIndex > 0; playerIndex -= 2)
-						section.charts.moveElements((unsigned long long)playerIndex * section.numCharts, (playerIndex - 1ULL) * section.numCharts, section.numCharts);
+						section.charts.moveElements((size_t)playerIndex * section.numCharts, (playerIndex - 1ULL) * section.numCharts, section.numCharts);
 					if (!(section.swapped & 1))
 					{
 						if ((section.swapped & 2) == 0)

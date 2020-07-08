@@ -447,7 +447,7 @@ long radiansToDegrees(double angle)
 string angleToFraction(double angle)
 {
 	static const int factors[] = { 90, 60, 45, 36, 30, 20, 18, 15, 12, 10, 9, 6, 5, 4, 3, 2 };
-	static const char* dems[] = { "2", "3", "4", "5", "6", "9", "10", "12", "15", "18", "20", "30", "45", "60", "90" };
+	static const char* dems[] = { "2", "3", "4", "5", "6", "9", "10", "12", "15", "18", "20", "30", "36", "45", "60", "90" };
 	long degree = radiansToDegrees(angle);
 	string fraction;
 	if (degree == 0)

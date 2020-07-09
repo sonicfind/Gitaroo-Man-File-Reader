@@ -81,7 +81,7 @@ Otherwise, it will return -1.
 template<class...Args>
 extern char loadProc(HINSTANCE& lib, const char* proc, Args&... args)
 {
-	typedef bool(__cdecl* MYPROC)(Args...);
+	typedef bool(__cdecl* MYPROC)(Args&...);
 	MYPROC ProcAdd = (MYPROC)GetProcAddress(lib, proc);
 	if (ProcAdd)
 		return ProcAdd(args...);

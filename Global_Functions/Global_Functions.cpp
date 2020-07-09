@@ -322,10 +322,9 @@ char listValueInsert(List<size_t>& values, std::string outCharacters, size_t max
 		std::putchar('*');
 	}
 	scanf_s("%c", &global.input, 1);
-	char ret = tolower(global.input);
 	do
 	{
-		switch (ret)
+		switch (global.input)
 		{
 		case ' ':
 			scanf_s("%c", &global.input, 1);
@@ -390,7 +389,7 @@ char listValueInsert(List<size_t>& values, std::string outCharacters, size_t max
 			{
 				ungetc(global.input, stdin);
 				double tmp;
-				scanf_s("%lg", &tmp);
+				scanf_s("%lf", &tmp);
 				size_t value = size_t(tmp);
 				if (value < min || value >= max)
 					printf("%s%zu is not within range. Skipping value.\n%s\n", global.tabs.c_str(), value, global.tabs.c_str());

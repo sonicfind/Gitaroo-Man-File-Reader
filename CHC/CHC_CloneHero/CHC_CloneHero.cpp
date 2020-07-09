@@ -1413,11 +1413,11 @@ bool Charter::importChart()
 	{
 		printf("%sProvide the name of the .CHART file you wish to use (Or 'Q' to exit): ", global.tabs.c_str());
 		string chartName = "";
-		char val = filenameInsertion(chartName);
-		if (val == -1)
-			return false;
-		else if (val == 0)
+		switch (filenameInsertion(chartName))
 		{
+		case 'q':
+			return false;
+		case '!':
 			if (chartName.find(".CHART") == string::npos)
 				chartName += ".CHART";
 			if (!fopen_s(&inChart, chartName.c_str(), "r"))

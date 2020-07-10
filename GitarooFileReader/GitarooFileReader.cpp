@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 {
 	if (dllCount)
 	{
-		banner(" Gitaroo File Reader v0.7 Beta ");
+		banner(" Gitaroo File Reader v0.7.0.1 Beta ");
 		banner(" 'Q' is the universal \"quit\" option | Use ';' for \"multi-step\" actions ");
 		if (!multi(argc, argv))
 			while (single());

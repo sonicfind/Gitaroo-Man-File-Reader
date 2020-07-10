@@ -1134,15 +1134,17 @@ void CHC_Editor::fullPathTest()
 
 bool CHC_Editor::pathTest(size_t startIndex, bool show)
 {
-	if (startIndex < song->sections.size())
+	const size_t size = song->sections.size();
+	if (startIndex < size)
 	{
-		bool** conditionTested = new bool* [song->sections.size()]();
-		bool* results = new bool[song->sections.size()]();
-		for (size_t sectIndex = song->sections.size(); sectIndex > startIndex;)
+		
+		bool** conditionTested = new bool* [size]();
+		bool* results = new bool[size]();
+		for (size_t sectIndex = size; sectIndex > startIndex;)
 			testSection(--sectIndex, conditionTested, results, nullptr);
 		if (show) //Only used for the full path test
 		{
-			for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
+			for (size_t sectIndex = 0; sectIndex < size; sectIndex++)
 			{
 				if (conditionTested[sectIndex] != nullptr)
 				{
@@ -1150,11 +1152,11 @@ bool CHC_Editor::pathTest(size_t startIndex, bool show)
 						conditionTested[sectIndex][condIndex] = false;
 				}
 			}
-			bool* reach = new bool[song->sections.size()]();
+			bool* reach = new bool[size]();
 			testSection(startIndex, conditionTested, results, reach);
 			printf("%s%s||\n", global.tabs.c_str(), string(40, '=').c_str());
 			printf("%s Section || Accessible? || Can Reach End? ||\n", global.tabs.c_str());
-			for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
+			for (size_t sectIndex = 0; sectIndex < size; sectIndex++)
 			{
 				printf("%s%8s ||      ", global.tabs.c_str(), song->sections[sectIndex].name);
 				if (reach[sectIndex])
@@ -1168,7 +1170,7 @@ bool CHC_Editor::pathTest(size_t startIndex, bool show)
 			}
 			printf("%s%s||\n", global.tabs.c_str(), string(40, '=').c_str());
 		}
-		for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
+		for (size_t sectIndex = 0; sectIndex < size; sectIndex++)
 			if (conditionTested[sectIndex] != nullptr)
 				delete[song->sections[sectIndex].conditions.size()] conditionTested[sectIndex];
 		bool res = results[startIndex];
@@ -1774,10 +1776,11 @@ void CHC_Editor::reorganize(SongSection& section)
 		for (size_t pl = 0; pl < 4; pl++)
 		{
 			size_t perChart = newCharts[pl].size();
-			for (size_t ch = 0; ch < newCharts[pl].size(); ch++)
-				if (perChart > section.numCharts && !(newCharts[pl][ch].guards.size() + newCharts[pl][ch].phrases.size()) && newCharts[pl][ch].tracelines.size() <= 1)
+			for (size_t ch = 0; ch < newCharts[pl].size() && perChart > section.numCharts; ch++)
+				if (!(newCharts[pl][ch].guards.size() + newCharts[pl][ch].phrases.size()) && newCharts[pl][ch].tracelines.size() <= 1)
 					perChart--;
-			section.numCharts = (unsigned long)perChart;
+			if (perChart > section.numCharts)
+				section.numCharts = (unsigned long)perChart;
 		}
 		size_t total;
 		if (song->imc[0])

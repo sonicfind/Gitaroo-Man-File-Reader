@@ -409,7 +409,7 @@ bool Charter::exportChart()
 				choices += "ce";
 			}
 			printf("%s==============================================================||\n", global.tabs.c_str());
-			strumFret = (char)menuChoices(choices, true);
+			strumFret = menuChoices(choices, true);
 			switch (strumFret)
 			{
 			case 'q':
@@ -514,13 +514,13 @@ bool Charter::exportChart()
 						char fret, modfret;
 						switch (orientation)	//Determine button based on orientation
 						{
-						case 'q':
+						case 0:
 							switch (chart.getGuard(i).getButton())
 							{
-							case 'q':		//Red
+							case 0:		//Red
 								modfret = 1;
 								break;
-							case '!':		//Blue
+							case 1:		//Blue
 								modfret = 3;
 								break;
 							case 2:		//Orange
@@ -530,13 +530,13 @@ bool Charter::exportChart()
 								modfret = 0;
 							}
 							break;
-						case '!':
+						case 1:
 							switch (chart.getGuard(i).getButton())
 							{
-							case 'q':		//Blue
+							case 0:		//Blue
 								modfret = 3;
 								break;
-							case '!':		//Orange
+							case 1:		//Orange
 								modfret = 4;
 								break;
 							case 2:		//Green
@@ -549,10 +549,10 @@ bool Charter::exportChart()
 						case 2:
 							switch (chart.getGuard(i).getButton())
 							{
-							case 'q':		//Orange
+							case 0:		//Orange
 								modfret = 4;
 								break;
-							case '!':		//Green
+							case 1:		//Green
 								modfret = 0;
 								break;
 							case 2:		//Red
@@ -565,10 +565,10 @@ bool Charter::exportChart()
 						case 3:
 							switch (chart.getGuard(i).getButton())
 							{
-							case 'q':		//Red
+							case 0:		//Red
 								modfret = 3;
 								break;
-							case '!':		//Green
+							case 1:		//Green
 								modfret = 0;
 								break;
 							case 2:		//Blue
@@ -580,10 +580,10 @@ bool Charter::exportChart()
 						}
 						switch (chart.getGuard(i).getButton())
 						{
-						case 'q':		//Red
+						case 0:		//Red
 							fret = 3;
 							break;
-						case '!':		//Green
+						case 1:		//Green
 							fret = 0;
 							break;
 						case 2:		//Blue
@@ -1095,237 +1095,237 @@ bool Charter::exportChart()
 				FILE * outFile;
 				fopen_s(&outFile, (song.name.substr(0, song.name.length() - 4) + ".ini").c_str(), "w");
 				//Generate the ini file if it's a chart from the original games (stage 2 also including separate EN & JP charts)
-				fputs("[song]\n", outFile);
+				fprintf(outFile, "[song]\n");
 				if (song.shortname.find("ST01") != string::npos)
 				{
-					fputs("artist = COIL, Tomohiro Harada, Kaleb James\n", outFile);
-					fputs("name = 1. Twisted Reality (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Rock\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Panpeus: his axe is an axe. The Axe Gitaroo rips right through space-time, so watch out. Panpeus may have a baby face, but not baby skills.\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t       Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 3\n", outFile);
-					fputs("preview_start_time = 29000\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 3\n", outFile);
-					fputs("playlist_track = 5\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
-					fputs("lyrics = 1\n", outFile);
+					fprintf(outFile, "artist = COIL, Tomohiro Harada, Kaleb James\n");
+					fprintf(outFile, "name = 1. Twisted Reality (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Rock\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Panpeus: his axe is an axe. The Axe Gitaroo rips right through space-time, so watch out. Panpeus may have a baby face, but not baby skills.\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t       Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 3\n");
+					fprintf(outFile, "preview_start_time = 29000\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 3\n");
+					fprintf(outFile, "playlist_track = 5\n");
+					fprintf(outFile, "video_start_time = 0\n");
+					fprintf(outFile, "lyrics = 1\n");
 				}
 				else if (song.shortname.find("ST02") != string::npos)
 				{
-					fputs("artist = Tomohiro Harada, YUAN, a - li\n", outFile);
+					fprintf(outFile, "artist = Tomohiro Harada, YUAN, a - li\n");
 					if (song.shortname.find("ST02_HE") != string::npos)
-						fputs("name = 2E. Flyin' to Your Heart (EN) (MODCHART)\n", outFile);
+						fprintf(outFile, "name = 2E. Flyin' to Your Heart (EN) (MODCHART)\n");
 					else
-						fputs("name = 2. Flyin' to Your Heart (JP) (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = J - Pop\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Flyin-O: a loyal soldier of the empire. His synth gitaroo shoots 'Dance-Until-Death' rays. His henchmen, the Little-Os, are nothing to be scoffed at either.\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 3\n", outFile);
-					fputs("preview_start_time = 23460\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 4\n", outFile);
-					fputs("playlist_track = 7\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
-					fputs("lyrics = 1\n", outFile);
+						fprintf(outFile, "name = 2. Flyin' to Your Heart (JP) (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = J - Pop\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Flyin-O: a loyal soldier of the empire. His synth gitaroo shoots 'Dance-Until-Death' rays. His henchmen, the Little-Os, are nothing to be scoffed at either.\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 3\n");
+					fprintf(outFile, "preview_start_time = 23460\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 4\n");
+					fprintf(outFile, "playlist_track = 7\n");
+					fprintf(outFile, "video_start_time = 0\n");
+					fprintf(outFile, "lyrics = 1\n");
 				}
 				else if (song.shortname.find("ST03") != string::npos)
 				{
-					fputs("artist = COIL, Tomohiro Harada, Keiichi Yano\n", outFile);
-					fputs("name = 3. Bee Jam Blues (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Funk\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Mojo King Bee: he rules the darkness with his trumpet Gitaroo. No one has ever seen the man behind the shades.\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 4\n", outFile);
-					fputs("preview_start_time = 34260\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 5\n", outFile);
-					fputs("playlist_track = 9\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
-					fputs("lyrics = 1\n", outFile);
+					fprintf(outFile, "artist = COIL, Tomohiro Harada, Keiichi Yano\n");
+					fprintf(outFile, "name = 3. Bee Jam Blues (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Funk\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Mojo King Bee: he rules the darkness with his trumpet Gitaroo. No one has ever seen the man behind the shades.\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 4\n");
+					fprintf(outFile, "preview_start_time = 34260\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 5\n");
+					fprintf(outFile, "playlist_track = 9\n");
+					fprintf(outFile, "video_start_time = 0\n");
+					fprintf(outFile, "lyrics = 1\n");
 				}
 				else if (song.shortname.find("ST04") != string::npos)
 				{
-					fputs("artist = Tomohiro Harada, k - nzk\n", outFile);
-					fputs("name = 4. VOID (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Industrial\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Ben-K: As a space shark, he's a rough, tough, customer just looking for trouble!\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 4\n", outFile);
-					fputs("preview_start_time = 13650\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 6\n", outFile);
-					fputs("playlist_track = 11\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
+					fprintf(outFile, "artist = Tomohiro Harada, k - nzk\n");
+					fprintf(outFile, "name = 4. VOID (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Industrial\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Ben-K: As a space shark, he's a rough, tough, customer just looking for trouble!\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 4\n");
+					fprintf(outFile, "preview_start_time = 13650\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 6\n");
+					fprintf(outFile, "playlist_track = 11\n");
+					fprintf(outFile, "video_start_time = 0\n");
 				}
 				else if (song.shortname.find("ST05") != string::npos)
 				{
-					fputs("artist = COIL, Tomohiro Harada, feat.NAHKI\n", outFile);
-					fputs("name = 5. Nuff Respect (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Reggae\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Ben-K: He attacks by scratching the turntable Gitaroo on his chest - but his Karate moves prove he's a man of many talents!\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 3\n", outFile);
-					fputs("preview_start_time = 38480\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 7\n", outFile);
-					fputs("playlist_track = 13\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
+					fprintf(outFile, "artist = COIL, Tomohiro Harada, feat.NAHKI\n");
+					fprintf(outFile, "name = 5. Nuff Respect (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Reggae\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Ben-K: He attacks by scratching the turntable Gitaroo on his chest - but his Karate moves prove he's a man of many talents!\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 3\n");
+					fprintf(outFile, "preview_start_time = 38480\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 7\n");
+					fprintf(outFile, "playlist_track = 13\n");
+					fprintf(outFile, "video_start_time = 0\n");
 				}
 				else if (song.shortname.find("ST06") != string::npos)
 				{
-					fputs("artist = COIL, Tomohiro Harada\n", outFile);
-					fputs("name = 6. The Legendary Theme (Acoustic) (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Acoustic\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Kirah: a shy and reserved girl with the heart of a warrior. She excels at baking Gitaroo Apple Pies.\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 2\n", outFile);
-					fputs("preview_start_time = 26120\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 8\n", outFile);
-					fputs("playlist_track = 15\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
-					fputs("delay = -100\n", outFile);
+					fprintf(outFile, "artist = COIL, Tomohiro Harada\n");
+					fprintf(outFile, "name = 6. The Legendary Theme (Acoustic) (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Acoustic\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Kirah: a shy and reserved girl with the heart of a warrior. She excels at baking Gitaroo Apple Pies.\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 2\n");
+					fprintf(outFile, "preview_start_time = 26120\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 8\n");
+					fprintf(outFile, "playlist_track = 15\n");
+					fprintf(outFile, "video_start_time = 0\n");
+					fprintf(outFile, "delay = -100\n");
 				}
 				else if (song.shortname.find("ST07") != string::npos)
 				{
-					fputs("artist = Tomohiro Harada, Steve Eto, Kazuki Abe\n", outFile);
-					fputs("name = 7. Born To Be Bone (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Flamenco\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Sanbone Trio: Carrot, Soda, & Pine are three mariachis who use their bones as Gitaroos. Their bare-knuckled fighting style is truly praiseworthy!\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 5\n", outFile);
-					fputs("preview_start_time = 84330\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 9\n", outFile);
-					fputs("playlist_track = 17\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
+					fprintf(outFile, "artist = Tomohiro Harada, Steve Eto, Kazuki Abe\n");
+					fprintf(outFile, "name = 7. Born To Be Bone (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Flamenco\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Sanbone Trio: Carrot, Soda, & Pine are three mariachis who use their bones as Gitaroos. Their bare-knuckled fighting style is truly praiseworthy!\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 5\n");
+					fprintf(outFile, "preview_start_time = 84330\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 9\n");
+					fprintf(outFile, "playlist_track = 17\n");
+					fprintf(outFile, "video_start_time = 0\n");
 				}
 				else if (song.shortname.find("ST08") != string::npos)
 				{
-					fputs("artist = Tomohiro Harada, Kozo Suganuma, Yoshifumi Yamaguchi\n", outFile);
-					fputs("name = 8. Tainted Lovers (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Metal\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Gregorio (Seigfried) Wilhelm III: that would be me - at your service. The Great Cathedral itself is my Gitaroo, with which I share my fate. I find my inspiration for my art in tragedy and pain.\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 5\n", outFile);
-					fputs("preview_start_time = 34730\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 10\n", outFile);
-					fputs("playlist_track = 19\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
+					fprintf(outFile, "artist = Tomohiro Harada, Kozo Suganuma, Yoshifumi Yamaguchi\n");
+					fprintf(outFile, "name = 8. Tainted Lovers (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Metal\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Gregorio (Seigfried) Wilhelm III: that would be me - at your service. The Great Cathedral itself is my Gitaroo, with which I share my fate. I find my inspiration for my art in tragedy and pain.\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 5\n");
+					fprintf(outFile, "preview_start_time = 34730\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 10\n");
+					fprintf(outFile, "playlist_track = 19\n");
+					fprintf(outFile, "video_start_time = 0\n");
 				}
 				else if (song.shortname.find("ST09") != string::npos)
 				{
-					fputs("artist = Tomohiro Harada, Yoshifumi Yamaguchi, Yusuke Nishikawa\n", outFile);
-					fputs("name = 9. Overpass (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Rock\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Kirah: the most powerful Gravillian warrior, who was trained from childhood to be a Gitaroo Master. No one can defeat her - not even me!\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t       Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 2\n", outFile);
-					fputs("preview_start_time = 22750\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 11\n", outFile);
-					fputs("playlist_track = 21\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
+					fprintf(outFile, "artist = Tomohiro Harada, Yoshifumi Yamaguchi, Yusuke Nishikawa\n");
+					fprintf(outFile, "name = 9. Overpass (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Rock\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Kirah: the most powerful Gravillian warrior, who was trained from childhood to be a Gitaroo Master. No one can defeat her - not even me!\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t       Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 2\n");
+					fprintf(outFile, "preview_start_time = 22750\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 11\n");
+					fprintf(outFile, "playlist_track = 21\n");
+					fprintf(outFile, "video_start_time = 0\n");
 				}
 				else if (song.shortname.find("ST10") != string::npos)
 				{
-					fputs("artist = COIL, Tomohiro Harada\n", outFile);
-					fputs("name = 10. Resurrection (MODCHART)\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Hard Rock\n", outFile);
-					fputs("year = 2001\n", outFile);
-					fputs("loading_phrase = \"Lord Zowie: he has revealed to us his true power! His Armored Gitaroo, the apex of Gravillian technology, will now rev into life!\"", outFile);
-					fputs("\t\t\t\t\t\t\t\t\t\t\t\t\t\t       Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n", outFile);
-					fputs("diff_guitar = 5\n", outFile);
-					fputs("preview_start_time = 23830\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 12\n", outFile);
-					fputs("playlist_track = 23\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
+					fprintf(outFile, "artist = COIL, Tomohiro Harada\n");
+					fprintf(outFile, "name = 10. Resurrection (MODCHART)\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Hard Rock\n");
+					fprintf(outFile, "year = 2001\n");
+					fprintf(outFile, "loading_phrase = \"Lord Zowie: he has revealed to us his true power! His Armored Gitaroo, the apex of Gravillian technology, will now rev into life!\"");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t       Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "diff_guitar = 5\n");
+					fprintf(outFile, "preview_start_time = 23830\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 12\n");
+					fprintf(outFile, "playlist_track = 23\n");
+					fprintf(outFile, "video_start_time = 0\n");
 				}
 				else if (song.shortname.find("ST11") != string::npos)
 				{
-					fputs("artist = Tomozuin H, Andy MacKinlay, Satoshi Izumi\n", outFile);
-					fputs("name = 11. Metal Header (MODCHART) [MP-Only]\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Rock\n", outFile);
-					fputs("year = 2006\n", outFile);
-					fputs("loading_phrase =\n", outFile);
-					fputs("diff_guitar = 4\n", outFile);
-					fputs("diff_rhythm = 4\n", outFile);
-					fputs("preview_start_time = 0\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 14\n", outFile);
-					fputs("playlist_track = 25\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
-					fputs("lyrics = 1\n", outFile);
+					fprintf(outFile, "artist = Tomozuin H, Andy MacKinlay, Satoshi Izumi\n");
+					fprintf(outFile, "name = 11. Metal Header (MODCHART) [MP-Only]\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Rock\n");
+					fprintf(outFile, "year = 2006\n");
+					fprintf(outFile, "loading_phrase =\n");
+					fprintf(outFile, "diff_guitar = 4\n");
+					fprintf(outFile, "diff_rhythm = 4\n");
+					fprintf(outFile, "preview_start_time = 0\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 14\n");
+					fprintf(outFile, "playlist_track = 25\n");
+					fprintf(outFile, "video_start_time = 0\n");
+					fprintf(outFile, "lyrics = 1\n");
 				}
 				else if (song.shortname.find("ST12") != string::npos)
 				{
-					fputs("artist = Tomozuin H, Yordanka Farres, Kenjiro Imawara, Tetsuo Koizumi\n", outFile);
-					fputs("name = 12. Toda Pasion (MODCHART) [SP/Online MP]\n", outFile);
-					fputs("charter = Sonicfind (Assisted by CyclopsDragon)\n", outFile);
-					fputs("album = Gitaroo Man: Warrior of Music [OST]\n", outFile);
-					fputs("genre = Latin Rock\n", outFile);
-					fputs("year = 2006\n", outFile);
-					fputs("loading_phrase =\n", outFile);
-					fputs("diff_guitar = 4\n", outFile);
-					fputs("diff_rhythm = 4\n", outFile);
-					fputs("preview_start_time = 0\n", outFile);
-					fputs("icon = gitaroo\n", outFile);
-					fputs("album_track = 15\n", outFile);
-					fputs("playlist_track = 26\n", outFile);
-					fputs("video_start_time = 0\n", outFile);
-					fputs("lyrics = 1\n", outFile);
+					fprintf(outFile, "artist = Tomozuin H, Yordanka Farres, Kenjiro Imawara, Tetsuo Koizumi\n");
+					fprintf(outFile, "name = 12. Toda Pasion (MODCHART) [SP/Online MP]\n");
+					fprintf(outFile, "charter = Sonicfind (Assisted by CyclopsDragon)\n");
+					fprintf(outFile, "album = Gitaroo Man: Warrior of Music [OST]\n");
+					fprintf(outFile, "genre = Latin Rock\n");
+					fprintf(outFile, "year = 2006\n");
+					fprintf(outFile, "loading_phrase =\n");
+					fprintf(outFile, "diff_guitar = 4\n");
+					fprintf(outFile, "diff_rhythm = 4\n");
+					fprintf(outFile, "preview_start_time = 0\n");
+					fprintf(outFile, "icon = gitaroo\n");
+					fprintf(outFile, "album_track = 15\n");
+					fprintf(outFile, "playlist_track = 26\n");
+					fprintf(outFile, "video_start_time = 0\n");
+					fprintf(outFile, "lyrics = 1\n");
 				}
-				fputs("modchart = 1\n", outFile);
+				fprintf(outFile, "modchart = 1\n");
 				//Converting totalDur to milliseconds
 				fprintf(outFile, "song_length = %lu\n", (unsigned long)ceil(totalDur / 48));
-				fputs("Property of Koei Co. Ltd. Gitaroo Man (C) KOEI 2001", outFile);
+				fprintf(outFile, "Property of Koei Co. Ltd. Gitaroo Man (C) KOEI 2001");
 				fclose(outFile);
 				//Switch file from the .ini to the .chart
 				fopen_s(&outFile, (filenameMod + ".chart").c_str(), "w");
-				fputs("[Song]\n{\n", outFile);
-				fputs("  Offset = 0\n", outFile);
-				fputs("  Resolution = 480\n", outFile);
-				fputs("  Player2 = bass\n", outFile);
-				fputs("  Difficulty = 0\n", outFile);
-				fputs("  PreviewStart = 0\n", outFile);
-				fputs("  PreviewEnd = 0\n", outFile);
-				fputs("  Genre = \"rock\"\n", outFile);
-				fputs("  MediaType = \"cd\"\n}\n", outFile);
-				fputs("[SyncTrack]\n{\n", outFile);
+				fprintf(outFile, "[Song]\n{\n");
+				fprintf(outFile, "  Offset = 0\n");
+				fprintf(outFile, "  Resolution = 480\n");
+				fprintf(outFile, "  Player2 = bass\n");
+				fprintf(outFile, "  Difficulty = 0\n");
+				fprintf(outFile, "  PreviewStart = 0\n");
+				fprintf(outFile, "  PreviewEnd = 0\n");
+				fprintf(outFile, "  Genre = \"rock\"\n");
+				fprintf(outFile, "  MediaType = \"cd\"\n}\n");
+				fprintf(outFile, "[SyncTrack]\n{\n");
 				for (size_t i = 0; i < sync.size(); i++)
 				{
 					outFile << sync[i];
@@ -1336,21 +1336,21 @@ bool Charter::exportChart()
 					else
 						i++;
 				}
-				fputs("}\n[Events]\n{\n", outFile);
+				fprintf(outFile, "}\n[Events]\n{\n");
 				for (size_t i = 0; i < events.size(); i++)
 				{
 					outFile << events[i];
 					events[i].position -= 960;
 				}
-				fputs("}\n", outFile);
+				fprintf(outFile, "}\n");
 				const char* headers[2] = { "[ExpertSingle]\n{\n", "[ExpertDoubleRhythm]\n{\n" };
 				for (char i = 0; i < 2; i++)
 				{
 					if (!expert[i].size()) continue;
-					fputs(headers[i], outFile);
+					fprintf(outFile, headers[i]);
 					for (size_t n = 0; n < expert[i].size(); n++)
 						outFile << expert[i][n];
-					fputs("}\n", outFile);
+					fprintf(outFile, "}\n");
 				}
 				fclose(outFile);
 				global.quit = true;
@@ -1373,30 +1373,30 @@ bool Charter::exportChart()
 			break;
 		case 'y':
 			fopen_s(&outFile, (filename + ".chart").c_str(), "w");
-			fputs("[CHC]\n{\n", outFile);
-			fputs("  Offset = 0\n", outFile);
-			fputs("  Resolution = 480\n", outFile);
-			fputs("  Player2 = bass\n", outFile);
-			fputs("  Difficulty = 0\n", outFile);
-			fputs("  PreviewStart = 0\n", outFile);
-			fputs("  PreviewEnd = 0\n", outFile);
-			fputs("  Genre = \"rock\"\n", outFile);
-			fputs("  MediaType = \"cd\"\n}\n", outFile);
-			fputs("[SyncTrack]\n{\n", outFile);
+			fprintf(outFile, "[CHC]\n{\n");
+			fprintf(outFile, "  Offset = 0\n");
+			fprintf(outFile, "  Resolution = 480\n");
+			fprintf(outFile, "  Player2 = bass\n");
+			fprintf(outFile, "  Difficulty = 0\n");
+			fprintf(outFile, "  PreviewStart = 0\n");
+			fprintf(outFile, "  PreviewEnd = 0\n");
+			fprintf(outFile, "  Genre = \"rock\"\n");
+			fprintf(outFile, "  MediaType = \"cd\"\n}\n");
+			fprintf(outFile, "[SyncTrack]\n{\n");
 			for (size_t i = 0; i < sync.size(); i++)
 				outFile << sync[i];
-			fputs("}\n[Events]\n{\n", outFile);
+			fprintf(outFile, "}\n[Events]\n{\n");
 			for (size_t i = 0; i < events.size(); i++)
 				outFile << events[i];
-			fputs("}\n", outFile);
+			fprintf(outFile, "}\n");
 			const char* headers[2] = { "[ExpertSingle]\n{\n", "[ExpertDoubleRhythm]\n{\n" };
 			for (char i = 0; i < 2; i++)
 			{
 				if (!reimport[i].size()) continue;
-				fputs(headers[i], outFile);
+				fprintf(outFile, headers[i]);
 				for (size_t n = 0; n < reimport[i].size(); n++)
 					outFile << reimport[i][n];
-				fputs("}\n", outFile);
+				fprintf(outFile, "}\n");
 			}
 			fclose(outFile);
 			return true;
@@ -1984,7 +1984,7 @@ bool Charter::importChart()
 					if (outSheet != nullptr || outSheet2 != nullptr)
 					{
 						const char colorRange[] = {'G', 'R', 'Y', 'B', 'O', 0, 0, 'N', 'g', 'r', 'y', 'b', 'o'};
-						fputs("[phrasemode fragments]\n", outSheet2);
+						fprintf(outSheet2, "[phrasemode fragments]\n");
 						dualvfprintf_s(outSheet, outSheet2, "[attack point palette]\nG: 00ff00\nR: ff0000\nY: ffff00\nB: 0000ff\nO: ff7f00\nP: ff00ff\nN: f89b44\ng: ffffff\nr: ffffff\ny: ffffff\nb: ffffff\no: ffffff\np: ffffff\n\n");
 						dualvfprintf_s(outSheet, outSheet2, "[phrase bar palette]\nG: 40ff40\nR: ff4040\nY: ffff40\nB: 4040c8\nO: ff9f40\nP: ff40ff\nN: f07b7b\ng: 40ff40\nr: ff4040\ny: ffff40\nb: 4040c8\no: ff9f40\np: ff40ff\n\n");
 						size_t chartCount = 0;

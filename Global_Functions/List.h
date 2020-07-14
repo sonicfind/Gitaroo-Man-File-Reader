@@ -303,7 +303,7 @@ public:
 	//--CODING NOTE: Ensure that this specialized constructor for the element type
 	//exist. The compiler will throw an error if that is not the case.
 	template <class... Args>
-	void emplace_back(Args&&... args)
+	T& emplace_back(Args&&... args)
 	{
 		if (*count)
 			*tail = (*tail)->next = new Node(*tail, nullptr, args...);
@@ -311,6 +311,7 @@ public:
 			*root = *tail = new Node(nullptr, nullptr, args...);
 		*lastAccessed = { *count, *tail };
 		(*count)++;
+		return (*tail)->data;
 	}
 
 	//Creates a new element at the beginning of the list using a constructor that 
@@ -319,7 +320,7 @@ public:
 	//--CODING NOTE: Ensure that this specialized constructor for the element type
 	//exist. The compiler will throw an error if that is not the case.
 	template <class... Args>
-	void emplace_front(Args&&... args)
+	T& emplace_front(Args&&... args)
 	{
 		if (*count)
 			*root = (*root)->prev = new Node(nullptr, *root, args...);
@@ -327,6 +328,7 @@ public:
 			*root = *tail = new Node(nullptr, nullptr, args...);
 		*lastAccessed = { 0, *root };
 		(*count)++;
+		return (*root)->data;
 	}
 
 	//Maneuvers to the specified index and then creates numElements number of new elements

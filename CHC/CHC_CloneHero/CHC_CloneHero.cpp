@@ -27,7 +27,7 @@ SyncTrack::SyncTrack(FILE* inFile) : timeSig(4)
 
 Event::Event(FILE* inFile)
 {
-	char bagel[100];
+	char bagel[101] = { 0 };
 	fscanf_s(inFile, " %lf%[^\"]s", &position, bagel, 4);
 	fscanf_s(inFile, " %[^\n]s", bagel, 100);
 	name = bagel;
@@ -42,7 +42,7 @@ CHNote::CHNote(FILE* inFile)
 	fscanf_s(inFile, " %lf %c %c", &position, &type, 1, &type, 1);
 	if (type == 'E')
 	{
-		char bagel[100];
+		char bagel[101] = { 0 };
 		fscanf_s(inFile, " %[^\n]s", bagel, 100);
 		name = bagel;
 		this->type = NoteType::EVENT;
@@ -1418,7 +1418,7 @@ bool Charter::importChart()
 		case 'q':
 			return false;
 		case '!':
-			if (chartName.find(".CHART") == string::npos)
+			if (chartName.find(".CHART") == string::npos && chartName.find(".chart") == string::npos)
 				chartName += ".CHART";
 			if (!fopen_s(&inChart, chartName.c_str(), "r"))
 				global.quit = true;
@@ -1594,7 +1594,7 @@ bool Charter::importChart()
 								}
 								if (currSub->chart.getNumTracelines())
 									pos -= 1;
-								prevSub->chart.addTraceline_back((long)round(pos));
+								prevSub->chart.emplaceTraceline_back((long)round(pos));
 							}
 						}
 						else
@@ -1604,17 +1604,17 @@ bool Charter::importChart()
 							{
 								try
 								{
-									currSub->chart.addTraceline_back((long)round(pos), 1, float(stof(note.name.substr(6)) * M_PI / 180));
+									currSub->chart.emplaceTraceline_back((long)round(pos), 1, float(stof(note.name.substr(6)) * M_PI / 180));
 								}
 								catch (...)
 								{
 									printf("%sTrace line event at tick position %lu had extraneous data that could not be pulled.\n", global.tabs.c_str(), (unsigned long)note.position);
 									printf("%sRemember: trace events *must* be formatted as \"Trace\", \"Trace_[float angle value]\", \"Trace_end\", \"Trace_endP\", or \"Trace_curve\"\n", global.tabs.c_str());
-									currSub->chart.addTraceline_back((long)round(pos));
+									currSub->chart.emplaceTraceline_back((long)round(pos));
 								}
 							}
 							else
-								currSub->chart.addTraceline_back((long)round(pos));
+								currSub->chart.emplaceTraceline_back((long)round(pos));
 						}
 					}
 				}
@@ -1628,7 +1628,7 @@ bool Charter::importChart()
 					long pos = (long)round(((note.position - sections[sectIndex].tempos[tempoIndex].position_ticks) * SAMPLES_PER_TICK) + sections[sectIndex].tempos[tempoIndex].position_samples);
 					if (currSub->chart.getNumPhrases() == 0 || currSub->chart.getPhrase(currSub->chart.getNumPhrases() - 1).getPivotAlpha() < pos)
 					{
-						currSub->chart.addPhrase_back(pos, (unsigned long)round(note.sustain * SAMPLES_PER_TICK));
+						currSub->chart.emplacePhrase_back(pos, (unsigned long)round(note.sustain * SAMPLES_PER_TICK));
 						currSub->colors.emplace_back(pos, note.fret - 48);
 					}
 				}
@@ -1644,16 +1644,16 @@ bool Charter::importChart()
 								switch (note.fret)
 								{
 								case '0':
-									currSub->chart.addGuard_back(pos, 1);
+									currSub->chart.emplaceGuard_back(pos, 1);
 									break;
 								case '1':
-									currSub->chart.addGuard_back(pos, 2);
+									currSub->chart.emplaceGuard_back(pos, 2);
 									break;
 								case '3':
-									currSub->chart.addGuard_back(pos, 0);
+									currSub->chart.emplaceGuard_back(pos, 0);
 									break;
 								case '4':
-									currSub->chart.addGuard_back(pos, 3);
+									currSub->chart.emplaceGuard_back(pos, 3);
 								}
 							}
 						}
@@ -1687,26 +1687,23 @@ bool Charter::importChart()
 			insertion.clearPhrases();
 			for (size_t phraseIndex = 0; phraseIndex < imported.getNumPhrases(); phraseIndex++)
 			{
-				//Create a new copy so that pivot alpha values are maintained for the loop iterations
-				Phrase phr(imported.getPhrase(phraseIndex));
+				Phrase& phr = insertion.emplacePhrase_back(imported.getPhrase(phraseIndex));
 				//Pivot alpha was previous set to total displacement from the start of the section
 				phr.adjustPivotAlpha(-insertion.getPivotTime());
-				if (!phr.getStart() && insertion.getNumPhrases())
-					insertion.getPhrase(insertion.getNumPhrases() - 1).changeEndAlpha(phr.getPivotAlpha());
-				if (!phr.getEnd() && phraseIndex + 1 == imported.getNumPhrases())
+				if (!phr.getStart() && phraseIndex)
+					insertion.getPhrase(phraseIndex - 1).changeEndAlpha(phr.getPivotAlpha());
+				if (!phr.getEnd() && phraseIndex + 1ULL == imported.getNumPhrases())
 					phr.setEnd(true);
-				insertion.addPhrase_back(phr);
 			}
 			if (imported.getNumTracelines() > 1)
 			{
 				insertion.clearTracelines();
-				for (size_t traceIndex = 0, phraseIndex = 0; traceIndex < imported.getNumTracelines(); traceIndex++)
+				for (size_t traceIndex = 0; traceIndex < imported.getNumTracelines(); traceIndex++)
 				{
-					Traceline trace = imported.getTraceline(traceIndex);
+					Traceline& trace = insertion.emplaceTraceline_back(imported.getTraceline(traceIndex));
 					trace.adjustPivotAlpha(-insertion.getPivotTime());
 					if (traceIndex)
-						insertion.getTraceline(insertion.getNumTracelines() - 1).changeEndAlpha(trace.getPivotAlpha());
-					insertion.addTraceline_back(trace);
+						insertion.getTraceline(traceIndex - 1).changeEndAlpha(trace.getPivotAlpha());
 				}
 			}
 			//Go through every phrase bar & trace line to find places where phrase bars
@@ -1732,11 +1729,11 @@ bool Charter::importChart()
 						bool end = phr->getEnd();
 						phr->changeEndAlpha(trace.getPivotAlpha());
 						phr->setEnd(false);
-						insertion.addPhrase(trace.getPivotAlpha(), dur, false, end, 0, phr->getColor());
+						insertion.emplacePhrase(trace.getPivotAlpha(), dur, false, end, 0, phr->getColor());
 						phraseIndex++;
 						break;
 					}
-					else if (traceIndex + 1 != insertion.getNumTracelines())
+					else if (traceIndex + 1ULL != insertion.getNumTracelines())
 						break;
 					//If the phrase bar lands at or after the last trace line, delete
 					else if (phr->getPivotAlpha() >= trace.getPivotAlpha())
@@ -1755,10 +1752,7 @@ bool Charter::importChart()
 			}
 			insertion.clearGuards();
 			for (size_t guardIndex = 0; guardIndex < imported.getNumGuards(); guardIndex++)
-			{
-				Guard& grd = imported.getGuard(guardIndex);
-				insertion.addGuard(grd.getPivotAlpha() - insertion.getPivotTime(), grd.getButton());
-			}
+				insertion.emplaceGuard_back(imported.getGuard(guardIndex)).adjustPivotAlpha(-insertion.getPivotTime());
 		};
 		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
 		{
@@ -1794,18 +1788,19 @@ bool Charter::importChart()
 										if (imp.getNumTracelines() > 1 || imp.getNumGuards())
 										{
 											section.setOrganized(false);
-											insertNotes(imp, section.getChart((size_t)playerIndex* section.getNumCharts() + chartIndex));
+											Chart& ins = section.getChart((size_t)playerIndex * section.getNumCharts() + chartIndex);
+											insertNotes(imp, ins);
 											if (section.getPhase() == SongSection::Phase::BATTLE)
 											{
-												if (imp.getNumGuards() && imp.getNumTracelines() > 1)
+												if (ins.getNumGuards() && ins.getNumTracelines() > 1)
 												{
 													//Determining which comes first
-													if (imp.getGuard(0).getPivotAlpha() < imp.getTraceline(0).getPivotAlpha())
+													if (ins.getGuard(0).getPivotAlpha() < ins.getTraceline(0).getPivotAlpha())
 													{
 														if ((playerIndex & 1))
 															p2swapped = true;
 													}
-													else if (imp.getTraceline(0).getPivotAlpha() < imp.getGuard(0).getPivotAlpha())
+													else if (ins.getTraceline(0).getPivotAlpha() < ins.getGuard(0).getPivotAlpha())
 													{
 														if (!(playerIndex & 1))
 															p1swapped = true;
@@ -1819,8 +1814,6 @@ bool Charter::importChart()
 						}
 						if (p1swapped && p2swapped)
 							section.setSwapped(1);
-						else if (section.getSwapped() >= 4 && !(p1swapped || p2swapped))
-							section.setSwapped(0);
 					}
 					else
 					{
@@ -1876,10 +1869,10 @@ bool Charter::importChart()
 				{
 				case 'q':
 					return false;
-				case 'k':
+				case 'c':
 					song.name = song.name.substr(0, song.name.length() - 4) + "_IMPORTED.CHC";
 					song.shortname += "_IMPORTED";
-				case 'c':
+				case 'k':
 					printf("%s\n", global.tabs.c_str());
 					global.quit = true;
 					break;

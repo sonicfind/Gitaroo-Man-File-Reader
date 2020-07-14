@@ -115,7 +115,7 @@ CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
 		sections.emplace_back(inFile);
 	fseek(inFile, 4, SEEK_CUR);
 	bool reorganized = false;
-	for (unsigned sectIndex = 0, numSections = u.ui; sectIndex < numSections; sectIndex++) //SongSections
+	for (size_t sectIndex = 0; sectIndex < sections.size(); sectIndex++) //SongSections
 	{
 		fread(u.c, 1, 4, inFile);
 		if (!strstr(u.c, "CHLS"))
@@ -146,7 +146,7 @@ CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
 		if ((stage == 11 || stage == 12) && !duet && section.swapped < 4)
 		{
 			section.swapped += 4;
-			printf("%sSection %s's swap value was adjusted to match current implementation for Duet->PS2 conversions. Make sure to save this file to apply this change.\n", global.tabs.c_str(), section.name);
+			printf("%sSection #%zu (%s)'s swap value was adjusted to match current implementation for Duet->PS2 conversions. Make sure to save this file to apply this change.\n", global.tabs.c_str(), sectIndex, section.name);
 		}
 		fread(section.junk, 1, 16, inFile);
 		fread(&section.battlePhase, 4, 1, inFile);
@@ -199,15 +199,15 @@ CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
 				fread(u.c, 1, 4, inFile); //Read number of trace lines
 				//Uses Traceline FILE* constructor
 				for (unsigned traceIndex = 0; traceIndex < u.ui; traceIndex++)
-					chart.addTraceline(inFile);
+					chart.emplaceTraceline(inFile);
 				fread(u.c, 1, 4, inFile); //Read number of Phrase bars
 				//Uses Phrase FILE* constructor
 				for (unsigned phraseIndex = 0; phraseIndex < u.ui; phraseIndex++)
-					chart.addPhrase(inFile);
+					chart.emplacePhrase(inFile);
 				fread(u.c, 1, 4, inFile); //Read number of Guard marks
 				//Uses Guard FILE* constructor
 				for (unsigned guardIndex = 0; guardIndex < u.ui; guardIndex++)
-					chart.addGuard(inFile);
+					chart.emplaceGuard(inFile);
 				fseek(inFile, 4, SEEK_CUR);
 				section.charts.push_back(chart);
 			}

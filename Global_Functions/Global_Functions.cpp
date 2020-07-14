@@ -250,6 +250,8 @@ size_t menuChoices(string choices, bool indexMode)
 	} while (global.input == ' ' || global.input == ';');
 	if (global.input != '\n')
 		global.multi = true;
+	else
+		global.multi = false;
 	if (ret == string::npos)
 	{
 		global.invalid = global.input;
@@ -284,8 +286,9 @@ size_t menuChoices(string choices, bool indexMode)
 	*/
 char fileOverwriteCheck(string fileName)
 {
-	FILE* test;
-	while (!fopen_s(&test, fileName.c_str(), "r"))
+#pragma warning(suppress : 4996)
+	FILE* test = fopen(fileName.c_str(), "r");
+	while (test)
 	{
 		fclose(test);
 		printf("%sOverride/Replace %s? [Y/N][C to recheck for file][Q to not generate a file]\n", global.tabs.c_str(), fileName.c_str());
@@ -299,6 +302,9 @@ char fileOverwriteCheck(string fileName)
 			return 'y';
 		case '?':
 			printf("%sHelp: [TBD]\n%s\n", global.tabs.c_str(), global.tabs.c_str());
+		default:
+#pragma warning(suppress : 4996)
+			test = fopen(fileName.c_str(), "r");
 		}
 	}
 	return 'y';

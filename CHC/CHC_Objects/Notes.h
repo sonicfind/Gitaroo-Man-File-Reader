@@ -95,7 +95,7 @@ private:
 	//Held in Radians
 	float angle;
 	//Holds whether the entire trace line is curved
-	unsigned long curve = false;
+	unsigned long curve;
 public:
 	Traceline() : Path(), angle(0), curve(false) {}
 	Traceline(FILE* inFile);

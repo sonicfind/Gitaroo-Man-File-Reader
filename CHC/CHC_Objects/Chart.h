@@ -68,50 +68,50 @@ public:
 	//Returns the Trace line at the provided index
 	Traceline& getTraceline(size_t index);
 	template<class... Args>
-	size_t addTraceline(Args&&... args)
+	size_t emplaceTraceline(Args&&... args)
 	{
 		size += 16;
 		return tracelines.emplace_ordered(args...);
 	}
 	template<class... Args>
-	void addTraceline_back(Args&&... args)
+	Traceline& emplaceTraceline_back(Args&&... args)
 	{
 		size += 16;
-		tracelines.emplace_back(args...);
+		return tracelines.emplace_back(args...);
 	}
 	//Returns the number of the phrase bars in the chart/subsection
 	size_t getNumPhrases() const { return phrases.size(); }
 	//Returns the Phrase bar at the provided index
 	Phrase& getPhrase(size_t index);
 	template<class... Args>
-	size_t addPhrase(Args&&... args)
+	size_t emplacePhrase(Args&&... args)
 	{
 		size += 32;
 		return phrases.emplace_ordered(args...);
 	}
 
 	template<class... Args>
-	void addPhrase_back(Args&&... args)
+	Phrase& emplacePhrase_back(Args&&... args)
 	{
 		size += 32;
-		phrases.emplace_back(args...);
+		return phrases.emplace_back(args...);
 	}
 	//Returns the number of the guard marks in the chart/subsection
 	size_t getNumGuards() const { return guards.size(); }
 	//Returns the Guard mark at the provided index
 	Guard& getGuard(size_t index);
 	template<class... Args>
-	size_t addGuard(Args&&... args)
+	size_t emplaceGuard(Args&&... args)
 	{
 		size += 16;
 		return guards.emplace_ordered(args...);
 	}
 
 	template<class... Args>
-	void addGuard_back(Args&&... args)
+	Guard& emplaceGuard_back(Args&&... args)
 	{
 		size += 16;
-		guards.emplace_back(args...);
+		return guards.emplace_back(args...);
 	}
 	size_t add(Note*);
 	void add_back(Note*);

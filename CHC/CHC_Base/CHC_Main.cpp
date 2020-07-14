@@ -441,6 +441,7 @@ void CHC_Main::saveFile()
 			song.create(song.name);
 			song.saved = 2;
 			global.quit = true;
+			break;
 		case 'a':
 			do
 			{

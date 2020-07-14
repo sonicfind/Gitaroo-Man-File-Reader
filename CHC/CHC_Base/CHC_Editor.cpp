@@ -329,8 +329,8 @@ void CHC_Editor::PSPToPS2()
 			break;
 		default:
 			player2 = value == '3';
-			enemy = value == '1' || '3';
-			song->name = song->name.substr(0, song->name.length() - 4) + "_PS2_" + to_string(player2 + 1) + 'v' + (!enemy ? 'E' : '2') + ".CHC";
+			enemy = value == '1' || value == '3';
+			song->name = song->name.substr(0, song->name.length() - 4) + "_PS2_" + to_string(player2 + 1) + 'v' + (enemy ? 'E' : '2') + ".CHC";
 			{
 				size_t pos = song->name.find_last_of("\\");
 				if (pos != string::npos)
@@ -351,7 +351,7 @@ void CHC_Editor::PSPToPS2()
 		if (!section.organized) //Organized as a duet-made section
 			reorganize(section);
 		section.charts.erase(3ULL * section.numCharts, section.numCharts);
-		if (player2 || enemy)
+		if (player2 || !enemy)
 			section.charts.moveElements(2ULL * section.numCharts, section.numCharts, section.numCharts);
 		if (!player2)
 			section.charts.erase(2ULL * section.numCharts, section.numCharts);
@@ -370,7 +370,7 @@ void CHC_Editor::PSPToPS2()
 		}
 		section.numCharts >>= 1;
 		section.charts.moveElements((size_t)section.numCharts << 1, section.numCharts, section.numCharts);
-		if (enemy)
+		if (!enemy)
 			section.swapped = (section.swapped >> 1) + 4;
 	}
 	for (size_t s = 0; s < 5; s++)
@@ -402,7 +402,8 @@ void CHC_Editor::swapIMC()
 			do
 			{
 				printf("%sIs this correct?: /PROJECTS/STDATA/STAGE00/SONGDATA/%s [Y/N]\n", global.tabs.c_str(), newIMC);
-				printf("%sInput: ", global.tabs.c_str());
+				if (!strstr(newIMC, ".IMC"))
+					printf("%s\".IMC\" will be added afterwards.\n", global.tabs.c_str());
 				switch (menuChoices("yn"))
 				{
 				case 'y':

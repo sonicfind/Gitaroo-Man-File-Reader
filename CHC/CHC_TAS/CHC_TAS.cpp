@@ -221,8 +221,8 @@ void PCSX2TAS::resultScreen(size_t stage, size_t notes, bool singleplayer, bool 
 
 void PCSX2TAS::print(string filename)
 {
-	FILE* outp2m2;
-	fopen_s(&outp2m2, (filename + ".p2m2").c_str(), "wb");
+#pragma warning(suppress : 4996) 
+	FILE* outp2m2 = fopen((filename + ".p2m2").c_str(), "wb");
 	char multi[8] = { true, 0, 0, 0, players[1].size() > 0, players[2].size() > 0, players[3].size() > 0, 0 };
 	fputc(version, outp2m2);
 	fwrite(emulator, 1, 50, outp2m2);
@@ -301,7 +301,7 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 				players[0][index++].button &= 191;	index += 34;	//X-button - Select Controller option
 				switch (orientation)
 				{
-				case '!':
+				case 1:
 					index += 3;		//Do nothing on the Controller screen
 					break;
 				case 2:
@@ -316,10 +316,10 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 			players[0][index++].button &= 239;	index += 111ULL + multi[0];	// /\-button - Exit Settings menu / To Main menu
 			switch (difficulty)
 			{
-			case 'q':		//Master
+			case 0:		//Master
 				players[0].resize(players[0].size() + 1);
 				players[0][index++].dpad &= 191;				//D-pad Down - To Master Play option
-			case '!':		//Hard		Stay on Single Play option
+			case 1:		//Hard		Stay on Single Play option
 			case 2:		//Normal	Stay on Single Play option
 				break;
 			case 3:
@@ -406,7 +406,7 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 				players[0][index++].button &= 191;	index += 34;	//X-button - Select Controller option
 				switch (orientation)
 				{
-				case '!':
+				case 1:
 					index += 3;		//Do nothing on the Controller screen
 					break;
 				case 2:
@@ -423,10 +423,10 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 			{
 				switch (difficulty)
 				{
-				case 'q':		//Master
+				case 0:		//Master
 					players[0].resize(players[0].size() + 1);
 					players[0][index++].dpad &= 191;				//D-pad Down - To Master Play option
-				case '!':		//Hard		Stay on Single Play option
+				case 1:		//Hard		Stay on Single Play option
 				case 2:		//Normal	Stay on Single Play option
 					break;
 				case 3:		//Multi-
@@ -574,6 +574,8 @@ bool TAS::buildTAS()
 			} while (!global.quit);
 			global.quit = false;
 		}
+		else if (!load())
+			return false;
 	}
 	else if (!pcsx2.loadValues() && !load())
 		return false;
@@ -954,7 +956,7 @@ bool TAS::buildTAS()
 		printf("%s1 - No Change - Open Config Menu\n", global.tabs.c_str());
 		printf("%s2 - Change to Orientation 2\n", global.tabs.c_str());
 		printf("%s3 - Change to Orientation 3\n", global.tabs.c_str());
-		orientation = menuChoices("0123");
+		orientation = menuChoices("0123", true);
 		switch (orientation)
 		{
 		case 'q':
@@ -1074,9 +1076,9 @@ bool TAS::buildTAS()
 			if (section.getPhase() == SongSection::Phase::END || sectionIndexes[sectIndex] + 1 == song.sections.size())
 				endReached = true; // If END phase or last section
 			{
-				//0 - Technical
-				//1 - Visuals
-				//2 - Mixed
+				//t - Technical
+				//v - Visuals
+				//m - Mixed
 				size_t visualType = 0;
 				float sustainCoeffienct = 1; //Sustain limit set to a base of 1 beat
 				for (size_t playerIndex = 0; playerIndex < section.getNumPlayers() && !global.quit; playerIndex++)
@@ -1106,7 +1108,7 @@ bool TAS::buildTAS()
 										break;
 									default:
 										printf("%s\n", global.tabs.c_str());
-										if (visualType == 2)
+										if (visualType == 'm')
 										{
 											do
 											{
@@ -1205,20 +1207,20 @@ bool TAS::buildTAS()
 							{
 								if (i + 1 != chart.getNumPhrases())
 								{
-									if (markers[currentPlayer].back().visualType == 1)
+									if (markers[currentPlayer].back().visualType == 'v')
 									{
 										if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers[currentPlayer].back().sustainLimit)
 											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
 										else
 											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
 									}
-									else if (markers[currentPlayer].back().visualType == 2
+									else if (markers[currentPlayer].back().visualType == 'm'
 											 && chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers[currentPlayer].back().sustainLimit)
 										phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
 									else
 										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 								}
-								else if (markers[currentPlayer].back().visualType != 1
+								else if (markers[currentPlayer].back().visualType != 'v'
 										|| !phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5.0 * SAMPLES_PER_FRAME)))
 									phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 								break;
@@ -1403,7 +1405,7 @@ bool TAS::buildTAS()
 										break;
 									default:
 										printf("%s\n", global.tabs.c_str());
-										if (visualType == 2)
+										if (visualType == 'm')
 										{
 											do
 											{
@@ -1484,20 +1486,20 @@ bool TAS::buildTAS()
 								{
 									if (i + 1 != chart.getNumPhrases())
 									{
-										if (markers[currentPlayer].back().visualType == 1)
+										if (markers[currentPlayer].back().visualType == 'v')
 										{
 											if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers[currentPlayer].back().sustainLimit)
 												phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
 											else
 												phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
 										}
-										else if (markers[currentPlayer].back().visualType == 2
+										else if (markers[currentPlayer].back().visualType == 'm'
 											&& chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers[currentPlayer].back().sustainLimit)
 											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
 										else
 											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 									}
-									else if (markers[currentPlayer].back().visualType != 1
+									else if (markers[currentPlayer].back().visualType != 'v'
 										|| !phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5.0 * SAMPLES_PER_FRAME)))
 										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 									break;
@@ -1588,8 +1590,8 @@ bool TAS::buildTAS()
 					//Triangle - 127
 					switch (orientation)	//Determine button based on orientation
 					{
-					case 'q':
-					case '!':
+					case 0:
+					case 1:
 						switch (static_cast<Guard*>(point.note)->getButton())
 						{
 						case 3:
@@ -1598,7 +1600,7 @@ bool TAS::buildTAS()
 						case 2:
 							exponent -= 2;
 							break;
-						case '!':
+						case 1:
 							exponent--;
 						}
 						break;
@@ -1608,17 +1610,17 @@ bool TAS::buildTAS()
 						case 2:
 							exponent -= 3;
 							break;
-						case '!':
+						case 1:
 							exponent -= 2;
 							break;
-						case 'q':
+						case 0:
 							exponent--;
 						}
 						break;
 					case 3:
 						switch (static_cast<Guard*>(point.note)->getButton())
 						{
-						case 'q':
+						case 0:
 							exponent -= 3;
 							break;
 						case 3:
@@ -1755,9 +1757,8 @@ bool TAS::buildTAS()
 						//sustain button press to the current PB
 						while (prevPhrase->position < markers[playerIndex][prevsectIndex].position)
 								prevsectIndex--;
-						if ((markers[playerIndex][prevsectIndex].visualType == 2 && point.position - prevPhrase->position < markers[playerIndex][prevsectIndex].sustainLimit)
-							|| (markers[playerIndex][prevsectIndex].visualType == 1
-								&& point.position - prevPhrase->position < markers[playerIndex][prevsectIndex].sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
+						if ((markers[playerIndex][prevsectIndex].visualType == 'm' && point.position - prevPhrase->position < markers[playerIndex][prevsectIndex].sustainLimit)
+						|| (markers[playerIndex][prevsectIndex].visualType == 'v' && point.position - prevPhrase->position < markers[playerIndex][prevsectIndex].sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
 						{
 							phraseStart = frameStart + (size_t)round((point.position - SAMPLES_PER_FRAME) / SAMPLES_PER_FRAME);
 							fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", point.position, phraseStart - frameStart);
@@ -1768,8 +1769,8 @@ bool TAS::buildTAS()
 								//No need to check for button slots being occupied
 								switch (orientation)
 								{
-								case 'q':
-								case '!':
+								case 0:
+								case 1:
 									pcsx2.players[playerIndex][phraseEnd].button &= 191;
 									break;
 								case 2:
@@ -1796,8 +1797,8 @@ bool TAS::buildTAS()
 						char exponent = 7; //Triangle (base of orientation 3)
 						switch (orientation)
 						{
-						case 'q':
-						case '!':
+						case 0:
+						case 1:
 							exponent -= 3; //Square
 							break;
 						case 2:

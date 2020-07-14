@@ -902,6 +902,7 @@ bool TAS::buildTAS()
 	scanf_s(" %c", &global.input, 1);
 	if (tolower(global.input) == 'q' && peek() == '\n')
 	{
+		scanf_s("%c", &global.input, 1);
 		printf("%s\n%sTAS creation cancelled\n", global.tabs.c_str(), global.tabs.c_str());
 		return true;
 	}

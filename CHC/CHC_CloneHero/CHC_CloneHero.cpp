@@ -671,12 +671,17 @@ bool Charter::exportChart()
 								else
 									index2++;
 							}
+							string name;
+							if (chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() < (long)section.getDuration())
+								name = "Trace";
+							else
+								name = "TraceP";
 							if (i + 1 != chart.getNumTracelines())
 							{
 								if (chart.getTraceline(i).getAngle() == 0)
-									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace");
+									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, name);
 								else
-									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_" + to_string(radiansToDegrees(chart.getTraceline(i).getAngle())));
+									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, name + '_' + to_string(radiansToDegrees(chart.getTraceline(i).getAngle())));
 								index2++;
 								if (chart.getTraceline(i).getCurve())
 								{
@@ -685,12 +690,7 @@ bool Charter::exportChart()
 								}
 							}
 							else
-							{
-								if (chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() >= (long)section.getDuration())
-									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_endP");
-								else
-									rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, "Trace_end");
-							}
+								rein.emplace(index2, 1, pos, 0, 0, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, name + "_end");
 						}
 					}
 					index = startIndex[0][currentPlayer], index2 = startIndex[1][currentPlayer];
@@ -1533,7 +1533,10 @@ bool Charter::importChart()
 		fscanf_s(inChart, " %[^{]", ignore, 400);
 		fseek(inChart, 1, SEEK_CUR);
 		if (feof(inChart))
+		{
+			fclose(inChart);
 			break;
+		}
 		fscanf_s(inChart, " %c", &test, 1);
 		long double SAMPLES_PER_TICK = SAMPLES_PER_MIN / (TICKS_PER_BEAT * sections[0].tempos[0].bpm / 1000);
 		sections[0].subs[numPlayersCharted].emplace_back();
@@ -1580,22 +1583,34 @@ bool Charter::importChart()
 					else
 					{
 						double pos = ((note.position - sections[sectIndex].tempos[tempoIndex].position_ticks) * SAMPLES_PER_TICK) + sections[sectIndex].tempos[tempoIndex].position_samples;
-						//If endP
+						//If the trace line goes into the previous subsection
 						if ((note.name.find('P') != string::npos || note.name.find('p') != string::npos) && prevSub != nullptr)
 						{
-							//Makes sure that the resulting trace line would not interrupted
-							//If it would be, don't add it
-							if (!currSub->chart.getNumGuards() && (!currSub->chart.getNumTracelines() || (long)round(pos) == currSub->chart.getTraceline(0).getPivotAlpha()))
+							if (sections[sectIndex].position_ticks != prev->position_ticks) //Specifically, greater than
 							{
-								if (sections[sectIndex].position_ticks != prev->position_ticks) //Specifically, greater than
+								pos += (sections[sectIndex].position_ticks - prev->position_ticks) * (SAMPLES_PER_MIN / (TICKS_PER_BEAT * sections[sectIndex].tempos[0].bpm / 1000));
+								pos += prev->position_samples;
+							}
+							if (currSub->chart.getNumTracelines())
+								pos -= 1;
+							if (note.name.find("end") == string::npos && note.name.length() > 6)
+							{
+								try
 								{
-									pos += (sections[sectIndex].position_ticks - prev->position_ticks) * (SAMPLES_PER_MIN / (TICKS_PER_BEAT * sections[sectIndex].tempos[0].bpm / 1000));
-									pos += prev->position_samples;
+									prevSub->chart.emplaceTraceline_back((long)round(pos), 1, float(stof(note.name.substr(7)) * M_PI / 180));
 								}
-								if (currSub->chart.getNumTracelines())
-									pos -= 1;
+								catch (...)
+								{
+									printf("%sTrace line event at tick position %lu had extraneous data that could not be pulled.\n", global.tabs.c_str(), (unsigned long)note.position);
+									printf("%sRemember: trace events *must* be formatted as \"Trace/TraceP\", \"Trace/TraceP_[float angle value]\", \"Trace/TraceP_end\", or \"Trace_curve\"\n", global.tabs.c_str());
+									prevSub->chart.emplaceTraceline_back((long)round(pos));
+								}
+							}
+							else
+							{
 								prevSub->chart.emplaceTraceline_back((long)round(pos));
 							}
+
 						}
 						else
 						{
@@ -1684,10 +1699,12 @@ bool Charter::importChart()
 	{
 		auto insertNotes = [&](Chart& imported, Chart& insertion)
 		{
+			double lastNote = 0;
 			insertion.clearPhrases();
 			for (size_t phraseIndex = 0; phraseIndex < imported.getNumPhrases(); phraseIndex++)
 			{
 				Phrase& phr = insertion.emplacePhrase_back(imported.getPhrase(phraseIndex));
+				lastNote = phr.getPivotAlpha();
 				//Pivot alpha was previous set to total displacement from the start of the section
 				phr.adjustPivotAlpha(-insertion.getPivotTime());
 				if (!phr.getStart() && phraseIndex)
@@ -1701,6 +1718,8 @@ bool Charter::importChart()
 				for (size_t traceIndex = 0; traceIndex < imported.getNumTracelines(); traceIndex++)
 				{
 					Traceline& trace = insertion.emplaceTraceline_back(imported.getTraceline(traceIndex));
+					if (trace.getPivotAlpha() > lastNote)
+						lastNote = trace.getPivotAlpha();
 					trace.adjustPivotAlpha(-insertion.getPivotTime());
 					if (traceIndex)
 						insertion.getTraceline(traceIndex - 1).changeEndAlpha(trace.getPivotAlpha());
@@ -1752,7 +1771,13 @@ bool Charter::importChart()
 			}
 			insertion.clearGuards();
 			for (size_t guardIndex = 0; guardIndex < imported.getNumGuards(); guardIndex++)
-				insertion.emplaceGuard_back(imported.getGuard(guardIndex)).adjustPivotAlpha(-insertion.getPivotTime());
+			{
+				Guard& imp = imported.getGuard(guardIndex);
+				if (imp.getPivotAlpha() > lastNote)
+					lastNote = imp.getPivotAlpha();
+				insertion.emplaceGuard_back(imp).adjustPivotAlpha(-insertion.getPivotTime());
+			}
+			return lastNote;
 		};
 		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
 		{
@@ -1771,10 +1796,11 @@ bool Charter::importChart()
 					}
 					//This differentiation is needed due to the difference in how
 					//subsections are split in PS2 charts vs. Duet charts
+					double lastNotes[2] = { 0, 0 };
 					if (!duet)
 					{
-						bool p1swapped, p2swapped;
-						p1swapped = p2swapped = section.getSwapped() & 1;
+						bool swapped[2];
+						swapped[0] = swapped[1] = section.getSwapped() & 1;
 						for (unsigned chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
 						{
 							for (unsigned playerIndex = 0; playerIndex < section.getNumPlayers(); playerIndex++)
@@ -1789,7 +1815,9 @@ bool Charter::importChart()
 										{
 											section.setOrganized(false);
 											Chart& ins = section.getChart((size_t)playerIndex * section.getNumCharts() + chartIndex);
-											insertNotes(imp, ins);
+											double buf = insertNotes(imp, ins);
+											if (lastNotes[playerIndex & 1] < buf)
+												lastNotes[playerIndex & 1] = buf;
 											if (section.getPhase() == SongSection::Phase::BATTLE)
 											{
 												if (ins.getNumGuards() && ins.getNumTracelines() > 1)
@@ -1798,21 +1826,32 @@ bool Charter::importChart()
 													if (ins.getGuard(0).getPivotAlpha() < ins.getTraceline(0).getPivotAlpha())
 													{
 														if ((playerIndex & 1))
-															p2swapped = true;
+															swapped[1] = true;
 													}
 													else if (ins.getTraceline(0).getPivotAlpha() < ins.getGuard(0).getPivotAlpha())
 													{
 														if (!(playerIndex & 1))
-															p1swapped = true;
+															swapped[0] = true;
 													}
 												}
 											}
 										}
 									}
+									else
+									{
+										//Checks if the data in any unchanged subsections needs to be deleted as to not interfere with inserted notes
+										Chart& skipped = section.getChart((size_t)playerIndex * section.getNumCharts() + chartIndex);
+										if (skipped.getNumGuards() && skipped.getGuard(0).getPivotAlpha() < lastNotes[playerIndex & 1]
+											|| skipped.getNumTracelines() > 1 && skipped.getTraceline(0).getPivotAlpha() < lastNotes[playerIndex & 1])
+										{
+											skipped.clear();
+											skipped.clearTracelines();
+										}
+									}
 								}
 							}
 						}
-						if (p1swapped && p2swapped)
+						if (swapped[0] && swapped[1])
 							section.setSwapped(1);
 					}
 					else
@@ -1828,6 +1867,17 @@ bool Charter::importChart()
 									{
 										section.setOrganized(false);
 										insertNotes(imp, section.getChart(2ULL * playerIndex * section.getNumCharts() + chartIndex));
+									}
+									else
+									{
+										//Checks if the data in any unchanged subsections needs to be deleted as to not interfere with inserted notes
+										Chart& skipped = section.getChart(2ULL * playerIndex * section.getNumCharts() + chartIndex);
+										if (skipped.getNumGuards() && skipped.getGuard(0).getPivotAlpha() < lastNotes[playerIndex & 1]
+											|| skipped.getNumTracelines() > 1 && skipped.getTraceline(0).getPivotAlpha() < lastNotes[playerIndex & 1])
+										{
+											skipped.clear();
+											skipped.clearTracelines();
+										}
 									}
 								}
 							}

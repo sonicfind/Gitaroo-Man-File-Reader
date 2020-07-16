@@ -17,6 +17,23 @@
 #include "CHC_Main.h"
 using namespace std;
 
+//Applies the note fixing function & reorgarnizes the loaded CHC song given to it
+bool quickFix(CHC& song)
+{
+	try
+	{
+		CHC_Editor editor(song);
+		editor.fixNotes();
+		editor.organizeAll();
+		return true;
+	}
+	catch (exception e)
+	{
+		printf("%sQuickFix - Exception Caught: %s\n", global.tabs.c_str(), e.what());
+		return false;
+	}
+}
+
 void CHC_Editor::editSong(bool multi)
 {
 	do

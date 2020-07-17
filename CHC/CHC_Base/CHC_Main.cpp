@@ -604,11 +604,11 @@ void CHC_Main::writeTxt()
 				dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t   Condition %zu:\n", condIndex + 1);
 				switch (cond.type)
 				{
-				case 'q':
+				case 0:
 					fputs("\t\t\t\t\t\tType: Unconditional\n", outTXT);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: Always true.\n");
 					break;
-				case '!':
+				case 1:
 					fputs("\t\t\t\t\t\tType: Left Side Energy\n", outTXT);
 					fprintf(outTXT, "\t\t\t\t\t    Argument: %g\n", cond.argument);
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t      Result: True if Left Side's energy is less than %g%%. False otherwise.\n", cond.argument * 100.0);
@@ -739,8 +739,8 @@ void CHC_Main::writeTxt()
 						dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t      Button: ");
 						switch (guard.getButton())
 						{
-						case 'q': fputs("Left\n", outTXT); fputs("Square\n", outSimpleTXT); break;
-						case '!': fputs("Down\n", outTXT); fputs("X/Cross\n", outSimpleTXT); break;
+						case 0: fputs("Left\n", outTXT); fputs("Square\n", outSimpleTXT); break;
+						case 1: fputs("Down\n", outTXT); fputs("X/Cross\n", outSimpleTXT); break;
 						case 2: fputs("Right\n", outTXT); fputs("Circle\n", outSimpleTXT); break;
 						case 3: fputs("Up\n", outTXT); fputs("Triangle\n", outSimpleTXT);
 						}

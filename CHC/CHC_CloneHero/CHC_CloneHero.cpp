@@ -1420,7 +1420,8 @@ bool Charter::importChart()
 		case '!':
 			if (chartName.find(".CHART") == string::npos && chartName.find(".chart") == string::npos)
 				chartName += ".CHART";
-			if (!fopen_s(&inChart, chartName.c_str(), "r"))
+#pragma warning(suppress : 4996)
+			if (inChart = fopen(chartName.c_str(), "r"))
 				global.quit = true;
 			else
 			{
@@ -1449,7 +1450,6 @@ bool Charter::importChart()
 		Chart chart;
 		List<Color> colors;
 	};
-	
 	struct Section
 	{
 		struct Tempo

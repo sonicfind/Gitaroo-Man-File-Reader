@@ -655,7 +655,7 @@ void CHC_Main::writeTxt()
 					}
 					else
 					{
-						if ((size_t)cond.falseEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: Move to Section %s.\n", song.sections[cond.trueEffect].name);
+						if ((size_t)cond.falseEffect < song.sections.size()) dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: Move to Section %s.\n", song.sections[cond.falseEffect].name);
 						else dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\tFalse Effect: End song.\n");
 					}
 				}

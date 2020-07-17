@@ -27,7 +27,6 @@ bool chcTAS(CHC& song)
 bool PCSX2TAS::loadValues(string filename)
 {
 	size_t pos = filename.find_last_of("\\");
-	const char* shortname = filename.substr(pos != string::npos ? pos + 1 : 0).c_str();
 	FILE* p2m2v;
 	if (!fopen_s(&p2m2v, filename.c_str(), "r"))
 	{
@@ -37,6 +36,7 @@ bool PCSX2TAS::loadValues(string filename)
 		for (int framerate = 0; framerate < 3; framerate++)
 		{
 			fscanf_s(p2m2v, " %[^;]s", ignore, 300);
+			fseek(p2m2v, 1, SEEK_CUR);
 			for (size_t stage = 0; stage < 13; stage++)
 			{
 				for (size_t difficulty = 0; difficulty < 6; difficulty++)
@@ -55,8 +55,8 @@ bool PCSX2TAS::loadValues(string filename)
 							printf("FPS [Initial Displacements] - Stage %zu", stage + 1);
 							switch (difficulty)
 							{
-							case 'q': printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-							case '!': printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+							case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+							case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
 							case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
 							default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 							}
@@ -70,8 +70,8 @@ bool PCSX2TAS::loadValues(string filename)
 						printf("FPS [Initial Displacements] - Stage %zu", stage + 1);
 						switch (difficulty)
 						{
-						case 'q': printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-						case '!': printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+						case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+						case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
 						case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
 						default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 						}
@@ -87,6 +87,7 @@ bool PCSX2TAS::loadValues(string filename)
 			if (global.quit)
 				break;
 			fscanf_s(p2m2v, " %[^;]s", ignore, 300);
+			fseek(p2m2v, 1, SEEK_CUR);
 			for (size_t stage = 0; stage < 13; stage++)
 			{
 				for (size_t difficulty = 0; difficulty < 6; difficulty++)
@@ -111,8 +112,8 @@ bool PCSX2TAS::loadValues(string filename)
 							printf("FPS [Frame Displacements] - Stage %zu", stage + 1);
 							switch (difficulty)
 							{
-							case 'q': printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-							case '!': printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+							case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+							case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
 							case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
 							default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 							}
@@ -126,8 +127,8 @@ bool PCSX2TAS::loadValues(string filename)
 						printf("FPS [Frame Displacements] - Stage %zu", stage + 1);
 						switch (difficulty)
 						{
-						case 'q': printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-						case '!': printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+						case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+						case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
 						case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
 						default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 						}
@@ -146,19 +147,19 @@ bool PCSX2TAS::loadValues(string filename)
 		fclose(p2m2v);
 		if (!failed)
 		{
-			printf("%s%s loaded%s\n", global.tabs.c_str(), shortname, error ? " with error(s)" : "");
+			printf("%s%s loaded%s\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str(), error ? " with error(s)" : "");
 			frameValues.use = true;
 			return true;
 		}
 		else
 		{
-			printf("%s%s failed to load\n", global.tabs.c_str(), shortname);
+			printf("%s%s failed to load\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 			return false;
 		}
 	}
 	else
 	{
-		printf("%s%s could not be located\n", global.tabs.c_str(), shortname);
+		printf("%s%s could not be located\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 		return false;
 	}
 }
@@ -550,10 +551,9 @@ bool TAS::buildTAS()
 		{
 			fclose(p2m2v);
 			size_t pos = PCSX2TAS::frameValues.name.find_last_of("\\");
-			const char* shortname = PCSX2TAS::frameValues.name.substr(pos != string::npos ? pos + 1 : 0).c_str();
 			do
 			{
-				printf("%sUse \"%s\"? [Y/N]\n", global.tabs.c_str(), shortname);
+				printf("%sUse \"%s\"? [Y/N]\n", global.tabs.c_str(), PCSX2TAS::frameValues.name.substr(pos != string::npos ? pos + 1 : 0).c_str());
 				switch (menuChoices("yn"))
 				{
 				case 'y':

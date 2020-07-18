@@ -25,9 +25,10 @@ struct SyncTrack
 	double position;
 	unsigned long timeSig;
 	unsigned long bpm;
-	SyncTrack() : position(0), timeSig(4), bpm(120) {}
+	std::string eighth;
+	SyncTrack() : position(0), timeSig(4), bpm(120), eighth("") {}
 	SyncTrack(FILE* inFile);
-	SyncTrack(double pos, unsigned long ts = 4, unsigned long tempo = 120) : position(pos), timeSig(ts), bpm(tempo) {}
+	SyncTrack(double pos, unsigned long ts = 4, unsigned long tempo = 120, bool writeTimeSig = true, std::string egth = "");
 };
 
 struct Event

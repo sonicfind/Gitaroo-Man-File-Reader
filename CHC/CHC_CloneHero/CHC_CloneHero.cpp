@@ -17,7 +17,15 @@
 #include "CHC_CloneHero.h"
 using namespace std;
 
-SyncTrack::SyncTrack(FILE* inFile) : timeSig(4)
+SyncTrack::SyncTrack(double pos, unsigned long ts, unsigned long tempo, bool writeTimeSig, string egth) : position(pos), bpm(tempo), eighth(egth)
+{
+	if (writeTimeSig)
+		timeSig = ts;
+	else
+		timeSig = 0;
+}
+
+SyncTrack::SyncTrack(FILE* inFile) : timeSig(4), eighth("")
 {
 	char ignore[30];
 	fscanf_s(inFile, " %lf%[^B]s", &position, ignore, 30);
@@ -71,7 +79,7 @@ CHNote::CHNote(FILE* inFile)
 FILE* operator<<(FILE* outFile, SyncTrack sync)
 {
 	if (sync.timeSig)
-		fprintf(outFile, "  %lu = TS %lu\n", (unsigned long)round(sync.position), sync.timeSig);
+		fprintf(outFile, "  %lu = TS %lu%s\n", (unsigned long)round(sync.position), sync.timeSig, sync.eighth.c_str());
 	if (sync.bpm)
 		fprintf(outFile, "  %lu = B %lu\n", (unsigned long)round(sync.position), sync.bpm);
 	return outFile;
@@ -91,18 +99,18 @@ FILE* operator<<(FILE* outFile, CHNote note)
 		fprintf(outFile, "  %lu = S 2 %lu\n", (unsigned long)round(note.position), (unsigned long)round(note.sustain));
 		break;
 	case CHNote::NoteType::NOTE:
-		fprintf(outFile, "  %lu = N %u' '", (unsigned long)round(note.position), (unsigned)note.fret);
+		fprintf(outFile, "  %lu = N %u ", (unsigned long)round(note.position), (unsigned)note.fret);
 		if (note.name.compare("n"))
-			fprintf(outFile, "%ul\n", (unsigned long)round(note.sustain));
+			fprintf(outFile, "%lu\n", (unsigned long)round(note.sustain));
 		else
-			fprintf(outFile, "%ul\n", 0UL);
+			fprintf(outFile, "%lu\n", 0UL);
 		switch (note.mod)
 		{
 		case CHNote::Modifier::FORCED:
-			fprintf(outFile, "  %lu = S 5 0\n", (unsigned long)round(note.position));
+			fprintf(outFile, "  %lu = N 5 0\n", (unsigned long)round(note.position));
 			break;
 		case CHNote::Modifier::TAP:
-			fprintf(outFile, "  %lu = S 6 0\n", (unsigned long)round(note.position));
+			fprintf(outFile, "  %lu = N 6 0\n", (unsigned long)round(note.position));
 		}
 		if (note.name.length() <= 1)
 			break;
@@ -196,6 +204,9 @@ bool Charter::exportChart()
 	bool multiplayer = toupper(song.shortname[song.shortname.length() - 1]) == 'M';
 	bool sectOrientation = false, chartOrientation = false, chartColor = false, noteColor = false, phraseColor = false;
 	size_t orientation = 3;
+#ifdef _DEBUG
+	bool modchart = true;
+#else
 	bool modchart = false;
 	{
 		//"yes.txt" is essentially a run-time checked setting
@@ -206,6 +217,7 @@ bool Charter::exportChart()
 			fclose(test);
 		}
 	}
+#endif
 	{
 		bool phrFound = false, grdFound = false;
 		//Goes through each chosen section to see whether any guard marks and/or phrase bars are present
@@ -306,37 +318,37 @@ bool Charter::exportChart()
 	if (modchart)
 	{
 		//Set starting position for gnerating the modchart
-		sync.emplace_back( 0, 2, 12632 );
+		sync.emplace_back(position, 2, 12632);
 		position += TICKS_PER_BEAT;
 		if (song.shortname.find("ST01") != string::npos)
-			sync.emplace_back( position, 2, 77538 );
+			sync.emplace_back(position, 2, 77538, false);
 		else if (song.shortname.find("ST02") != string::npos)
 		{
 			if (song.shortname.find("ST02_HE") != string::npos)
-				sync.emplace_back( position, 2, 73983 );
+				sync.emplace_back(position, 2, 73983, false);
 			else
-				sync.emplace_back( position, 2, 74070 );
+				sync.emplace_back(position, 2, 74070, false);
 		}
 		else if (song.shortname.find("ST03") != string::npos)
-			sync.emplace_back( position, 2, 76473 );
+			sync.emplace_back(position, 2, 76473, false);
 		else if (song.shortname.find("ST04") != string::npos)
-			sync.emplace_back( position, 2, 79798 );
+			sync.emplace_back(position, 2, 79798, false);
 		else if (song.shortname.find("ST05") != string::npos)
-			sync.emplace_back( position, 2, 74718 );
+			sync.emplace_back(position, 2, 74718, false);
 		else if (song.shortname.find("ST06") != string::npos)
-			sync.emplace_back( position, 2, 79658 );
+			sync.emplace_back(position, 2, 79658, false);
 		else if (song.shortname.find("ST07") != string::npos)
-			sync.emplace_back( position, 2, 73913 );
+			sync.emplace_back(position, 2, 73913, false);
 		else if (song.shortname.find("ST08") != string::npos)
-			sync.emplace_back( position, 2, 76523 );
+			sync.emplace_back(position, 2, 76523, false);
 		else if (song.shortname.find("ST09") != string::npos)
-			sync.emplace_back( position, 2, 74219 );
+			sync.emplace_back(position, 2, 74219, false);
 		else if (song.shortname.find("ST10") != string::npos)
-			sync.emplace_back( position, 2, 75500 );
+			sync.emplace_back(position, 2, 75500, false);
 		else if (song.shortname.find("ST11") != string::npos)
-			sync.emplace_back( position, 2, 80000 );
+			sync.emplace_back(position, 2, 80000, false);
 		else if (song.shortname.find("ST12") != string::npos)
-			sync.emplace_back( position, 2, 80000 );
+			sync.emplace_back(position, 2, 80000, false);
 		position += TICKS_PER_BEAT;
 	}
 	//Expert for modchart, reimport for... well you get it
@@ -388,11 +400,11 @@ bool Charter::exportChart()
 	{
 		while (true)		//Ask for the fret color in each iteration
 		{
-			printf("%sChoose the fret for %s: Player %zu - Chart %zu\n", global.tabs.c_str(), sectionName, player + 1, chart );
+			printf("%sChoose the fret for %s: Player %zu - Chart %zu\n", global.tabs.c_str(), sectionName, player + 1, chart);
 			if (note)
-				printf("%sNote %zu\n", global.tabs.c_str(), note );
+				printf("%sNote %zu\n", global.tabs.c_str(), note);
 			if (piece > 1)
-				printf("%sPiece %zu\n", global.tabs.c_str(), piece );
+				printf("%sPiece %zu\n", global.tabs.c_str(), piece);
 			string choices = "grybon";
 			printf("%s==============================================================||\n", global.tabs.c_str());
 			printf("%s                         No Color (N)                         ||\n", global.tabs.c_str());
@@ -434,22 +446,26 @@ bool Charter::exportChart()
 		switch (section.getPhase())
 		{
 		case SongSection::Phase::INTRO:
-			events.emplace_back( position, "INTRO - " + string(section.getName())); break;
+			events.emplace_back(position, "INTRO - " + string(section.getName())); break;
 		case SongSection::Phase::CHARGE: 
-			events.emplace_back( position, "CHARGE - " + string(section.getName())); break;
+			events.emplace_back(position, "CHARGE - " + string(section.getName())); break;
 		case SongSection::Phase::BATTLE: 
-			events.emplace_back( position, "BATTLE - " + string(section.getName())); break;
+			events.emplace_back(position, "BATTLE - " + string(section.getName())); break;
 		case SongSection::Phase::FINAL_AG: 
-			events.emplace_back( position, "FINAL_AG - " + string(section.getName())); break;
+			events.emplace_back(position, "FINAL_AG - " + string(section.getName())); break;
 		case SongSection::Phase::HARMONY: 
-			events.emplace_back( position, "HARMONY - " + string(section.getName())); break;
+			events.emplace_back(position, "HARMONY - " + string(section.getName())); break;
 		case SongSection::Phase::END: 
-			events.emplace_back( position, "END - " + string(section.getName())); break;
+			events.emplace_back(position, "END - " + string(section.getName())); break;
 		default: 
-			events.emplace_back( position, "FINAL_I - " + string(section.getName()));
+			events.emplace_back(position, "FINAL_I - " + string(section.getName()));
 		}
 		if (sync.size() == 0 || unsigned long(section.getTempo() * 1000) != sync.back().bpm)
-			sync.emplace_back( position, 4, unsigned long(section.getTempo() * 1000));
+		{
+			sync.emplace_back(position, 4, unsigned long(section.getTempo() * 1000));
+			if (section.getTempo() < 80.0f)
+				sync.back().eighth = " 3";
+		}
 		if (section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK")) //If not INTRO phase or BRK section
 		{
 			if (modchart && sectOrientation)
@@ -806,7 +822,7 @@ bool Charter::exportChart()
 										index++;
 								}
 								//In other words, disable the sustain for the modchart
-								if (phrase.getDuration() < 4800)
+								if (phrase.getDuration() < 9600)
 									player.emplace(index, 1, pos, (char)strumFret, sus, mod, CHNote::NoteType::NOTE, "n");
 								else
 									player.emplace(index, 1, pos, (char)strumFret, sus, mod);
@@ -908,7 +924,7 @@ bool Charter::exportChart()
 									if (modchart)
 									{
 										//Reverse a disbabled modchart sustain
-										if (phrase.getDuration() >= 4800)
+										if (phrase.getDuration() >= 9600)
 											player[index - 1].name = "";
 										player[index - 1].sustain = TICKS_PER_SAMPLE * phrase.getDuration();
 									}
@@ -938,7 +954,7 @@ bool Charter::exportChart()
 										if (note == 1)
 										{
 											//Skips any tracelines
-											for (size_t p = index; p > 0; p--)
+											for (size_t p = index; p > 0;)
 											{
 												if (player[--p].type == CHNote::NoteType::NOTE)
 												{
@@ -955,7 +971,7 @@ bool Charter::exportChart()
 								else
 								{
 									//Ensures that the modchart has the note set to a hopo... even in unusual cases
-									if (modchart && (pos - rein[index2 - 1].position >= 162.5 || strumFret == player[index - 1].fret))
+									if (modchart && (pos - player[index - 1].position >= 162.5 || strumFret == player[index - 1].fret))
 										mod = CHNote::Modifier::FORCED;
 									hopo = true;
 								}
@@ -970,10 +986,24 @@ bool Charter::exportChart()
 									else
 										index++;
 								}
+								size_t prevNote = index;
+								while (prevNote > 0)
+								{
+									if (player[--prevNote].sustain)
+									{
+										if (player[prevNote].position + player[prevNote].sustain > pos - (3400 * TICKS_PER_SAMPLE))
+										{
+											player[prevNote].sustain = pos - (3400 * TICKS_PER_SAMPLE) - player[prevNote].position;
+											if (player[prevNote].sustain < 6200 * TICKS_PER_SAMPLE)
+												player[prevNote].name = "n";
+										}
+										break;
+									}
+								}
 								if (note == 1 && piece == 1)
 									phrIndex = index;
 								//Disables the note's sustain for the modchart
-								if (chart.getPhrase(i).getDuration() < 4800)
+								if (chart.getPhrase(i).getDuration() < 9600)
 									player.emplace(index++, 1, pos, (char)strumFret, sus, mod, CHNote::NoteType::NOTE, "n");
 								else
 									player.emplace(index++, 1, pos, (char)strumFret, sus, mod);
@@ -1013,7 +1043,6 @@ bool Charter::exportChart()
 								piece++;
 						}
 					}
-					index = startIndex[0][currentPlayer];
 					//Firstly, determines whether a "start" marker should be placed
 					if ((chartIndex != 0 || (playerIndex >= 2 && !duet)) && (chart.getNumTracelines() > 1 || chart.getNumGuards()))
 					{
@@ -1078,7 +1107,7 @@ bool Charter::exportChart()
 				{
 					sync[i].position -= 960;
 					//Remove the two extra synctracks
-					if (sync[i].position < 960)
+					if (sync[i].position < 0)
 						sync.erase(i);
 					else
 						i++;
@@ -1105,7 +1134,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = Rock\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Panpeus: his axe is an axe. The Axe Gitaroo rips right through space-time, so watch out. Panpeus may have a baby face, but not baby skills.\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t       Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
 					fprintf(outFile, "diff_guitar = 3\n");
 					fprintf(outFile, "preview_start_time = 29000\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1126,7 +1155,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = J - Pop\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Flyin-O: a loyal soldier of the empire. His synth gitaroo shoots 'Dance-Until-Death' rays. His henchmen, the Little-Os, are nothing to be scoffed at either.\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER: EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
 					fprintf(outFile, "diff_guitar = 3\n");
 					fprintf(outFile, "preview_start_time = 23460\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1144,7 +1173,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = Funk\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Mojo King Bee: he rules the darkness with his trumpet Gitaroo. No one has ever seen the man behind the shades.\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER: EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
 					fprintf(outFile, "diff_guitar = 4\n");
 					fprintf(outFile, "preview_start_time = 34260\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1162,7 +1191,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = Industrial\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Ben-K: As a space shark, he's a rough, tough, customer just looking for trouble!\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
 					fprintf(outFile, "diff_guitar = 4\n");
 					fprintf(outFile, "preview_start_time = 13650\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1179,7 +1208,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = Reggae\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Ben-K: He attacks by scratching the turntable Gitaroo on his chest - but his Karate moves prove he's a man of many talents!\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
 					fprintf(outFile, "diff_guitar = 3\n");
 					fprintf(outFile, "preview_start_time = 38480\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1196,7 +1225,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = Acoustic\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Kirah: a shy and reserved girl with the heart of a warrior. She excels at baking Gitaroo Apple Pies.\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tModchart Full\n");
 					fprintf(outFile, "diff_guitar = 2\n");
 					fprintf(outFile, "preview_start_time = 26120\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1214,7 +1243,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = Flamenco\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Sanbone Trio: Carrot, Soda, & Pine are three mariachis who use their bones as Gitaroos. Their bare-knuckled fighting style is truly praiseworthy!\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER: EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
 					fprintf(outFile, "diff_guitar = 5\n");
 					fprintf(outFile, "preview_start_time = 84330\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1231,7 +1260,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = Metal\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Gregorio (Seigfried) Wilhelm III: that would be me - at your service. The Great Cathedral itself is my Gitaroo, with which I share my fate. I find my inspiration for my art in tragedy and pain.\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER : EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER: EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
 					fprintf(outFile, "diff_guitar = 5\n");
 					fprintf(outFile, "preview_start_time = 34730\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1248,7 +1277,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = Rock\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Kirah: the most powerful Gravillian warrior, who was trained from childhood to be a Gitaroo Master. No one can defeat her - not even me!\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t       Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
 					fprintf(outFile, "diff_guitar = 2\n");
 					fprintf(outFile, "preview_start_time = 22750\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1265,7 +1294,7 @@ bool Charter::exportChart()
 					fprintf(outFile, "genre = Hard Rock\n");
 					fprintf(outFile, "year = 2001\n");
 					fprintf(outFile, "loading_phrase = \"Lord Zowie: he has revealed to us his true power! His Armored Gitaroo, the apex of Gravillian technology, will now rev into life!\"");
-					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t       Video Start Time = [Audio Offset x -1]\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+					fprintf(outFile, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
 					fprintf(outFile, "diff_guitar = 5\n");
 					fprintf(outFile, "preview_start_time = 23830\n");
 					fprintf(outFile, "icon = gitaroo\n");
@@ -1326,12 +1355,12 @@ bool Charter::exportChart()
 				fprintf(outFile, "  Genre = \"rock\"\n");
 				fprintf(outFile, "  MediaType = \"cd\"\n}\n");
 				fprintf(outFile, "[SyncTrack]\n{\n");
-				for (size_t i = 0; i < sync.size(); i++)
+				for (size_t i = 0; i < sync.size();)
 				{
 					outFile << sync[i];
 					sync[i].position -= 960;
 					//Remove the two extra synctracks
-					if (sync[i].position < 960)
+					if (sync[i].position < 0)
 						sync.erase(i);
 					else
 						i++;
@@ -1373,7 +1402,7 @@ bool Charter::exportChart()
 			break;
 		case 'y':
 			fopen_s(&outFile, (filename + ".chart").c_str(), "w");
-			fprintf(outFile, "[CHC]\n{\n");
+			fprintf(outFile, "[Song]\n{\n");
 			fprintf(outFile, "  Offset = 0\n");
 			fprintf(outFile, "  Resolution = 480\n");
 			fprintf(outFile, "  Player2 = bass\n");
@@ -1384,7 +1413,10 @@ bool Charter::exportChart()
 			fprintf(outFile, "  MediaType = \"cd\"\n}\n");
 			fprintf(outFile, "[SyncTrack]\n{\n");
 			for (size_t i = 0; i < sync.size(); i++)
+			{
+				sync[i].eighth = "";
 				outFile << sync[i];
+			}
 			fprintf(outFile, "}\n[Events]\n{\n");
 			for (size_t i = 0; i < events.size(); i++)
 				outFile << events[i];
@@ -1472,7 +1504,7 @@ bool Charter::importChart()
 		List<SubSection> subs[2];
 		Section(string nam, double pos_T = 0, double pos_S = 0, unsigned long bpm = 120) : name(nam), position_ticks(pos_T), position_samples(pos_S)
 		{
-			tempos.emplace_back( bpm, position_ticks );
+			tempos.emplace_back(bpm, position_ticks);
 		}
 	};
 	List<Section> sections;

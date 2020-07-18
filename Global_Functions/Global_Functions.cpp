@@ -243,7 +243,7 @@ size_t menuChoices(string choices, bool indexMode)
 		clearIn();
 		return '*';
 	}
-	size_t ret = choices.find(global.input);
+	size_t ret = choices.find(tolower(global.input));
 	do
 	{
 		scanf_s("%c", &global.input, 1); 

@@ -407,7 +407,7 @@ public:
 		else
 		{
 			cur = find(index);
-			 cur->prev = cur->prev->next = new Node(cur->prev, cur, args...);
+			cur = cur->prev = cur->prev->next = new Node(cur->prev, cur, args...);
 			curIndex = index + 1;
 			(*count)++;
 		}

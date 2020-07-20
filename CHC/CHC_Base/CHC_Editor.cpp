@@ -146,133 +146,107 @@ void CHC_Editor::fixNotes()
 {
 	banner(" Fixing " + song->shortname + ".CHC ");
 	size_t tracelinesCurved = 0, tracelinesDeleted = 0, phrasesDeleted = 0, phrasesShortened = 0, guardsDeleted = 0;
-	for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++) //SongSections
+	song->optimized = true;
+	try
 	{
-		SongSection& section = song->sections[sectIndex];
-		if (section.battlePhase == SongSection::Phase::INTRO)
-			continue;
-		for (size_t playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
+		for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++) //SongSections
 		{
-			for (size_t chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
-			{
-				Chart& chart = section.charts[playerIndex * section.numCharts + chartIndex];
-				for (size_t traceIndex = 1; traceIndex < chart.tracelines.size(); traceIndex++)
-				{
-					if (chart.tracelines[traceIndex - 1].angle == chart.tracelines[traceIndex].angle && !chart.tracelines[traceIndex - 1].curve)
-					{
-						chart.tracelines[traceIndex - 1].curve = true;
-						printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
-						printf("Trace line #%zu's curve flag set to true\n", traceIndex - 1);
-						tracelinesCurved++;
-					}
-				}
-				size_t barsRemoved = 0, linesRemoved = 0;
-				for (size_t phraseIndex = 0, traceIndex = 0; phraseIndex < chart.phrases.size(); phraseIndex++)
-				{
-					Phrase& phrase = chart.phrases[phraseIndex];
-					if (phraseIndex && phrase.start)
-					{
-						if (phrase.pivotAlpha - chart.phrases[phraseIndex - 1].getEndAlpha() < SongSection::SAMPLE_GAP)
-						{
-							chart.phrases[phraseIndex - 1].changeEndAlpha((long)round(phrase.pivotAlpha - SongSection::SAMPLE_GAP));
-							printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
-							printf("Phrase bar #%zu shortened\n", phraseIndex + barsRemoved - 1);
-							phrasesShortened++;
-						}
-					}
-					for (; traceIndex < chart.tracelines.size(); traceIndex++)
-						if (chart.tracelines[traceIndex].contains(phrase.pivotAlpha))
-							break;
-					while ((phrase.start && !phrase.end)
-						&& (chart.tracelines[traceIndex].getEndAlpha() - phrase.pivotAlpha < 3000)
-						&& (phrase.pivotAlpha - chart.tracelines[traceIndex].pivotAlpha > 800))
-					{
-						phrase.duration += chart.phrases[phraseIndex + 1].duration;
-						phrase.end = chart.phrases[phraseIndex + 1].end;
-						memcpy_s(phrase.junk, 12, chart.phrases[phraseIndex + 1ULL].junk, 12);
-						for (; traceIndex < chart.tracelines.size(); traceIndex++)
-						{
-							if (chart.tracelines[traceIndex].contains(chart.phrases[phraseIndex + 1].pivotAlpha))
-							{
-								if (!chart.tracelines[traceIndex - 1].changeEndAlpha(phrase.pivotAlpha))
-								{
-									printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
-									chart.remove(--traceIndex, 't', linesRemoved);
-									linesRemoved++;
-								}
-								chart.tracelines[traceIndex].changePivotAlpha(phrase.pivotAlpha);
-								break;
-							}
-						}
-						printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
-						chart.remove(phraseIndex + 1, 'p', barsRemoved);
-						barsRemoved++;
-					}
-				}
-				tracelinesDeleted += linesRemoved;
-				phrasesDeleted += barsRemoved;
-				for (size_t guardIndex = 0; guardIndex < chart.guards.size(); guardIndex++)
-				{
-					while (guardIndex + 1 < chart.guards.size() && chart.guards[guardIndex].pivotAlpha + 1600 > chart.guards[guardIndex + 1].pivotAlpha)
-					{
-						printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
-						chart.remove(guardIndex + 1, 'g');
-						guardsDeleted++;
-					}
-				}
-			}
-		}
-		if (section.battlePhase == SongSection::Phase::END || sectIndex + 1 == song->sections.size())
-			continue;
-		if (!song->imc[0] || section.battlePhase == SongSection::Phase::HARMONY)
-		{
+			SongSection& section = song->sections[sectIndex];
+			if (section.battlePhase == SongSection::Phase::INTRO || (section.battlePhase == SongSection::Phase::BATTLE && !strstr(section.name, "BRK") && !strstr(section.name, "BREAK")))
+				continue;
 			for (size_t playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
 			{
-				for (size_t chartIndex = section.numCharts - 1ULL; chartIndex > 0;)
+				for (size_t chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
 				{
-					chartIndex--;
-					if (section.charts[playerIndex * section.numCharts + chartIndex].getNumPhrases() > 0)
+					Chart& chart = section.charts[playerIndex * section.numCharts + chartIndex];
+					if (song->imc[0])
 					{
-						for (size_t condIndex = 0; condIndex < section.conditions.size(); condIndex++)
+						for (size_t traceIndex = 1; traceIndex < chart.tracelines.size(); traceIndex++)
 						{
-							long* effect = &section.conditions[condIndex].trueEffect;
-							for (size_t i = 0; i < 2; i++, effect++)
+							if (chart.tracelines[traceIndex - 1].angle == chart.tracelines[traceIndex].angle && !chart.tracelines[traceIndex - 1].curve)
 							{
-								if (*effect >= 0)
+								chart.tracelines[traceIndex - 1].curve = true;
+								printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
+								printf("Trace line #%zu set to \"smooth\"\n", traceIndex - 1);
+								tracelinesCurved++;
+							}
+						}
+					}
+					size_t barsRemoved = 0, linesRemoved = 0;
+					try
+					{
+						for (size_t phraseIndex = 0, traceIndex = 0; phraseIndex < chart.phrases.size(); phraseIndex++)
+						{
+							Phrase& phrase = chart.phrases[phraseIndex];
+							for (; traceIndex < chart.tracelines.size(); traceIndex++)
+								if (chart.tracelines[traceIndex].contains(phrase))
+									break;
+							Traceline* trace = &chart.tracelines[traceIndex];
+							if (phrase.start)
+							{
+								if (phraseIndex && phrase.pivotAlpha - chart.phrases[phraseIndex - 1].getEndAlpha() < SongSection::SAMPLE_GAP)
 								{
-									Chart& chart = section.charts[playerIndex * section.numCharts + chartIndex];
-									long endTime = section.duration - (chart.phrases[chart.phrases.size() - 1].getEndAlpha() + chart.pivotTime);
-									Chart& chart2 = song->sections[*effect].charts[playerIndex * song->sections[*effect].numCharts];
-									if (chart2.phrases.size())
+									chart.phrases[phraseIndex - 1].changeEndAlpha((long)round(phrase.pivotAlpha - SongSection::SAMPLE_GAP));
+									printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
+									printf("Phrase bar #%zu shortened\n", phraseIndex + barsRemoved - 1);
+									phrasesShortened++;
+								}
+								while (!phrase.end && (trace->getEndAlpha() - phrase.pivotAlpha < 3000)
+									&& (phrase.pivotAlpha - trace->pivotAlpha > 800))
+								{
+									phrase.duration += chart.phrases[phraseIndex + 1].duration;
+									phrase.end = chart.phrases[phraseIndex + 1].end;
+									memcpy_s(phrase.junk, 12, chart.phrases[phraseIndex + 1].junk, 12);
+									for (; traceIndex < chart.tracelines.size(); traceIndex++)
 									{
-										long startTime = chart2.phrases[0].pivotAlpha + chart2.pivotTime;
-										if (startTime + endTime < section.SAMPLE_GAP)
+										trace = &chart.tracelines[traceIndex];
+										if (trace->contains(chart.phrases[phraseIndex + 1].pivotAlpha))
 										{
-											chart.phrases[chart.phrases.size() - 1].changeEndAlpha((long)(section.duration - startTime - section.SAMPLE_GAP - chart.pivotTime));
-											printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
-											printf("Phrase bar #%zu shortened\n", chart.phrases.size() - 1);
-											phrasesShortened++;
+											if (!chart.tracelines[traceIndex - 1].changeEndAlpha(phrase.pivotAlpha))
+											{
+												printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
+												chart.remove(--traceIndex, 't', linesRemoved);
+												linesRemoved++;
+											}
+											trace->changePivotAlpha(phrase.pivotAlpha);
+											break;
 										}
 									}
+									printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
+									chart.remove(phraseIndex + 1, 'p', barsRemoved);
+									barsRemoved++;
 								}
 							}
 						}
-						break;
+					}
+					catch (...)
+					{
+						printf("%sThere was an error when attempting to apply phrase bar & trace line fixes to section #%zu (%s) - Subsection %zu\n", global.tabs.c_str(), sectIndex, section.name, playerIndex * section.numCharts + chartIndex);
+						song->optimized = false;
+					}
+					tracelinesDeleted += linesRemoved;
+					phrasesDeleted += barsRemoved;
+					for (size_t guardIndex = 0; guardIndex < chart.guards.size(); guardIndex++)
+					{
+						while (guardIndex + 1 < chart.guards.size() && chart.guards[guardIndex].pivotAlpha + 1600 > chart.guards[guardIndex + 1].pivotAlpha)
+						{
+							printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
+							chart.remove(guardIndex + 1, 'g', guardsDeleted);
+							guardsDeleted++;
+						}
 					}
 				}
 			}
-		}
-		else
-		{
-			for (size_t p = 0; p < 2; p++)
+			if (section.battlePhase == SongSection::Phase::END || sectIndex + 1 == song->sections.size())
+				continue;
+			if (!song->imc[0] || section.battlePhase == SongSection::Phase::HARMONY)
 			{
-				for (size_t chartIndex = section.numCharts - 1ULL; !global.quit && chartIndex > 0;)
+				for (size_t playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
 				{
-					chartIndex--;
-					for (size_t playerIndex = section.numPlayers - 1 + p; !global.quit && playerIndex > 0; playerIndex--)
+					for (size_t chartIndex = section.numCharts - 1ULL; chartIndex > 0;)
 					{
-						playerIndex--;
-						if (section.charts[playerIndex * section.numCharts + chartIndex].phrases.size() != 0)
+						chartIndex--;
+						if (section.charts[playerIndex * section.numCharts + chartIndex].getNumPhrases() > 0)
 						{
 							for (size_t condIndex = 0; condIndex < section.conditions.size(); condIndex++)
 							{
@@ -283,14 +257,14 @@ void CHC_Editor::fixNotes()
 									{
 										Chart& chart = section.charts[playerIndex * section.numCharts + chartIndex];
 										long endTime = section.duration - (chart.phrases[chart.phrases.size() - 1].getEndAlpha() + chart.pivotTime);
-										Chart& chart2 = song->sections[*effect].charts[p * song->sections[*effect].numCharts];
+										Chart& chart2 = song->sections[*effect].charts[playerIndex * song->sections[*effect].numCharts];
 										if (chart2.phrases.size())
 										{
 											long startTime = chart2.phrases[0].pivotAlpha + chart2.pivotTime;
 											if (startTime + endTime < section.SAMPLE_GAP)
 											{
-												chart.phrases[chart.phrases.size() - 1].changeEndAlpha(long(section.duration - startTime - section.SAMPLE_GAP - chart.pivotTime));
-												printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex* section.numCharts + chartIndex);
+												chart.phrases[chart.phrases.size() - 1].changeEndAlpha((long)(section.duration - startTime - section.SAMPLE_GAP - chart.pivotTime));
+												printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
 												printf("Phrase bar #%zu shortened\n", chart.phrases.size() - 1);
 												phrasesShortened++;
 											}
@@ -298,16 +272,63 @@ void CHC_Editor::fixNotes()
 									}
 								}
 							}
-							global.quit = true;
+							break;
 						}
 					}
 				}
-				global.quit = false;
+			}
+			else
+			{
+				for (size_t p = 0; p < 2; p++)
+				{
+					for (size_t chartIndex = section.numCharts - 1ULL; !global.quit && chartIndex > 0;)
+					{
+						chartIndex--;
+						for (size_t playerIndex = section.numPlayers - 1 + p; !global.quit && playerIndex > 0; playerIndex--)
+						{
+							playerIndex--;
+							if (section.charts[playerIndex * section.numCharts + chartIndex].phrases.size() != 0)
+							{
+								for (size_t condIndex = 0; condIndex < section.conditions.size(); condIndex++)
+								{
+									long* effect = &section.conditions[condIndex].trueEffect;
+									for (size_t i = 0; i < 2; i++, effect++)
+									{
+										if (*effect >= 0)
+										{
+											Chart& chart = section.charts[playerIndex * section.numCharts + chartIndex];
+											long endTime = section.duration - (chart.phrases[chart.phrases.size() - 1].getEndAlpha() + chart.pivotTime);
+											Chart& chart2 = song->sections[*effect].charts[p * song->sections[*effect].numCharts];
+											if (chart2.phrases.size())
+											{
+												long startTime = chart2.phrases[0].pivotAlpha + chart2.pivotTime;
+												if (startTime + endTime < section.SAMPLE_GAP)
+												{
+													chart.phrases[chart.phrases.size() - 1].changeEndAlpha(long(section.duration - startTime - section.SAMPLE_GAP - chart.pivotTime));
+													printf("%s%s - Subsection #%zu: ", global.tabs.c_str(), section.name, playerIndex * section.numCharts + chartIndex);
+													printf("Phrase bar #%zu shortened\n", chart.phrases.size() - 1);
+													phrasesShortened++;
+												}
+											}
+										}
+									}
+								}
+								global.quit = true;
+							}
+						}
+					}
+					global.quit = false;
+				}
 			}
 		}
 	}
+	catch (...)
+	{
+		printf("%sUnknown error occurred when applying note fixes. Thus, the chc will remain unoptimized for now.\n", global.tabs.c_str());
+		song->optimized = false;
+	}
 	if (tracelinesCurved)
-		printf("%s%zu%s set to TRUE as a safety measure\n", global.tabs.c_str(), tracelinesCurved, (tracelinesCurved > 1 ? " straight Trace lines had their curve flags" : " straight Trace line had its curve flag"));
+		printf("%s%zu%s as a safety measure\n", global.tabs.c_str(), tracelinesCurved, (tracelinesCurved > 1 ? " straight Trace lines set to \"smooth\"" : " straight Trace line set to \"smooth\""));
 	if (tracelinesDeleted)
 		printf("%s%zu%s deleted to accommodate deleted phrase bars\n", global.tabs.c_str(), tracelinesDeleted, (tracelinesDeleted > 1 ? " Trace lines" : " Trace line"));
 	if (phrasesDeleted)
@@ -323,7 +344,6 @@ void CHC_Editor::fixNotes()
 	}
 	else
 		printf("%sNo changes made\n", global.tabs.c_str());
-	song->optimized = true;
 }
 
 void CHC_Editor::PSPToPS2()
@@ -400,6 +420,7 @@ void CHC_Editor::PSPToPS2()
 		song->energyDamageFactors[0][s].guardMiss *= 2;
 	}
 	song->saved = false;
+	song->optimized = false;
 }
 
 void CHC_Editor::swapIMC()

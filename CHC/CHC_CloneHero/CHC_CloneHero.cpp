@@ -625,20 +625,21 @@ bool Charter::exportChart()
 							if (i + 1 != chart.getNumGuards())
 							{
 								CHNote::Modifier mod;
+								double openPos = pos;
 								long dif = chart.getGuard(i + 1).getPivotAlpha() - chart.getGuard(i).getPivotAlpha();
 								if (dif >= 480000)		//If dif is >= ten seconds
 								{
-									pos += 240000 * TICKS_PER_SAMPLE;
+									openPos += 240000 * TICKS_PER_SAMPLE;
 									mod = CHNote::Modifier::FORCED;
 								}
 								else if (dif >= 240000) //If 5 seconds <= dif < ten seconds
 								{
-									pos += (dif >> 1) * TICKS_PER_SAMPLE;
+									openPos += (dif >> 1) * TICKS_PER_SAMPLE;
 									mod = CHNote::Modifier::FORCED;
 								}
 								else if (dif >= 2 * GUARD_GAP)
 								{
-									pos += GUARD_OPEN_TICK_DISTANCE;
+									openPos += GUARD_OPEN_TICK_DISTANCE;
 									if (GUARD_OPEN_TICK_DISTANCE >= 162.5)
 										mod = CHNote::Modifier::FORCED;
 									else
@@ -646,13 +647,13 @@ bool Charter::exportChart()
 								}
 								else
 								{
-									pos += (dif >> 1) * TICKS_PER_SAMPLE;
+									openPos += (dif >> 1) * TICKS_PER_SAMPLE;
 									if ((dif >> 1) * TICKS_PER_SAMPLE >= 162.5)
 										mod = CHNote::Modifier::FORCED;
 									else
 										mod = CHNote::Modifier::NORMAL;
 								}
-								player.emplace(index, 1, pos, 7, 0, mod);
+								player.emplace(index, 1, openPos, 7, 0, mod);
 								index++;
 							}
 							pos -= 960;
@@ -666,7 +667,6 @@ bool Charter::exportChart()
 						}
 						rein.emplace(index2, 1, pos, fret, 0, CHNote::Modifier::NORMAL);
 						index2++;
-						
 					}
 					index2 = startIndex[1][currentPlayer];
 					if (chart.getNumTracelines() > 1)
@@ -996,6 +996,8 @@ bool Charter::exportChart()
 											player[prevNote].sustain = pos - (3400 * TICKS_PER_SAMPLE) - player[prevNote].position;
 											if (player[prevNote].sustain < 6200 * TICKS_PER_SAMPLE)
 												player[prevNote].name = "n";
+											else
+												player[prevNote].name = "";
 										}
 										break;
 									}
@@ -1003,7 +1005,7 @@ bool Charter::exportChart()
 								if (note == 1 && piece == 1)
 									phrIndex = index;
 								//Disables the note's sustain for the modchart
-								if (chart.getPhrase(i).getDuration() < 9600)
+								if (chart.getPhrase(i).getDuration() < 6200)
 									player.emplace(index++, 1, pos, (char)strumFret, sus, mod, CHNote::NoteType::NOTE, "n");
 								else
 									player.emplace(index++, 1, pos, (char)strumFret, sus, mod);
@@ -1565,10 +1567,7 @@ bool Charter::importChart()
 		fscanf_s(inChart, " %[^{]", ignore, 400);
 		fseek(inChart, 1, SEEK_CUR);
 		if (feof(inChart))
-		{
-			fclose(inChart);
 			break;
-		}
 		fscanf_s(inChart, " %c", &test, 1);
 		long double SAMPLES_PER_TICK = SAMPLES_PER_MIN / (TICKS_PER_BEAT * sections[0].tempos[0].bpm / 1000);
 		sections[0].subs[numPlayersCharted].emplace_back();
@@ -1720,13 +1719,10 @@ bool Charter::importChart()
 			if (!feof(inChart))
 				fscanf_s(inChart, " %c", &test, 1);
 			else
-			{
-				fclose(inChart);
 				break;
-			}
 		}
 	}
-
+	fclose(inChart);
 	if (numPlayersCharted)
 	{
 		auto insertNotes = [&](Chart& imported, Chart& insertion)

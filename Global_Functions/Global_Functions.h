@@ -65,6 +65,8 @@ struct GlobalVars
 	char input = 0;
 	bool multi = false;
 	std::string tabs = "", invalid = "";
+	void adJustTabs(size_t value);
+	char fillInvalid();
 };
 extern "C" GLOBALFUNCTIONS_API GlobalVars global;
 
@@ -148,18 +150,16 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 		printf("%s\n", global.tabs.c_str());
 		clearIn();
 		return '*';
-	default:
-		char ans = tolower(global.input);
-		if (ans == 'q')
+	case 'q':
+	case 'Q':
+		do
 		{
-			do
-			{
-				scanf_s("%c", &global.input, 1); 
-			} while (global.input == ' ' || global.input == ';');
-			if (global.input != '\n')
-				global.multi = true;
-			return 'q';
-		}
+			scanf_s("%c", &global.input, 1);
+		} while (global.input == ' ' || global.input == ';');
+		if (global.input != '\n')
+			global.multi = true;
+		return 'q';
+	default:
 		auto rangeTest = [&]()
 		{
 			double tmp;
@@ -230,77 +230,63 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 					return '<';
 			}
 		};
-		auto inval = [&]()
-		{
-			global.invalid = ans;
-			do
-			{
-				scanf_s("%c", &global.input, 1); 
-				switch (global.input)
-				{
-				case '\n':
-					global.quit = true;
-					break;
-				default:
-					global.invalid += global.input;
-				}
-			} while (!global.quit);
-			return '*';
-		};
-		if (ans == '-')
+		if (global.input == '-')
 		{
 			if (allowNegatives)
 			{
-				char backup = peek();
+				char backup = getchar();
 				if (backup == '.')
 				{
-					getchar();
-					if (peek() >= '0' && peek() <= '9')
+					char backup_2 = peek();
+					ungetc(backup, stdin);
+					if (backup_2 >= '0' && backup_2 <= '9')
 					{
-						ungetc(backup, stdin);
-						ungetc(ans, stdin);
+						ungetc(global.input, stdin);
 						return rangeTest();
 					}
 					else
-					{
-						ungetc(backup, stdin);
-						return inval();
-					}
-				}
-				else if (backup >= '0' && backup <= '9')
-				{
-					ungetc(ans, stdin);
-					return rangeTest();
+						return global.fillInvalid();
 				}
 				else
-					return inval();
+				{
+					ungetc(backup, stdin);
+					if (backup >= '0' && backup <= '9')
+					{
+						ungetc(global.input, stdin);
+						return rangeTest();
+					}
+					else
+						return global.fillInvalid();
+				}
 			}
 			else
 			{
-				ungetc(ans, stdin);
+				ungetc(global.input, stdin);
 				double tmp;
 				scanf_s("%lg", &tmp);
 				return '-';
 			}
 		}
-		else if (ans == '.')
+		else if (global.input == '.')
 		{
-			if (peek() >= '0' && peek() <= '9')
+			char backup = peek();
+			if (backup >= '0' && backup <= '9')
 			{
-				ungetc(ans, stdin);
+				ungetc(global.input, stdin);
 				return rangeTest();
 			}
 			else
-				return inval();
+				return global.fillInvalid();
 		}
-		else if (ans >= '0' && ans <= '9')
+		else if (global.input >= '0' && global.input <= '9')
 		{
-			ungetc(ans, stdin);
+			ungetc(global.input, stdin);
 			return rangeTest();
 		}
 		else
 		{
-			if (specials.find(ans) != std::string::npos)
+			char answer = tolower(global.input);
+			if (specials.find(answer) != std::string::npos)
 			{
 				do
 				{
@@ -308,10 +294,10 @@ extern char valueInsert(T& value, bool allowNegatives = false, T min = 0, T max 
 				} while (global.input == ' ' || global.input == ';');
 				if (global.input != '\n')
 					global.multi = true;
-				return ans;
+				return answer;
 			}
 			else
-				return inval();
+				return global.fillInvalid();
 		}
 	}
 }
@@ -329,11 +315,6 @@ Return values:
 template<typename T>
 extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false, T min = 0, T max = 0)
 {
-	char ans = 0;
-	fscanf_s(in, " %c", &ans, 1);
-	ans = tolower(ans);
-	if (ans == 'q')
-		return 'q';
 	auto rangeTest = [&]()
 	{
 		double tmp;
@@ -382,34 +363,32 @@ extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false,
 	};
 	auto inval = [&]()
 	{
-		global.invalid = ans;
-		do
+		global.invalid = "";
+		while (global.input != '\n')
 		{
-			ans = fgetc(in);
-			switch (ans)
-			{
-			case '\n':
-				global.quit = true;
-				break;
-			default:
-				global.invalid += ans;
-			}
-		} while (!global.quit);
+			global.invalid += global.input;
+			global.input = fgetc(in);
+		}
 		return '*';
 	};
-	if (ans == '-')
+	fscanf_s(in, " %c", &global.input, 1);
+	switch (global.input)
 	{
+	case 'q':
+	case 'Q':
+		return 'q';
+	case '-':
 		if (allowNegatives)
 		{
 			char backup = fgetc(in);
 			if (backup == '.')
 			{
-				char peek = fgetc(in);
-				ungetc(peek, in);
-				if (peek >= '0' && peek <= '9')
+				char backup_2 = fgetc(in);
+				ungetc(backup_2, in);
+				ungetc(backup, in);
+				if (backup_2 >= '0' && backup_2 <= '9')
 				{
-					ungetc(backup, in);
-					ungetc(ans, in);
+					ungetc(global.input, in);
 					return rangeTest();
 				}
 				else
@@ -420,7 +399,7 @@ extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false,
 				ungetc(backup, in);
 				if (backup >= '0' && backup <= '9')
 				{
-					ungetc(ans, in);
+					ungetc(global.input, in);
 					return rangeTest();
 				}
 				else
@@ -429,31 +408,32 @@ extern char valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false,
 		}
 		else
 		{
-			ungetc(ans, in);
+			ungetc(global.input, in);
 			double tmp;
 			fscanf_s(in, " %lg", &tmp);
 			return '-';
 		}
-	}
-	else if (ans == '.')
-	{
-		char peek = fgetc(in);
-		ungetc(peek, in);
-		if (peek >= '0' && peek <= '9')
+	case '.':
 		{
-			ungetc(ans, in);
+			char peek = fgetc(in);
+			ungetc(peek, in);
+			if (peek >= '0' && peek <= '9')
+			{
+				ungetc(global.input, in);
+				return rangeTest();
+			}
+			else
+				return inval();
+		}
+	default:
+		if (global.input >= '0' && global.input <= '9')
+		{
+			ungetc(global.input, in);
 			return rangeTest();
 		}
 		else
 			return inval();
 	}
-	else if (ans >= '0' && ans <= '9')
-	{
-		ungetc(ans, in);
-		return rangeTest();
-	}
-	else
-		return inval();
 }
 
 /*

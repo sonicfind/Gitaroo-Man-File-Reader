@@ -84,6 +84,25 @@ FileType dlls[20] =
 	{{"SFO"}, {L".\\SFO\\SFO_Base.dll"}}
 };
 
+//Adjust pre-fix tab "||"s to the given length
+void GlobalVars::adJustTabs(size_t value)
+{
+	tabs = value > 0 ? string(--value, '\t') + "      ||" : "";
+}
+
+char GlobalVars::fillInvalid()
+{
+	invalid = "";
+	while (input != '\n')
+	{
+		invalid += input;
+		scanf_s("%c", &input, 1);
+	}
+	clearIn();
+	multi = false;
+	return '*';
+}
+
 GlobalVars global;
 
 int peek()
@@ -134,13 +153,6 @@ void banner(string title, double coef)
 	int space = 2 * (int)round(32 * coef);
 	printf("%s%s#BLM %s\n", string(space - (sep >> 1), '=').c_str(), title.c_str(), string(space + (sep >> 1) - sep, '=').c_str());
 }
-
-//Adjust pre-fix tab "||"s to the given length
-void adjustTabs(char value)
-{
-	global.tabs = value > 0 ? string(--value, '\t') + "      ||" : "";
-}
-
 
 char filenameInsertion(string& filename, string specials)
 {
@@ -244,39 +256,26 @@ size_t menuChoices(string choices, bool indexMode)
 		return '*';
 	}
 	size_t ret = choices.find(tolower(global.input));
-	do
-	{
-		scanf_s("%c", &global.input, 1); 
-	} while (global.input == ' ' || global.input == ';');
-	if (global.input != '\n')
-		global.multi = true;
-	else
-		global.multi = false;
 	if (ret == string::npos)
 	{
-		global.invalid = global.input;
+		ret = global.fillInvalid();
+		printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
+	}
+	else
+	{
 		do
 		{
-			switch (global.input)
-			{
-			case '\n':
-				clearIn();
-				global.multi = false;
-				global.quit = true;
-				break;
-			default:
-				global.invalid += global.input;
-				scanf_s("%c", &global.input, 1);
-			}
-		} while (!global.quit);
-		global.quit = false;
-		printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
-		ret = '*';
+			scanf_s("%c", &global.input, 1);
+		} while (global.input == ' ' || global.input == ';');
+		if (global.input != '\n')
+			global.multi = true;
+		else
+			global.multi = false;
+		if (indexMode && ret >= 2) //Disregards the added "q?" in the index
+			ret -= 2;
+		else
+			ret = choices[ret];
 	}
-	else if (indexMode && ret >= 2) //Disregards the added "q?" in the index
-		ret -= 2;
-	else
-		ret = choices[ret];
 	return ret;
 }
 
@@ -421,21 +420,7 @@ char listValueInsert(List<size_t>& values, std::string outCharacters, size_t max
 				}
 				else
 				{
-					ret = '*';
-					global.multi = false;
-					global.invalid = global.input;
-					do
-					{
-						scanf_s("%c", &global.input, 1);
-						if (global.input == '\n')
-						{
-							clearIn();
-							global.quit = true;
-						}
-						else
-							global.invalid += global.input;
-					} while (!global.quit);
-					global.quit = false;
+					ret = global.fillInvalid();
 					printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
 				}
 				return ret;

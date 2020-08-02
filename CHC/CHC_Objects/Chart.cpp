@@ -179,7 +179,7 @@ bool Chart::remove(size_t index, char type, size_t extra)
 		{
 			size -= 16;
 			tracelines.erase(index);
-			printf("Trace line #%zu removed\n", index + extra);
+			printf("Trace line %zu removed\n", index + extra);
 			return true;
 		}
 		else
@@ -196,7 +196,7 @@ bool Chart::remove(size_t index, char type, size_t extra)
 		{
 			size -= 32;
 			phrases.erase(index);
-			printf("Phrase bar #%zu removed\n", index + extra);
+			printf("Phrase bar %zu removed\n", index + extra);
 			return true;
 		}
 		else
@@ -210,7 +210,7 @@ bool Chart::remove(size_t index, char type, size_t extra)
 		{
 			size -= 16;
 			guards.erase(index);
-			printf("Guard mark #%zu removed\n", index + extra);
+			printf("Guard mark %zu removed\n", index + extra);
 			return true;
 		}
 		else

@@ -93,35 +93,49 @@ bool multi(int fileCount, char** files)
 		for (int index = 1; index < fileCount; index++)
 		{
 			filename = files[index];
-			bool extension = false;
+			int extension = 0;
 			for (unsigned index = 0; index < filename.length();)
 			{
 				if (filename[index] == '\"')
 					filename.erase(index);
 				else
 				{
-					if (index >= filename.length() - 5 && filename[index] == '.')
-						extension = true;
+					if (filename[index] == '.')
+					{
+						if (index >= filename.length() - 6)
+							extension = 2;
+						else if (index >= filename.length() - 10)
+							extension = 1;
+						else
+							filename[index] = toupper(filename[index]);
+					}
 					else
 						filename[index] = toupper(filename[index]);
 					index++;
 				}
 			}
 			//If the filename provided at the current index already has a defined extension tied to it
-			if (extension)
+			if (extension == 2)
 			{
 				FILE* test;
 				//If the file is found
 				if (!fopen_s(&test, filename.c_str(), "r"))
 				{
 					fclose(test);
-					//Check through the list of available extensions to find the dll suited for the file type 
+					size_t namDistance = filename.length();
+					if (namDistance > 6)
+						namDistance = 6;
+					//Check through the list of available extensions to find the dll suited for the file type
+					string sub = filename.substr(filename.length() - namDistance);
+					for (size_t index = 0; index < namDistance; index++)
+						sub[index] = toupper(sub[index]);
 					for (size_t i = 0; i < 20 && !global.quit; i++)
 					{
 						//If the file's extension matches one of the extensions applicable with the current dll
 						for (size_t s = 0; s < dlls[i].extensions.size() && !global.quit; s++)
 						{
-							if (filename.substr(filename.length() - dlls[i].extensions[s].ext.length()).find(dlls[i].extensions[s].ext) != string::npos)
+							//File extension needs to have '.' AND at least one valid character before it
+							if (namDistance >= dlls[i].extensions[s].ext.length() + 2 && sub.find(dlls[i].extensions[s].ext) != string::npos)
 							{
 								if (dlls[i].libraries[0].dll != nullptr)
 								{
@@ -147,7 +161,7 @@ bool multi(int fileCount, char** files)
 					printf("%sCould not locate the file \"%s\".\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 				}
 			}
-			else if (filename.substr(filename.length() - 10).find('.') == string::npos)
+			else if (extension == 0)
 			{
 				bool valid = false;
 				//Apply every extension available to the end of the filename and check if the result exists
@@ -228,11 +242,9 @@ bool single()
 	case '*':
 		return true;
 	default:
-		long namDistance;
-		if (filename.length() < 5)
-			namDistance = (char)filename.length();
-		else
-			namDistance = 5;
+		size_t namDistance = filename.length();
+		if (namDistance > 6)
+			namDistance = 6;
 		//If the filename given has an extension that could be one of the 20 valid choices
 		if (filename.substr(filename.length() - namDistance).find('.') != string::npos)
 		{
@@ -242,13 +254,16 @@ bool single()
 			{
 				fclose(test);
 				bool valid = false;
+				string sub = filename.substr(filename.length() - namDistance);
+				for (size_t index = 0; index < namDistance; index++)
+					sub[index] = toupper(sub[index]);
 				for (size_t i = 0; i < 20 && !global.quit; i++)
 				{
 					//If the file's extension matches one of the extensions applicable with the current dll
 					for (size_t s = 0; s < dlls[i].extensions.size() && !global.quit; s++)
 					{
-						int startIndex = int(filename.length() - dlls[i].extensions[s].ext.length());
-						if (startIndex >= 0 && filename.substr(startIndex).find(dlls[i].extensions[s].ext) != string::npos)
+						//File extension needs to have '.' AND at least one valid character before it
+						if (namDistance >= dlls[i].extensions[s].ext.size() + 2 && sub.find(dlls[i].extensions[s].ext) != string::npos)
 						{
 							//Check if extension is loaded
 							if (dlls[i].load())
@@ -274,43 +289,49 @@ bool single()
 				global.quit = false;
 			}
 		}
-		//Check to make sure the file has no extension
-		else if (filename.substr(filename.length() - 10).find('.') == string::npos)
+		else
 		{
-			bool located = false;
-			//Cycle through all available extensions and run their "single" functions if a file is found with the filename
-			for (size_t i = 0; i < 20; i++)
+			namDistance = filename.length();
+			if (namDistance > 10)
+				namDistance = 10;
+			//Check to make sure the file has no extension
+			if (filename.substr(filename.length() - namDistance).find('.') == string::npos)
 			{
-				for (size_t s = 0; s < dlls[i].extensions.size(); s++)
+				bool located = false;
+				//Cycle through all available extensions and run their "single" functions if a file is found with the filename
+				for (size_t i = 0; i < 20; i++)
 				{
-					FILE* test;
-					//Check for a file existing with the current extension
-					if (!fopen_s(&test, (filename + '.' + dlls[i].extensions[s].ext).c_str(), "r"))
+					for (size_t s = 0; s < dlls[i].extensions.size(); s++)
 					{
-						fclose(test);
-						located = true;
-						banner(' ' + filename + '.' + dlls[i].extensions[s].ext + ' ');
-						if (dlls[i].load())
-							loadProc(dlls[i].libraries[0].dll, ("loadSingle" + dlls[i].extensions[s].ext).c_str(), filename);
-						else
+						FILE* test;
+						//Check for a file existing with the current extension
+						if (!fopen_s(&test, (filename + '.' + dlls[i].extensions[s].ext).c_str(), "r"))
 						{
-							size_t pos = filename.find_last_of('\\');
-							printf("%s\"%s\" skipped due to its Base DLL not being found.\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+							fclose(test);
+							located = true;
+							banner(' ' + filename + '.' + dlls[i].extensions[s].ext + ' ');
+							if (dlls[i].load())
+								loadProc(dlls[i].libraries[0].dll, ("loadSingle" + dlls[i].extensions[s].ext).c_str(), filename);
+							else
+							{
+								size_t pos = filename.find_last_of('\\');
+								printf("%s\"%s\" skipped due to its Base DLL not being found.\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+							}
 						}
 					}
 				}
+				if (!located)
+				{
+					size_t pos = filename.find_last_of('\\');
+					printf("%sCould not locate a file with the file name \"%s\" using any of the accepted extensions\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+					clearIn();
+				}
 			}
-			if (!located)
+			else
 			{
-				size_t pos = filename.find_last_of('\\');
-				printf("%sCould not locate a file with the file name \"%s\" using any of the accepted extensions\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+				printf("%s\"%s\" is not a valid extension.\n", global.tabs.c_str(), filename.substr(filename.find_last_of('.')).c_str());
 				clearIn();
 			}
-		}
-		else
-		{
-			printf("%s\"%s\" is not a valid extension.\n", global.tabs.c_str(), filename.substr(filename.find_last_of('.')).c_str());
-			clearIn();
 		}
 		for (unsigned i = 0; i < 20; i++)
 		{

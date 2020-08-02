@@ -31,7 +31,7 @@ public:
 		song = edtr.song;
 	}
 	//Songs
-	void editSong(bool multi = false);
+	void editSong(const bool multi = false);
 	void fixNotes();
 	void organizeAll();
 	void PSPToPS2();
@@ -44,10 +44,10 @@ public:
 	void playOrder();
 	void rearrange();
 	void adjustFactors();
-	bool pathTest(size_t startIndex, bool show = false);
+	bool pathTest(const size_t startIndex, const bool show = false);
 	void fullPathTest();
-	char testSection(size_t sectIndex, bool** conds, bool* results, bool* reach);
-	void traverseCondition(size_t sectIndex, size_t condIndex, bool** conds, bool* results, bool* reach);
+	char testSection(const size_t sectIndex, bool** conds, bool* results, bool* reach);
+	void traverseCondition(const size_t sectIndex, const size_t condIndex, bool** conds, bool* results, bool* reach);
 	//SongSections
 	void sectionSubMenu();
 	void reorganize(SongSection& section);
@@ -75,8 +75,8 @@ public:
 	bool menu(size_t fileCount = 0);
 	void saveFile();
 	void writeTxt();
-	bool applyChanges(bool fix, bool swap = false, bool save = false);
-	void edit(bool multi = false);
+	bool applyChanges(const bool fix, const bool swap = false, const bool save = false);
+	void edit(const bool multi = false);
 	void makeTAS();
 	void exportChart();
 	void importChart();

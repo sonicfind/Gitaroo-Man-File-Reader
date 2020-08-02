@@ -132,11 +132,11 @@ private:
 	char junk[12] = { 0 };
 	//Color value used Clone Hero & color patch exporting
 	//-1 = not used
-	long color;
+	unsigned long color;
 public:
-	Phrase();
+	Phrase() : Path(), start(true), end(true), animation(0), color(0) {}
 	Phrase(FILE* inFile);
-	Phrase(long alpha, unsigned long dur = 1, bool st = true, bool ed = true, unsigned long anim = 0, long clr = -1)
+	Phrase(long alpha, unsigned long dur = 1, bool st = true, bool ed = true, unsigned long anim = 0, unsigned long clr = 0)
 		: Path(alpha, dur), start(st), end(ed), animation(anim), color(clr) {}
 	Phrase(const Note& note);
 	Note& operator=(const Note& note);
@@ -154,9 +154,13 @@ public:
 	//Sets the animation type of the phrase bar to the provided value
 	void setAnimation(unsigned long anim) { animation = anim; }
 	//Returns the color value of the phrase bar
-	long getColor() const { return color; }
+	unsigned long getColor() const { return color; }
 	//Sets the color value of the phrase bar
-	void setColor(long col) { color = col; }
+	void setColor(unsigned long col) { color = col; }
+	//Sets the color value of the phrase bar
+	void addColor(unsigned long col) { color |= col; }
+	//Sets the color value of the phrase bar
+	void removeColor(unsigned long col) { color &= ~col; }
 	//Returns junk C-string (size: 12)
 	char* getJunk() { return junk; }
 };

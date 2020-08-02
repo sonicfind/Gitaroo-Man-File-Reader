@@ -122,12 +122,6 @@ Note& Traceline::operator=(const Note& note)
 	return *this;
 }
 
-Phrase::Phrase() : Path(), start(true), end(true), animation(0), color(-1)
-{
-	for (unsigned char i = 0; i < 12; i++)
-		junk[i] = 0;
-}
-
 Phrase::Phrase(FILE* inFile)
 {
 	if (inFile != nullptr)
@@ -138,10 +132,10 @@ Phrase::Phrase(FILE* inFile)
 		fread(&end, 4, 1, inFile);
 		fread(&animation, 4, 1, inFile);
 		fread(junk, 1, 12, inFile);
-		if (strstr(junk, "CHARTCLR"))
+		if (strstr(junk, "NOTECOLR"))
 			memcpy_s((char*)&color, 4, junk + 8, 4);
 		else
-			color = -1;
+			color = 0;
 	}
 	else
 		throw "Error creating Phrase bar: Bruh, open a file first.";

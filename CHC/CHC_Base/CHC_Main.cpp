@@ -557,11 +557,11 @@ void CHC_Main::writeTxt()
 			}
 			else
 			{
-				if (section.swapped == 0)
+				if (section.swapped == 4)
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t Swapped Players: FALSE (P1/P2D/P3/P4D) [Duet->PS2 Conversion]\n");
-				else if (section.swapped == 1)
+				else if (section.swapped == 5)
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t Swapped Players: TRUE (P2D/P1/P4D/P3) [Duet->PS2 Conversion]\n");
-				else if (section.swapped == 2)
+				else if (section.swapped == 6)
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t Swapped Players: TRUE (P3/P4D/P1/P2D) [Duet->PS2 Conversion]\n");
 				else
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t Swapped Players: TRUE (P4D/P3/P2D/P1) [Duet->PS2 Conversion]\n");
@@ -725,9 +725,31 @@ void CHC_Main::writeTxt()
 							dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", phrase.getEndAlpha() + chart.getPivotTime());
 						else
 							fprintf(outTXT, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", phrase.getEndAlpha() + chart.getPivotTime());
-						fprintf(outTXT, "\t\t\t\t\t\t\t\tJunk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk())));
-						fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 4)));
-						fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 8)));
+						if (phrase.getColor())
+						{
+							dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\tColor Export: ");
+							if (phrase.getColor() & 1)
+								dualvfprintf_s(outTXT, outSimpleTXT, "G");
+							if (phrase.getColor() & 2)
+								dualvfprintf_s(outTXT, outSimpleTXT, "R");
+							if (phrase.getColor() & 4)
+								dualvfprintf_s(outTXT, outSimpleTXT, "Y");
+							if (phrase.getColor() & 8)
+								dualvfprintf_s(outTXT, outSimpleTXT, "B");
+							if (phrase.getColor() & 16)
+								dualvfprintf_s(outTXT, outSimpleTXT, "O");
+							if (phrase.getColor() & 32)
+								dualvfprintf_s(outTXT, outSimpleTXT, "P");
+							if (phrase.getColor() & 64)
+								dualvfprintf_s(outTXT, outSimpleTXT, "(Tap)");
+							dualvfprintf_s(outTXT, outSimpleTXT, "\n");
+						}
+						else
+						{
+							fprintf(outTXT, "\t\t\t\t\t\t\t\tJunk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk())));
+							fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 4)));
+							fprintf(outTXT, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(phrase.getJunk() + 8)));
+						}
 					}
 					dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Guard Marks: %zu\n", chart.getNumGuards());
 					for (size_t guardIndex = 0; guardIndex < chart.getNumGuards(); guardIndex++)
@@ -801,7 +823,7 @@ Afterwards, it saves & overwrites over the original file.
 @param swap - "Swap players"
 @return Returns whether the process was successful
 */
-bool CHC_Main::applyChanges(bool fix, bool swap, bool save)
+bool CHC_Main::applyChanges(const bool fix, const bool swap, const bool save)
 {
 	try
 	{
@@ -832,7 +854,7 @@ in the CHC object with the file from the editor. Otherwise, after the editor is 
 as if no changes were made to the original file.
 @param multi - Is the multimenu being used?
 */
-void CHC_Main::edit(bool multi)
+void CHC_Main::edit(const bool multi)
 {
 	CHC_Editor editor(song);
 	editor.editSong(multi);
@@ -900,7 +922,26 @@ void CHC_Main::importChart()
 bool CHC_Main::createColorTemplate()
 {
 	banner(" " + song.shortname + ".CHC - Color Sheet Creation ");
-	bool multiplayer = song.shortname.find('M') != string::npos;
+	bool multiplayer = toupper(song.shortname.back()) == 'M';
+	if (!multiplayer)
+	{
+		do
+		{
+			printf("%sIs this chart for multiplayer? [Y/N]\n", global.tabs.c_str());
+			switch (menuChoices("yn"))
+			{
+			case 'q':
+				return false;
+			case 'y':
+				multiplayer = true;
+			case 'n':
+				global.quit = true;
+				break;
+			}
+		} while (!global.quit);
+		global.quit = false;
+	}
+	bool generate = false;
 	List<size_t> sectionIndexes;
 	do
 	{
@@ -914,7 +955,7 @@ bool CHC_Main::createColorTemplate()
 				printf("%s ", song.sections[sectionIndexes[index]].getName());
 			putchar('\n');
 		}
-		switch (listValueInsert(sectionIndexes, "yn", song.sections.size(), false))
+		switch (listValueInsert(sectionIndexes, "ac", song.sections.size(), false))
 		{
 		case '?':
 			printf("%sHelp: [TBD]\n%s\n", global.tabs.c_str(), global.tabs.c_str());
@@ -927,14 +968,18 @@ bool CHC_Main::createColorTemplate()
 			{
 				do
 				{
-					printf("%sNo sections have been selected. Quit Color Sheet creation? [Y/N]\n", global.tabs.c_str());
-					switch (menuChoices("yn"))
+					printf("%sNo sections have been selected.\n", global.tabs.c_str());
+					printf("%sA - Add section values\n", global.tabs.c_str());
+					printf("%sC - Create template file with default colors\n", global.tabs.c_str());
+					printf("%sQ - Quit Color Sheet creation\n", global.tabs.c_str());
+					switch (menuChoices("ac"))
 					{
 					case 'q':
-					case 'y':
 						printf("%sColor Sheet creation cancelled.\n", global.tabs.c_str());
 						return false;
-					case 'n':
+					case 'c':
+						generate = true;
+					case 'a':
 						global.quit = true;
 					}
 				} while (!global.quit);
@@ -958,6 +1003,22 @@ bool CHC_Main::createColorTemplate()
 			printf("%s\n", global.tabs.c_str());
 			printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", global.tabs.c_str());
 			printf("%s\n", global.tabs.c_str());
+		}
+	} while (!global.quit && !generate);
+	global.quit = false;
+	bool writeColors = false;
+	do
+	{
+		printf("%sIf found, use any colors that are pre-saved in a phrase bar? [Y/N]\n", global.tabs.c_str());
+		switch (menuChoices("yn"))
+		{
+		case 'q':
+			return false;
+		case 'y':
+			writeColors = true;
+		case 'n':
+			global.quit = true;
+			break;
 		}
 	} while (!global.quit);
 	global.quit = false;
@@ -994,16 +1055,19 @@ bool CHC_Main::createColorTemplate()
 			global.quit = true;
 		}
 	} while (!global.quit);
+	global.quit = false;
 	if (outSheet != nullptr || outSheet2 != nullptr)
 	{
 		fputs("[phrasemode fragments]\n", outSheet2);
 		dualvfprintf_s(outSheet, outSheet2, "[attack point palette]\nG: 00ff00\nR: ff0000\nY: ffff00\nB: 0000ff\nO: ff7f00\nP: ff00ff\nN: f89b44\ng: ffffff\nr: ffffff\ny: ffffff\nb: ffffff\no: ffffff\np: ffffff\n\n");
 		dualvfprintf_s(outSheet, outSheet2, "[phrase bar palette]\nG: 40ff40\nR: ff4040\nY: ffff40\nB: 4040c8\nO: ff9f40\nP: ff40ff\nN: f07b7b\ng: 40ff40\nr: ff4040\ny: ffff40\nb: 4040c8\no: ff9f40\np: ff40ff\n\n");
 		unsigned long chartCount = 0;
-		bool* inputs = new bool[song.sections.size()]();
+		const size_t size = song.sections.size();
+		bool* inputs = new bool[size]();
 		for (size_t sect = 0; sect < sectionIndexes.size(); sect++)
 			inputs[sectionIndexes[sect]] = true;
-		for (unsigned long sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
+		string colors = "GRYBOPgrybop";
+		for (unsigned long sectIndex = 0; sectIndex < size; sectIndex++)
 		{
 			SongSection& section = song.sections[sectIndex];
 			for (unsigned playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
@@ -1017,53 +1081,113 @@ bool CHC_Main::createColorTemplate()
 						{
 							dualvfprintf_s(outSheet, outSheet2, "#SongSection %lu [%s], P%lu CHCH %lu\n", sectIndex, section.getName(), playerIndex + 1, chartIndex);
 							dualvfprintf_s(outSheet, outSheet2, "[drawn chart %lu]\n", chartCount);
-							if (inputs[sectIndex])
+							if (inputs[sectIndex] )
 							{
 								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
 								{
-									if (!phrIndex)
+									Phrase& phr = chart.getPhrase(phrIndex);
+									if (writeColors && phr.getColor())
 									{
-										fputc('_', outSheet);
-										fputs("!_", outSheet2);
-									}
-									else if (chart.getPhrase(phrIndex).getStart()) //Start
-									{
-										fputs(" _", outSheet);
-										fputs(" !_", outSheet2);
+										size_t colIndex = 0;
+										while (colIndex < 5)
+										{
+											if (phr.getColor() & (1 << colIndex))
+												break;
+											else
+												colIndex++;
+										}
+										if (phr.getColor() & 64)
+											colIndex += 6;
+										if (!phrIndex)
+										{
+											fprintf(outSheet, "%c", colors[colIndex]);
+											fprintf(outSheet2, "!%c", colors[colIndex]);
+										}
+										else if (phr.getStart()) //Start
+										{
+											fprintf(outSheet, " %c", colors[colIndex]);
+											fprintf(outSheet2, " !%c", colors[colIndex]);
+										}
+										else
+											fprintf(outSheet2, "-%c", colors[colIndex]);
 									}
 									else
-										fputs("-_", outSheet2);
+									{
+										if (!phrIndex)
+										{
+											fputc('_', outSheet);
+											fputs("!_", outSheet2);
+										}
+										else if (phr.getStart()) //Start
+										{
+											fputs(" _", outSheet);
+											fputs(" !_", outSheet2);
+										}
+										else
+											fputs("-_", outSheet2);
+									}
 								}
 							}
 							else
 							{
 								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
 								{
-									if (!phrIndex)
+									Phrase& phr = chart.getPhrase(phrIndex);
+									if (writeColors && phr.getColor())
 									{
-										fprintf_s(outSheet, "N");
-										fprintf_s(outSheet2, "!N");
-									}
-									else if (chart.getPhrase(phrIndex).getStart())
-									{
-										fprintf_s(outSheet, " N");
-										fprintf_s(outSheet2, " !N");
+										size_t colIndex = 0;
+										while (colIndex < 5)
+										{
+											if (phr.getColor() & (1 << colIndex))
+												break;
+											else
+												colIndex++;
+										}
+										if (phr.getColor() & 64)
+											colIndex += 6;
+										if (!phrIndex)
+										{
+											fprintf(outSheet, "%c", colors[colIndex]);
+											fprintf(outSheet2, "!%c", colors[colIndex]);
+										}
+										else if (phr.getStart()) //Start
+										{
+											fprintf(outSheet, " %c", colors[colIndex]);
+											fprintf(outSheet2, " !%c", colors[colIndex]);
+										}
+										else
+											fprintf(outSheet2, "-%c", colors[colIndex]);
 									}
 									else
-										fprintf_s(outSheet2, "-N");
+									{
+										if (!phrIndex)
+										{
+											fputc('N', outSheet);
+											fputs("!N", outSheet2);
+										}
+										else if (phr.getStart()) //Start
+										{
+											fputs(" N", outSheet);
+											fputs(" !N", outSheet2);
+										}
+										else
+											fputs("-N", outSheet2);
+									}
 								}
 							}
-							fprintf_s(outSheet, "\n\n");
-							fprintf_s(outSheet2, "\n\n");
+							fprintf(outSheet, "\n\n");
+							fprintf(outSheet2, "\n\n");
 						}
 						chartCount++;
 					}
 				}
 			}
+			printf("%sColored %s", global.tabs.c_str(), section.getName());
 			if (inputs[sectIndex])
-				printf("%sColored %s\n", global.tabs.c_str(), section.getName());
+				printf(" - With added outlines");
+			printf("\n");
 		}
-		delete[song.sections.size()] inputs;
+		delete[size] inputs;
 		if (outSheet != nullptr)
 			fclose(outSheet);
 		if (outSheet2 != nullptr)

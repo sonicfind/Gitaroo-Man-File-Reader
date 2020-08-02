@@ -147,6 +147,7 @@ CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
 		{
 			section.swapped += 4;
 			printf("%sSection #%zu (%s)'s swap value was adjusted to match current implementation for Duet->PS2 conversions. Make sure to save this file to apply this change.\n", global.tabs.c_str(), sectIndex, section.name);
+			saved = 0;
 		}
 		fread(section.junk, 1, 16, inFile);
 		fread(&section.battlePhase, 4, 1, inFile);
@@ -304,7 +305,7 @@ void CHC::create(string filename)
 					fwrite(&chart.phrases[phraseIndex].animation, 4, 1, outFile);
 					if (chart.phrases[phraseIndex].color != -1)
 					{
-						fputs("CHARTCLR", outFile);
+						fputs("NOTECOLR", outFile);
 						fwrite(&chart.phrases[phraseIndex].color, 4, 1, outFile);
 					}
 					else

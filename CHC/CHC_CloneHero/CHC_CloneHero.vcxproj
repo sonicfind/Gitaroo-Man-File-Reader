@@ -178,11 +178,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ChartFile.h" />
     <ClInclude Include="CHC_CloneHero.h" />
+    <ClInclude Include="CH_Export.h" />
+    <ClInclude Include="CH_Import.h" />
+    <ClInclude Include="CH_Item.h" />
+    <ClInclude Include="NoteTrack.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ChartFile.cpp" />
     <ClCompile Include="CHC_CloneHero.cpp" />
+    <ClCompile Include="CH_Import.cpp" />
+    <ClCompile Include="CH_Item.cpp" />
+    <ClCompile Include="CH_Export.cpp" />
+    <ClCompile Include="NoteTrack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CHC_CloneHero.rc" />

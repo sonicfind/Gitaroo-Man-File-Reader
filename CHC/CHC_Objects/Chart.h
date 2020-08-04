@@ -21,6 +21,7 @@ class Chart
 {
 	friend class CHC_Editor;
 	friend class CHC;
+	friend class CH_Importer;
 private:
 	//Total size in bytes
 	unsigned long size = 76;
@@ -104,4 +105,7 @@ public:
 	void clearPhrases();
 	void clearGuards();
 	void clear();
+	//Takes the notes from the source chart and moves them into
+	//the current chart (replacing any old notes that would overlap
+	long insertNotes(Chart& source);
 };

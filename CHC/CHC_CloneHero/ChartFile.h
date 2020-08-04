@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,25 +13,26 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "..\..\Header\pch.h"
-#include "Global_Functions.h"
-#include "CHC_CloneHero.h"
-using namespace std;
+#include "NoteTrack.h"
 
-bool exportChart(CHC* song)
+class ChartFile
 {
-	CH_Exporter exporter(song);
-	return exporter.exportChart();
-}
+protected:
+	std::string file;
+	FILE* chart;
+public:
+	ChartFile() : file(""), chart(nullptr) {}
+	ChartFile(std::string filename, const bool write = false);
+	virtual bool open(std::string filename, const bool write = false);
+	int close() { return fclose(chart); }
+};
 
-bool importChart(CHC& song)
+class ChartFileExporter : public ChartFile
 {
-	CH_Importer importer(song);
-	if (importer.importChart())
-	{
-		song = importer.getSong();
-		return true;
-	}
-	else
-		return false;
-}
+public:
+	ChartFileExporter() : ChartFile(nullptr) {}
+	ChartFileExporter(std::string filename) : ChartFile(filename, true) {}
+	bool open(std::string filename) { return ChartFile::open(filename, true); }
+	void write(List<SyncTrack>& sync, List<Event>& events, NoteTrack(&notes)[2], const bool modchart);
+	void writeIni(const unsigned char stageNumber, const double totalDuration, const bool jap = true);
+};

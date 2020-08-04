@@ -14,23 +14,32 @@
  */
 #include "..\..\Header\pch.h"
 #include "Global_Functions.h"
-#include "CHC_CloneHero.h"
+#include "ChartFile.h"
 using namespace std;
 
-bool exportChart(CHC* song)
+ChartFile::ChartFile(string filename, bool write) : file(filename)
 {
-	CH_Exporter exporter(song);
-	return exporter.exportChart();
-}
-
-bool importChart(CHC& song)
-{
-	CH_Importer importer(song);
-	if (importer.importChart())
+	if (write)
 	{
-		song = importer.getSong();
-		return true;
+		if (fopen_s(&chart, file.c_str(), "w"))
+			throw "File is currently in use by another process and thus could not be opened.";
 	}
 	else
-		return false;
+#pragma warning(suppress : 4996)
+		chart = fopen(file.c_str(), "r");
+}
+
+bool ChartFile::open(string filename, const bool write)
+{
+	if (chart != nullptr)
+		close();
+	file = filename;
+	if (write)
+		return !fopen_s(&chart, file.c_str(), "w");
+	else
+	{
+#pragma warning(suppress : 4996)
+		chart = fopen(file.c_str(), "r");
+		return true;
+	}
 }

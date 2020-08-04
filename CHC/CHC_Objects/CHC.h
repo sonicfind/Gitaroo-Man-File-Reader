@@ -21,7 +21,8 @@ class CHC
 	friend class CHC_Main;
 	friend class CHC_Editor;
 	friend class TAS;
-	friend class Charter;
+	friend class CH_Exporter;
+	friend class CH_Importer;
 private:
 	//Full filename
 	std::string name;

@@ -441,6 +441,7 @@ void CHC_Editor::swapIMC()
 		printf("%sInput: ", global.tabs.c_str());
 		char newIMC[257];
 		scanf_s(" %[^\n;]", newIMC, 256);
+#pragma warning(suppress : 6031)
 		getchar();
 		if ((newIMC[1] != '\n' && newIMC[1] != '\0' && newIMC[1] != ';') || (newIMC[0] != 'q' && newIMC[0] != 'Q'))
 		{
@@ -851,6 +852,7 @@ void CHC_Editor::playOrder()
 				break;
 			}
 		case 'n':
+#pragma warning(suppress : 6031)
 			getchar();
 			printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", global.tabs.c_str());
 		}
@@ -1183,7 +1185,6 @@ bool CHC_Editor::pathTest(const size_t startIndex, const bool show)
 	const size_t size = song->sections.size();
 	if (startIndex < size)
 	{
-		
 		bool** conditionTested = new bool* [size]();
 		bool* results = new bool[size]();
 		for (size_t sectIndex = size; sectIndex > startIndex;)
@@ -1990,6 +1991,7 @@ void CHC_Editor::changeName(SongSection& section)
 	printf("%sInput: ", global.tabs.c_str());
 	char newName[17];
 	scanf_s(" %[^\n;]s", newName, 16);
+#pragma warning(suppress : 6031)
 	getchar();
 	if ((newName[1] != '\n' && newName[1] != '\0' && newName[1] != ';') || (newName[0] != 'q' && newName[0] != 'Q'))
 	{
@@ -2005,6 +2007,7 @@ void CHC_Editor::changeAudio(SongSection& section)
 	printf("%sInput: ", global.tabs.c_str());
 	char newAudio[17];
 	scanf_s(" %[^\n;]s", newAudio, 16);
+#pragma warning(suppress : 6031)
 	getchar();
 	if ((newAudio[1] != '\n' && newAudio[1] != '\0' && newAudio[1] != ';') || (newAudio[0] != 'q' && newAudio[0] != 'Q'))
 	{

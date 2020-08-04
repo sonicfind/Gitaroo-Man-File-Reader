@@ -27,30 +27,48 @@ bool chcTAS(CHC& song)
 bool PCSX2TAS::loadValues(string filename)
 {
 	size_t pos = filename.find_last_of("\\");
-	FILE* p2m2v;
-	if (!fopen_s(&p2m2v, filename.c_str(), "r"))
+#pragma warning(suppress : 4996)
+	FILE* p2m2v = fopen(filename.c_str(), "r");
+	if (p2m2v != nullptr)
 	{
 		frameValues.name = filename;
 		char ignore[300];
 		bool error = false, failed = true;
-		for (int framerate = 0; framerate < 3; framerate++)
+		for (size_t framerate = 0; !global.quit && framerate < 3; framerate++)
 		{
-			fscanf_s(p2m2v, " %[^;]s", ignore, 300);
-			fseek(p2m2v, 1, SEEK_CUR);
-			for (size_t stage = 0; stage < 13; stage++)
+			if (!feof(p2m2v))
 			{
-				for (size_t difficulty = 0; difficulty < 6; difficulty++)
+				fscanf_s(p2m2v, " %[^;]s", ignore, 300);
+				fseek(p2m2v, 1, SEEK_CUR);
+				for (size_t stage = 0; !global.quit && stage < 13; stage++)
 				{
-					if (!feof(p2m2v))
+					for (size_t difficulty = 0; !global.quit && difficulty < 6; difficulty++)
 					{
-						switch (valueInsertFromFile(p2m2v, frameValues.initialDisplacements[framerate][stage][difficulty], true))
+						if (!feof(p2m2v))
 						{
-						case '!':
-							failed = false;
-							break;
-						case '*':
-							printf("%sError: Invalid input (%s)\n", global.tabs.c_str(), global.invalid.c_str());
-						case 'q':
+							switch (valueInsertFromFile(p2m2v, frameValues.initialDisplacements[framerate][stage][difficulty], true))
+							{
+							case '!':
+								failed = false;
+								break;
+							case '*':
+								printf("%sError: Invalid input (%s)\n", global.tabs.c_str(), global.invalid.c_str());
+							case 'q':
+								printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+								printf("FPS [Initial Displacements] - Stage %zu", stage + 1);
+								switch (difficulty)
+								{
+								case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+								case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+								case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
+								default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
+								}
+								fclose(p2m2v);
+								global.quit = true;
+							}
+						}
+						else
+						{
 							printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
 							printf("FPS [Initial Displacements] - Stage %zu", stage + 1);
 							switch (difficulty)
@@ -60,54 +78,48 @@ bool PCSX2TAS::loadValues(string filename)
 							case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
 							default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 							}
-							fclose(p2m2v);
 							global.quit = true;
 						}
 					}
-					else
-					{
-						printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-						printf("FPS [Initial Displacements] - Stage %zu", stage + 1);
-						switch (difficulty)
-						{
-						case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-						case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
-						case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
-						default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
-						}
-						fclose(p2m2v);
-						global.quit = true;
-					}
-					if (global.quit)
-						break;
 				}
 				if (global.quit)
 					break;
-			}
-			if (global.quit)
-				break;
-			fscanf_s(p2m2v, " %[^;]s", ignore, 300);
-			fseek(p2m2v, 1, SEEK_CUR);
-			for (size_t stage = 0; stage < 13; stage++)
-			{
-				for (size_t difficulty = 0; difficulty < 6; difficulty++)
+				fscanf_s(p2m2v, " %[^;]s", ignore, 300);
+				fseek(p2m2v, 1, SEEK_CUR);
+				for (size_t stage = 0; !global.quit && stage < 13; stage++)
 				{
-					if (!feof(p2m2v))
+					for (size_t difficulty = 0; !global.quit && difficulty < 6; difficulty++)
 					{
-						switch (valueInsertFromFile(p2m2v, frameValues.frames[framerate][stage][difficulty]))
+						if (!feof(p2m2v))
 						{
-						case '!':
+							switch (valueInsertFromFile(p2m2v, frameValues.frames[framerate][stage][difficulty]))
+							{
+							case '!':
 
-							break;
-						case '-':
-							printf("%sError: No Negative values\n", global.tabs.c_str());
-							printf("%sSkipping %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-							printf("FPS: Stage %zu - Value %zu\n%s\n", stage + 1, difficulty + 1,global.tabs.c_str());
-							error = true;
-							break;
-						case '*':
-							printf("%sError: Invalid input (%s)\n", global.tabs.c_str(), global.invalid.c_str());
-						case 'q':
+								break;
+							case '-':
+								printf("%sError: No Negative values\n", global.tabs.c_str());
+								printf("%sSkipping %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+								printf("FPS: Stage %zu - Value %zu\n%s\n", stage + 1, difficulty + 1, global.tabs.c_str());
+								error = true;
+								break;
+							case '*':
+								printf("%sError: Invalid input (%s)\n", global.tabs.c_str(), global.invalid.c_str());
+							case 'q':
+								printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+								printf("FPS [Frame Displacements] - Stage %zu", stage + 1);
+								switch (difficulty)
+								{
+								case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
+								case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
+								case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
+								default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
+								}
+								global.quit = true;
+							}
+						}
+						else
+						{
 							printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
 							printf("FPS [Frame Displacements] - Stage %zu", stage + 1);
 							switch (difficulty)
@@ -117,32 +129,16 @@ bool PCSX2TAS::loadValues(string filename)
 							case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
 							default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
 							}
-							fclose(p2m2v);
 							global.quit = true;
 						}
 					}
-					else
-					{
-						printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-						printf("FPS [Frame Displacements] - Stage %zu", stage + 1);
-						switch (difficulty)
-						{
-						case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-						case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
-						case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
-						default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
-						}
-						fclose(p2m2v);
-						global.quit = true;
-					}
-					if (global.quit)
-						break;
 				}
-				if (global.quit)
-					break;
 			}
-			if (global.quit)
+			else
+			{
+				printf("%sRead stopped before FPS %s\n", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
 				break;
+			}
 		}
 		fclose(p2m2v);
 		if (!failed)

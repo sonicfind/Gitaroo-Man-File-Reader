@@ -18,7 +18,10 @@ SongSection::Condition::Condition() : type(0), argument(0), trueEffect(0), false
 
 SongSection::Condition::Condition(FILE* inFile)
 {
-	fread(&type, 16, 1, inFile);
+	fread(&type, 4, 1, inFile);
+	fread(&argument, 4, 1, inFile);
+	fread(&trueEffect, 4, 1, inFile);
+	fread(&falseEffect, 4, 1, inFile);
 }
 
 SongSection::Condition::Condition(Condition& cond) : type(cond.type), argument(cond.argument), trueEffect(cond.trueEffect), falseEffect(cond.falseEffect) {}

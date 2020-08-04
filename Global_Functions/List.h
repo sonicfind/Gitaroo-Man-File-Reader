@@ -107,6 +107,9 @@ private:
 		}
 		else if (newNode->data > newNode->next->data)
 		{
+			newNode->prev = newNode->next;
+			newNode->next = newNode->next->next;
+			index++;
 			while (newNode->next != nullptr)
 			{
 				if (newNode->data == newNode->next->data)
@@ -127,6 +130,9 @@ private:
 		}
 		else
 		{
+			newNode->next = newNode->prev;
+			newNode->prev = newNode->prev->prev;
+			index--;
 			while (newNode->prev != nullptr)
 			{
 				if (newNode->data == newNode->prev->data)

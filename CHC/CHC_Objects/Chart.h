@@ -73,19 +73,7 @@ public:
 		size += 16;
 		return tracelines.emplace_ordered(args...);
 	}
-	template<class... Args>
-	Traceline& emplaceTraceline_back(Args&&... args)
-	{
-		size += 16;
-		return tracelines.emplace_back(args...);
-	}
 
-	template<class... Args>
-	Traceline& emplaceTraceline_front(Args&&... args)
-	{
-		size += 16;
-		return tracelines.emplace_front(args...);
-	}
 	//Returns the number of the phrase bars in the chart/subsection
 	size_t getNumPhrases() const { return phrases.size(); }
 	//Returns the Phrase bar at the provided index
@@ -97,19 +85,6 @@ public:
 		return phrases.emplace_ordered(args...);
 	}
 
-	template<class... Args>
-	Phrase& emplacePhrase_back(Args&&... args)
-	{
-		size += 32;
-		return phrases.emplace_back(args...);
-	}
-
-	template<class... Args>
-	Phrase& emplacePhrase_front(Args&&... args)
-	{
-		size += 32;
-		return phrases.emplace_front(args...);
-	}
 	//Returns the number of the guard marks in the chart/subsection
 	size_t getNumGuards() const { return guards.size(); }
 	//Returns the Guard mark at the provided index
@@ -121,19 +96,6 @@ public:
 		return guards.emplace_ordered(args...);
 	}
 
-	template<class... Args>
-	Guard& emplaceGuard_back(Args&&... args)
-	{
-		size += 16;
-		return guards.emplace_back(args...);
-	}
-
-	template<class... Args>
-	Guard& emplaceGuard_front(Args&&... args)
-	{
-		size += 16;
-		return guards.emplace_front(args...);
-	}
 	size_t add(Note*);
 	void add_back(Note*);
 	bool resize(long numElements, char type = 't');

@@ -131,11 +131,14 @@ Phrase::Phrase(FILE* inFile)
 		fread(&start, 4, 1, inFile);
 		fread(&end, 4, 1, inFile);
 		fread(&animation, 4, 1, inFile);
-		fread(junk, 1, 12, inFile);
+		fread(junk, 1, 8, inFile);
 		if (strstr(junk, "NOTECOLR"))
-			memcpy_s((char*)&color, 4, junk + 8, 4);
+			fread(&color, 4, 1, inFile);
 		else
+		{
+			fread(junk + 8, 1, 4, inFile);
 			color = 0;
+		}
 	}
 	else
 		throw "Error creating Phrase bar: Bruh, open a file first.";

@@ -123,9 +123,9 @@ void CHC_Editor::editSong(const bool multi)
 		case '*':
 			break;
 		default:
-			adjustTabs(2);
+			global.adjustTabs(2);
 			(this->*functions[result])();
-			adjustTabs(1);
+			global.adjustTabs(1);
 		}
 	} while (!global.quit);
 	global.quit = false;
@@ -785,9 +785,9 @@ void CHC_Editor::sectionMenu()
 		case '*':
 			break;
 		default:
-			adjustTabs(3);
+			global.adjustTabs(3);
 			(this->*results[index])();
-			adjustTabs(2);
+			global.adjustTabs(2);
 		}
 	} while (!global.quit);
 }
@@ -1302,7 +1302,7 @@ void CHC_Editor::sectionSubMenu()
 			clearIn();
 			break;
 		case '!':
-			adjustTabs(4);
+			global.adjustTabs(4);
 			do
 			{
 				banner(" " + song->shortname + ".CHC - " + song->sections[val].name + " - Modify ");
@@ -1343,7 +1343,7 @@ void CHC_Editor::sectionSubMenu()
 				case '*':
 					break;
 				default:
-					adjustTabs(5);
+					global.adjustTabs(5);
 					switch (index)
 					{
 					case 'n':
@@ -1383,11 +1383,11 @@ void CHC_Editor::sectionSubMenu()
 						playerSwap(song->sections[val]);
 						song->saved = false;
 					}
-					adjustTabs(4);
+					global.adjustTabs(4);
 				}
 			} while (!global.quit);
 			global.quit = false;
-			adjustTabs(3);
+			global.adjustTabs(3);
 		}
 	} while (!global.quit);
 	global.quit = false;
@@ -2229,7 +2229,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 			clearIn();
 			break;
 		case '!':
-			adjustTabs(6);
+			global.adjustTabs(6);
 			do
 			{
 				banner(" " + song->shortname + ".CHC - Section " + section.name + " - Condition " + to_string(val) + ' ', 1.5);
@@ -2281,7 +2281,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 				case '*':
 					break;
 				default:
-					adjustTabs(7);
+					global.adjustTabs(7);
 					switch (index)
 					{
 					case 'c':
@@ -2300,11 +2300,11 @@ void CHC_Editor::conditionMenu(SongSection& section)
 						adjustTempo(song->sections[val]);
 						break;
 					}
-					adjustTabs(6);
+					global.adjustTabs(6);
 				}
 			} while (!global.quit);
 			global.quit = false;
-			adjustTabs(3);
+			global.adjustTabs(3);
 		}
 	} while (!global.quit);
 	global.quit = false;

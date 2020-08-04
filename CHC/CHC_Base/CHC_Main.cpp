@@ -36,7 +36,7 @@ bool loadSingleCHC(string& filename)
 		printf("%s%s\n", global.tabs.c_str(), str);
 		printf("%sLoad cancelled for %s.CHC\n", global.tabs.c_str(), filename.c_str());
 	}
-	adjustTabs(0);
+	global.adjustTabs(0);
 	return val;
 }
 
@@ -147,7 +147,7 @@ bool loadMultiCHC(List<string>* files)
 		case 'n':
 			return false;
 		default:
-			adjustTabs(1);
+			global.adjustTabs(1);
 			while (files->size())
 			{
 				try
@@ -158,7 +158,7 @@ bool loadMultiCHC(List<string>* files)
 					case 'e':
 						if (chc.menu(files->size()))
 						{
-							adjustTabs(0);
+							global.adjustTabs(0);
 							return false;
 						}
 						else
@@ -203,7 +203,7 @@ bool loadMultiCHC(List<string>* files)
 				}
 				files->pop_front();
 			}
-			adjustTabs(0);
+			global.adjustTabs(0);
 			global.quit = true;
 			break;
 		}
@@ -361,7 +361,7 @@ bool CHC_Main::menu(size_t fileCount)
 		case 'n':
 			return false;
 		default:
-			adjustTabs(1);
+			global.adjustTabs(1);
 			switch (result)
 			{
 			case 's':
@@ -394,7 +394,7 @@ bool CHC_Main::menu(size_t fileCount)
 			case 'c':
 				createColorTemplate();
 			}
-			adjustTabs(0);
+			global.adjustTabs(0);
 		}
 	}
 	return true;

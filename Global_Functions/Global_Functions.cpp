@@ -84,25 +84,6 @@ FileType dlls[20] =
 	{{"SFO"}, {L".\\SFO\\SFO_Base.dll"}}
 };
 
-//Adjust pre-fix tab "||"s to the given length
-void GlobalVars::adJustTabs(size_t value)
-{
-	tabs = value > 0 ? string(--value, '\t') + "      ||" : "";
-}
-
-char GlobalVars::fillInvalid()
-{
-	invalid = "";
-	while (input != '\n')
-	{
-		invalid += input;
-		scanf_s("%c", &input, 1);
-	}
-	clearIn();
-	multi = false;
-	return '*';
-}
-
 GlobalVars global;
 
 int peek()

@@ -50,6 +50,13 @@ struct FileType
 };
 extern "C" GLOBALFUNCTIONS_API size_t dllCount;
 extern "C" GLOBALFUNCTIONS_API FileType dlls[20];
+
+extern "C" GLOBALFUNCTIONS_API int peek();
+extern "C" GLOBALFUNCTIONS_API void clearIn();
+
+//Generates banner
+extern "C" GLOBALFUNCTIONS_API void banner(std::string title, double coef = 1);
+
 /*
 App-wide structure that holds universal values used by many functions across the solution.
 
@@ -65,16 +72,26 @@ struct GlobalVars
 	char input = 0;
 	bool multi = false;
 	std::string tabs = "", invalid = "";
-	void adJustTabs(size_t value);
-	char fillInvalid();
+	//Adjust pre-fix tab "||"s to the given length
+	void adjustTabs(size_t value) { tabs = value > 0 ? std::string(--value, '\t') + "      ||" : ""; }
+	//Pulls remaining characters from the input stream into the invalid string variable
+	char fillInvalid() 
+	{
+		invalid = "";
+		while (input != '\n')
+		{
+			invalid += input;
+			scanf_s("%c", &input, 1);
+		}
+		clearIn();
+		multi = false;
+		return '*';
+	}
 };
 extern "C" GLOBALFUNCTIONS_API GlobalVars global;
 
-extern "C" GLOBALFUNCTIONS_API int peek();
+extern "C" GLOBALFUNCTIONS_API bool LoadLib(FileType::dllPair & pair);
 
-extern "C" GLOBALFUNCTIONS_API void clearIn();
-
-extern "C" GLOBALFUNCTIONS_API bool LoadLib(FileType::dllPair& pair);
 /*
 Searches for a function with the given name (proc) inside the provided dll (lib).
 If found, it will use object as the parameter and return the result.
@@ -93,10 +110,7 @@ extern char loadProc(HINSTANCE& lib, const char* proc, Args&... args)
 		return -1;
 	}
 }
-//Generates banner
-extern "C" GLOBALFUNCTIONS_API void banner(std::string title, double coef = 1);
-//Adjust pre-fix tab "||"s to the given length
-extern "C" GLOBALFUNCTIONS_API void adjustTabs(char value);
+
 //Used for printing to a max of two files at once
 extern "C" GLOBALFUNCTIONS_API void dualvfprintf_s(FILE* out1, FILE* out2, const char* format, ...);
 //Reads a file name from the input window, removing certain unnecessary characters from the string

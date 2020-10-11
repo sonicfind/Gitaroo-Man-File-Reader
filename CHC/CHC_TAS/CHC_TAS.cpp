@@ -229,32 +229,33 @@ void PCSX2TAS::print(string filename)
 	fwrite(multi, 1, 8, outp2m2);
 	fwrite(&players[0].size(), 4, 1, outp2m2);
 	fwrite("\0\0\0\0", 1, 4, outp2m2);
+	unsigned char sequence[18] = { 0 };
 	for (size_t index = 0; index < players[0].size(); index++)
 	{
 		for (long player = 0; player < 4; player++)
 		{
 			if (players[player].size())
 			{
-				TAS_Frame frame = players[player][index];
-				unsigned char* sequence = new unsigned char[18]();
-				if (!(frame.dpad & 128)) sequence[7] = 0xFF;
-				if (!(frame.dpad & 64)) sequence[9] = 0xFF;
-				if (!(frame.dpad & 32)) sequence[6] = 0xFF;
-				if (!(frame.dpad & 16)) sequence[8] = 0xFF;
-				if (!(frame.button & 128)) sequence[13] = 0xFF;
-				if (!(frame.button & 64)) sequence[12] = 0xFF;
-				if (!(frame.button & 32)) sequence[11] = 0xFF;
-				if (!(frame.button & 16)) sequence[10] = 0xFF;
-				sequence[0] = frame.startButton < 255 ? frame.startButton : frame.dpad;
+				TAS_Frame& frame = players[player][index];
+				sequence[0] = frame.dpad;
 				sequence[1] = frame.button;
 				sequence[2] = frame.rightStickX;
 				sequence[3] = frame.rightStickY;
 				sequence[4] = frame.leftStickX;
 				sequence[5] = frame.leftStickY;
+				if (~frame.dpad & 128) sequence[7] = 0xFF;	//Left
+				if (~frame.dpad & 64) sequence[9] = 0xFF;	//Down
+				if (~frame.dpad & 32) sequence[6] = 0xFF;	//Right
+				if (~frame.dpad & 16) sequence[8] = 0xFF;	//Up
+				if (~frame.button & 128) sequence[13] = 0xFF;
+				if (~frame.button & 64) sequence[12] = 0xFF;	//Cross
+				if (~frame.button & 32) sequence[11] = 0xFF;
+				if (~frame.button & 16) sequence[10] = 0xFF;	//Triangle
 				fwrite(sequence, 1, 18, outp2m2);
-				delete[18] sequence;
+				memset(sequence, 0, 14);
 			}
 		}
+		fflush(outp2m2);
 	}
 	fclose(outp2m2);
 	printf("%sPCSX2 TAS Completed.\n", global.tabs.c_str());
@@ -267,22 +268,22 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 		if (!stage)
 		{
 			players[0].resize(546 + frameValues.frames[2][0][0] + numFrames);
-			players[0][255].startButton = 247;	//Start - Title Screen
-			players[0][545].button &= 191;			//X-button - Start Tutorial
+			players[0][253].dpad &= 247;	//Start - Title Screen
+			players[0][545].button &= 191;	//X-button - Start Tutorial
 		}
-		else
+		else if (stage <= 10)
 		{
 			players[0].resize(1390 + 6ULL * multi[0] + frameValues.frames[2][stage][difficulty + multi[0] + multi[1]] + numFrames);
 			size_t index = 253 + 2ULL * multi[0];
-			players[0][index++].startButton = 247;	index += 283ULL + multi[0];	//Start - Title Screen
-			players[0][index++].dpad &= 239;										//D-pad Up - To Settings option
-			players[0][index++].button &= 191; index += 207;						//X-button - Select Settings option
-			players[0][index++].dpad &= 223; index++;								//D-pad Right - To Difficulty option
-			players[0][index++].dpad &= 223;										//D-pad Right - To Load Game option
-			players[0][index++].button &= 191;	index += 150ULL + multi[0];			//X-button - Select Load Game
-			players[0][index++].button &= 191; index += 161;						//X-button - Select Memory Slot 1
-			players[0][index++].button &= 191;	index += 49;						//X-button - Select Save File 1
-			players[0][index++].button &= 191;	index += 164ULL + multi[0];			//X-button - Exit Loading Module
+			players[0][index++].dpad &= 247;	index += 283ULL + multi[0];		//Start - Title Screen
+			players[0][index++].dpad &= 239;									//D-pad Up - To Settings option
+			players[0][index++].button &= 191;	index += 207;					//X-button - Select Settings option
+			players[0][index++].dpad &= 223;	index++;						//D-pad Right - To Difficulty option
+			players[0][index++].dpad &= 223;									//D-pad Right - To Load Game option
+			players[0][index++].button &= 191;	index += 150ULL + multi[0];		//X-button - Select Load Game
+			players[0][index++].button &= 191;	index += 161;					//X-button - Select Memory Slot 1
+			players[0][index++].button &= 191;	index += 49;					//X-button - Select Save File 1
+			players[0][index++].button &= 191;	index += 164ULL + multi[0];		//X-button - Exit Loading Module
 			if (difficulty == 1)
 			{
 				players[0].resize(players[0].size() + 4);
@@ -293,7 +294,7 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 			if (orientation)
 			{
 				players[0].resize(players[0].size() + 87);
-				players[0][index++].dpad &= 127; index++;			//D-pad Left - To Volume option
+				players[0][index++].dpad &= 127;	index++;		//D-pad Left - To Volume option
 				players[0][index++].dpad &= 127;					//D-pad Left - To Controller option
 				players[0][index++].button &= 191;	index += 34;	//X-button - Select Controller option
 				switch (orientation)
@@ -329,65 +330,77 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 			if (difficulty != 3)
 			{
 				size_t stValue = (stage < 11 ? stage - 1 : stage - 11);
-				players[0].resize(players[0].size() + 143 + 2 * stValue); index += 143;
+				players[0].resize(players[0].size() + 143 + 2 * stValue);
+				index += 143;
 				for (size_t stageIndex = 0; stageIndex < stValue; stageIndex++)
 				{
 					players[0][index++].dpad &= 223;	//D-pad Right - Stage Scrolling
-					if (stage - stageIndex - 2) index++;
+					if (stage - stageIndex - 2)
+						index++;
 				}
 			}
 			else
 			{
 				players[0].resize(players[0].size() + 203ULL + 33ULL * multi[0] + 32ULL * multi[1] - 4 * ((stage - 1) / 3) + 2 * (stage / 10));
-				players[0][index++].button &= 191; index += 48;	//X-button - MP Intro Screen
+				players[0][index++].button &= 191;	index += 48;	//X-button - MP Intro Screen
 				for (size_t stageIndex = 0, mStage = stage - ((stage - 1) / 3) - 1; stageIndex < mStage; stageIndex++)
 				{
 					players[0][index++].dpad &= 191;				//D-pad Down - Stage Scrolling
-					if (mStage - stageIndex - 1) index++;
+					if (mStage - stageIndex - 1)
+						index++;
 				}
-				players[0][index++].button &= 191; index += 2 * (9 - stage + 16 * ((size_t)multi[0] + multi[1]) - ((stage - 1) / 3) + (stage / 10)) + 1;		//X-button - Stage Selection
-				players[0][index++].button &= 191; index++;		//X-button - Character Selection
+				players[0][index++].button &= 191;					//X-button - Stage Selection
+				index += 2 * (9 - stage + 16 * ((size_t)multi[0] + multi[1]) - ((stage - 1) / 3) + (stage / 10)) + 1;		
+				players[0][index++].button &= 191;	index++;		//X-button - Character Selection
 				players[0][index++].button &= 191;	index++;		//X-button - Health Handicap Selection
 			}
 			players[0][index].button &= 191;						//X-button - Stage Start
 			if (difficulty == 3) //If Multiplayer
 			{
 				players[1].resize(players[0].size()); index = stageSelectIndex + 203 + 33ULL * multi[0] + 32ULL * multi[1] - 4 * ((stage - 1) / 3) + 2 * (stage / 10);
-				players[1][index++].button &= 191; index++;		//X-button - Character Selection
+				players[1][index++].button &= 191;	index++;		//X-button - Character Selection
 				players[1][index].button &= 191;					//X-button - Health Handicap Selection
-				if (multi[1]) //If 4-Player
+				if (multi[0]) //If Player 3
 				{
-					players[2] = players[1];
-					players[3] = players[1];
-				}
-				else if (multi[0]) //If 3-Player
-				{
-					players[2] = players[1];
+					players[2].clone(players[1]);
+					if (multi[1])	//If Player 4
+						players[3].clone(players[1]);
 				}
 			}
+		}
+		else
+		{
+			players[0].resize(543 + 3ULL * multi[0] + frameValues.frames[2][stage][difficulty + multi[0] + multi[1]] + numFrames);
+			size_t index = 253 + 2ULL * multi[0];
+			players[0][index++].dpad &= 247;	index += 283ULL + multi[0];		//Start - Title Screen
+			players[0][index++].dpad &= 239;	index++;						//D-pad Up - To Settings option
+			players[0][index++].dpad &= 239;									//D-pad Up - To Collection option
+			if (stage == 11)
+				players[0][(++index)++].dpad &= 239;							//D-pad Up - To Theater option
+			players[0][index].button &= 191;									//X-button - Select Theater or Collection option
 		}
 	}
 	else if (framerate >= 59.94f)
 	{
-		if(!stage)
+		if (!stage)
 		{
 			players[0].resize(546 + frameValues.frames[0][0][0] + numFrames);
-			players[0][255].startButton = 247;	//Start - Title Screen
-			players[0][545].button &= 191;			//X-button - Start Tutorial
+			players[0][255].dpad &= 247;	//Start - Title Screen
+			players[0][545].button &= 191;	//X-button - Start Tutorial
 		}
-		else
+		else if (stage <= 10)
 		{
 			players[0].resize(1429 + 16ULL * multi[0] + frameValues.frames[0][stage][difficulty + multi[0] + multi[1]] + numFrames);
 			size_t index = 255ULL + 3ULL * multi[0];
-			players[0][index++].startButton = 247;	index += 289 + 2ULL * multi[0];	//Start - Title Screen
+			players[0][index++].dpad &= 247;	index += 289 + 2ULL * multi[0];		//Start - Title Screen
 			players[0][index++].dpad &= 239;										//D-pad Up - To Settings option
-			players[0][index++].button &= 191; index += 215 + 3ULL * multi[0];						//X-button - Select Settings option
-			players[0][index++].dpad &= 223; index++;								//D-pad Right - To Difficulty option
+			players[0][index++].button &= 191;	index += 215 + 3ULL * multi[0];		//X-button - Select Settings option
+			players[0][index++].dpad &= 223;	index++;							//D-pad Right - To Difficulty option
 			players[0][index++].dpad &= 223;										//D-pad Right - To Load Game option
-			players[0][index++].button &= 191;	index += 156 + 3ULL * multi[0];			//X-button - Select Load Game
-			players[0][index++].button &= 191; index += 161;						//X-button - Select Memory Slot 1
+			players[0][index++].button &= 191;	index += 156 + 3ULL * multi[0];		//X-button - Select Load Game
+			players[0][index++].button &= 191;	index += 161;						//X-button - Select Memory Slot 1
 			players[0][index++].button &= 191;	index += 49;						//X-button - Select Save File 1
-			players[0][index++].button &= 191;	index += 173 + 3ULL * multi[0];			//X-button - Exit Loading Module
+			players[0][index++].button &= 191;	index += 173 + 3ULL * multi[0];		//X-button - Exit Loading Module
 			if (difficulty == 1)
 			{
 				players[0].resize(players[0].size() + 4);
@@ -398,7 +411,7 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 			if (orientation)
 			{
 				players[0].resize(players[0].size() + 87);
-				players[0][index++].dpad &= 127; index++;			//D-pad Left - To Volume option
+				players[0][index++].dpad &= 127;	index++;		//D-pad Left - To Volume option
 				players[0][index++].dpad &= 127;					//D-pad Left - To Controller option
 				players[0][index++].button &= 191;	index += 34;	//X-button - Select Controller option
 				switch (orientation)
@@ -416,36 +429,33 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 				players[0][index++].button &= 239;	index += 45;	// /\-button - Exit Controller screen
 			}
 			players[0][index++].button &= 239;	index += 117 + 2ULL * multi[0];	// /\-button - Exit Settings menu / To Main menu
-			if (stage < 11)
+			switch (difficulty)
 			{
-				switch (difficulty)
-				{
-				case 0:		//Master
-					players[0].resize(players[0].size() + 1);
-					players[0][index++].dpad &= 191;				//D-pad Down - To Master Play option
-				case 1:		//Hard		Stay on Single Play option
-				case 2:		//Normal	Stay on Single Play option
-					break;
-				case 3:		//Multi-
-					players[0].resize(players[0].size() + 3);
-					players[0][index++].dpad &= 191; index++;		//D-pad Down - To Master Play option
-					players[0][index++].dpad &= 191;				//D-pad Down - To VS Play option
-				}
+			case 0:		//Master
+				players[0].resize(players[0].size() + 1);
+				players[0][index++].dpad &= 191;				//D-pad Down - To Master Play option
+			case 1:		//Hard		Stay on Single Play option
+			case 2:		//Normal	Stay on Single Play option
+				break;
+			case 3:		//Multi-
+				players[0].resize(players[0].size() + 3);
+				players[0][index++].dpad &= 191; index++;		//D-pad Down - To Master Play option
+				players[0][index++].dpad &= 191;				//D-pad Down - To VS Play option
 			}
 			players[0][index++].button &= 191;					//X-button - Select Current option
 			size_t stageSelectIndex = index;
 			if (difficulty != 3) //Single Player
 			{
-				size_t stValue = (stage < 11 ? stage - 1 : stage - 11);
 				if (stage != 8)
-					players[0].resize(players[0].size() + 152 + 2 * stValue);
+					players[0].resize(players[0].size() + 150 + 2 * stage);
 				else
-					players[0].resize(players[0].size() + 153 + 2 * stValue);
+					players[0].resize(players[0].size() + 151 + 2 * stage);
 				index += 152;
-				for (size_t stageIndex = 0; stageIndex < stValue; stageIndex++)
+				for (size_t stageIndex = 0; stageIndex < stage - 1; stageIndex++)
 				{
 					players[0][index++].dpad &= 223;	//D-pad Right - Stage Scrolling
-					if (stage - stageIndex - 2) index++;
+					if (stage - stageIndex - 2)
+						index++;
 				}
 				if (stage == 8)
 					index++;
@@ -463,7 +473,7 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 				else
 					players[0].resize(players[0].size() + 203U);
 				index += 141 + 3ULL * multi[0];
-				players[0][index++].button &= 191; index += 47;	//X-button - MP Intro Screen
+				players[0][index++].button &= 191;	index += 47;	//X-button - MP Intro Screen
 				for (size_t stageIndex = 0; stageIndex < scrollVal; stageIndex++)
 				{
 					index++;
@@ -479,8 +489,8 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 					index += 10 - (scrollVal << 1) - (stage > 1);
 				else
 					index++;
-				players[0][index++].button &= 191; index++;		//X-button - Multiplayer Character Selection
-				players[0][index++].button &= 191; index++;		//X-button - Health Handicap Selection/Stage Start
+				players[0][index++].button &= 191;	index++;		//X-button - Multiplayer Character Selection
+				players[0][index++].button &= 191;	index++;		//X-button - Health Handicap Selection/Stage Start
 			}
 			//If Multiplayer
 			if (difficulty == 3)
@@ -495,15 +505,26 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 					index += (stage - ((stage - 1) / 3)) << 1;
 				else
 					index += 8;
-				players[1][index++].button &= 191;		//X-button - Multiplayer Character Selection
-				players[1][++index].button &= 191;		//X-button - Health Handicap Selection
+				players[1][index++].button &= 191;	index++;	//X-button - Multiplayer Character Selection
+				players[1][index].button &= 191;				//X-button - Health Handicap Selection
 				if (multi[0]) //If Player 3
 				{
-					players[2] = players[1];
+					players[2].clone(players[1]);
 					if (multi[1])	//If Player 4
-						players[3] = players[1];
+						players[3].clone(players[1]);
 				}
 			}
+		}
+		else
+		{
+			players[0].resize(551 + 5ULL * multi[0] + frameValues.frames[0][stage][difficulty + multi[0] + multi[1]] + numFrames);
+			size_t index = 255 + 3ULL * multi[0];
+			players[0][index++].dpad &= 247; index += 289ULL + 2ULL * multi[0];		//Start - Title Screen
+			players[0][index++].dpad &= 239; index++;								//D-pad Up - To Settings option
+			players[0][index++].dpad &= 239;										//D-pad Up - To Collection option
+			if (stage == 11)
+				players[0][(++index)++].dpad &= 239;								//D-pad Up - To Theater option
+			players[0][index].button &= 191;										//X-button - Select Theater or Collection option
 		}
 	}
 	return players[0].size() - numFrames;

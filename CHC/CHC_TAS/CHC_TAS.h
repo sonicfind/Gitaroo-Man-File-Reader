@@ -22,13 +22,12 @@
 
 struct TAS_Frame
 {
-	unsigned char startButton = 255;
 	unsigned char dpad = 255;
+	unsigned char button = 255;
 	unsigned char leftStickX = 127;
 	unsigned char leftStickY = 127;
 	unsigned char rightStickX = 127;
 	unsigned char rightStickY = 127;
-	unsigned char button = 255;
 };
 
 class PCSX2TAS
@@ -85,7 +84,7 @@ private:
 			{241, 280, 406, 0, 0, 0} } };
 	} frameValues;
 	unsigned char version = 2;
-	unsigned char emulator[50] = { "PCSX2-1.5.X" };
+	unsigned char emulator[50] = { "PCSX2-1.7.X" };
 	unsigned char author[255] = { 0 };
 	unsigned char game[255] = { "Gitaroo Man (USA).ISO" };
 	float framerate = 59.94f;

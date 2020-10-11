@@ -211,6 +211,31 @@ public:
 		}
 	}
 
+	List<T>& clone(const List<T>& list)
+	{
+		if (UsedCount == list.UsedCount)
+			return *this;
+
+		if (*UsedCount > 1)
+			(*UsedCount)--;
+		else
+		{
+			clear();
+			delete root;
+			delete tail;
+			delete count;
+			delete lastAccessed;
+			delete UsedCount;
+		}
+		Node* cur = *list.root;
+		for (unsigned i = 0; i < *list.count; i++)
+		{
+			emplace_back(cur->data);
+			cur = cur->next;
+		}
+		return *this;
+	}
+
 	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
 	List<T>& operator=(const std::initializer_list<T>& init)
 	{
@@ -263,26 +288,26 @@ public:
 	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
 	List<T>& operator=(const List<T>& list)
 	{
-		if (UsedCount != list.UsedCount)
+		if (UsedCount == list.UsedCount)
+			return *this;
+
+		if (*UsedCount > 1)
+			(*UsedCount)--;
+		else
 		{
-			if (*UsedCount > 1)
-				(*UsedCount)--;
-			else
-			{
-				clear();
-				delete root;
-				delete tail;
-				delete count;
-				delete lastAccessed;
-				delete UsedCount;
-			}
-			root = list.root;
-			tail = list.tail;
-			count = list.count;
-			lastAccessed = list.lastAccessed;
-			UsedCount = list.UsedCount;
-			(*UsedCount)++;
+			clear();
+			delete root;
+			delete tail;
+			delete count;
+			delete lastAccessed;
+			delete UsedCount;
 		}
+		root = list.root;
+		tail = list.tail;
+		count = list.count;
+		lastAccessed = list.lastAccessed;
+		UsedCount = list.UsedCount;
+		(*UsedCount)++;
 		return *this;
 	}
 
@@ -769,8 +794,11 @@ public:
 	}
 
 	//Swaps the contents of the two lists.
-	void swap(List<T>& other)
+	List<T>& swap(List<T>& other)
 	{
+		if (UsedCount == list.UsedCount)
+			return *this;
+
 		Node** rootbuf = root, **tailbuf = tail;
 		size_t* countbuf = count, *usedBuf = UsedCount;
 		placeSaver* placebuf = lastAccessed;
@@ -784,6 +812,7 @@ public:
 		other.count = countbuf;
 		other.lastAccessed = placebuf;
 		other.UsedCount = usedBuf;
+		return *this;
 	}
 };
 
@@ -952,29 +981,54 @@ public:
 		}
 	}
 
+	List<T*>& clone(const List<T*>& list)
+	{
+		if (UsedCount == list.UsedCount)
+			return *this;
+
+		if (*UsedCount > 1)
+			(*UsedCount)--;
+		else
+		{
+			clear();
+			delete root;
+			delete tail;
+			delete count;
+			delete lastAccessed;
+			delete UsedCount;
+		}
+		Node* cur = *list.root;
+		for (unsigned i = 0; i < *list.count; i++)
+		{
+			push_back(cur->data);
+			cur = cur->next;
+		}
+		return *this;
+	}
+
 	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
 	List<T*>& operator=(const List<T*>& list)
 	{
-		if (UsedCount != list.UsedCount)
+		if (UsedCount == list.UsedCount)
+			return *this;
+
+		if (*UsedCount > 1)
+			(*UsedCount)--;
+		else
 		{
-			if (*UsedCount > 1)
-				(*UsedCount)--;
-			else
-			{
-				clear();
-				delete root;
-				delete tail;
-				delete count;
-				delete lastAccessed;
-				delete UsedCount;
-			}
-			root = list.root;
-			tail = list.tail;
-			count = list.count;
-			lastAccessed = list.lastAccessed;
-			UsedCount = list.UsedCount;
-			(*UsedCount)++;
+			clear();
+			delete root;
+			delete tail;
+			delete count;
+			delete lastAccessed;
+			delete UsedCount;
 		}
+		root = list.root;
+		tail = list.tail;
+		count = list.count;
+		lastAccessed = list.lastAccessed;
+		UsedCount = list.UsedCount;
+		(*UsedCount)++;
 		return *this;
 	}
 
@@ -1356,8 +1410,11 @@ public:
 	}
 
 	//Swaps the contents of the two lists.
-	void swap(List<T>& other)
+	List<T*>& swap(List<T>& other)
 	{
+		if (UsedCount == list.UsedCount)
+			return *this;
+
 		Node** rootbuf = root, **tailbuf = tail;
 		size_t* countbuf = count, *usedBuf = UsedCount;
 		placeSaver* placebuf = lastAccessed;
@@ -1371,5 +1428,6 @@ public:
 		other.*count = countbuf;
 		other.lastAccessed = placebuf;
 		other.UsedCount = usedBuf;
+		return *this;
 	}
 };

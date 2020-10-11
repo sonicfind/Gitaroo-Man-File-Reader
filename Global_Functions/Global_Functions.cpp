@@ -15,6 +15,9 @@
 #include "..\Header\pch.h"
 #include "Global_Functions.h"
 using namespace std;
+
+GlobalVars global;
+
 size_t dllCount = 0;
 
 FileType::dllPair::~dllPair()
@@ -23,22 +26,28 @@ FileType::dllPair::~dllPair()
 		FreeLibrary(dll);
 }
 
-/*
-Takes two {} arrays as inputs for establishing the dll/extension structure for any type.
-Names - the list of dlls that the program should attempt to load on startup.
-Exts -- the list of file extensions that the first dll in "names" will be applicable for.
-*/
-FileType::FileType(const initializer_list<const char*>& exts, const initializer_list<const wchar_t*>& names) : extensions(exts), libraries(names)
+bool FileType::load()
 {
+	HINSTANCE temp = libraries[0].dll;
+	SetErrorMode(SEM_FAILCRITICALERRORS);
 	if (LoadLib(libraries[0]))
 	{
-		dllCount++;
+		//If the library was previously not loaded
+		if (temp == nullptr)
+			dllCount++;
 		for (size_t lib = 1; lib < libraries.size(); lib++)
 			LoadLib(libraries[lib]);
+		SetErrorMode(0);
+		return true;
+	}
+	else
+	{
+		SetErrorMode(0);
+		return false;
 	}
 }
 
-bool FileType::load()
+void FileType::load(List<const wchar_t*>& errors)
 {
 	HINSTANCE temp = libraries[0].dll;
 	if (LoadLib(libraries[0]))
@@ -47,11 +56,19 @@ bool FileType::load()
 		if (temp == nullptr)
 			dllCount++;
 		for (size_t lib = 1; lib < libraries.size(); lib++)
-			LoadLib(libraries[lib]);
-		return true;
+		{
+			if (!LoadLib(libraries[lib]))
+			{
+				if (GetLastError() == 127)
+					errors.push_back(libraries[lib].name);
+			}
+		}
 	}
 	else
-		return false;
+	{
+		if (GetLastError() == 127)
+			errors.push_back(libraries[0].name);
+	}
 }
 
 /*
@@ -83,8 +100,6 @@ FileType dlls[20] =
 	{{"PMF"}, {L".\\PMF\\PMF_Base.dll"}},
 	{{"SFO"}, {L".\\SFO\\SFO_Base.dll"}}
 };
-
-GlobalVars global;
 
 int peek()
 {

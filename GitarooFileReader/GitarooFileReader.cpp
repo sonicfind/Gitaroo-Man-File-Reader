@@ -18,11 +18,9 @@ using namespace std;
 
 bool multi(int fileCount, char** files);
 bool single();
+void loadDlls();
 
 /*---------------------------------------------------------------------\
-Before startup, Global_Functions will load all possible dlls in to a
-dll array, incrementing FileType::dllCount on every success.
-
 The main function has two modes:
 	Mode 1: Drag & drop/.bat multi activation
 		This mode is specialized for when a user immediately inserts
@@ -39,6 +37,7 @@ All dlls are unloaded at exit time.
 \---------------------------------------------------------------------*/
 int main(int argc, char** argv)
 {
+	loadDlls();
 	if (dllCount)
 	{
 		banner(" Gitaroo File Reader v0.7.0.3 Beta ");
@@ -68,9 +67,10 @@ int main(int argc, char** argv)
 	{
 		printf("No BASE filetype extensions found.\n To use this program, you must have at least *one* of the available BASE extensions in its respective folder.\n");
 		printf("You can get all currently available extentions from the pinned message board in the #hacking channel in the \"Gitaroo Pals\" discord.\n");
-		printf("If you're getting this error despite having the dlls, you most likely don't have them in the right folder. A file type's extensions *must* be in their own designated folder.\n");
-		printf("Example: CHC_Base & other CHC extensions go in a folder named CHC. The base extension is the most important. Any non-file type specific dll stays next to the exe.\n");
-		printf("Discord Link: https://discord.gg/ed6P8Jt\n");
+		printf("If you're getting this error despite having the dlls, you most likely just misplaced them. A file type's extensions *must* be in its own designated folder.\n");
+		printf("Example: CHC_Base & other CHC extensions go in a folder named CHC. The base extension is the most important.\n");
+		printf("Any non-file type specific dlls should be placed in the same folder as the application.\n");;
+		printf("Discord Link: https://discord.gg/ed6P8Jt \n");
 	}
 	printf("Press 'enter' to close the window...");
 	char end;
@@ -239,9 +239,8 @@ bool single()
 	{
 	case 'q':
 		return false;
-	case '*':
-		return true;
-	default:
+	case '!':
+	{
 		size_t namDistance = filename.length();
 		if (namDistance > 6)
 			namDistance = 6;
@@ -333,11 +332,32 @@ bool single()
 				clearIn();
 			}
 		}
-		for (unsigned i = 0; i < 20; i++)
-		{
-			//Auto loads the main and sub dlls
-			dlls[i].load();
-		}
+	}
+	default:
+		loadDlls();
 		return true;
+	}
+}
+
+void loadDlls()
+{
+	List<const wchar_t*> errorList;
+	SetErrorMode(SEM_FAILCRITICALERRORS);
+	for (unsigned i = 0; i < 20; i++)
+	{
+		//Auto loads the main and sub dlls
+		//If a loadlib fails, and the file existed, add the dllname to the errorlist
+		dlls[i].load(errorList);
+	}
+	SetErrorMode(0);
+	const size_t size = errorList.size();
+	if (size > 0)
+	{
+		FILE* loadErrorLog;
+		fopen_s(&loadErrorLog, "DllLoadingErrors.txt", "w");
+		fprintf(loadErrorLog, "These dlls are out of date and must be updated to be compatible with this version of GMFR:\n");
+		for (size_t i = 0; i < size; i++)
+			fprintf(loadErrorLog, "%ls\n", errorList[i]);
+		fclose(loadErrorLog);
 	}
 }

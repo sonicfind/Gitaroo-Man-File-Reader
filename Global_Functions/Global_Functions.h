@@ -44,8 +44,15 @@ struct FileType
 	//Libraries[0] will ALWAYS be the base dll
 	List<dllPair> libraries;
 	List<extension> extensions;
-	FileType(const std::initializer_list<const char*>& exts, const std::initializer_list<const wchar_t*>& names);
+	/*
+	Takes two {} arrays as inputs for establishing the dll/extension structure for any type.
+	Names - the list of dlls that the program should attempt to load on startup.
+	Exts -- the list of file extensions that the first dll in "names" will be applicable for.
+	*/
+	FileType(const std::initializer_list<const char*>& exts, const std::initializer_list<const wchar_t*>& names)
+		: extensions(exts), libraries(names) {}
 	GLOBALFUNCTIONS_API bool load();
+	GLOBALFUNCTIONS_API void load(List<const wchar_t*>& errors);
 };
 extern "C" GLOBALFUNCTIONS_API size_t dllCount;
 extern "C" GLOBALFUNCTIONS_API FileType dlls[20];

@@ -19,7 +19,6 @@
 #define GLOBALFUNCTIONS_API __declspec(dllimport)
 #endif
 #include "List.h"
-#include <windows.h>
 
 constexpr long double M_PI = 3.1415926535897931L;
 

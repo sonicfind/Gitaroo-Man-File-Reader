@@ -1165,8 +1165,8 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = Rock\n");
 		fprintf(chart, "year = 2001\n");
-		fprintf(chart, "loading_phrase = \"Panpeus: His axe is an axe. The Axe Gitaroo rips right through space-time, so watch out. Panpeus may have a baby face, but not baby skills.\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+		fprintf(chart, "loading_phrase = \"Panpeus: His axe is an axe!\"<br>\"The Axe Gitaroo rips right through space-time, so watch out!\"<br>\"Panpeus may have a baby face, but not baby skills!\"");
+		fprintf(chart, "<br><br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 3\n");
 		fprintf(chart, "preview_start_time = 29000\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1185,8 +1185,8 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = J - Pop\n");
 		fprintf(chart, "year = 2001\n");
-		fprintf(chart, "loading_phrase = \"Flyin-O: A loyal soldier of the empire. His synth gitaroo shoots 'Dance-Until-Death' rays. His henchmen, the Little-Os, are nothing to be scoffed at either.\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER: EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+		fprintf(chart, "loading_phrase = \"Flyin-O: A loyal soldier of the empire!\"<br>\"His synth gitaroo shoots 'Dance-Until-Death' rays!\"<br>\"His henchmen, the Little-Os, are nothing to be scoffed at either!\"");
+		fprintf(chart, "<br><br>EPILEPSY WARNING DURING CHARGE PHASE<br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 3\n");
 		fprintf(chart, "preview_start_time = 23460\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1202,8 +1202,8 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = Funk\n");
 		fprintf(chart, "year = 2001\n");
-		fprintf(chart, "loading_phrase = \"Mojo King Bee: He rules the darkness with his trumpet Gitaroo. No one has ever seen the man behind the shades.\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER: EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+		fprintf(chart, "loading_phrase = \"Mojo King Bee: He rules the darkness with his trumpet Gitaroo!\"<br>\"No one has ever seen the man behind the shades...\"");
+		fprintf(chart, "<br><br>EPILEPSY WARNING NEAR THE END<br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 4\n");
 		fprintf(chart, "preview_start_time = 34260\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1220,7 +1220,7 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "genre = Industrial\n");
 		fprintf(chart, "year = 2001\n");
 		fprintf(chart, "loading_phrase = \"Ben-K: As a space shark, he's a rough, tough, customer just looking for trouble!\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+		fprintf(chart, "<br><br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 4\n");
 		fprintf(chart, "preview_start_time = 13650\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1236,7 +1236,7 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "genre = Reggae\n");
 		fprintf(chart, "year = 2001\n");
 		fprintf(chart, "loading_phrase = \"Ben-K: He attacks by scratching the turntable Gitaroo on his chest - but his Karate moves prove he's a man of many talents!\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+		fprintf(chart, "<br><br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 3\n");
 		fprintf(chart, "preview_start_time = 38480\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1251,8 +1251,8 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = Acoustic\n");
 		fprintf(chart, "year = 2001\n");
-		fprintf(chart, "loading_phrase = \"Kirah: A shy and reserved girl with the heart of a warrior. She excels at baking Gitaroo Apple Pies.\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tModchart Full\n");
+		fprintf(chart, "loading_phrase = \"Kirah: A shy and reserved girl with the heart of a warrior.\"<br>\"She excels at baking Gitaroo Apple Pies.\"");
+		fprintf(chart, "<br><br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 2\n");
 		fprintf(chart, "preview_start_time = 26120\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1267,8 +1267,8 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = Flamenco\n");
 		fprintf(chart, "year = 2001\n");
-		fprintf(chart, "loading_phrase = \"Sanbone Trio: Carrot, Soda, & Pine are three mariachis who use their bones as Gitaroos. Their bare-knuckled fighting style is truly praiseworthy!\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER: EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+		fprintf(chart, "loading_phrase = \"Sanbone Trio: Carrot, Soda, & Pine are three mariachis who use their bones as Gitaroos!\"<br>\"Their bare-knuckled fighting style is truly praiseworthy!\"");
+		fprintf(chart, "<br><br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 5\n");
 		fprintf(chart, "preview_start_time = 84330\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1283,8 +1283,8 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = Metal\n");
 		fprintf(chart, "year = 2001\n");
-		fprintf(chart, "loading_phrase = \"Gregorio (Seigfried) Wilhelm III: That would be me - at your service. The Great Cathedral itself is my Gitaroo, with which I share my fate. I find my inspiration for my art in tragedy and pain.\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   DISCLAIMER: EPILEPSY WARNING\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+		fprintf(chart, "loading_phrase = \"Gregorio (Seigfried) Wilhelm III: That would be me - at your service.\"<br>\"The Great Cathedral itself is my Gitaroo, with which I share my fate.\"<br>\"I find inspiration for my art in tragedy and pain.\"");
+		fprintf(chart, "<br><br>EPILEPSY WARNING<br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 5\n");
 		fprintf(chart, "preview_start_time = 34730\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1299,8 +1299,8 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = Rock\n");
 		fprintf(chart, "year = 2001\n");
-		fprintf(chart, "loading_phrase = \"Kirah: The most powerful Gravillian warrior who was trained from childhood to be a Gitaroo Master. No one can defeat her - not even me!\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+		fprintf(chart, "loading_phrase = \"Kirah: The most powerful Gravillian warrior who was trained from childhood to be a Gitaroo Master.\"<br>\"No one can defeat her - not even me!\"");
+		fprintf(chart, "<br><br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 2\n");
 		fprintf(chart, "preview_start_time = 22750\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1315,8 +1315,8 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = Hard Rock\n");
 		fprintf(chart, "year = 2001\n");
-		fprintf(chart, "loading_phrase = \"Lord Zowie: He has revealed to us his true power! His Armored Gitaroo, the apex of Gravillian technology, will now rev into life!\"");
-		fprintf(chart, "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  Modchart Full\n");
+		fprintf(chart, "loading_phrase = \"Lord Zowie: He has revealed to us his true power!\"<br>\"His Armored Gitaroo, the apex of Gravillian technology, will now rev into life!\"");
+		fprintf(chart, "<br><br>Modchart Full\n");
 		fprintf(chart, "diff_guitar = 5\n");
 		fprintf(chart, "preview_start_time = 23830\n");
 		fprintf(chart, "icon = gitaroo\n");
@@ -1331,7 +1331,7 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = Rock\n");
 		fprintf(chart, "year = 2006\n");
-		fprintf(chart, "loading_phrase =\n");
+		fprintf(chart, "loading_phrase =Modchart Full<br>Quickplay<br>Make sure to move the score meter off the middle of the screen\n");
 		fprintf(chart, "diff_guitar = 4\n");
 		fprintf(chart, "diff_rhythm = 4\n");
 		fprintf(chart, "preview_start_time = 0\n");
@@ -1348,7 +1348,7 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const double t
 		fprintf(chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
 		fprintf(chart, "genre = Latin Rock\n");
 		fprintf(chart, "year = 2006\n");
-		fprintf(chart, "loading_phrase =\n");
+		fprintf(chart, "loading_phrase =Modchart Full<br>Quickplay<br>Make sure to move the score meter off the middle of the screen\n");
 		fprintf(chart, "diff_guitar = 4\n");
 		fprintf(chart, "diff_rhythm = 4\n");
 		fprintf(chart, "preview_start_time = 0\n");

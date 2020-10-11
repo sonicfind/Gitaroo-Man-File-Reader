@@ -510,6 +510,7 @@ void CH_Importer::fillSections()
 void CH_Importer::addTraceLine(double pos, string name, const size_t sectIndex, const size_t playerIndex, Chart* currChart)
 {
 	//If the trace line goes into the previous subsection
+	Chart* insert;
 	if ((name.find('P') != string::npos || name.find('p') != string::npos || (name.find("end") != string::npos && pos == 0))
 		&& sectIndex > 0)
 	{
@@ -523,40 +524,25 @@ void CH_Importer::addTraceLine(double pos, string name, const size_t sectIndex, 
 				pos = double(currChart->tracelines.front().getPivotAlpha()) - 1;
 		}
 		pos += (sections[sectIndex].position_ticks - prevtempo.position_ticks) * (SAMPLES_PER_MIN / (TICKS_PER_BEAT * prevtempo.bpm / 1000)) + prevtempo.position_samples;
-		//If the traceline is not an end piece AND has an angle tied to it
-		if (name.find("end") == string::npos && name.length() > 6)
-		{
-			try
-			{
-				prevSection.subs[playerIndex].back().emplaceTraceline((long)round(pos), 1, float(stof(name.substr(7)) * M_PI / 180));
-			}
-			catch (...)
-			{
-				prevSection.subs[playerIndex].back().emplaceTraceline((long)round(pos));
-				throw "No angle data found";
-			}
-		}
-		else
-			prevSection.subs[playerIndex].back().emplaceTraceline((long)round(pos));
+		insert = &prevSection.subs[playerIndex].back();
 	}
 	else
+		insert = currChart;
+	//If the traceline is not an end piece AND has an angle tied to it
+	if (name.find("end") == string::npos && name.find('_') != string::npos)
 	{
-		//If the traceline is not an end piece AND has an angle tied to it
-		if (name.find("end") == string::npos && name.find('_') != string::npos)
+		try
 		{
-			try
-			{
-				currChart->emplaceTraceline((long)round(pos), 1, float(stof(name.substr(name.find('_') + 1)) * M_PI / 180));
-			}
-			catch (...)
-			{
-				currChart->emplaceTraceline((long)round(pos));
-				throw "No angle data found";
-			}
+			insert->emplaceTraceline((long)round(pos), 1, float(stof(name.substr(name.find('_') + 1)) * M_PI / 180));
 		}
-		else
-			currChart->emplaceTraceline((long)round(pos));
+		catch (...)
+		{
+			insert->emplaceTraceline((long)round(pos));
+			throw "No angle data found";
+		}
 	}
+	else
+		insert->emplaceTraceline((long)round(pos));
 }
 
 void CH_Importer::addPhraseBar(long pos, unsigned long sus, unsigned long lane, Chart* currChart, const long SAMPLES_PER_TICK_ROUNDED)

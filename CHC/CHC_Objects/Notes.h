@@ -177,7 +177,7 @@ private:
 	//3 - /\.
 	unsigned long button = 0;
 public:
-	Guard() : Note(), button(1) {}
+	Guard() : Note(), button(0) {}
 	Guard(FILE* inFile);
 	Guard(long alpha, unsigned long but = 0) : Note(alpha), button(but)
 	{

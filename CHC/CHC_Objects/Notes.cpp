@@ -14,6 +14,7 @@
  */
 #include "..\..\Header\pch.h"
 #include "Notes.h"
+#include <algorithm>
 Note& Note::operator=(const Note& note)
 {
 	pivotAlpha = note.pivotAlpha;
@@ -152,8 +153,7 @@ Phrase::Phrase(const Note& note) : Path(note)
 		start = phrase->start;
 		end = phrase->end;
 		animation = phrase->animation;
-		for (unsigned char i = 0; i < 12; i++)
-			junk[i] = phrase->junk[i];
+		std::copy(phrase->junk, phrase->junk + 12, junk);
 	}
 	else
 	{
@@ -172,8 +172,7 @@ Note& Phrase::operator=(const Note& note)
 		start = phrase->start;
 		end = phrase->end;
 		animation = phrase->animation;
-		for (unsigned char i = 0; i < 12; i++)
-			junk[i] = phrase->junk[i];
+		std::copy(phrase->junk, phrase->junk + 12, junk);
 	}
 	else
 	{

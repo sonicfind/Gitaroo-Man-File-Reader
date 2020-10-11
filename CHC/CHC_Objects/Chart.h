@@ -53,7 +53,7 @@ public:
 	char* getJunk() { return junk; }
 	//Copies C-string newJunk to junk
 	//Size "count" will be limited to a max of 16
-	void setJunk(char* newJunk, size_t count = 16);
+	void setJunk(char* newJunk, rsize_t count = 16);
 	//Returns the pivot time for the chart/subsection
 	long getPivotTime() const { return pivotTime; }
 	//Sets the pivot time for the chart/subsection to the provided value

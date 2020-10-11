@@ -14,6 +14,7 @@
  */
 #include "..\..\Header\pch.h"
 #include "CHC.h"
+#include <algorithm>
 using namespace std;
 
 //Creates a CHC object with 1 songsection
@@ -23,11 +24,11 @@ CHC::CHC(const CHC& song)
 	: sections(song.sections), name(song.name), shortname(song.shortname), stage(song.stage),
 		speed(song.speed), unorganized(song.unorganized), optimized(song.optimized), saved(song.saved)
 {
-	memcpy_s(header, 36, song.header, 36);
-	memcpy_s(imc, 256, song.imc, 256);
-	memcpy_s(events, sizeof(SSQ) * 4, song.events, sizeof(SSQ) * 4);
-	memcpy_s(audio, sizeof(AudioChannel) * 8, song.audio, sizeof(AudioChannel) * 8);
-	memcpy_s(energyDamageFactors, sizeof(EnergyDamage) * 20, song.energyDamageFactors, sizeof(EnergyDamage) * 20);
+	std::copy(song.header, song.header + 36, header);
+	std::copy(song.imc, song.imc + 256, imc);
+	std::copy(song.events, song.events + 4, events);
+	std::copy(song.audio, song.audio + 8, audio);
+	std::copy(song.energyDamageFactors[0], song.energyDamageFactors[0] + 20, energyDamageFactors[0]);
 }
 
 CHC& CHC::operator=(CHC& song)
@@ -35,15 +36,15 @@ CHC& CHC::operator=(CHC& song)
 	name = song.name;
 	shortname = song.shortname;
 	stage = song.stage;
-	memcpy_s(header, 36, song.header, 36);
-	memcpy_s(imc, 256, song.imc, 256);
-	memcpy_s(events, sizeof(SSQ) * 4, song.events, sizeof(SSQ) * 4);
-	memcpy_s(audio, sizeof(AudioChannel) * 8, song.audio, sizeof(AudioChannel) * 8);
+	std::copy(song.header, song.header + 36, header);
+	std::copy(song.imc, song.imc + 256, imc);
+	std::copy(song.events, song.events + 4, events);
+	std::copy(song.audio, song.audio + 8, audio);
 	speed = song.speed;
 	unorganized = song.unorganized;
 	optimized = song.optimized;
 	sections = song.sections;
-	memcpy_s(energyDamageFactors, sizeof(EnergyDamage) * 20, song.energyDamageFactors, sizeof(EnergyDamage) * 20);
+	std::copy(song.energyDamageFactors[0], song.energyDamageFactors[0] + 20, energyDamageFactors[0]);
 	saved = song.saved;
 	return *this;
 }
@@ -101,7 +102,7 @@ CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
 		fclose(inFile);
 		throw "Error: No 'SNGS' Tag at byte 0.";
 	}
-	memcpy_s(u.c, 4, header + 4, 4);
+	std::copy(u.c, u.c + 4, header + 4);
 	optimized = u.ui == 6145;
 	fread(imc, 1, 256, inFile);
 	bool duet = imc[0] == 0;
@@ -239,7 +240,7 @@ void CHC::create(string filename)
 		unsigned ui;
 	} u;
 	u.ui = 6144UL + optimized;
-	memcpy_s(header + 4, 4, u.c, 4);
+	std::copy(u.c, u.c + 4, header + 4);
 	fwrite(header, 1, 36, outFile);
 	fwrite(imc, 1, 256, outFile);
 	fwrite(events, sizeof(SSQ), 4, outFile);

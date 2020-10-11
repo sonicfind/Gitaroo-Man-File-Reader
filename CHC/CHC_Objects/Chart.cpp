@@ -14,6 +14,7 @@
  */
 #include "..\..\Header\pch.h"
 #include "Chart.h"
+#include <algorithm>
 
 //Creates Chart object with 1 Trace line
 Chart::Chart() : size(76), pivotTime(0), endTime(0), tracelines(1)
@@ -24,8 +25,7 @@ Chart::Chart() : size(76), pivotTime(0), endTime(0), tracelines(1)
 
 Chart::Chart(const Chart& chart)
 	: size(chart.size), pivotTime(chart.pivotTime), endTime(chart.endTime), tracelines(chart.tracelines), phrases(chart.phrases), guards(chart.guards) {
-	for (unsigned index = 0; index < 16; index++)
-		junk[index] = chart.junk[index];
+	std::copy(chart.junk, chart.junk + 16, junk);
 }
 
 void Chart::operator=(const Chart chart)
@@ -48,12 +48,9 @@ void Chart::adjustSize(long difference)
 		size = 0;
 }
 
-void Chart::setJunk(char* newJunk, size_t count)
+void Chart::setJunk(char* newJunk, rsize_t count)
 {
-	if (count > 16)
-		count = 16;
-	for (unsigned index = 0; index < count; index++)
-		junk[index] = newJunk[index];
+	std::copy(newJunk, newJunk + count, junk);
 }
 
 Traceline& Chart::getTraceline(size_t index)

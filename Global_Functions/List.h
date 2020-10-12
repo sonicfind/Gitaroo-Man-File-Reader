@@ -796,7 +796,7 @@ public:
 	//Swaps the contents of the two lists.
 	List<T>& swap(List<T>& other)
 	{
-		if (UsedCount == list.UsedCount)
+		if (UsedCount == other.UsedCount)
 			return *this;
 
 		Node** rootbuf = root, **tailbuf = tail;
@@ -1412,7 +1412,7 @@ public:
 	//Swaps the contents of the two lists.
 	List<T*>& swap(List<T>& other)
 	{
-		if (UsedCount == list.UsedCount)
+		if (UsedCount == other.UsedCount)
 			return *this;
 
 		Node** rootbuf = root, **tailbuf = tail;

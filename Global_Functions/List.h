@@ -14,6 +14,87 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
+template <class T>
+class List;
+
+template <class T>
+class ListNode
+{
+	friend List<T>;
+	T data;
+	ListNode* prev;
+	ListNode* next;
+	//Calls default constructor for data
+	ListNode() : data(), prev(nullptr), next(nullptr) {}
+	//Creates a shallow copy of the provided object
+	ListNode(const T& data, ListNode* pr = nullptr, ListNode* nt = nullptr) : data(), prev(pr), next(nt)
+	{
+		this->data = data;
+	}
+	//Uses the arguments provided in "args" to create a new object.
+	//If args is an object of type T, it creates a deep copy.
+	template <class... Args>
+	ListNode(ListNode* pr, ListNode* nt, Args&&... args) : prev(pr), next(nt), data(args...) {}
+	ListNode operator=(const ListNode& node)
+	{
+		data = node.data;
+		return *this;
+	}
+
+	ListNode operator=(const T& obj)
+	{
+		data = obj;
+		return *this;
+	}
+	bool operator==(ListNode& note) const { return data == note.data; }
+	bool operator!=(ListNode& note) const { return data != note.data; }
+	bool operator>=(ListNode& note) const { return data >= note.data; }
+	bool operator>(ListNode& note) const { return data > note.data; }
+	bool operator<=(ListNode& note) const { return data <= note.data; }
+	bool operator<(ListNode& note) const { return data < note.data; }
+};
+
+template <class T>
+class ListNode<T*>
+{
+	friend List<T*>;
+	T* data;
+	ListNode* prev;
+	ListNode* next;
+	bool emplaced;
+	//Calls default constructor for data
+	ListNode() : data(nullptr), prev(nullptr), next(nullptr), emplaced(false) {}
+	//Creates a shallow copy of the provided object
+	ListNode(T* data, ListNode* pr = nullptr, ListNode* nt = nullptr) : data(data), prev(pr), next(nt), emplaced(false) {}
+	//Uses the arguments provided in "args" to create a new object.
+	//If args is an object of type T, it creates a deep copy.
+	template <class... Args>
+	ListNode(ListNode* pr, ListNode* nt, Args&&... args) : prev(pr), next(nt), data(new T(args...)), emplaced(true) {}
+	~ListNode()
+	{
+		if (emplaced)
+			delete data;
+	}
+	ListNode operator=(const ListNode& node)
+	{
+		*data = *node.data;
+		return *this;
+	}
+
+	ListNode operator=(T* ptr)
+	{
+		data = ptr;
+		emplaced = false;
+		return *this;
+	}
+	bool operator==(ListNode& note) const { return *data == *note.data; }
+	bool operator!=(ListNode& note) const { return *data != *note.data; }
+	bool operator>=(ListNode& note) const { return *data >= *note.data; }
+	bool operator>(ListNode& note) const { return *data > *note.data; }
+	bool operator<=(ListNode& note) const { return *data <= *note.data; }
+	bool operator<(ListNode& note) const { return *data < *note.data; }
+};
+
 /*
 	A linked list template class
 */
@@ -21,23 +102,7 @@ template <class T>
 class List
 {
 private:
-	struct Node
-	{
-		T data;
-		Node* prev;
-		Node* next;
-		//Calls default constructor for data
-		Node() : data(), prev(nullptr), next(nullptr) {}
-		//Creates a shallow copy of the provided object
-		Node(const T& data, Node* pr = nullptr, Node* nt = nullptr) : data(), prev(pr), next(nt)
-		{
-			this->data = data;
-		}
-		//Uses the arguments provided in "args" to create a new object.
-		//If args is an object of type T, it creates a deep copy.
-		template <class... Args>
-		Node(Node* pr, Node* nt, Args&&... args) : prev(pr), next(nt), data(args...) {}
-	};
+	typedef typename ListNode<T> Node;
 
 	Node** root;
 	Node** tail;
@@ -99,26 +164,26 @@ private:
 	size_t findOrderedPosition(Node* newNode)
 	{
 		size_t index = lastAccessed->index;
-		if (newNode->data == newNode->next->data)
+		if (*newNode == *newNode->next)
 		{
-			newNode->next->data = newNode->data;
+			*newNode->next = *newNode;
 			delete newNode;
 			return index;
 		}
-		else if (newNode->data > newNode->next->data)
+		else if (*newNode > * newNode->next)
 		{
 			newNode->prev = newNode->next;
 			newNode->next = newNode->next->next;
 			index++;
 			while (newNode->next != nullptr)
 			{
-				if (newNode->data == newNode->next->data)
+				if (*newNode == *newNode->next)
 				{
-					newNode->next->data = newNode->data;
+					*newNode->next = *newNode;
 					delete newNode;
 					return index;
 				}
-				else if (newNode->data < newNode->next->data)
+				else if (*newNode < *newNode->next)
 					break;
 				else
 				{
@@ -135,13 +200,13 @@ private:
 			index--;
 			while (newNode->prev != nullptr)
 			{
-				if (newNode->data == newNode->prev->data)
+				if (*newNode == *newNode->prev)
 				{
-					newNode->prev->data = newNode->data;
+					*newNode->prev = *newNode;
 					delete newNode;
 					return index;
 				}
-				else if (newNode->data > newNode->prev->data)
+				else if (*newNode > *newNode->prev)
 					break;
 				else
 				{
@@ -816,618 +881,3 @@ public:
 	}
 };
 
-/*
-=================================================================================================================
-=================================================================================================================
-=================================================================================================================
-*/
-
-//Handles lists of pointer types
-template <typename T>
-class List<T*>
-{
-private:
-	struct Node
-	{
-		T* data;
-		Node* prev;
-		Node* next;
-		//Calls default constructor for data
-		Node() : data(nullptr), prev(nullptr), next(nullptr) {}
-		//Creates a shallow copy of the provided object
-		Node(T* data, Node* pr = nullptr, Node* nt = nullptr) : data(nullptr), prev(pr), next(nt)
-		{
-			this->data = data;
-		}
-	};
-
-	Node** root;
-	Node** tail;
-	struct placeSaver
-	{
-		size_t index = 0;
-		Node* prevNode = nullptr;
-	};
-	placeSaver* lastAccessed;
-	size_t* count;
-	size_t* UsedCount;
-	//Returns the pointer of the node at the given index. Returns "nullptr" if index >= count.
-	Node* find(size_t index)
-	{
-		if (index < *count)
-		{
-			Node* cur;
-			if (index == lastAccessed->index) //Return *lastAccessed's node
-				cur = lastAccessed->prevNode;
-			else if (index == 0) //Return *root
-				cur = *root;
-			else if (index == (*count) - 1) //Return *tail
-				cur = *tail;
-			else if (lastAccessed->prevNode == nullptr || signed(index) <= signed(lastAccessed->index) - index)
-				//If *lastAccessed is empty, or if index is less than or equal to the difference between *lastAccessed and the given index
-			{
-				cur = *root;
-				for (size_t i = 0; i < index; i++)
-					cur = cur->next;
-			}
-			else if (index > lastAccessed->index)
-			{
-				if (index - lastAccessed->index <= (*count) - 1) //Start from LA and go up
-				{
-					cur = lastAccessed->prevNode;
-					for (size_t i = lastAccessed->index; i < index; i++)
-						cur = cur->next;
-				}
-				else //Start from *tail and go down
-				{
-					cur = *tail;
-					for (size_t i = (*count) - 1; i > index; i--)
-						cur = cur->prev;
-				}
-			}
-			else //Start from LA and go down
-			{
-				cur = lastAccessed->prevNode;
-				for (size_t i = lastAccessed->index; i > index; i--)
-					cur = cur->prev;
-			}
-			*lastAccessed = { index, cur };
-			return cur;
-		}
-		else
-			return nullptr;
-	}
-	//Returns the index for where, in order, the new node was placed
-	size_t findOrderedPosition(Node* newNode)
-	{
-		size_t index = lastAccessed->index;
-		if (*newNode->data == *newNode->next->data)
-		{
-			*newNode->next->data = *newNode->data;
-			delete newNode;
-			return index;
-		}
-		else if (*newNode->data > *newNode->next->data)
-		{
-			while (newNode->next != nullptr)
-			{
-				if (*newNode->data == *newNode->next->data)
-				{
-					*newNode->next->data = *newNode->data;
-					delete newNode;
-					return index;
-				}
-				else if (*newNode->data < *newNode->next->data)
-					break;
-				else
-				{
-					newNode->prev = newNode->next;
-					newNode->next = newNode->next->next;
-					index++;
-				}
-			}
-		}
-		else
-		{
-			while (newNode->prev != nullptr)
-			{
-				if (*newNode->data == *newNode->prev->data)
-				{
-					*newNode->prev->data = *newNode->data;
-					delete newNode;
-					return index;
-				}
-				else if (*newNode->data > *newNode->prev->data)
-					break;
-				else
-				{
-					newNode->next = newNode->prev;
-					newNode->prev = newNode->prev->prev;
-					index--;
-				}
-			}
-		}
-		if (newNode->next == nullptr)
-			*tail = newNode;
-		else
-			newNode->next->prev = newNode;
-		if (newNode->prev == nullptr)
-			*root = newNode;
-		else
-			newNode->prev->next = newNode;
-		(*count)++;
-		*lastAccessed = { index, newNode };
-		return index;
-	}
-public:
-	//Create empty list
-	List<T*>()
-	{
-		root = new Node * (nullptr);
-		tail = new Node * (nullptr);
-		count = new size_t(0);
-		UsedCount = new size_t(1);
-		lastAccessed = new placeSaver{ 0, nullptr };
-	}
-
-	//Create a list with cloned elements from the provided list
-	List<T*>(const List<T*>& list) : List()
-	{
-		Node* cur = *list.root;
-		for (unsigned i = 0; i < *list.count; i++)
-		{
-			push_back(cur->data);
-			cur = cur->next;
-		}
-	}
-
-	List<T*>& clone(const List<T*>& list)
-	{
-		if (UsedCount == list.UsedCount)
-			return *this;
-
-		if (*UsedCount > 1)
-			(*UsedCount)--;
-		else
-		{
-			clear();
-			delete root;
-			delete tail;
-			delete count;
-			delete lastAccessed;
-			delete UsedCount;
-		}
-		Node* cur = *list.root;
-		for (unsigned i = 0; i < *list.count; i++)
-		{
-			push_back(cur->data);
-			cur = cur->next;
-		}
-		return *this;
-	}
-
-	//Copy root, tail, count, lastaccessed, and usedcount (which gets incremented)
-	List<T*>& operator=(const List<T*>& list)
-	{
-		if (UsedCount == list.UsedCount)
-			return *this;
-
-		if (*UsedCount > 1)
-			(*UsedCount)--;
-		else
-		{
-			clear();
-			delete root;
-			delete tail;
-			delete count;
-			delete lastAccessed;
-			delete UsedCount;
-		}
-		root = list.root;
-		tail = list.tail;
-		count = list.count;
-		lastAccessed = list.lastAccessed;
-		UsedCount = list.UsedCount;
-		(*UsedCount)++;
-		return *this;
-	}
-
-	//Calls clear, then deletes all pointers
-	~List<T*>()
-	{
-		if (*UsedCount > 1)
-			(*UsedCount)--;
-		else
-		{
-			clear();
-			delete root;
-			delete tail;
-			delete count;
-			delete lastAccessed;
-			delete UsedCount;
-		}
-	}
-
-	//Returns count
-	size_t& size() const { return *count; }
-
-	//Creates a new element at the end of the list using a copy of the provided object
-	//
-	//--CODING NOTE: Ensure that this object type has a operator= function.
-	//The compiler will throw an error if that is not the case.
-	void push_back(T* data)
-	{
-		if (*count)
-			*tail = (*tail)->next = new Node(data, *tail);
-		else
-			*root = *tail = new Node(data);
-		*lastAccessed = { *count, *tail };
-		(*count)++;
-	}
-
-	//Creates a new element at the beginning of the list using a copy of the provided object
-	//
-	//--CODING NOTE: Ensure that this object type has a operator= function.
-	//The compiler will throw an error if that is not the case.
-	void push_front(T* data)
-	{
-		if (*count)
-			*root = (*root)->prev = new Node(data, nullptr, *root);
-		else
-			*root = *tail = new Node(data);
-		*lastAccessed = { 0, *root };
-		(*count)++;
-	}
-
-	//Maneuvers to the specified index and then creates numElements number of new elements
-	//as shallow copies of T object "data"
-	size_t insert(size_t index, size_t numElements, T* data)
-	{
-		Node* cur;
-		size_t curIndex;
-		if (!*count)
-		{
-			cur = *root = *tail = new Node(data);
-			curIndex = 1;
-			(*count)++;
-		}
-		else if (index == 0)
-		{
-			cur = *root = (*root)->prev = new Node(data, nullptr, *root);
-			curIndex = 1;
-			(*count)++;
-		}
-		else if (index >= *count)
-		{
-			cur = *tail = (*tail)->next = new Node(data, *tail, nullptr);
-			curIndex = (*count) + 1;
-			(*count)++;
-		}
-		else
-		{
-			cur = find(index);
-			cur->prev = cur->prev->next = new Node(data, cur->prev, cur);
-			curIndex = index + 1;
-			(*count)++;
-		}
-		while (curIndex < index + numElements)
-		{
-			cur->prev = cur->prev->next = new Node(data, cur, cur->next);
-			curIndex++;
-			(*count)++;
-		}
-		*lastAccessed = { curIndex - 1, cur };
-		return curIndex - 1;
-	}
-
-	//Maneuvers to the specified index and then creates a new element 
-	//with a shallow copy of T object "data"
-	size_t insert(size_t index, T* data)
-	{
-		return insert(index, 1, data);
-	}
-
-	//Uses "data" to find the proper position in the list then constructs
-	//a new element in that position with a shallow copy of "data"
-	size_t insert_ordered(T* data)
-	{
-		if (lastAccessed->prevNode != nullptr)
-			return findOrderedPosition(new Node(data, lastAccessed->prevNode->prev, lastAccessed->prevNode));
-		else
-		{
-			push_back(data);
-			return 0;
-		}
-	}
-
-	//Changes the size of a list
-	//
-	//--If newSize is bigger, new elements are created at the end of the list
-	//as shallow copies of object "data"
-	//--If newSize is smaller, elements are removed starting from the end
-	void resize(T* data, size_t newSize)
-	{
-		if (newSize > * count)
-		{
-			if (!*count)
-			{
-				*root = *tail = new Node(data);
-				(*count)++;
-			}
-			while (*count < newSize)
-			{
-				*tail = (*tail)->next = new Node(data, *tail);
-				(*count)++;
-			}
-			*lastAccessed = { (*count) - 1, *tail };
-		}
-		else if (newSize < *count)
-		{
-			while (*count > newSize)
-			{
-				Node* cur = *tail;
-				*tail = (*tail)->prev;
-				delete cur;
-				(*count)--;
-			}
-			if (*count)
-			{
-				(*tail)->next = nullptr;
-				*lastAccessed = { (*count) - 1, *tail };
-			}
-			else
-			{
-				*root = nullptr;
-				*lastAccessed = { 0, nullptr };
-			}
-		}
-	}
-
-	//Removes the *root element
-	void pop_front()
-	{
-		if (*count)
-		{
-			(*count)--;
-			if (*root == lastAccessed->prevNode)
-				lastAccessed->prevNode = lastAccessed->prevNode->next;
-			else
-				lastAccessed->index--;
-			Node* cur = *root;
-			*root = (*root)->next;
-			delete cur;
-			if (*root != nullptr)
-				(*root)->prev = nullptr;
-			else
-				*tail = nullptr;
-		}
-	}
-
-	//Removes the *tail element
-	void pop_back()
-	{
-		if (*count)
-		{
-			(*count)--;
-			if (*tail == lastAccessed->prevNode)
-			{
-				//Overflow if index is 0 doesn't matter as it would mean count is also 0
-				lastAccessed->index--;
-				lastAccessed->prevNode = lastAccessed->prevNode->prev;
-			}
-			Node* cur = *tail;
-			*tail = (*tail)->prev;
-			delete cur;
-			if (*tail != nullptr)
-				(*tail)->next = nullptr;
-			else
-				*root = nullptr;
-		}
-	}
-
-	//Deletes "numElements" number of elements from the list starting at the provided index
-	bool erase(size_t index, size_t numElements = 1)
-	{
-		bool result = false;
-		Node* cur = find(index);
-		while (numElements > 0 && cur != nullptr)
-		{
-			Node* next = cur->next;
-			if (cur->prev != nullptr)
-				cur->prev->next = next;
-			else
-				*root = next;
-			if (next != nullptr)
-				next->prev = cur->prev;
-			else
-				*tail = cur->prev;
-			delete cur;
-			cur = next;
-			numElements--;
-			(*count)--;
-			result = true;
-		}
-		if (cur != nullptr)
-			*lastAccessed = { index, cur };
-		else if (*count)
-			*lastAccessed = { (*count) - 1, *tail };
-		else
-			*lastAccessed = { 0, nullptr };
-		return result;
-	}
-
-	//Deletes all elements
-	void clear()
-	{
-		while (*count)
-		{
-			Node* next = (*root)->next;
-			delete* root;
-			*root = next;
-			(*count)--;
-		}
-		*lastAccessed = { 0, nullptr };
-		*tail = nullptr;
-	}
-
-	//Returns element at *root if *count is at least 1
-	T* front()
-	{
-		if (*count)
-		{
-			*lastAccessed = { 0, *root };
-			return (*root)->data;
-		}
-		else
-			throw "Error: list index out of range";
-	}
-
-	//Returns element at *tail if *count is at least 1
-	T* back()
-	{
-		if (*count)
-		{
-			*lastAccessed = { (*count) - 1, *tail };
-			return (*tail)->data;
-		}
-		else
-			throw "Error: list index out of range";
-	}
-
-	//Returns element at index if *count is at least 1
-	T* operator[](size_t index)
-	{
-		if (index < *count)
-			return find(index)->data;
-		else
-			throw "Error: list index out of range";
-	}
-	/*
-	Returns the index with an element that matches the provided object.
-	Starts the search from the provided index
-	@param compare - a pointer to an object of type T
-	@param startIndex - index to start the search from
-	@return The index of the located object; -1 if not found.
-	*/
-	int search(T* compare, size_t startIndex = 0)
-	{
-		Node* cur = find(startIndex);
-		while (cur != nullptr)
-		{
-			if (*cur->data == *compare)
-			{
-				*lastAccessed = { startIndex, cur };
-				return (int)startIndex;
-			}
-			else
-			{
-				startIndex++;
-				cur = cur->next;
-			}
-		}
-		//Only reaches here if searching fails
-		return -1;
-	}
-
-	/*
-	Returns the index with an element that matches the provided object.
-	Starts the search from the provided index
-	@param compare - an object of type T
-	@param startIndex - index to start the search from
-	@return The index of the located object; -1 if not found.
-	*/
-	int search(T& compare, size_t startIndex = 0)
-	{
-		Node* cur = find(startIndex);
-		while (cur != nullptr)
-		{
-			if (*cur->data == compare)
-			{
-				*lastAccessed = { startIndex, cur };
-				return (int)startIndex;
-			}
-			else
-			{
-				startIndex++;
-				cur = cur->next;
-			}
-		}
-		//Only reaches here if searching fails
-		return -1;
-	}
-
-	//Moves numElements number of elements starting at position index to position newPosition if both positions are valid.
-	void moveElements(size_t index, size_t newPosition, size_t numElements = 1)
-	{
-		if (index >= *count)
-			throw "Error: list index out of range";
-		else if (newPosition > * count)
-			throw "Error: list newPosition index out of range";
-		else
-		{
-			if (index + numElements > * count)
-				numElements = *count - index;
-			else if (numElements == 0)
-				numElements = 1;
-			Node* beg = find(index);
-			if (newPosition < index)
-			{
-				Node* end = find(index + numElements - 1);
-				Node* pos = find(newPosition);
-				beg->prev->next = end->next;
-				if (end->next != nullptr)
-					end->next->prev = beg->prev;
-				else
-					*tail = beg->prev;
-				if (pos->prev != nullptr)
-					pos->prev->next = beg;
-				else
-					*root = beg;
-				beg->prev = pos->prev;
-				end->next = pos;
-				pos->prev = end;
-				*lastAccessed = { newPosition, beg };
-			}
-			else if (newPosition > index + numElements)
-			{
-				Node* end = find(index + numElements - 1);
-				Node* pos = find(newPosition - 1);
-				end->next->prev = beg->prev;
-				if (beg->prev != nullptr)
-					beg->prev->next = end->next;
-				else
-					*root = end->next;
-				if (pos->next != nullptr)
-					pos->next->prev = end;
-				else
-					*tail = end;
-				end->next = pos->next;
-				beg->prev = pos;
-				pos->next = beg;
-				*lastAccessed = { newPosition, beg };
-			}
-		}
-	}
-
-	//Swaps the contents of the two lists.
-	List<T*>& swap(List<T>& other)
-	{
-		if (UsedCount == other.UsedCount)
-			return *this;
-
-		Node** rootbuf = root, **tailbuf = tail;
-		size_t* countbuf = count, *usedBuf = UsedCount;
-		placeSaver* placebuf = lastAccessed;
-		root = other.root;
-		tail = other.tail;
-		count = other.count;
-		lastAccessed = other.lastAccessed;
-		UsedCount = other.UsedCount;
-		other.root = rootbuf;
-		other.tail = tailbuf;
-		other.*count = countbuf;
-		other.lastAccessed = placebuf;
-		other.UsedCount = usedBuf;
-		return *this;
-	}
-};

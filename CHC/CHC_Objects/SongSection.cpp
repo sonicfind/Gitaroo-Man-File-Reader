@@ -47,10 +47,10 @@ SongSection::SongSection(const SongSection& section) : conditions(section.condit
 	frames = section.frames;
 	organized = section.organized;
 	swapped = section.swapped;
-	for (unsigned index = 0; index < 16; index++) name[index] = section.name[index];
-	for (unsigned index = 0; index < 16; index++) audio[index] = section.audio[index];
+	std::copy(section.name, section.name + 16, name);
+	std::copy(section.audio, section.audio + 16, audio);
 	size = section.size;
-	for (unsigned index = 0; index < 16; index++) junk[index] = section.junk[index];
+	std::copy(section.junk, section.junk + 16, junk);
 	battlePhase = section.battlePhase;
 	tempo = section.tempo;
 	duration = section.duration;
@@ -64,10 +64,10 @@ void SongSection::operator=(SongSection& section)
 	frames = section.frames;
 	organized = section.organized;
 	swapped = section.swapped;
-	for (unsigned index = 0; index < 16; index++) name[index] = section.name[index];
-	for (unsigned index = 0; index < 16; index++) audio[index] = section.audio[index];
+	std::copy(section.name, section.name + 16, name);
+	std::copy(section.audio, section.audio + 16, audio);
 	size = section.size;
-	for (unsigned index = 0; index < 16; index++) junk[index] = section.junk[index];
+	std::copy(section.junk, section.junk + 16, junk);
 	battlePhase = section.battlePhase;
 	tempo = section.tempo;
 	duration = section.duration;

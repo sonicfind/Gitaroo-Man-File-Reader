@@ -15,6 +15,7 @@
  */
 #ifndef GLOBALFUNCTIONS_API
 #include "List.h"
+#include "List.cpp"
 #endif
 #include "Notes.h"
 class Chart
@@ -42,7 +43,7 @@ private:
 public:
 	Chart();
 	Chart(const Chart&);
-	void operator=(const Chart);
+	void operator=(const Chart&);
 	//Returns the byte size of the chart/subsection
 	unsigned long getSize() const { return size; }
 	//Sets the byte size of the chart/subsection to the provided value

@@ -28,11 +28,10 @@ Chart::Chart(const Chart& chart)
 	std::copy(chart.junk, chart.junk + 16, junk);
 }
 
-void Chart::operator=(const Chart chart)
+void Chart::operator=(const Chart& chart)
 {
 	size = chart.size;
-	for (unsigned index = 0; index < 16; index++)
-		junk[index] = chart.junk[index];
+	std::copy(chart.junk, chart.junk + 16, junk);
 	pivotTime = chart.pivotTime;
 	endTime = chart.endTime;
 	tracelines = chart.tracelines;

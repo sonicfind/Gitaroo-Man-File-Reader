@@ -471,8 +471,42 @@ extern char valueInsert(T& value, bool allowNegatives, std::string specials)
 	return valueInsert(value, allowNegatives, T(0), T(0), specials);
 }
 
+template<typename T>
+extern bool ListIndexSelector(size_t& index, LinkedList::List<T>& list, const char* type)
+{
+	printf("%sType the index for the %s that you wish to operate with\n", global.tabs.c_str(), type);
+	{
+		size_t objIndex = 0;
+		for (T& object : list)
+			printf("%s%zu - %s\n", global.tabs.c_str(), objIndex++, object.getName());
+	}
+	const size_t result = valueInsert(index, false, size_t(0), list.size() - 1);
+	switch (result)
+	{
+	case 'q':
+		global.quit = true;
+		return false;
+	case '!':
+		return true;
+	default:
+		switch (result)
+		{
+		case '-':
+			printf("%sGiven index value cannot be negative.\n", global.tabs.c_str());
+			break;
+		case '>':
+			printf("%sGiven index value cannot exceed %zu\n", global.tabs.c_str(), list.size() - 1);
+			break;
+		case '*':
+			printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
+		}
+		clearIn();
+		return false;
+	}
+}
+
 /*
-Function for inserting a list values all in one go from the std::cin input stream
+Function for inserting a list values all in one go from the standard input stream
 Return values:
 '!' -- End of the given list of input values
 '?' - User entered the "help"/'?' character

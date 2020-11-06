@@ -1281,38 +1281,20 @@ void CHC_Editor::sectionSubMenu()
 	do
 	{
 		banner(" " + song->shortname + ".CHC - Section Selection");
-		printf("%sType the number for the section that you wish to edit\n", global.tabs.c_str());
 		size_t val;
-		for (size_t sectIndex = 0; sectIndex < song->sections.size(); sectIndex++)
-			printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, song->sections[sectIndex].name );
-		switch (valueInsert(val, false, size_t(0), song->sections.size() - 1))
+		if (ListIndexSelector(val, song->sections, "section"))
 		{
-		case 'q':
-			global.quit = true;
-			break;
-		case '-':
-			printf("%sGiven section value must be positive.\n", global.tabs.c_str());
-			clearIn();
-			break;
-		case '>':
-			printf("%sGiven section value cannot exceed %zu\n", global.tabs.c_str(), song->sections.size() - 1 );
-			clearIn();
-			break;
-		case '*':
-			printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
-			clearIn();
-			break;
-		case '!':
 			global.adjustTabs(4);
 			do
 			{
 				banner(" " + song->shortname + ".CHC - " + song->sections[val].name + " - Modify ");
+				SongSection& section = song->sections[val];
 				string choices = "nafptdes"; //ENABLE CONDITION OPTION
 				printf("%sN - Name\n", global.tabs.c_str());
-				printf("%sA - Change the section of audio used: %s\n", global.tabs.c_str(), song->sections[val].audio);
+				printf("%sA - Change the section of audio used: %s\n", global.tabs.c_str(), section.audio);
 				printf("%sF - Adjust SSQ frame range\n", global.tabs.c_str());
 				printf("%sP - Phase: ", global.tabs.c_str());
-				switch (song->sections[val].battlePhase)
+				switch (section.battlePhase)
 				{
 				case SongSection::Phase::INTRO: printf("INTRO\n"); break;
 				case SongSection::Phase::CHARGE: printf("CHARGE\n"); break;
@@ -1322,19 +1304,19 @@ void CHC_Editor::sectionSubMenu()
 				case SongSection::Phase::END: printf("END\n");  break;
 				default: printf("FINAL_I\n");
 				}
-				printf("%sT - Tempo: %g\n", global.tabs.c_str(), song->sections[val].tempo );
-				printf("%sD - Duration: %lu\n", global.tabs.c_str(), song->sections[val].duration );
-				//printf("%s", global.tabs.c_str(), "C - Modify Conditions (", song->sections[val].numConditions << ")\n";
+				printf("%sT - Tempo: %g\n", global.tabs.c_str(), section.tempo);
+				printf("%sD - Duration: %lu\n", global.tabs.c_str(), section.duration);
+				//printf("%s", global.tabs.c_str(), "C - Modify Conditions (", section.numConditions << ")\n";
 				printf("%sE - Check if stage-end is reachable\n", global.tabs.c_str());
-				if (!song->sections[val].organized)
+				if (!section.organized)
 				{
 					printf("%sO - Organize this section\n", global.tabs.c_str());
 					choices += 'o';
 				}
 				printf("%sS - Swap players\n", global.tabs.c_str());
 				printf("%sQ - Choose another section\n", global.tabs.c_str());
-				size_t index = menuChoices(choices);
-				switch (index)
+				size_t choice = menuChoices(choices);
+				switch (choice)
 				{
 				case 'q':
 					global.quit = true;
@@ -1345,43 +1327,43 @@ void CHC_Editor::sectionSubMenu()
 					break;
 				default:
 					global.adjustTabs(5);
-					switch (index)
+					switch (choice)
 					{
 					case 'n':
-						changeName(song->sections[val]);
+						changeName(section);
 						break;
 					case 'a':
-						changeAudio(song->sections[val]);
+						changeAudio(section);
 						break;
 					case 'f':
-						changeFrames(song->sections[val]);
+						changeFrames(section);
 						break;
 					case 'p':
-						changeFrames(song->sections[val]);
+						changeFrames(section);
 						break;
 					case 't':
-						adjustTempo(song->sections[val]);
+						adjustTempo(section);
 						break;
 					case 'd':
-						adjustDuration(song->sections[val]);
+						adjustDuration(section);
 						break;
 					case 'c':
-						conditionMenu(song->sections[val]);
+						conditionMenu(section);
 						break;
 					case 'e':
-						banner(" " + song->shortname + ".CHC - " + song->sections[val].name + " - Transversal ");
+						banner(" " + song->shortname + ".CHC - " + section.name + " - Transversal ");
 						if (pathTest(val))
-							printf("%s%s can reach the end of the stage.\n", global.tabs.c_str(), song->sections[val].name);
+							printf("%s%s can reach the end of the stage.\n", global.tabs.c_str(), section.name);
 						else
-							printf("%s%s is unable to reach the end of the stage.\n", global.tabs.c_str(), song->sections[val].name);
+							printf("%s%s is unable to reach the end of the stage.\n", global.tabs.c_str(), section.name);
 						break;
 					case 'o':
-						banner(" " + song->shortname + ".CHC - " + song->sections[val].name + " - Organize ");
-						reorganize(song->sections[val]);
+						banner(" " + song->shortname + ".CHC - " + section.name + " - Organize ");
+						reorganize(section);
 						break;
 					case 's':
-						banner(" " + song->shortname + ".CHC - " + song->sections[val].name + " - Player Swap ");
-						playerSwap(song->sections[val]);
+						banner(" " + song->shortname + ".CHC - " + section.name + " - Player Swap ");
+						playerSwap(section);
 						song->saved = false;
 					}
 					global.adjustTabs(4);

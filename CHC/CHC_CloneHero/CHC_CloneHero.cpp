@@ -15,6 +15,8 @@
 #include "..\..\Header\pch.h"
 #include "Global_Functions.h"
 #include "CHC_CloneHero.h"
+#include "CH_Export.h"
+#include "CH_Import.h"
 using namespace std;
 
 bool exportChart(CHC* song)

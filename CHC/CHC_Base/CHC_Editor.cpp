@@ -966,12 +966,23 @@ void CHC_Editor::rearrange()
 			do
 			{
 				printf("%sProvide the index that these elements will be moved to.\n", global.tabs.c_str());
-				for (size_t index = 0; index < song->sections.size(); index++)
-					if (index < startIndex || index > startIndex + numElements)
-						printf("%s%zu - %s\n", global.tabs.c_str(), index, song->sections[index].name );
-				if (song->sections.size() > startIndex + numElements)
-					printf("%s%zu - End of the list\n", global.tabs.c_str(), song->sections.size());
-				printf("%sInvalid position range: %zu - %zu\n", global.tabs.c_str(), startIndex, startIndex + numElements );
+				{
+					size_t index = 0;
+					const size_t last = startIndex + numElements;
+					for (; index < startIndex; index++)
+						printf("%s%zu - %s\n", global.tabs.c_str(), index, song->sections[index].name);
+					if (numElements > 1)
+						printf("%sInvalid position range: %zu - %zu\n", global.tabs.c_str(), startIndex, startIndex + numElements);
+					else
+						printf("%sInvalid position: %zu\n", global.tabs.c_str(), startIndex);
+					for (index = last + 1; index <= song->sections.size(); index++)
+					{
+						if (index < song->sections.size())
+							printf("%s%zu - %s\n", global.tabs.c_str(), index, song->sections[index].name);
+						else
+							printf("%s%zu - End of the list\n", global.tabs.c_str(), song->sections.size());
+					}
+				}
 				printf("%sInput: ", global.tabs.c_str());
 				switch (valueInsert(position, false, size_t(0), song->sections.size()))
 				{

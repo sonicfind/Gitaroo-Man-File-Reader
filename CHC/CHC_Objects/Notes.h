@@ -34,17 +34,17 @@ public:
 	//Adjusts the note's pivot alpha by the provided value
 	void adjustPivotAlpha(long change) { pivotAlpha += change; }
 	//Returns whether pivot alphas are equal
-	bool operator==(Note& note) const { return pivotAlpha == note.pivotAlpha; }
+	bool operator==(const Note& note) const { return pivotAlpha == note.pivotAlpha; }
 	//Returns whether pivot alphas are not equal
-	bool operator!=(Note& note) const { return pivotAlpha != note.pivotAlpha; }
+	bool operator!=(const Note& note) const { return pivotAlpha != note.pivotAlpha; }
 	//Returns whether pivot alpha is >= the pivot alpha of the provided note
-	bool operator>=(Note& note) const { return pivotAlpha >= note.pivotAlpha; }
+	bool operator>=(const Note& note) const { return pivotAlpha >= note.pivotAlpha; }
 	//Returns whether pivot alpha is > the pivot alpha of the provided note
-	bool operator>(Note& note) const { return pivotAlpha > note.pivotAlpha; }
+	bool operator>(const Note& note) const { return pivotAlpha > note.pivotAlpha; }
 	//Returns whether pivot alpha is <= the pivot alpha of the provided note
-	bool operator<=(Note& note) const { return pivotAlpha <= note.pivotAlpha; }
+	bool operator<=(const Note& note) const { return pivotAlpha <= note.pivotAlpha; }
 	//Returns whether pivot alpha is < the pivot alpha of the provided note
-	bool operator<(Note& note) const { return pivotAlpha < note.pivotAlpha; }
+	bool operator<(const Note& note) const { return pivotAlpha < note.pivotAlpha; }
 };
 
 class Path : public Note

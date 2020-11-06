@@ -73,7 +73,7 @@ private:
 public:
 	CHC_Main(std::string filename) : song(filename) {}
 	bool menu(size_t fileCount = 0);
-	void saveFile();
+	void saveFile(bool onExit = false);
 	void writeTxt();
 	bool applyChanges(const bool fix, const bool swap = false, const bool save = false);
 	void edit(const bool multi = false);

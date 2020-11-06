@@ -19,8 +19,6 @@
 #define CHC_CloneHero_API __declspec(dllimport)
 #endif
 #include "CHC.h"
-#include "CH_Export.h"
-#include "CH_Import.h"
 
 extern "C" CHC_CloneHero_API bool exportChart(CHC* song);
 extern "C" CHC_CloneHero_API bool importChart(CHC& song);

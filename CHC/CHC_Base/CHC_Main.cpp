@@ -293,7 +293,7 @@ bool CHC_Main::menu(size_t fileCount)
 				switch (menuChoices("sc"))
 				{
 				case 's':
-					saveFile();
+					saveFile(true);
 					if (!song.saved)
 						break;
 				case 'q':
@@ -400,7 +400,7 @@ bool CHC_Main::menu(size_t fileCount)
 	return true;
 }
 
-void CHC_Main::saveFile()
+void CHC_Main::saveFile(bool onExit)
 {
 	banner(" " + song.shortname + ".CHC Save Prompt ");
 	string ext = "_T";
@@ -438,20 +438,23 @@ void CHC_Main::saveFile()
 					break;
 				case 'y':
 					song.create(filename + ext + ".CHC");
-					do
+					if (!onExit)
 					{
-						printf("%sSwap loaded file to %s.CHC? [Y/N]\n", global.tabs.c_str(), (filename + ext).c_str());
-						switch (menuChoices("yn"))
+						do
 						{
-						case 'y':
-							song.name = filename + ext + ".CHC";
-							song.shortname += ext;
-							song.saved = 2;
-						case 'n':
-						case 'q':
-							global.quit = true;
-						}
-					} while (!global.quit);
+							printf("%sSwap loaded file to %s.CHC? [Y/N]\n", global.tabs.c_str(), (filename + ext).c_str());
+							switch (menuChoices("yn"))
+							{
+							case 'y':
+								song.name = filename + ext + ".CHC";
+								song.shortname += ext;
+								song.saved = 2;
+							case 'n':
+							case 'q':
+								global.quit = true;
+							}
+						} while (!global.quit);
+					}
 				}
 			} while (!global.quit);
 		}

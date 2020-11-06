@@ -341,7 +341,7 @@ bool single()
 
 void loadDlls()
 {
-	List<const wchar_t*> errorList;
+	LinkedList::List<const wchar_t*> errorList;
 	SetErrorMode(SEM_FAILCRITICALERRORS);
 	for (unsigned i = 0; i < 20; i++)
 	{

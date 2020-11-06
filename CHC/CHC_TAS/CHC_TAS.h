@@ -88,7 +88,7 @@ private:
 	unsigned char author[255] = { 0 };
 	unsigned char game[255] = { "Gitaroo Man (USA).ISO" };
 	float framerate = 59.94f;
-	List<TAS_Frame> players[4];
+	LinkedList::List<TAS_Frame> players[4];
 public:
 	bool loadValues(std::string file = frameValues.name);
 	size_t insertFrames(size_t, size_t, size_t, bool[2], size_t);
@@ -99,7 +99,7 @@ public:
 class PPSSPPTAS
 {
 	friend class TAS;
-	List<TAS_Frame> players[4];
+	LinkedList::List<TAS_Frame> players[4];
 };
 
 class TAS

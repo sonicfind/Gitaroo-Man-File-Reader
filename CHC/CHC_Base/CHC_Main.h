@@ -84,4 +84,4 @@ public:
 };
 extern "C" CHCBASE_API bool quickFix(CHC& song);
 extern "C" CHCBASE_API bool loadSingleCHC(std::string& filename);
-extern "C" CHCBASE_API bool loadMultiCHC(List<std::string>* files);
+extern "C" CHCBASE_API bool loadMultiCHC(LinkedList::List<std::string>* files);

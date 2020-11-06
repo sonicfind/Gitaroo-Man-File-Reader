@@ -33,6 +33,6 @@ public:
 	ChartFileExporter() : ChartFile() {}
 	ChartFileExporter(std::string filename) : ChartFile(filename, true) {}
 	bool open(std::string filename) { return ChartFile::open(filename, true); }
-	void write(List<SyncTrack>& sync, List<Event>& events, NoteTrack(&notes)[2], const bool modchart);
+	void write(LinkedList::List<SyncTrack>& sync, LinkedList::List<Event>& events, NoteTrack(&notes)[2], const bool modchart);
 	void writeIni(const unsigned char stageNumber, const double totalDuration, const bool jap = true);
 };

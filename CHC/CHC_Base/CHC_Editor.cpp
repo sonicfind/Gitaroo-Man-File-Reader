@@ -40,7 +40,7 @@ void CHC_Editor::editSong(const bool multi)
 	{
 		banner(" " + song->shortname + ".CHC - Editor ");
 		//Holds addresses to the various functions that can be chosen in this menu prompt
-		List<void(CHC_Editor::*)()> functions = { &CHC_Editor::audioSettings, &CHC_Editor::winLossSettings,
+		LinkedList::List<void(CHC_Editor::*)()> functions = { &CHC_Editor::audioSettings, &CHC_Editor::winLossSettings,
 											   &CHC_Editor::adjustSpeed, &CHC_Editor::sectionMenu, &CHC_Editor::adjustFactors };
 		string choices = "vagcd";
 		if (!song->optimized)
@@ -804,7 +804,7 @@ void CHC_Editor::playerSwapAll()
 void CHC_Editor::playOrder()
 {
 	banner(" " + song->shortname + ".CHC - Play Order ");
-	List<size_t> sectionIndexes;
+	LinkedList::List<size_t> sectionIndexes;
 	do
 	{
 		printf("%sType the index for each section in the order you wish them to be played - w/ spaces in-between.\n", global.tabs.c_str());
@@ -1399,14 +1399,14 @@ void CHC_Editor::reorganize(SongSection& section)
 	if (section.battlePhase == SongSection::Phase::CHARGE || (section.battlePhase == SongSection::Phase::BATTLE && !strstr(section.name, "BRK") && !strstr(section.name, "BREAK")))
 	{
 		typedef pair<long, Note*> sectNote;
-		List<sectNote> notes[4];
-		List<Chart> newCharts[4];
+		LinkedList::List<sectNote> notes[4];
+		LinkedList::List<Chart> newCharts[4];
 		for (size_t pl = 0; pl < 4; pl++)
 		{
 			size_t currentPlayer;
 			if (song->imc[0]) currentPlayer = pl & 1;
 			else currentPlayer = pl;
-			List<sectNote>& player = notes[currentPlayer];
+			LinkedList::List<sectNote>& player = notes[currentPlayer];
 			for (size_t chIndex = 0; chIndex < section.numCharts; chIndex++)
 			{
 				size_t playerIndex, chartIndex;
@@ -2315,7 +2315,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 
 void CHC_Editor::conditionDelete(SongSection& section, size_t index)
 {
-	List<SongSection::Condition> oldcond = section.conditions;
+	LinkedList::List<SongSection::Condition> oldcond = section.conditions;
 	for (size_t condIndex = 0; condIndex < index; condIndex++)
 	{
 		if (section.conditions[condIndex].trueEffect < 0)

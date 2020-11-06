@@ -19,7 +19,7 @@ using namespace std;
 
 bool CH_Exporter::exportChart()
 {
-	List<size_t> sectionIndexes;
+	LinkedList::List<size_t> sectionIndexes;
 	do
 	{
 		printf("%sType the number for each section that you wish to chart - w/ spaces inbetween.\n", global.tabs.c_str());
@@ -27,7 +27,7 @@ bool CH_Exporter::exportChart()
 			printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, song->sections[sectIndex].getName());
 		if (sectionIndexes.size())
 		{
-			printf("%sCurrent List: ", global.tabs.c_str());
+			printf("%sCurrent LinkedList::List: ", global.tabs.c_str());
 			for (size_t index = 0; index < sectionIndexes.size(); index++)
 				printf("%s ", song->sections[sectionIndexes[index]].getName());
 			putchar('\n');
@@ -96,8 +96,8 @@ bool CH_Exporter::exportChart()
 		}
 	}
 #endif
-	List<SyncTrack> sync;
-	List<Event> events;
+	LinkedList::List<SyncTrack> sync;
+	LinkedList::List<Event> events;
 	//Used for modchart song->ini file that accompanies the .chart
 	//Fills in the "song_length" tag
 	double totalDuration = 0;
@@ -170,7 +170,7 @@ bool CH_Exporter::exportChart()
 	return written;
 }
 
-bool CH_Exporter::convertSong(List<size_t>& sectionIndexes, List<SyncTrack>& sync, List<Event>& events, bool modchart, double& totalDuration)
+bool CH_Exporter::convertSong(LinkedList::List<size_t>& sectionIndexes, LinkedList::List<SyncTrack>& sync, LinkedList::List<Event>& events, bool modchart, double& totalDuration)
 {
 	const double TICKS_PER_BEAT = 480.0, GUARD_GAP = 8000.0;
 	char orientationType = 0;
@@ -1101,7 +1101,7 @@ bool CH_Exporter::getFrets(size_t& strumFret, const char* sectionName, size_t pr
 	return true;
 }
 
-void ChartFileExporter::write(List<SyncTrack>& sync, List<Event>& events, NoteTrack(&notes)[2], bool modchart)
+void ChartFileExporter::write(LinkedList::List<SyncTrack>& sync, LinkedList::List<Event>& events, NoteTrack(&notes)[2], bool modchart)
 {
 	fprintf(chart, "[Song]\n{\n");
 	fprintf(chart, "  Offset = 0\n");

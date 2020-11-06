@@ -33,9 +33,9 @@ struct Section
 	//In reference to the beginning of the song, but calculated 
 	//using the previous songsection (if one exists) as a base
 	double position_samples = 0;
-	List<Tempo> tempos;
+	LinkedList::List<Tempo> tempos;
 	//Two lists for two players
-	List<Chart> subs[2];
+	LinkedList::List<Chart> subs[2];
 	Section(std::string nam, double pos_T = 0, double pos_S = 0, unsigned long bpm = 120) : name(nam), position_ticks(pos_T), position_samples(pos_S)
 	{
 		tempos.emplace_back(bpm, position_ticks);
@@ -55,7 +55,7 @@ class CH_Importer
 {
 	friend ChartFileImporter;
 	CHC song;
-	List<Section> sections;
+	LinkedList::List<Section> sections;
 	NoteTrack notes[2];
 public:
 	CH_Importer(CHC& song) : song(song) {}

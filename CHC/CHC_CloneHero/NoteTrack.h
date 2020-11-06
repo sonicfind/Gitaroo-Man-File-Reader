@@ -18,12 +18,12 @@
 struct NoteTrack
 {
 	//Green-Red-Yellow-Blue-Orange-Open
-	List<CHNote> colors[6];
+	LinkedList::List<CHNote> colors[6];
 
-	List<CHNote> modifiers;
-	List<CHNote> star;
-	List<CHNote> events;
-	List<CHNote*> allNotes;
+	LinkedList::List<CHNote> modifiers;
+	LinkedList::List<CHNote> star;
+	LinkedList::List<CHNote> events;
+	LinkedList::List<CHNote*> allNotes;
 	template<class... Args>
 	size_t addNote(Args&&... args)
 	{

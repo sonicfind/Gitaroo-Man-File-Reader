@@ -69,14 +69,14 @@ private:
 		Condition(FILE* inFile);
 		Condition(Condition& cond);
 	};
-	//List of all conditions
-	List<Condition> conditions;
+	//LinkedList::List of all conditions
+	LinkedList::List<Condition> conditions;
 	//Number of players assigned to the section, always 4
 	unsigned long numPlayers = 4;
 	//Number of charts/subsections per player
 	unsigned long numCharts = 1;
-	//List of all charts/subsections
-	List<Chart> charts;
+	//LinkedList::List of all charts/subsections
+	LinkedList::List<Chart> charts;
 public:
 	static const unsigned SAMPLE_GAP = 1800;
 	SongSection();

@@ -52,8 +52,8 @@ private:
 	unsigned unorganized;
 	//Saves whether all notes were readjusted for minimal glitching
 	bool optimized;
-	//List of all sections
-	List<SongSection> sections;
+	//LinkedList::List of all sections
+	LinkedList::List<SongSection> sections;
 	//Holds all life-value data for every player and phase type
 	struct EnergyDamage
 	{
@@ -77,7 +77,3 @@ public:
 	CHC& operator=(CHC&);
 	void create(std::string filename);
 };
-
-
-
-

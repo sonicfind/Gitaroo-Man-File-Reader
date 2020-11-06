@@ -991,7 +991,7 @@ bool TAS::buildTAS()
 		}
 	} while (!global.quit);
 	global.quit = false;
-	List<size_t> sectionIndexes;
+	LinkedList::List<size_t> sectionIndexes;
 	do
 	{
 		printf("%sType the number for each section that you wish to TAS - in chronological order and w/ spaces in-between\n", global.tabs.c_str());
@@ -999,7 +999,7 @@ bool TAS::buildTAS()
 			printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, song.sections[sectIndex].getName());
 		if (sectionIndexes.size())
 		{
-			printf("%sCurrent List: ", global.tabs.c_str());
+			printf("%sCurrent LinkedList::List: ", global.tabs.c_str());
 			for (size_t index = 0; index < sectionIndexes.size(); index++)
 				printf("%s ", song.sections[sectionIndexes[index]].getName());
 			putchar('\n');
@@ -1076,8 +1076,8 @@ bool TAS::buildTAS()
 		long sustainLimit = 0;
 		SectPoint(long pos, size_t visuals = 0, long sus = 0) : position(pos), visualType(visuals), sustainLimit(sus) {}
 	};
-	List<NotePoint> timeline[4];
-	List<SectPoint> markers[4];
+	LinkedList::List<NotePoint> timeline[4];
+	LinkedList::List<SectPoint> markers[4];
 	const long double SAMPLES_PER_FRAME = 48000.0L / (pcsx2.framerate == 59.94f ? 59.94L : pcsx2.framerate);
 	unsigned long totalDuration = 0;
 	bool endReached = false;
@@ -1188,7 +1188,7 @@ bool TAS::buildTAS()
 						currentPlayer = (multi[1] ? playerIndex : 1);
 					else
 						continue;
-					List<NotePoint>& player = timeline[currentPlayer];
+					LinkedList::List<NotePoint>& player = timeline[currentPlayer];
 					size_t index = startIndex[currentPlayer];
 					for (size_t i = 0; i < chart.getNumGuards(); i++)
 					{
@@ -1332,7 +1332,7 @@ bool TAS::buildTAS()
 					printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, tutorial->sections[sectIndex].getName());
 				if (sectionIndexes.size())
 				{
-					printf("%sCurrent List: ", global.tabs.c_str());
+					printf("%sCurrent LinkedList::List: ", global.tabs.c_str());
 					for (size_t index = 0; index < sectionIndexes.size(); index++)
 						printf("%s ", tutorial->sections[sectionIndexes[index]].getName());
 					putchar('\n');

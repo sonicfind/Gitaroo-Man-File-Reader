@@ -19,7 +19,6 @@
 #define GLOBALFUNCTIONS_API __declspec(dllimport)
 #endif
 #include "List.h"
-#include "List.cpp"
 
 constexpr long double M_PI = 3.1415926535897931L;
 
@@ -38,13 +37,13 @@ struct FileType
 	struct extension
 	{
 		std::string ext = "";
-		List<std::string> files;
+		LinkedList::List<std::string> files;
 		extension() {}
 		extension(const char* name) : ext(name) {}
 	};
 	//Libraries[0] will ALWAYS be the base dll
-	List<dllPair> libraries;
-	List<extension> extensions;
+	LinkedList::List<dllPair> libraries;
+	LinkedList::List<extension> extensions;
 	/*
 	Takes two {} arrays as inputs for establishing the dll/extension structure for any type.
 	Names - the list of dlls that the program should attempt to load on startup.
@@ -53,7 +52,7 @@ struct FileType
 	FileType(const std::initializer_list<const char*>& exts, const std::initializer_list<const wchar_t*>& names)
 		: extensions(exts), libraries(names) {}
 	GLOBALFUNCTIONS_API bool load();
-	GLOBALFUNCTIONS_API void load(List<const wchar_t*>& errors);
+	GLOBALFUNCTIONS_API void load(LinkedList::List<const wchar_t*>& errors);
 };
 extern "C" GLOBALFUNCTIONS_API size_t dllCount;
 extern "C" GLOBALFUNCTIONS_API FileType dlls[20];
@@ -481,7 +480,7 @@ Return values:
 '*' - User entered an invalid character before the list ended
 or one of the special input characters
 */
-extern "C" GLOBALFUNCTIONS_API char listValueInsert(List<size_t>& values, std::string outCharacters, size_t max, bool allowRepeats = true, size_t min = 0);
+extern "C" GLOBALFUNCTIONS_API char listValueInsert(LinkedList::List<size_t>& values, std::string outCharacters, size_t max, bool allowRepeats = true, size_t min = 0);
 
 extern "C" GLOBALFUNCTIONS_API long radiansToDegrees(double angle);
 

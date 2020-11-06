@@ -26,7 +26,7 @@ public:
 	bool exportChart();
 	bool getFrets(size_t& strumFret, const char* sectionName, size_t promptType, size_t playerIndex = 0, size_t chartIndex = 0, size_t note = 1, size_t piece = 1, size_t prevFret = 0);
 	size_t getOrientation(const char* sectionName, size_t player = 0, size_t chart = 0);
-	bool convertSong(List<size_t>& sectionIndexes, List<SyncTrack>& sync, List<Event>& events, bool modchart, double& totalDuration);
+	bool convertSong(LinkedList::List<size_t>& sectionIndexes, LinkedList::List<SyncTrack>& sync, LinkedList::List<Event>& events, bool modchart, double& totalDuration);
 	size_t convertGuard(Chart& chart, const double position, const double TICKS_PER_SAMPLE, const size_t currentPlayer, const size_t orientation, const bool modchart);
 	void convertTrace(Chart& chart, const double position, const double TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer, const bool modchart);
 	size_t convertPhrase(SongSection& section, const size_t playerIndex, const size_t chartIndex, const double position,

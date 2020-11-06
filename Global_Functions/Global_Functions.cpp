@@ -47,7 +47,7 @@ bool FileType::load()
 	}
 }
 
-void FileType::load(List<const wchar_t*>& errors)
+void FileType::load(LinkedList::List<const wchar_t*>& errors)
 {
 	HINSTANCE temp = libraries[0].dll;
 	if (LoadLib(libraries[0]))
@@ -314,7 +314,7 @@ Return values:
 '*' - User entered an invalid character before the list ended
 or One of the special input characters
 */
-char listValueInsert(List<size_t>& values, std::string outCharacters, size_t max, bool allowRepeats, size_t min)
+char listValueInsert(LinkedList::List<size_t>& values, std::string outCharacters, size_t max, bool allowRepeats, size_t min)
 {
 	printf("%sInput: ", global.tabs.c_str());
 	if (global.multi)

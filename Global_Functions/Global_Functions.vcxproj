@@ -175,7 +175,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Global_Functions.cpp" />
-    <ClCompile Include="List.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Global_Functions.rc" />

@@ -288,7 +288,7 @@ void ChartFileImporter::read(CH_Importer& importer)
 	fscanf_s(chart, " %[^{]", ignore, 400);
 	fseek(chart, 1, SEEK_CUR);
 	char test = 0;
-	List<SyncTrack> tempos;
+	LinkedList::List<SyncTrack> tempos;
 	fscanf_s(chart, " %c", &test, 1);
 	//Checking for the end of the synctrack section
 	while (test != '}')
@@ -409,7 +409,7 @@ void ChartFileImporter::read(CH_Importer& importer)
 	close();
 	if (chartVersion < 2)
 	{
-		List<Event> events(1, 0, "GMFR EXPORT V2.0");
+		LinkedList::List<Event> events(1, 0, "GMFR EXPORT V2.0");
 		for (size_t sectIndex = 0; sectIndex < importer.sections.size(); sectIndex++)
 			events.emplace_back(importer.sections[sectIndex].position_ticks, importer.sections[sectIndex].name);
 		ChartFileExporter converter;

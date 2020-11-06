@@ -15,9 +15,9 @@
  */
 #ifndef GLOBALFUNCTIONS_API
 #include "List.h"
-#include "List.cpp"
 #endif
 #include "Notes.h"
+
 class Chart
 {
 	friend class CHC_Editor;
@@ -34,12 +34,12 @@ private:
 	//Optional value noting when to transition to another chart/subsection
 	//Unused in the game
 	long endTime = 0;
-	//List of all trace lines
-	List<Traceline> tracelines;
-	//List of all phrase bars
-	List<Phrase> phrases;
-	//List of all guard marks
-	List<Guard> guards;
+	//Linked list of all trace lines
+	LinkedList::List<Traceline> tracelines;
+	//Linked list of all phrase bars
+	LinkedList::List<Phrase> phrases;
+	//Linked list of all guard marks
+	LinkedList::List<Guard> guards;
 public:
 	Chart();
 	Chart(const Chart&);

@@ -44,7 +44,7 @@ bool loadSingleCHC(string& filename)
 Cycles through every file in the provided list and performs the function chosen in the nested menu.
 Returns true if the user wishes to end the program, false otherwise.
 */
-bool loadMultiCHC(List<string>* files)
+bool loadMultiCHC(LinkedList::List<string>* files)
 {
 	do
 	{
@@ -942,7 +942,7 @@ bool CHC_Main::createColorTemplate()
 		global.quit = false;
 	}
 	bool generate = false;
-	List<size_t> sectionIndexes;
+	LinkedList::List<size_t> sectionIndexes;
 	do
 	{
 		printf("%sType the number for each section that you wish to outline colors for - w/ spaces inbetween.\n", global.tabs.c_str());
@@ -950,7 +950,7 @@ bool CHC_Main::createColorTemplate()
 			printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, song.sections[sectIndex].getName());
 		if (sectionIndexes.size())
 		{
-			printf("%sCurrent List: ", global.tabs.c_str());
+			printf("%sCurrent LinkedList::List: ", global.tabs.c_str());
 			for (size_t index = 0; index < sectionIndexes.size(); index++)
 				printf("%s ", song.sections[sectionIndexes[index]].getName());
 			putchar('\n');

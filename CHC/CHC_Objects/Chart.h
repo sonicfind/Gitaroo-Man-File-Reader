@@ -25,77 +25,77 @@ class Chart
 	friend class CH_Importer;
 private:
 	//Total size in bytes
-	unsigned long size = 76;
+	unsigned long m_size = 76;
 	//Just junk, saved for consistency
-	char junk[16] = { 0 };
+	char m_junk[16] = { 0 };
 
 	//'Center' point that all notes revolve around
-	long pivotTime = 0;
+	long m_pivotTime = 0;
 	//Optional value noting when to transition to another chart/subsection
 	//Unused in the game
-	long endTime = 0;
+	long m_endTime = 0;
 	//Linked list of all trace lines
-	LinkedList::List<Traceline> tracelines;
+	LinkedList::List<Traceline> m_tracelines;
 	//Linked list of all phrase bars
-	LinkedList::List<Phrase> phrases;
+	LinkedList::List<Phrase> m_phrases;
 	//Linked list of all guard marks
-	LinkedList::List<Guard> guards;
+	LinkedList::List<Guard> m_guards;
 public:
 	Chart();
-	Chart(const Chart&);
+	Chart(const Chart&) = default;
 	void operator=(const Chart&);
 	//Returns the byte size of the chart/subsection
-	unsigned long getSize() const { return size; }
+	unsigned long getSize() const { return m_size; }
 	//Sets the byte size of the chart/subsection to the provided value
-	void setSize(unsigned long siz) { size = siz; }
+	void setSize(unsigned long siz) { m_size = siz; }
 	//Adjusts the byte size of the chart/subsection by the provided value
 	void adjustSize(long difference);
 	//Returns junk C-string (size: 16)
-	char* getJunk() { return junk; }
+	char* getJunk() { return m_junk; }
 	//Copies C-string newJunk to junk
 	//Size "count" will be limited to a max of 16
 	void setJunk(char* newJunk, rsize_t count = 16);
 	//Returns the pivot time for the chart/subsection
-	long getPivotTime() const { return pivotTime; }
+	long getPivotTime() const { return m_pivotTime; }
 	//Sets the pivot time for the chart/subsection to the provided value
-	void setPivotTime(long piv) { pivotTime = piv; }
+	void setPivotTime(long piv) { m_pivotTime = piv; }
 	//Adjusts the pivot time for the chart/subsection by the provided value
-	void adjustPivotTime(long difference) { pivotTime += difference; }
+	void adjustPivotTime(long difference) { m_pivotTime += difference; }
 	//Returns the end time for the chart/subsection
-	long getEndTime() const { return endTime; }
+	long getEndTime() const { return m_endTime; }
 	//Sets the end time for the chart/subsection to the provided value
-	void setEndTime(long piv) { endTime = piv; }
+	void setEndTime(long piv) { m_endTime = piv; }
 	//Returns the number of the trace lines in the chart/subsection
-	size_t getNumTracelines() const { return tracelines.size(); }
+	size_t getNumTracelines() const { return m_tracelines.size(); }
 	//Returns the Trace line at the provided index
 	Traceline& getTraceline(size_t index);
 	template<class... Args>
 	size_t emplaceTraceline(Args&&... args)
 	{
-		size += 16;
-		return tracelines.emplace_ordered(args...);
+		m_size += 16;
+		return m_tracelines.emplace_ordered(args...);
 	}
 
 	//Returns the number of the phrase bars in the chart/subsection
-	size_t getNumPhrases() const { return phrases.size(); }
+	size_t getNumPhrases() const { return m_phrases.size(); }
 	//Returns the Phrase bar at the provided index
 	Phrase& getPhrase(size_t index);
 	template<class... Args>
 	size_t emplacePhrase(Args&&... args)
 	{
-		size += 32;
-		return phrases.emplace_ordered(args...);
+		m_size += 32;
+		return m_phrases.emplace_ordered(args...);
 	}
 
 	//Returns the number of the guard marks in the chart/subsection
-	size_t getNumGuards() const { return guards.size(); }
+	size_t getNumGuards() const { return m_guards.size(); }
 	//Returns the Guard mark at the provided index
 	Guard& getGuard(size_t index);
 	template<class... Args>
 	size_t emplaceGuard(Args&&... args)
 	{
-		size += 16;
-		return guards.emplace_ordered(args...);
+		m_size += 16;
+		return m_guards.emplace_ordered(args...);
 	}
 
 	size_t add(Note*);

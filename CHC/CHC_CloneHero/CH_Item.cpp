@@ -16,140 +16,140 @@
 #include "CH_Item.h"
 using namespace std;
 
-SyncTrack::SyncTrack(double pos, unsigned long ts, unsigned long tempo, bool writeTimeSig, string egth) : CHItem(pos), bpm(tempo), eighth(egth)
+SyncTrack::SyncTrack(double pos, unsigned long ts, unsigned long tempo, bool writeTimeSig, string egth) : CHItem(pos), m_bpm(tempo), m_eighth(egth)
 {
 	if (writeTimeSig)
-		timeSig = ts;
+		m_timeSig = ts;
 	else
-		timeSig = 0;
+		m_timeSig = 0;
 }
 
-SyncTrack::SyncTrack(FILE* inFile) : timeSig(0), bpm(0), eighth("")
+SyncTrack::SyncTrack(FILE* inFile) : m_timeSig(0), m_bpm(0), m_eighth("")
 {
 	char ignore[30];
-	fscanf_s(inFile, " %lf%[^BT]%c", &position, ignore, 30, ignore, 1);
+	fscanf_s(inFile, " %lf%[^BT]%c", &m_position, ignore, 30, ignore, 1);
 	if (ignore[0] == 'T')
 	{
 		fseek(inFile, 2, SEEK_CUR);
-		fscanf_s(inFile, "%lu", &timeSig);
+		fscanf_s(inFile, "%lu", &m_timeSig);
 		fscanf_s(inFile, "%c", ignore, 1);
 		if (ignore[0] == ' ')
 		{
 			fscanf_s(inFile, "%c", ignore, 1);
-			eighth = ignore[0];
+			m_eighth = ignore[0];
 		}
 	}
 	else if (ignore[0] == 'B')
-		fscanf_s(inFile, " %lu", &bpm);
+		fscanf_s(inFile, " %lu", &m_bpm);
 }
 
 void SyncTrack::write(FILE* outFile)
 {
-	if (timeSig)
-		fprintf(outFile, "  %lu = TS %lu%s\n", (unsigned long)round(position), timeSig, eighth.c_str());
-	if (bpm)
-		fprintf(outFile, "  %lu = B %lu\n", (unsigned long)round(position), bpm);
+	if (m_timeSig)
+		fprintf(outFile, "  %lu = TS %lu%s\n", (unsigned long)round(m_position), m_timeSig, m_eighth.c_str());
+	if (m_bpm)
+		fprintf(outFile, "  %lu = B %lu\n", (unsigned long)round(m_position), m_bpm);
 };
 
 Event::Event(FILE* inFile)
 {
 	char bagel[101] = { 0 };
-	fscanf_s(inFile, " %lf%[^\"]s", &position, bagel, 4);
+	fscanf_s(inFile, " %lf%[^\"]s", &m_position, bagel, 4);
 	fscanf_s(inFile, " %[^\n]s", bagel, 100);
-	name = bagel;
-	if (name[0] == '\"')
-		name = name.substr(1, name.length() - 2); //Gets rid of ""
+	m_name = bagel;
+	if (m_name[0] == '\"')
+		m_name = m_name.substr(1, m_name.length() - 2); //Gets rid of ""
 };
 
 void Event::write(FILE* outFile)
 {
-	fprintf(outFile, "  %lu = E \"%s\"\n", (unsigned long)round(position), name.c_str());
+	fprintf(outFile, "  %lu = E \"%s\"\n", (unsigned long)round(m_position), m_name.c_str());
 };
 
 CHNote::CHNote(FILE* inFile)
 {
 	char type = 0;
-	//Only the second "type" insertion matters; First one is '=' character removal
-	fscanf_s(inFile, " %lf %c %c", &position, &type, 1, &type, 1);
+	//Only the second "m_type" insertion matters; First one is '=' character removal
+	fscanf_s(inFile, " %lf %c %c", &m_position, &type, 1, &type, 1);
 	if (type == 'E')
 	{
 		char bagel[101] = { 0 };
 		fscanf_s(inFile, " %[^\n]s", bagel, 100);
-		name = bagel;
-		this->type = NoteType::EVENT;
-		mod = Modifier::NORMAL;
+		m_name = bagel;
+		this->m_type = NoteType::EVENT;
+		m_mod = Modifier::NORMAL;
 	}
 	else
 	{
-		name = "";
+		m_name = "";
 		if (type == 'S')
-			this->type = NoteType::STAR;
+			this->m_type = NoteType::STAR;
 		else
-			this->type = NoteType::NOTE;
-		fscanf_s(inFile, " %zu", &fret.lane);
-		if (fret.lane == 6)
+			this->m_type = NoteType::NOTE;
+		fscanf_s(inFile, " %u", &m_fret.m_lane);
+		if (m_fret.m_lane == 6)
 		{
-			mod = Modifier::TAP;
-			fret.lane = 0;
+			m_mod = Modifier::TAP;
+			m_fret.m_lane = 0;
 		}
-		else if (fret.lane == 5)
+		else if (m_fret.m_lane == 5)
 		{
-			mod = Modifier::FORCED;
-			fret.lane = 0;
+			m_mod = Modifier::FORCED;
+			m_fret.m_lane = 0;
 		}
 		else
 		{
-			mod = Modifier::NORMAL;
-			if (fret.lane == 7)
-				fret.lane = 5;
+			m_mod = Modifier::NORMAL;
+			if (m_fret.m_lane == 7)
+				m_fret.m_lane = 5;
 		}
-		fscanf_s(inFile, " %lf", &fret.sustain);
+		fscanf_s(inFile, " %lf", &m_fret.m_sustain);
 	}
 };
 
 void CHNote::write(FILE* outFile)
 {
-	switch (type)
+	switch (m_type)
 	{
 	case CHNote::NoteType::STAR:
-		fprintf(outFile, "  %lu = S 2 %lu\n", (unsigned long)round(position), (unsigned long)round(fret.sustain));
+		fprintf(outFile, "  %lu = S 2 %lu\n", (unsigned long)round(m_position), (unsigned long)round(m_fret.m_sustain));
 		break;
 	case CHNote::NoteType::NOTE:
-		fprintf(outFile, "  %lu = N %zu ", (unsigned long)round(position), fret.lane);
-		if (fret.writeSustain)
-			fprintf(outFile, "%lu\n", (unsigned long)round(fret.sustain));
+		fprintf(outFile, "  %lu = N %u ", (unsigned long)round(m_position), m_fret.m_lane);
+		if (m_fret.m_writeSustain)
+			fprintf(outFile, "%lu\n", (unsigned long)round(m_fret.m_sustain));
 		else
 			fprintf(outFile, "%lu\n", 0UL);
-		switch (mod)
+		switch (m_mod)
 		{
 		case CHNote::Modifier::FORCED:
-			fprintf(outFile, "  %lu = N 5 0\n", (unsigned long)round(position));
+			fprintf(outFile, "  %lu = N 5 0\n", (unsigned long)round(m_position));
 			break;
 		case CHNote::Modifier::TAP:
-			fprintf(outFile, "  %lu = N 6 0\n", (unsigned long)round(position));
+			fprintf(outFile, "  %lu = N 6 0\n", (unsigned long)round(m_position));
 		}
-		if (name.length() <= 1)
+		if (m_name.length() <= 1)
 			break;
 	case CHNote::NoteType::EVENT:
-		fprintf(outFile, "  %lu = E %s\n", (unsigned long)round(position), name.c_str());
+		fprintf(outFile, "  %lu = E %s\n", (unsigned long)round(m_position), m_name.c_str());
 	}
 };
 
 bool CHNote::operator==(const CHNote& note) const
 {
-	if (position == note.position && type == note.type)
+	if (m_position == note.m_position && m_type == note.m_type)
 	{
-		switch (type)
+		switch (m_type)
 		{
 		case NoteType::NOTE:
-			return fret.lane == note.fret.lane && mod == note.mod;
+			return m_fret.m_lane == note.m_fret.m_lane && m_mod == note.m_mod;
 		case NoteType::EVENT:
 		{
-			if (name.length() == note.name.length())
+			if (m_name.length() == note.m_name.length())
 			{
-				const size_t length = name.length();
+				const size_t length = m_name.length();
 				for (size_t index = 0; index < length; index++)
-					if (tolower(name[index]) != tolower(note.name[index]))
+					if (tolower(m_name[index]) != tolower(note.m_name[index]))
 						return false;
 				return true;
 			}
@@ -166,39 +166,39 @@ bool CHNote::operator==(const CHNote& note) const
 
 bool CHNote::operator<(const CHNote& note) const
 {
-	if (position < note.position)
+	if (m_position < note.m_position)
 		return true;
-	else if (position > note.position)
+	else if (m_position > note.m_position)
 		return false;
 	else
 	{
-		switch (type)
+		switch (m_type)
 		{
 		case NoteType::NOTE:
-			switch (note.type)
+			switch (note.m_type)
 			{
 			case NoteType::NOTE:
-				switch (fret.lane)
+				switch (m_fret.m_lane)
 				{
 				case 6:
 					return false;
 				case 5:
-					return note.fret.lane == 6;
+					return note.m_fret.m_lane == 6;
 				case 7:
-					return note.fret.lane == 5 || note.fret.lane == 6;
+					return note.m_fret.m_lane == 5 || note.m_fret.m_lane == 6;
 				default:
-					if (fret.lane < note.fret.lane)
+					if (m_fret.m_lane < note.m_fret.m_lane)
 						return true;
-					else if (fret.lane > note.fret.lane)
+					else if (m_fret.m_lane > note.m_fret.m_lane)
 						return false;
 					else
-						return mod < note.mod;
+						return m_mod < note.m_mod;
 				}
 			default:
 				return true;
 			}
 		case NoteType::STAR:
-			switch (note.type)
+			switch (note.m_type)
 			{
 			case NoteType::EVENT:
 				return true;
@@ -206,16 +206,16 @@ bool CHNote::operator<(const CHNote& note) const
 				return false;
 			}
 		default:
-			switch (note.type)
+			switch (note.m_type)
 			{
 			case NoteType::EVENT:
 			{
-				const size_t len1 = name.length(), len2 = note.name.length();
+				const size_t len1 = m_name.length(), len2 = note.m_name.length();
 				for (size_t index = 0; index < len1 && index < len2; index++)
 				{
-					if (tolower(name[index]) < tolower(note.name[index]))
+					if (tolower(m_name[index]) < tolower(note.m_name[index]))
 						return true;
-					else if (tolower(name[index]) > tolower(note.name[index]))
+					else if (tolower(m_name[index]) > tolower(note.m_name[index]))
 						return false;
 				}
 				if (len1 < len2)
@@ -233,39 +233,39 @@ bool CHNote::operator<(const CHNote& note) const
 
 bool CHNote::operator>(const CHNote& note) const
 {
-	if (position > note.position)
+	if (m_position > note.m_position)
 		return true;
-	else if (position < note.position)
+	else if (m_position < note.m_position)
 		return false;
 	else
 	{
-		switch (type)
+		switch (m_type)
 		{
 		case NoteType::NOTE:
-			switch (note.type)
+			switch (note.m_type)
 			{
 			case NoteType::NOTE:
-				switch (fret.lane)
+				switch (m_fret.m_lane)
 				{
 				case 6:
-					return note.fret.lane <= 5 || note.fret.lane == 7;
+					return note.m_fret.m_lane <= 5 || note.m_fret.m_lane == 7;
 				case 5:
-					return note.fret.lane < 5 || note.fret.lane == 7;
+					return note.m_fret.m_lane < 5 || note.m_fret.m_lane == 7;
 				case 7:
-					return note.fret.lane < 5;
+					return note.m_fret.m_lane < 5;
 				default:
-					if (fret.lane > note.fret.lane)
+					if (m_fret.m_lane > note.m_fret.m_lane)
 						return true;
-					else if (fret.lane < note.fret.lane)
+					else if (m_fret.m_lane < note.m_fret.m_lane)
 						return false;
 					else
-						return mod > note.mod;
+						return m_mod > note.m_mod;
 				}
 			default:
 				return false;
 			}
 		case NoteType::STAR:
-			switch (note.type)
+			switch (note.m_type)
 			{
 			case NoteType::NOTE:
 				return true;
@@ -273,16 +273,16 @@ bool CHNote::operator>(const CHNote& note) const
 				return false;
 			}
 		default:
-			switch (note.type)
+			switch (note.m_type)
 			{
 			case NoteType::EVENT:
 			{
-				const size_t len1 = name.length(), len2 = note.name.length();
+				const size_t len1 = m_name.length(), len2 = note.m_name.length();
 				for (size_t index = 0; index < len1 && index < len2; index++)
 				{
-					if (tolower(name[index]) > tolower(note.name[index]))
+					if (tolower(m_name[index]) > tolower(note.m_name[index]))
 						return true;
-					else if (tolower(name[index]) < tolower(note.name[index]))
+					else if (tolower(m_name[index]) < tolower(note.m_name[index]))
 						return false;
 				}
 				if (len1 > len2)

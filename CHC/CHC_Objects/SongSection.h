@@ -32,119 +32,119 @@ public:
 	enum class Phase { INTRO, CHARGE, BATTLE, FINAL_AG, HARMONY, END, FINAL_I };
 private:
 	//Index pulled from the list of SSQs in the CHC
-	unsigned long index = 0;
+	unsigned long m_index = 0;
 	//Section name
 	//16 characters + a null character
-	char name[17] = { 0 };
+	char m_name[17] = { 0 };
 
 	//Name of Audio Section
 	//16 characters + a null character
-	char audio[17] = { 0 };
+	char m_audio[17] = { 0 };
 
 	//SSQ frame range
-	SSQ frames;
+	SSQ m_frames;
 	//Saves whether the subsections are correctly ordered
-	unsigned long organized = false;
+	unsigned long m_organized = false;
 	//Value that holds how the section is swapped
-	unsigned long swapped = 0;
+	unsigned long m_swapped = 0;
 	//Total size in bytes
-	unsigned long size = 384;
+	unsigned long m_size = 384;
 	//Just junk, saved for consistency
-	char junk[16] = { 0 };
+	char m_junk[16] = { 0 };
 
 	//Phase type
-	Phase battlePhase = Phase::INTRO;
+	Phase m_battlePhase = Phase::INTRO;
 	//BPM for the section
-	float tempo = 0;
+	float m_tempo = 0;
 	//Total duration in samples
-	unsigned long duration = 0;
+	unsigned long m_duration = 0;
 	//Determines what actions to take after the section
 	struct Condition
 	{
-		unsigned long type;
-		float argument;
-		long trueEffect;
-		long falseEffect;
+		unsigned long m_type;
+		float m_argument;
+		long m_trueEffect;
+		long m_falseEffect;
 		Condition();
 		Condition(FILE* inFile);
-		Condition(Condition& cond);
+		Condition(const Condition& cond) = default;
 	};
 	//LinkedList::List of all conditions
-	LinkedList::List<Condition> conditions;
+	LinkedList::List<Condition> m_conditions;
 	//Number of players assigned to the section, always 4
-	unsigned long numPlayers = 4;
+	unsigned long m_numPlayers = 4;
 	//Number of charts/subsections per player
-	unsigned long numCharts = 1;
+	unsigned long m_numCharts = 1;
 	//LinkedList::List of all charts/subsections
-	LinkedList::List<Chart> charts;
+	LinkedList::List<Chart> m_charts;
 public:
-	static const unsigned SAMPLE_GAP = 1800;
+	static const long s_SAMPLE_GAP = 1800;
 	SongSection();
 	SongSection(FILE* inFile);
-	SongSection(const SongSection&);
+	SongSection(const SongSection&) = default;
 	void operator=(SongSection&);
 	//Returns name C-string (size: 16)
-	char* getName() { return name; }
+	char* getName() { return m_name; }
 	//Returns audio C-string (size: 16)
-	char* getAudio() { return audio; }
+	char* getAudio() { return m_audio; }
 	//Returns whether the section is organized
-	bool getOrganized() const { return organized; }
+	bool getOrganized() const { return m_organized; }
 	//Sets organized to the provided value
-	void setOrganized(bool org) { organized = org; }
+	void setOrganized(bool org) { m_organized = org; }
 	//Returns swap value
-	unsigned long getSwapped() const { return swapped; }
+	unsigned long getSwapped() const { return m_swapped; }
 	//Sets swap value
-	void setSwapped(char swap) { swapped = swap; }
+	void setSwapped(char swap) { m_swapped = swap; }
 	//Returns the byte size of the section
-	unsigned long getSize() const { return size; }
+	unsigned long getSize() const { return m_size; }
 	//Returns a section's phase type
-	Phase getPhase() const { return battlePhase; }
+	Phase getPhase() const { return m_battlePhase; }
 	//Sets the section's phase type to the provided value
-	void setPhase(Phase ph) { battlePhase = ph; }
+	void setPhase(Phase ph) { m_battlePhase = ph; }
 	//Sets the section's phase type to the provided value converted into a phase type
 	//If the provided value is 6 or greater, battlePhase is set to FINAL_I
 	void setPhase(unsigned long ph)
 	{
 		if (ph < 6)
-			battlePhase = static_cast<SongSection::Phase>(ph);
+			m_battlePhase = static_cast<SongSection::Phase>(ph);
 		else
-			battlePhase = Phase::FINAL_I;
+			m_battlePhase = Phase::FINAL_I;
 	}
 	//Returns the tempo for the section
-	float getTempo() const { return tempo; }
+	float getTempo() const { return m_tempo; }
 	//Returns the duration of the section
-	unsigned long getDuration() const { return duration; }
+	unsigned long getDuration() const { return m_duration; }
 	//Sets the duration of the section to the provided value
-	void setDuration(unsigned long dur) { duration = dur; }
+	void setDuration(unsigned long dur) { m_duration = dur; }
 	//Returns the number of conditions in the section
-	size_t getNumCondtions() const { return conditions.size(); }
+	size_t getNumCondtions() const { return m_conditions.size(); }
 	//Adds a new condition to the end of the section's condition list
 	template<class...Args>
 	size_t addCondition(size_t index, Args&&...args)
 	{
-		if (index > conditions.size())
-			index = conditions.size();
-		size += 16;
-		conditions.emplace(index, 1, args...);
+		if (index > m_conditions.size())
+			index = m_conditions.size();
+		m_size += 16;
+		m_conditions.emplace(index, 1, args...);
 		return index;
 	}
 	Condition& getCondition(size_t index);
 	bool removeCondition(size_t);
 	//Returns the num of players assigned to this section.
 	//Will usually be 4
-	unsigned long getNumPlayers() const { return numPlayers; }
+	unsigned long getNumPlayers() const { return m_numPlayers; }
 	//Returns the total number of the charts/subsections in this section
-	unsigned long getNumCharts() const { return numCharts; }
+	unsigned long getNumCharts() const { return m_numCharts; }
 	//Returns the total number of the charts/subsections in this section
 	Chart& getChart(size_t index)
 	{
 		try
 		{
-			return charts[index];
+			return m_charts[index];
 		}
 		catch (...)
 		{
-			throw "Index out of Chart range: " + std::to_string(numCharts) + '.';
+			throw "Index out of Chart range: " + std::to_string(m_numCharts) + '.';
 		}
 	}
 	void clearConditions();

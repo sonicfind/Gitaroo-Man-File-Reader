@@ -20,25 +20,25 @@ struct Section
 {
 	struct Tempo
 	{
-		unsigned long bpm;
+		unsigned long m_bpm;
 		//In reference to the beginning of the song
-		double position_ticks;
+		double m_position_ticks;
 		//In reference to the beginning of the section is resides in
-		double position_samples;
-		Tempo(unsigned long bpm = 120, double pos_ticks = 0, double pos_samples = 0) : bpm(bpm), position_ticks(pos_ticks), position_samples(pos_samples) {}
+		double m_position_samples;
+		Tempo(unsigned long bpm = 120, double pos_ticks = 0, double pos_samples = 0) : m_bpm(bpm), m_position_ticks(pos_ticks), m_position_samples(pos_samples) {}
 	};
-	std::string name = "";
+	std::string m_name = "";
 	//In reference to the beginning of the song
-	double position_ticks = 0;
+	double m_position_ticks = 0;
 	//In reference to the beginning of the song, but calculated 
 	//using the previous songsection (if one exists) as a base
-	double position_samples = 0;
-	LinkedList::List<Tempo> tempos;
+	double m_position_samples = 0;
+	LinkedList::List<Tempo> m_tempos;
 	//Two lists for two players
-	LinkedList::List<Chart> subs[2];
-	Section(std::string nam, double pos_T = 0, double pos_S = 0, unsigned long bpm = 120) : name(nam), position_ticks(pos_T), position_samples(pos_S)
+	LinkedList::List<Chart> m_subs[2];
+	Section(std::string nam, double pos_T = 0, double pos_S = 0, unsigned long bpm = 120) : m_name(nam), m_position_ticks(pos_T), m_position_samples(pos_S)
 	{
-		tempos.emplace_back(bpm, position_ticks);
+		m_tempos.emplace_back(bpm, m_position_ticks);
 	}
 };
 
@@ -54,12 +54,12 @@ public:
 class CH_Importer
 {
 	friend ChartFileImporter;
-	CHC song;
-	LinkedList::List<Section> sections;
-	NoteTrack notes[2];
+	CHC m_song;
+	LinkedList::List<Section> m_sections;
+	NoteTrack m_notes[2];
 public:
-	CH_Importer(CHC& song) : song(song) {}
-	CHC& getSong() { return song; }
+	CH_Importer(CHC& song) : m_song(song) {}
+	CHC& getSong() { return m_song; }
 	bool importChart();
 	void fillSections();
 	void addTraceLine(double pos, std::string name, const size_t sectIndex, const size_t playerIndex, Chart* currChart);

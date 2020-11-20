@@ -17,29 +17,29 @@
 #include "ChartFile.h"
 using namespace std;
 
-ChartFile::ChartFile(string filename, bool write) : file(filename)
+ChartFile::ChartFile(string filename, bool write) : m_file(filename)
 {
 	if (write)
 	{
-		if (fopen_s(&chart, file.c_str(), "w"))
+		if (fopen_s(&m_chart, m_file.c_str(), "w"))
 			throw "File is currently in use by another process and thus could not be opened.";
 	}
 	else
 #pragma warning(suppress : 4996)
-		chart = fopen(file.c_str(), "r");
+		m_chart = fopen(m_file.c_str(), "r");
 }
 
 bool ChartFile::open(string filename, const bool write)
 {
-	if (chart != nullptr)
+	if (m_chart != nullptr)
 		close();
-	file = filename;
+	m_file = filename;
 	if (write)
-		return !fopen_s(&chart, file.c_str(), "w");
+		return !fopen_s(&m_chart, m_file.c_str(), "w");
 	else
 	{
 #pragma warning(suppress : 4996)
-		chart = fopen(file.c_str(), "r");
+		m_chart = fopen(m_file.c_str(), "r");
 		return true;
 	}
 }

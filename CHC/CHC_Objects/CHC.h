@@ -14,8 +14,14 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "SongSection.h"
-#define DLL_INDEX 0
-constexpr long double SAMPLES_PER_MIN = 2880000.0;
+constexpr size_t s_DLL_INDEX = 0;
+
+#if defined(_M_X64)
+constexpr double s_SAMPLES_PER_MIN = 2880000.0;
+#else
+constexpr float s_SAMPLES_PER_MIN = 2880000.0f;
+#endif
+
 class CHC
 {
 	friend class CHC_Main;
@@ -25,39 +31,39 @@ class CHC
 	friend class CH_Importer;
 private:
 	//Full filename
-	std::string name;
+	std::string m_name;
 	//Short version
-	std::string shortname;
+	std::string m_shortname;
 	//Stage number
-	unsigned char stage;
+	unsigned char m_stage;
 	//Holds header data from original file
-	char header[36] = { 0 };
+	char m_header[36] = { 0 };
 
 	//String for an IMC's location
-	char imc[256] = { 0 };
+	char m_imc[256] = { 0 };
 
 	//Win-Loss Animations
-	SSQ events[4];
+	SSQ m_events[4];
 
 	//Hold data for all 8 audio channels
 	struct AudioChannel
 	{
 		unsigned long volume = 32767;
 		unsigned long pan = 16383;
-	} audio[8];
+	} m_audio[8];
 
 	//Gameplay speed
-	float speed;
+	float m_speed;
 	//Hold the number of unorganized sections
-	unsigned unorganized;
+	unsigned m_unorganized;
 	//Saves whether all notes were readjusted for minimal glitching
-	bool optimized;
+	bool m_optimized;
 	//LinkedList::List of all sections
-	LinkedList::List<SongSection> sections;
+	LinkedList::List<SongSection> m_sections;
 	//Holds all life-value data for every player and phase type
 	struct EnergyDamage
 	{
-		float start = .2f;
+		float initialEnergy = .2f;
 		float chargeInitial = .01f;
 		float attackInitial = .015f;
 		float guardEnergy = .015f;
@@ -65,11 +71,11 @@ private:
 		float guardMiss = .05f;
 		float chargeRelease = .025f;
 		float attackRelease = .025f;
-	} energyDamageFactors[4][5];
+	} m_energyDamageFactors[4][5];
 	//0 - Not saved
 	//1 - Saved
 	//2 - Saved at the currently pointed location
-	char saved;
+	char m_saved;
 public:
 	CHC();
 	CHC(const CHC&);

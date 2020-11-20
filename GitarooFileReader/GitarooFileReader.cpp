@@ -38,27 +38,27 @@ All dlls are unloaded at exit time.
 int main(int argc, char** argv)
 {
 	loadDlls();
-	if (dllCount)
+	if (g_dllCount)
 	{
-		banner(" Gitaroo File Reader v0.7.0.3 Beta ");
-		banner(" 'Q' is the universal \"quit\" option | Use ';' for \"multi-step\" actions ");
+		GlobalFunctions::banner(" Gitaroo File Reader v0.7.0.3 Beta ");
+		GlobalFunctions::banner(" 'Q' is the universal \"quit\" option | Use ';' for \"multi-step\" actions ");
 		if (!multi(argc, argv))
 			while (single());
 		//Free all loaded extensions
 		for (size_t i = 0; i < 20; i++)
 		{
 			bool unloaded = false;
-			for (size_t h = 0; h < dlls[i].libraries.size(); h++)
+			for (size_t h = 0; h < g_dlls[i].m_libraries.size(); h++)
 			{
-				if (dlls[i].libraries[h].dll != nullptr)
-					if (FreeLibrary(dlls[i].libraries[h].dll))
+				if (g_dlls[i].m_libraries[h].m_dll != nullptr)
+					if (FreeLibrary(g_dlls[i].m_libraries[h].m_dll))
 						unloaded = true;
 			}
 			if (unloaded)
 			{
 				printf("Unloaded ");
-				for (size_t s = 0; s < dlls[i].extensions.size(); s++)
-					printf("%s ", dlls[i].extensions[s].ext.c_str());
+				for (size_t s = 0; s < g_dlls[i].m_extensions.size(); s++)
+					printf("%s ", g_dlls[i].m_extensions[s].m_ext.c_str());
 				putchar('\n');
 			}
 		}
@@ -74,8 +74,8 @@ int main(int argc, char** argv)
 	}
 	printf("Press 'enter' to close the window...");
 	char end;
-	if (global.multi)
-		clearIn();
+	if (g_global.multi)
+		GlobalFunctions::clearIn();
 	//Different from clearIn() as this usually getchar() at least once guaranteed.
 	do
 	{
@@ -129,36 +129,40 @@ bool multi(int fileCount, char** files)
 					string sub = filename.substr(filename.length() - namDistance);
 					for (size_t index = 0; index < namDistance; index++)
 						sub[index] = toupper(sub[index]);
-					for (size_t i = 0; i < 20 && !global.quit; i++)
+					for (size_t i = 0; i < 20 && !g_global.quit; i++)
 					{
 						//If the file's extension matches one of the extensions applicable with the current dll
-						for (size_t s = 0; s < dlls[i].extensions.size() && !global.quit; s++)
+						for (size_t s = 0; s < g_dlls[i].m_extensions.size() && !g_global.quit; s++)
 						{
 							//File extension needs to have '.' AND at least one valid character before it
-							if (namDistance >= dlls[i].extensions[s].ext.length() + 2 && sub.find(dlls[i].extensions[s].ext) != string::npos)
+							if (namDistance >= g_dlls[i].m_extensions[s].m_ext.length() + 2 &&
+								sub.find(g_dlls[i].m_extensions[s].m_ext) != string::npos)
 							{
-								if (dlls[i].libraries[0].dll != nullptr)
+								if (g_dlls[i].m_libraries[0].m_dll != nullptr)
 								{
-									dlls[i].extensions[s].files.push_back(filename.substr(0, filename.find_last_of('.')));
+									g_dlls[i].m_extensions[s].m_files.push_back(filename.substr(0, filename.find_last_of('.')));
 									filesInsert++;
 								}
 								else
 								{
 									size_t pos = filename.find_last_of('\\');
-									printf("%s\"%s\" skipped due to its Base DLL not being found.\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+									printf("%s\"%s\" skipped due to its Base DLL not being found.\n", g_global.tabs.c_str(),
+																			filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 								}
-								global.quit = true;
+								g_global.quit = true;
 							}
-							else if (i == 19 && s + 1 == dlls[i].extensions.size())
-								printf("%s\"%s\" is not a valid extension.\n", global.tabs.c_str(), filename.substr(filename.find_last_of('.')).c_str());
+							else if (i == 19 && s + 1 == g_dlls[i].m_extensions.size())
+								printf("%s\"%s\" is not a valid extension.\n", g_global.tabs.c_str(),
+															filename.substr(filename.find_last_of('.')).c_str());
 						}
 					}
-					global.quit = false;
+					g_global.quit = false;
 				}
 				else
 				{
 					size_t pos = filename.find_last_of('\\');
-					printf("%sCould not locate the file \"%s\".\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+					printf("%sCould not locate the file \"%s\".\n", g_global.tabs.c_str(),
+											filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 				}
 			}
 			else if (extension == 0)
@@ -167,23 +171,24 @@ bool multi(int fileCount, char** files)
 				//Apply every extension available to the end of the filename and check if the result exists
 				for (size_t i = 0; i < 20; i++)
 				{
-					for (size_t s = 0; s < dlls[i].extensions.size(); s++)
+					for (size_t s = 0; s < g_dlls[i].m_extensions.size(); s++)
 					{
 						FILE* test;
 						//If the resulting file exists, add the original filename to that extension's list of filenames
-						if (!fopen_s(&test, (filename + '.' + dlls[i].extensions[s].ext).c_str(), "r"))
+						if (!fopen_s(&test, (filename + '.' + g_dlls[i].m_extensions[s].m_ext).c_str(), "r"))
 						{
 							fclose(test);
-							if (dlls[i].libraries[0].dll != nullptr) // Only the file if the extension is loaded
+							if (g_dlls[i].m_libraries[0].m_dll != nullptr) // Only the file if the extension is loaded
 							{
-								dlls[i].extensions[s].files.push_back(filename);
+								g_dlls[i].m_extensions[s].m_files.push_back(filename);
 								valid = true;
 								filesInsert++;
 							}
 							else
 							{
 								size_t pos = filename.find_last_of('\\');
-								printf("%s\"%s\" skipped due to its Base DLL not being found.\n", global.tabs.c_str(), (filename.substr(pos != string::npos ? pos + 1 : 0) + '.' + dlls[i].extensions[s].ext).c_str());
+								printf("%s\"%s\" skipped due to its Base DLL not being found.\n", g_global.tabs.c_str(),
+									(filename.substr(pos != string::npos ? pos + 1 : 0) + '.' + g_dlls[i].m_extensions[s].m_ext).c_str());
 							}
 						}
 					}
@@ -191,30 +196,33 @@ bool multi(int fileCount, char** files)
 				if (!valid)
 				{
 					size_t pos = filename.find_last_of('\\');
-					printf("%sCould not locate a file with the file name \"%s\" using any of the accepted extensions\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+					printf("%sCould not locate a file with the file name \"%s\" using any of the accepted extensions\n", g_global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 				}
 			}
 			else
 			{
-				printf("%s\"%s\" is not a valid extension.\n", global.tabs.c_str(), filename.substr(filename.find_last_of('.')).c_str());
-				clearIn();
+				printf("%s\"%s\" is not a valid extension.\n", g_global.tabs.c_str(), filename.substr(filename.find_last_of('.')).c_str());
+				GlobalFunctions::clearIn();
 			}
 		}
 		//Go through every extension that has 1+ file associated with it and run its "Multi" function
-		for (size_t i = 0; i < 20 && !global.quit; i++)
+		for (size_t i = 0; i < 20 && !g_global.quit; i++)
 		{
-			if (dlls[i].libraries[0].dll != nullptr)
+			if (g_dlls[i].m_libraries[0].m_dll != nullptr)
 			{
-				for (size_t s = 0; s < dlls[i].extensions.size() && !global.quit; s++)
+				for (size_t s = 0; s < g_dlls[i].m_extensions.size() && !g_global.quit; s++)
 				{
 					//If an extension has files and its Multi function returns true, exit the program
-					if (dlls[i].extensions[s].files.size())
-						if (loadProc(dlls[i].libraries[0].dll, ("loadMulti" + dlls[i].extensions[s].ext).c_str(), dlls[i].extensions[s].files))
-							global.quit = true;
+					if (g_dlls[i].m_extensions[s].m_files.size())
+						if (GlobalFunctions::loadProc(g_dlls[i].m_libraries[0].m_dll, ("loadMulti" + g_dlls[i].m_extensions[s].m_ext).c_str(),
+							g_dlls[i].m_extensions[s].m_files))
+						{
+							g_global.quit = true;
+						}
 				}
 			}
 		}
-		global.quit = false;
+		g_global.quit = false;
 	}
 	return filesInsert;
 }
@@ -222,24 +230,24 @@ bool multi(int fileCount, char** files)
 bool single()
 {
 	string filename = "";
-	banner(" File Selection ");
-	printf("%sAccepted File Types: ", global.tabs.c_str());
+	GlobalFunctions::banner(" File Selection ");
+	printf("%sAccepted File Types: ", g_global.tabs.c_str());
 	for (size_t i = 0; i < 20; i++)
 	{
-		if (dlls[i].libraries[0].dll != nullptr)
+		if (g_dlls[i].m_libraries[0].m_dll != nullptr)
 		{
-			for (size_t s = 0; s < dlls[i].extensions.size(); s++)
-				printf("%s ", dlls[i].extensions[s].ext.c_str());
+			for (size_t s = 0; s < g_dlls[i].m_extensions.size(); s++)
+				printf("%s ", g_dlls[i].m_extensions[s].m_ext.c_str());
 		}
 	}
 	putchar('\n');
-	printf("%sProvide the name of the file you wish to use (Or 'Q' to exit): ", global.tabs.c_str());
+	printf("%sProvide the name of the file you wish to use (Or 'Q' to exit): ", g_global.tabs.c_str());
 	//Breaks the loop if quit character is choosen
-	switch (filenameInsertion(filename))
+	switch (GlobalFunctions::stringInsertion(filename))
 	{
-	case 'q':
+	case GlobalFunctions::ResultType::Quit:
 		return false;
-	case '!':
+	case GlobalFunctions::ResultType::Success:
 	{
 		size_t namDistance = filename.length();
 		if (namDistance > 6)
@@ -256,36 +264,36 @@ bool single()
 				string sub = filename.substr(filename.length() - namDistance);
 				for (size_t index = 0; index < namDistance; index++)
 					sub[index] = toupper(sub[index]);
-				for (size_t i = 0; i < 20 && !global.quit; i++)
+				for (size_t i = 0; i < 20 && !g_global.quit; i++)
 				{
 					//If the file's extension matches one of the extensions applicable with the current dll
-					for (size_t s = 0; s < dlls[i].extensions.size() && !global.quit; s++)
+					for (size_t s = 0; s < g_dlls[i].m_extensions.size() && !g_global.quit; s++)
 					{
 						//File extension needs to have '.' AND at least one valid character before it
-						if (namDistance >= dlls[i].extensions[s].ext.size() + 2 && sub.find(dlls[i].extensions[s].ext) != string::npos)
+						if (namDistance >= g_dlls[i].m_extensions[s].m_ext.size() + 2 && sub.find(g_dlls[i].m_extensions[s].m_ext) != string::npos)
 						{
 							//Check if extension is loaded
-							if (dlls[i].load())
+							if (g_dlls[i].load())
 							{
 								//Truncates the file extension
 								filename = filename.substr(0, filename.find_last_of('.'));
-								loadProc(dlls[i].libraries[0].dll, ("loadSingle" + dlls[i].extensions[s].ext).c_str(), filename);
+								GlobalFunctions::loadProc(g_dlls[i].m_libraries[0].m_dll, ("loadSingle" + g_dlls[i].m_extensions[s].m_ext).c_str(), filename);
 							}
 							else
 							{
 								size_t pos = filename.find_last_of('\\');
-								printf("%s\"%s\" skipped due to its Base DLL not being found.\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+								printf("%s\"%s\" skipped due to its Base DLL not being found.\n", g_global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 							}
-							global.quit = true;
+							g_global.quit = true;
 						}
-						else if (i == 19 && s + 1 == dlls[i].extensions.size())
+						else if (i == 19 && s + 1 == g_dlls[i].m_extensions.size())
 						{
-							printf("%s\"%s\" is not a valid extension.\n", global.tabs.c_str(), filename.substr(filename.find_last_of('.')).c_str());
-							clearIn();
+							printf("%s\"%s\" is not a valid extension.\n", g_global.tabs.c_str(), filename.substr(filename.find_last_of('.')).c_str());
+							GlobalFunctions::clearIn();
 						}
 					}
 				}
-				global.quit = false;
+				g_global.quit = false;
 			}
 		}
 		else
@@ -300,21 +308,21 @@ bool single()
 				//Cycle through all available extensions and run their "single" functions if a file is found with the filename
 				for (size_t i = 0; i < 20; i++)
 				{
-					for (size_t s = 0; s < dlls[i].extensions.size(); s++)
+					for (size_t s = 0; s < g_dlls[i].m_extensions.size(); s++)
 					{
 						FILE* test;
 						//Check for a file existing with the current extension
-						if (!fopen_s(&test, (filename + '.' + dlls[i].extensions[s].ext).c_str(), "r"))
+						if (!fopen_s(&test, (filename + '.' + g_dlls[i].m_extensions[s].m_ext).c_str(), "r"))
 						{
 							fclose(test);
 							located = true;
-							banner(' ' + filename + '.' + dlls[i].extensions[s].ext + ' ');
-							if (dlls[i].load())
-								loadProc(dlls[i].libraries[0].dll, ("loadSingle" + dlls[i].extensions[s].ext).c_str(), filename);
+							GlobalFunctions::banner(' ' + filename + '.' + g_dlls[i].m_extensions[s].m_ext + ' ');
+							if (g_dlls[i].load())
+								GlobalFunctions::loadProc(g_dlls[i].m_libraries[0].m_dll, ("loadSingle" + g_dlls[i].m_extensions[s].m_ext).c_str(), filename);
 							else
 							{
 								size_t pos = filename.find_last_of('\\');
-								printf("%s\"%s\" skipped due to its Base DLL not being found.\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+								printf("%s\"%s\" skipped due to its Base DLL not being found.\n", g_global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 							}
 						}
 					}
@@ -322,14 +330,14 @@ bool single()
 				if (!located)
 				{
 					size_t pos = filename.find_last_of('\\');
-					printf("%sCould not locate a file with the file name \"%s\" using any of the accepted extensions\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
-					clearIn();
+					printf("%sCould not locate a file with the file name \"%s\" using any of the accepted extensions\n", g_global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+					GlobalFunctions::clearIn();
 				}
 			}
 			else
 			{
-				printf("%s\"%s\" is not a valid extension.\n", global.tabs.c_str(), filename.substr(filename.find_last_of('.')).c_str());
-				clearIn();
+				printf("%s\"%s\" is not a valid extension.\n", g_global.tabs.c_str(), filename.substr(filename.find_last_of('.')).c_str());
+				GlobalFunctions::clearIn();
 			}
 		}
 	}
@@ -347,17 +355,20 @@ void loadDlls()
 	{
 		//Auto loads the main and sub dlls
 		//If a loadlib fails, and the file existed, add the dllname to the errorlist
-		dlls[i].load(errorList);
+		g_dlls[i].load(errorList);
 	}
 	SetErrorMode(0);
 	const size_t size = errorList.size();
 	if (size > 0)
 	{
-		FILE* loadErrorLog;
+		FILE* loadErrorLog = nullptr;
 		fopen_s(&loadErrorLog, "DllLoadingErrors.txt", "w");
-		fprintf(loadErrorLog, "These dlls are out of date and must be updated to be compatible with this version of GMFR:\n");
-		for (size_t i = 0; i < size; i++)
-			fprintf(loadErrorLog, "%ls\n", errorList[i]);
-		fclose(loadErrorLog);
+		if (loadErrorLog)
+		{
+			fprintf(loadErrorLog, "These dlls are out of date and must be updated to be compatible with this version of GMFR:\n");
+			for (size_t i = 0; i < size; i++)
+				fprintf(loadErrorLog, "%ls\n", errorList[i]);
+			fclose(loadErrorLog);
+		}
 	}
 }

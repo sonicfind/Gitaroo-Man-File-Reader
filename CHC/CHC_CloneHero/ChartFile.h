@@ -18,13 +18,13 @@
 class ChartFile
 {
 protected:
-	std::string file;
-	FILE* chart;
+	std::string m_file;
+	FILE* m_chart;
 public:
-	ChartFile() : file(""), chart(nullptr) {}
+	ChartFile() : m_file(""), m_chart(nullptr) {}
 	ChartFile(std::string filename, const bool write = false);
 	virtual bool open(std::string filename, const bool write = false);
-	int close() { return fclose(chart); }
+	int close() { return fclose(m_chart); }
 };
 
 class ChartFileExporter : public ChartFile

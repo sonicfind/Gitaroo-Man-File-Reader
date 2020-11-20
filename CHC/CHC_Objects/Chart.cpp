@@ -17,50 +17,45 @@
 #include <algorithm>
 
 //Creates Chart object with 1 Trace line
-Chart::Chart() : size(76), pivotTime(0), endTime(0), tracelines(1)
+Chart::Chart() : m_size(76), m_pivotTime(0), m_endTime(0), m_tracelines(1)
 {
-	size = 76;
-	pivotTime = endTime = 0;
-}
-
-Chart::Chart(const Chart& chart)
-	: size(chart.size), pivotTime(chart.pivotTime), endTime(chart.endTime), tracelines(chart.tracelines), phrases(chart.phrases), guards(chart.guards) {
-	std::copy(chart.junk, chart.junk + 16, junk);
+	m_size = 76;
+	m_pivotTime = m_endTime = 0;
 }
 
 void Chart::operator=(const Chart& chart)
 {
-	size = chart.size;
-	std::copy(chart.junk, chart.junk + 16, junk);
-	pivotTime = chart.pivotTime;
-	endTime = chart.endTime;
-	tracelines = chart.tracelines;
-	phrases = chart.phrases;
-	guards = chart.guards;
+	m_size = chart.m_size;
+	std::copy(chart.m_junk, chart.m_junk + 16, m_junk);
+	m_pivotTime = chart.m_pivotTime;
+	m_endTime = chart.m_endTime;
+	m_tracelines = chart.m_tracelines;
+	m_phrases = chart.m_phrases;
+	m_guards = chart.m_guards;
 }
 
 void Chart::adjustSize(long difference)
 {
-	if ((long)size + difference >= 0)
-		size += difference;
+	if ((long)m_size + difference >= 0)
+		m_size += difference;
 	else
-		size = 0;
+		m_size = 0;
 }
 
 void Chart::setJunk(char* newJunk, rsize_t count)
 {
-	std::copy(newJunk, newJunk + count, junk);
+	std::copy(newJunk, newJunk + count, m_junk);
 }
 
 Traceline& Chart::getTraceline(size_t index)
 {
 	try
 	{
-		return tracelines[index];
+		return m_tracelines[index];
 	}
 	catch (...)
 	{
-		throw "Index out of Trace line range: " + std::to_string(tracelines.size()) + '.';
+		throw "Index out of Trace line range: " + std::to_string(m_tracelines.size()) + '.';
 	}
 }
 
@@ -68,11 +63,11 @@ Phrase& Chart::getPhrase(size_t index)
 {
 	try
 	{
-		return phrases[index];
+		return m_phrases[index];
 	}
 	catch (...)
 	{
-		throw "Index out of Phrase bar range: " + std::to_string(phrases.size()) + '.';
+		throw "Index out of Phrase bar range: " + std::to_string(m_phrases.size()) + '.';
 	}
 }
 
@@ -80,11 +75,11 @@ Guard& Chart::getGuard(size_t index)
 {
 	try
 	{
-		return guards[index];
+		return m_guards[index];
 	}
 	catch (...)
 	{
-		throw "Index out of Guard mark range: " + std::to_string(guards.size()) + '.';
+		throw "Index out of Guard mark range: " + std::to_string(m_guards.size()) + '.';
 	}
 }
 
@@ -93,18 +88,18 @@ size_t Chart::add(Note* note)
 {
 	if (dynamic_cast<Traceline*>(note) != nullptr)		//Checks if it's a Traceline object
 	{
-		size += 16;
-		return tracelines.emplace_ordered(*static_cast<Traceline*>(note));
+		m_size += 16;
+		return m_tracelines.emplace_ordered(*static_cast<Traceline*>(note));
 	}
 	else if (dynamic_cast<Phrase*>(note) != nullptr)		//Checks if it's a Phrase Bar object
 	{
-		size += 32;
-		return phrases.emplace_ordered(*static_cast<Phrase*>(note));
+		m_size += 32;
+		return m_phrases.emplace_ordered(*static_cast<Phrase*>(note));
 	}
 	else if (dynamic_cast<Guard*>(note) != nullptr)		//Checks if it's a Guard Mark object
 	{
-		size += 16;
-		return guards.emplace_ordered(*static_cast<Guard*>(note));
+		m_size += 16;
+		return m_guards.emplace_ordered(*static_cast<Guard*>(note));
 	}
 	else
 		throw "Invalid note type";
@@ -115,18 +110,18 @@ void Chart::add_back(Note* note)
 {
 	if (dynamic_cast<Traceline*>(note) != nullptr)		//Checks if it's a Traceline object
 	{
-		size += 16;
-		tracelines.emplace_back(*static_cast<Traceline*>(note));
+		m_size += 16;
+		m_tracelines.emplace_back(*static_cast<Traceline*>(note));
 	}
 	else if (dynamic_cast<Phrase*>(note) != nullptr)	//Checks if it's a Phrase Bar object
 	{
-		size += 32;
-		phrases.emplace_back(*static_cast<Phrase*>(note));
+		m_size += 32;
+		m_phrases.emplace_back(*static_cast<Phrase*>(note));
 	}
 	else if (dynamic_cast<Guard*>(note) != nullptr)		//Checks if it's a Guard Mark object
 	{
-		size += 16;
-		guards.emplace_back(*static_cast<Guard*>(note));
+		m_size += 16;
+		m_guards.emplace_back(*static_cast<Guard*>(note));
 	}
 	else
 	{
@@ -142,18 +137,18 @@ bool Chart::resize(long numElements, char type)
 	{
 	case 'T':
 	case 't':
-		size += 16 * (numElements - (long)tracelines.size());
-		tracelines.resize(numElements);
+		m_size += 16 * (numElements - (long)m_tracelines.size());
+		m_tracelines.resize(numElements);
 		return true;
 	case 'P':
 	case 'p':
-		size += 32 * (numElements - (long)phrases.size());
-		phrases.resize(numElements);
+		m_size += 32 * (numElements - (long)m_phrases.size());
+		m_phrases.resize(numElements);
 		return true;
 	case 'G':
 	case 'g':
-		size += 16 * (numElements - (long)guards.size());
-		guards.resize(numElements);
+		m_size += 16 * (numElements - (long)m_guards.size());
+		m_guards.resize(numElements);
 		return true;
 	default:
 		return false;
@@ -171,50 +166,47 @@ bool Chart::remove(size_t index, char type, size_t extra)
 	{
 	case 'T':
 	case 't':
-		if ((phrases.size() + guards.size() || tracelines.size() > 1) && index < tracelines.size())
+		if ((m_phrases.size() + m_guards.size() || m_tracelines.size() > 1) && index < m_tracelines.size())
 		{
-			size -= 16;
-			tracelines.erase(index);
-			printf("Trace line %zu removed\n", index + extra);
+			m_size -= 16;
+			m_tracelines.erase(index);
 			return true;
 		}
 		else
 		{
-			if (tracelines.size() == 1)
+			if (m_tracelines.size() == 1)
 				printf("Cannot delete this trace line as a chart must always have at least one note\n");
 			else
-				printf("Index out of range - # of Trace Lines: %zu\n", tracelines.size());
+				printf("Index out of range - # of Trace Lines: %zu\n", m_tracelines.size());
 			return false;
 		}
 	case 'P':
 	case 'p':
-		if (index < phrases.size())
+		if (index < m_phrases.size())
 		{
-			size -= 32;
-			phrases.erase(index);
-			printf("Phrase bar %zu removed\n", index + extra);
+			m_size -= 32;
+			m_phrases.erase(index);
 			return true;
 		}
 		else
 		{
-			printf("Index out of range - # of Phrase bars: %zu\n", phrases.size());
+			printf("Index out of range - # of Phrase bars: %zu\n", m_phrases.size());
 			return false;
 		}
 	case 'G':
 	case 'g':
-		if ((phrases.size() + tracelines.size() || guards.size() > 1) && index < guards.size())
+		if ((m_phrases.size() + m_tracelines.size() || m_guards.size() > 1) && index < m_guards.size())
 		{
-			size -= 16;
-			guards.erase(index);
-			printf("Guard mark %zu removed\n", index + extra);
+			m_size -= 16;
+			m_guards.erase(index);
 			return true;
 		}
 		else
 		{
-			if (guards.size() == 1)
+			if (m_guards.size() == 1)
 				printf("Cannot delete this Guard Mark as a chart must always have at least one note\n");
 			else
-				printf("Index out of range - # of Guard mark: %zu\n", guards.size());
+				printf("Index out of range - # of Guard mark: %zu\n", m_guards.size());
 			return false;
 		}
 	default:
@@ -225,69 +217,69 @@ bool Chart::remove(size_t index, char type, size_t extra)
 //Full clear minus 1 Trace line
 void Chart::clear()
 {
-	if (tracelines.size() > 1)
+	if (m_tracelines.size() > 1)
 	{
-		size -= unsigned long(16 * (tracelines.size() - 1));
-		tracelines.erase(0, tracelines.size() - 1);
+		m_size -= unsigned long(16 * (m_tracelines.size() - 1));
+		m_tracelines.erase(0, m_tracelines.size() - 1);
 	}
-	size -= unsigned long(32 * phrases.size());
-	phrases.clear();
-	size -= unsigned long(16 * guards.size());
-	guards.clear();
+	m_size -= unsigned long(32 * m_phrases.size());
+	m_phrases.clear();
+	m_size -= unsigned long(16 * m_guards.size());
+	m_guards.clear();
 }
 
 //Full clear of Trace lines
 void Chart::clearTracelines()
 {
-	size -= unsigned long(16 * tracelines.size());
-	tracelines.clear();
+	m_size -= unsigned long(16 * m_tracelines.size());
+	m_tracelines.clear();
 }
 
 //Full clear of Phrase bars
 void Chart::clearPhrases()
 {
-	size -= unsigned long(32 * phrases.size());
-	phrases.clear();
+	m_size -= unsigned long(32 * m_phrases.size());
+	m_phrases.clear();
 }
 
 //Full clear of Guard marks
 void Chart::clearGuards()
 {
-	size -= unsigned long(16 * guards.size());
-	guards.clear();
+	m_size -= unsigned long(16 * m_guards.size());
+	m_guards.clear();
 }
 
 long Chart::insertNotes(Chart& source)
 {
 	long lastNote = 0;
 	clearPhrases();
-	size_t listSize = source.phrases.size();
+	size_t listSize = source.m_phrases.size();
 	for (size_t phraseIndex = 0; phraseIndex < listSize; phraseIndex++)
 	{
-		Phrase& phr = source.phrases[phraseIndex];
+		Phrase& phr = source.m_phrases[phraseIndex];
 		lastNote = phr.getPivotAlpha();
 		if (!phr.getEnd())
 		{
 			if (phraseIndex + 1 == listSize)
 				phr.setEnd(true);
 			else
-				phr.changeEndAlpha(source.phrases[phraseIndex + 1].getPivotAlpha());
+				phr.changeEndAlpha(source.m_phrases[phraseIndex + 1].getPivotAlpha());
 		}
 		//Pivot alpha was previous set to the total displacement from the start of the section
-		phrases.emplace_back(phr).adjustPivotAlpha(-pivotTime);
+		m_phrases.emplace_back(phr).adjustPivotAlpha(-m_pivotTime);
 	}
 	if (source.getNumTracelines() > 1)
 	{
 		clearTracelines();
-		listSize = source.tracelines.size();
+		listSize = source.m_tracelines.size();
 		for (size_t traceIndex = 0; traceIndex < listSize; traceIndex++)
 		{
-			Traceline& trace = source.tracelines[traceIndex];
+			Traceline& trace = source.m_tracelines[traceIndex];
 			if (trace.getPivotAlpha() > lastNote)
 				lastNote = trace.getPivotAlpha();
 			if (traceIndex + 1 < listSize)
-				trace.changeEndAlpha(source.tracelines[traceIndex + 1].getPivotAlpha());
-			tracelines.emplace_back(trace).adjustPivotAlpha(-pivotTime);
+				trace.changeEndAlpha(source.m_tracelines[traceIndex + 1].getPivotAlpha());
+			m_tracelines.emplace_back(trace).adjustPivotAlpha(-m_pivotTime);
 		}
 	}
 	//Go through every phrase bar & trace line to find places where phrase bars
@@ -324,7 +316,8 @@ long Chart::insertNotes(Chart& source)
 			{
 				if (!phr->getStart())
 					getPhrase(phraseIndex - 1).setEnd(true);
-				remove(phraseIndex, 'p');
+				if (remove(phraseIndex, 'p'))
+					printf("Phrase bar %zu removed\n", phraseIndex);
 			}
 			else if (phr->getEndAlpha() > trace.getPivotAlpha())
 			{
@@ -335,13 +328,13 @@ long Chart::insertNotes(Chart& source)
 		}
 	}
 	clearGuards();
-	listSize = source.guards.size();
+	listSize = source.m_guards.size();
 	for (size_t guardIndex = 0; guardIndex < listSize; guardIndex++)
 	{
-		Guard& imp = source.guards[guardIndex];
+		Guard& imp = source.m_guards[guardIndex];
 		if (imp.getPivotAlpha() > lastNote)
 			lastNote = imp.getPivotAlpha();
-		guards.emplace_back(imp).adjustPivotAlpha(-getPivotTime());
+		m_guards.emplace_back(imp).adjustPivotAlpha(-getPivotTime());
 	}
 	return lastNote;
 }

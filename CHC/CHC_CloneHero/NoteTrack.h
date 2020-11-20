@@ -18,62 +18,65 @@
 struct NoteTrack
 {
 	//Green-Red-Yellow-Blue-Orange-Open
-	LinkedList::List<CHNote> colors[6];
+	LinkedList::List<CHNote> m_colors[6];
 
-	LinkedList::List<CHNote> modifiers;
-	LinkedList::List<CHNote> star;
-	LinkedList::List<CHNote> events;
-	LinkedList::List<CHNote*> allNotes;
+	LinkedList::List<CHNote> m_modifiers;
+	LinkedList::List<CHNote> m_star;
+	LinkedList::List<CHNote> m_events;
+	LinkedList::List<CHNote*> m_allNotes;
 	template<class... Args>
 	size_t addNote(Args&&... args)
 	{
 		CHNote note(args...);
-		switch (note.type)
+		switch (note.m_type)
 		{
 		case CHNote::NoteType::NOTE:
 		{
 			size_t firstIndex = -1;
-			for (size_t index = 0, lane = note.fret.lane; index < 6; index++)
 			{
-				if (lane & (size_t(1) << index))
+				const unsigned origLane = note.m_fret.m_lane;
+				for (unsigned index = 0; index < 6; index++)
 				{
-					if (index < 5)
-						note.fret.lane = index;
-					else
-						note.fret.lane = 7;
-					colors[index].push_back(note);
-					if (firstIndex == -1)
-						firstIndex = allNotes.insert_ordered(&colors[index].back());
-					else
-						allNotes.insert_ordered(&colors[index].back());
+					if (origLane & (1 << index))
+					{
+						if (index < 5)
+							note.m_fret.m_lane = index;
+						else
+							note.m_fret.m_lane = 7;
+						m_colors[index].push_back(note);
+						if (firstIndex == -1)
+							firstIndex = m_allNotes.insert_ordered(&m_colors[index].back());
+						else
+							m_allNotes.insert_ordered(&m_colors[index].back());
+					}
 				}
 			}
-			switch (note.mod)
+			switch (note.m_mod)
 			{
 			case CHNote::Modifier::FORCED:
-				note.fret.lane = 5;
-				modifiers.push_back(note);
+				note.m_fret.m_lane = 5;
+				m_modifiers.push_back(note);
 				if (firstIndex == -1)
-					firstIndex = allNotes.insert_ordered(&modifiers.back());
+					firstIndex = m_allNotes.insert_ordered(&m_modifiers.back());
 				else
-					allNotes.insert_ordered(&modifiers.back());
+					m_allNotes.insert_ordered(&m_modifiers.back());
 			case CHNote::Modifier::TAP:
-				note.fret.lane = 6;
-				modifiers.push_back(note);
+				note.m_fret.m_lane = 6;
+				m_modifiers.push_back(note);
 				if (firstIndex == -1)
-					firstIndex = allNotes.insert_ordered(&modifiers.back());
+					firstIndex = m_allNotes.insert_ordered(&m_modifiers.back());
 				else
-					allNotes.insert_ordered(&modifiers.back());
+					m_allNotes.insert_ordered(&m_modifiers.back());
 			}
 			return firstIndex;
 		}
 		case CHNote::NoteType::STAR:
-			note.fret.lane = 0;
-			star.push_back(note);
-			return allNotes.insert_ordered(&star.back());
+			note.m_fret.m_lane = 0;
+			m_star.push_back(note);
+			return m_allNotes.insert_ordered(&m_star.back());
 		default:
-			events.push_back(note);
-			return allNotes.insert_ordered(&events.back());
+			m_events.push_back(note);
+			return m_allNotes.insert_ordered(&m_events.back());
 		}
 	}
 	size_t addModifier(double pos, CHNote::Modifier mod);

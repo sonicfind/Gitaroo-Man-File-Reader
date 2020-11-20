@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-  <Type Name="List&lt;*&gt;">
-    <DisplayString>{{Count = {shared->count}}}</DisplayString>
+  <Type Name="LinkedList::List&lt;*&gt;">
+    <DisplayString>{{Count = {s_shared->m_count}}}</DisplayString>
     <Expand>
-      <Item Name="Count">shared->count</Item>
+      <Item Name="Shared">s_shared._Ptr</Item>
       <LinkedListItems>
-        <Size>shared->count</Size>
-        <HeadPointer>shared->root</HeadPointer>
+        <Size>s_shared->m_count</Size>
+        <HeadPointer>s_shared->m_root</HeadPointer>
         <NextPointer>next</NextPointer>
-        <ValueNode>data</ValueNode>
+        <ValueNode>data.object</ValueNode>
       </LinkedListItems>
     </Expand>
   </Type>

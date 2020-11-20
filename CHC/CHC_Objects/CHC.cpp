@@ -18,105 +18,105 @@
 using namespace std;
 
 //Creates a CHC object with 1 songsection
-CHC::CHC() : sections(1), name(""), shortname(""), stage(0), speed(0), unorganized(0), optimized(false), saved(2) {}
+CHC::CHC() : m_sections(1), m_name(""), m_shortname(""), m_stage(0), m_speed(0), m_unorganized(0), m_optimized(false), m_saved(2) {}
 
 CHC::CHC(const CHC& song)
-	: sections(song.sections), name(song.name), shortname(song.shortname), stage(song.stage),
-		speed(song.speed), unorganized(song.unorganized), optimized(song.optimized), saved(song.saved)
+	: m_sections(song.m_sections), m_name(song.m_name), m_shortname(song.m_shortname), m_stage(song.m_stage),
+		m_speed(song.m_speed), m_unorganized(song.m_unorganized), m_optimized(song.m_optimized), m_saved(song.m_saved)
 {
-	std::copy(song.header, song.header + 36, header);
-	std::copy(song.imc, song.imc + 256, imc);
-	std::copy(song.events, song.events + 4, events);
-	std::copy(song.audio, song.audio + 8, audio);
-	std::copy(song.energyDamageFactors[0], song.energyDamageFactors[0] + 20, energyDamageFactors[0]);
+	std::copy(song.m_header, song.m_header + 36, m_header);
+	std::copy(song.m_imc, song.m_imc + 256, m_imc);
+	std::copy(song.m_events, song.m_events + 4, m_events);
+	std::copy(song.m_audio, song.m_audio + 8, m_audio);
+	std::copy(song.m_energyDamageFactors[0], song.m_energyDamageFactors[0] + 20, m_energyDamageFactors[0]);
 }
 
 CHC& CHC::operator=(CHC& song)
 {
-	name = song.name;
-	shortname = song.shortname;
-	stage = song.stage;
-	std::copy(song.header, song.header + 36, header);
-	std::copy(song.imc, song.imc + 256, imc);
-	std::copy(song.events, song.events + 4, events);
-	std::copy(song.audio, song.audio + 8, audio);
-	speed = song.speed;
-	unorganized = song.unorganized;
-	optimized = song.optimized;
-	sections = song.sections;
-	std::copy(song.energyDamageFactors[0], song.energyDamageFactors[0] + 20, energyDamageFactors[0]);
-	saved = song.saved;
+	m_name = song.m_name;
+	m_shortname = song.m_shortname;
+	m_stage = song.m_stage;
+	std::copy(song.m_header, song.m_header + 36, m_header);
+	std::copy(song.m_imc, song.m_imc + 256, m_imc);
+	std::copy(song.m_events, song.m_events + 4, m_events);
+	std::copy(song.m_audio, song.m_audio + 8, m_audio);
+	m_speed = song.m_speed;
+	m_unorganized = song.m_unorganized;
+	m_optimized = song.m_optimized;
+	m_sections = song.m_sections;
+	std::copy(song.m_energyDamageFactors[0], song.m_energyDamageFactors[0] + 20, m_energyDamageFactors[0]);
+	m_saved = song.m_saved;
 	return *this;
 }
 
 //Creates a CHC object using values from the CHC file pointed to by the provided filename.
 //
 //Value names chosen to be kept are based off the CHC tab in the Gitaroo Pals shoutwiki
-CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
+CHC::CHC(string filename) : m_name(filename + ".CHC"), m_saved(2)
 {
 	{
 		size_t pos = filename.find_last_of('\\');
-		shortname = filename.substr(pos != string::npos ? pos + 1 : 0);
+		m_shortname = filename.substr(pos != string::npos ? pos + 1 : 0);
 	}
-	banner(" Loading " + shortname + ".CHC ");
+	GlobalFunctions::banner(" Loading " + m_shortname + ".CHC ");
 	try
 	{
-		stage = stoi(shortname.substr(2, 2));
+		m_stage = stoi(m_shortname.substr(2, 2));
 	}
 	catch (...)
 	{
 		do
 		{
-			printf("%sWhich number do you wish to give this stage? (Think:\"ST##\") ('Q' to cancel CHC load)\n", global.tabs.c_str());
-			printf("%sWarning: setting it the 0 alters how some functions behave (especially organizing)\n", global.tabs.c_str());
-			printf("%sInput: ", global.tabs.c_str());
-			switch (valueInsert(stage, false))
+			printf("%sWhich number do you wish to give this stage? (Think:\"ST##\") ('Q' to cancel CHC load)\n", g_global.tabs.c_str());
+			printf("%sWarning: setting it the 0 alters how some functions behave (especially organizing)\n", g_global.tabs.c_str());
+			printf("%sInput: ", g_global.tabs.c_str());
+			switch (GlobalFunctions::valueInsert(m_stage, false))
 			{
-			case '!':
-				global.quit = true;
+			case GlobalFunctions::ResultType::Success:
+				g_global.quit = true;
 				break;
-			case '-':
-				printf("%sGiven value cannot be negative\n%s\n", global.tabs.c_str(), global.tabs.c_str());
+			case GlobalFunctions::ResultType::InvalidNegative:
+				printf("%sGiven value cannot be negative\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 				break;
-			case '*':
-				printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
+			case GlobalFunctions::ResultType::Failed:
+				printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
 				break;
-			case 'q':
-				printf("%s\n", global.tabs.c_str());
-				//printf("%s", global.tabs.c_str(), "CHC load cancelled\n";
+			case GlobalFunctions::ResultType::Quit:
+				printf("%s\n", g_global.tabs.c_str());
+				//printf("%s", g_global.tabs.c_str(), "CHC load cancelled\n";
 				throw "Stage number not provided.";
 			}
-		} while (!global.quit);
-		global.quit = false;
+		} while (!g_global.quit);
+		g_global.quit = false;
 	}
 	union {
 		char c[4];
 		unsigned ui;
 	} u;
 	FILE* inFile;
-	if (fopen_s(&inFile, name.c_str(), "rb"))
-		throw "Error: " + name + " does not exist.";
-	fread(header, 1, 36, inFile);
-	if (!strstr(header, "SNGS"))
+	if (fopen_s(&inFile, m_name.c_str(), "rb"))
+		throw "Error: " + m_name + " does not exist.";
+	fread(m_header, 1, 36, inFile);
+	if (!strstr(m_header, "SNGS"))
 	{
 		fclose(inFile);
 		throw "Error: No 'SNGS' Tag at byte 0.";
 	}
-	std::copy(u.c, u.c + 4, header + 4);
-	optimized = u.ui == 6145;
-	fread(imc, 1, 256, inFile);
-	bool duet = imc[0] == 0;
-	fread(&events, sizeof(SSQ), 4, inFile);
-	fread(&audio, sizeof(AudioChannel), 8, inFile);
-	fread(&speed, 4, 1, inFile);
+	std::copy(u.c, u.c + 4, m_header + 4);
+	m_optimized = u.ui == 6145;
+	fread(m_imc, 1, 256, inFile);
+	bool duet = m_imc[0] == 0;
+	fread(&m_events, sizeof(SSQ), 4, inFile);
+	fread(&m_audio, sizeof(AudioChannel), 8, inFile);
+	fread(&m_speed, 4, 1, inFile);
 	fread(u.c, 4, 1, inFile);
-	unorganized = u.ui;
+	m_unorganized = u.ui;
 	//Uses FILE* constructor to read section cue data
 	for (unsigned sectIndex = 0; sectIndex < u.ui; sectIndex++)
-		sections.emplace_back(inFile);
+		m_sections.emplace_back(inFile);
 	fseek(inFile, 4, SEEK_CUR);
 	bool reorganized = false;
-	for (size_t sectIndex = 0; sectIndex < sections.size(); sectIndex++) //SongSections
+	for (size_t sectIndex = 0; sectIndex < m_sections.size(); sectIndex++) //SongSections
 	{
 		fread(u.c, 1, 4, inFile);
 		if (!strstr(u.c, "CHLS"))
@@ -124,79 +124,60 @@ CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
 			fclose(inFile);
 			throw "Error: No 'CHLS' Tag for section #" + to_string(sectIndex) + " [File offset: " + to_string(ftell(inFile) - 4) + "].";
 		}
-		SongSection& section = sections[sectIndex];
+		SongSection& section = m_sections[sectIndex];
 		fread(u.c, 1, 4, inFile);
 		if (u.ui & 1)
 		{
-			section.organized = true;
-			unorganized--;
+			section.m_organized = true;
+			m_unorganized--;
 		}
-		section.swapped = (u.ui - 4864) / 2;
-		fread(&section.size, 4, 1, inFile);
-		if (!section.organized)
+		section.m_swapped = (u.ui - 4864) / 2;
+		fread(&section.m_size, 4, 1, inFile);
+		if (!section.m_organized)
 		{
-			fread(&section.organized, 4, 1, inFile);
-			unorganized -= section.organized;
+			fread(&section.m_organized, 4, 1, inFile);
+			m_unorganized -= section.m_organized;
 		}
 		else
 			fseek(inFile, 4, SEEK_CUR);
-		if (!section.swapped)
-			fread(&section.swapped, 4, 1, inFile);
+		if (!section.m_swapped)
+			fread(&section.m_swapped, 4, 1, inFile);
 		else
 			fseek(inFile, 4, SEEK_CUR);
-		if ((stage == 11 || stage == 12) && !duet && section.swapped < 4)
+		if ((m_stage == 11 || m_stage == 12) && !duet && section.m_swapped < 4)
 		{
-			section.swapped += 4;
-			printf("%sSection #%zu (%s)'s swap value was adjusted to match current implementation for Duet->PS2 conversions. Make sure to save this file to apply this change.\n", global.tabs.c_str(), sectIndex, section.name);
-			saved = 0;
+			section.m_swapped += 4;
+			printf("%sSection #%zu (%s)'s swap value was adjusted to match current implementation for Duet->PS2 conversions. Make sure to save this file to apply this change.\n", g_global.tabs.c_str(), sectIndex, section.m_name);
+			m_saved = 0;
 		}
-		fread(section.junk, 1, 16, inFile);
-		fread(&section.battlePhase, 4, 1, inFile);
-		fread(&section.tempo, 4, 1, inFile);
-		fread(&section.duration, 4, 1, inFile);
+		fread(section.m_junk, 1, 16, inFile);
+		fread(&section.m_battlePhase, 4, 1, inFile);
+		fread(&section.m_tempo, 4, 1, inFile);
+		fread(&section.m_duration, 4, 1, inFile);
 		fseek(inFile, 4, SEEK_CUR);
 		fread(u.c, 4, 1, inFile);
 		for (unsigned condIndex = 0; condIndex < u.ui; condIndex++)
-			section.conditions.emplace_back(inFile);
-		fread(&section.numPlayers, 4, 1, inFile);
-		if (section.numPlayers != 4)
+			section.m_conditions.emplace_back(inFile);
+		fread(&section.m_numPlayers, 4, 1, inFile);
+		fread(&section.m_numCharts, 4, 1, inFile);
+		section.m_charts.clear();
+		for (unsigned playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
 		{
-			do
-			{
-				printf("%sAre you sure you want value for the number of players used to read %s to be %lu? [Y/N][Q to halt player swap from this point]\n", global.tabs.c_str(), section.name, section.numPlayers);
-				printf("%sChoosing 'N' will force a read of 4 players\n", global.tabs.c_str());
-				switch (menuChoices("yn"))
-				{
-				case '-':
-					fclose(inFile);
-					throw "Number of players for section " + to_string(sectIndex) + " left unspecified.";
-				case '!':
-					section.numPlayers = 4;
-				case 'q':
-					global.quit = true;
-				}
-			} while (!global.quit);
-			global.quit = false;
-		}
-		fread(&section.numCharts, 4, 1, inFile);
-		section.charts.clear();
-		for (unsigned playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
-		{
-			for (unsigned chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
+			for (unsigned chartIndex = 0; chartIndex < section.m_numCharts; chartIndex++)
 			{
 				fread(u.c, 1, 4, inFile);
 				if (!strstr(u.c, "CHCH"))
 				{
 					fclose(inFile);
-					throw "Error: No 'CHCH' Tag for section " + to_string(sectIndex) + " - subsection " + to_string(playerIndex * section.numCharts + chartIndex) +
+					throw "Error: No 'CHCH' Tag for section " + to_string(sectIndex) + " - subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) +
 						" [File offset: " + to_string(ftell(inFile) - 4) + "].";
 				}
 				Chart chart;
 				//Skip Chart size as the embedded value can be wrong
 				fseek(inFile, 16, SEEK_CUR);
-				fread(chart.junk, 1, 16, inFile);
-				fread(&chart.pivotTime, 4, 1, inFile);
-				fread(&chart.endTime, 4, 1, inFile);
+				fread(chart.m_junk, 1, 16, inFile);
+				fread(&chart.m_pivotTime, 4, 1, inFile);
+				fread(&chart.m_endTime, 4, 1, inFile);
 				chart.clearTracelines();
 				fread(u.c, 1, 4, inFile); //Read number of trace lines
 				//Uses Traceline FILE* constructor
@@ -211,7 +192,7 @@ CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
 				for (unsigned guardIndex = 0; guardIndex < u.ui; guardIndex++)
 					chart.emplaceGuard(inFile);
 				fseek(inFile, 4, SEEK_CUR);
-				section.charts.push_back(chart);
+				section.m_charts.push_back(chart);
 			}
 		}
 	}
@@ -220,9 +201,9 @@ CHC::CHC(string filename) : name(filename + ".CHC"), saved(2)
 	{
 		fclose(inFile);
 		throw "Error: Incorrect constant value found when attempting to read Player Damage / Energy Factors.\n" + 
-			global.tabs + "Needed: '20' (or '0x00000014')| Found: " + to_string(u.ui) + " [File offset: " + to_string(ftell(inFile) - 4) + "].";
+			g_global.tabs + "Needed: '20' (or '0x00000014')| Found: " + to_string(u.ui) + " [File offset: " + to_string(ftell(inFile) - 4) + "].";
 	}
-	fread(&energyDamageFactors, sizeof(EnergyDamage), 20, inFile);
+	fread(&m_energyDamageFactors, sizeof(EnergyDamage), 20, inFile);
 	fclose(inFile);
 }
 
@@ -231,7 +212,7 @@ void CHC::create(string filename)
 {
 	{
 		size_t pos = filename.find_last_of('\\');
-		banner(" Saving " + filename.substr(pos != string::npos ? pos + 1 : 0) + ' ');
+		GlobalFunctions::banner(" Saving " + filename.substr(pos != string::npos ? pos + 1 : 0) + ' ');
 	}
 	FILE* outFile;
 	fopen_s(&outFile, filename.c_str(), "wb");
@@ -239,84 +220,84 @@ void CHC::create(string filename)
 		char c[4];
 		unsigned ui;
 	} u;
-	u.ui = 6144UL + optimized;
-	std::copy(u.c, u.c + 4, header + 4);
-	fwrite(header, 1, 36, outFile);
-	fwrite(imc, 1, 256, outFile);
-	fwrite(events, sizeof(SSQ), 4, outFile);
-	fwrite(audio, sizeof(AudioChannel), 8, outFile);
-	fwrite(&speed, 4, 1, outFile);
-	fwrite((unsigned long*)&sections.size(), 4, 1, outFile);
-	for (unsigned sectIndex = 0; sectIndex < sections.size(); sectIndex++)	//Cues
+	u.ui = 6144UL + m_optimized;
+	std::copy(u.c, u.c + 4, m_header + 4);
+	fwrite(m_header, 1, 36, outFile);
+	fwrite(m_imc, 1, 256, outFile);
+	fwrite(m_events, sizeof(SSQ), 4, outFile);
+	fwrite(m_audio, sizeof(AudioChannel), 8, outFile);
+	fwrite(&m_speed, 4, 1, outFile);
+	fwrite((unsigned long*)&m_sections.size(), 4, 1, outFile);
+	for (unsigned sectIndex = 0; sectIndex < m_sections.size(); sectIndex++)	//Cues
 	{
-		fwrite(&sections[sectIndex].index, 4, 1, outFile);
-		fwrite(sections[sectIndex].name, 1, 16, outFile);
-		fwrite(sections[sectIndex].audio, 1, 16, outFile);
-		fwrite(&sections[sectIndex].frames, 4, 2, outFile);
+		fwrite(&m_sections[sectIndex].m_index, 4, 1, outFile);
+		fwrite(m_sections[sectIndex].m_name, 1, 16, outFile);
+		fwrite(m_sections[sectIndex].m_audio, 1, 16, outFile);
+		fwrite(&m_sections[sectIndex].m_frames, 4, 2, outFile);
 		fwrite("\0\0\0\0", 1, 4, outFile);
 	}
-	fwrite((unsigned long*)&sections.size(), 4, 1, outFile);
-	for (unsigned sectIndex = 0; sectIndex < sections.size(); sectIndex++) //SongSections
+	fwrite((unsigned long*)&m_sections.size(), 4, 1, outFile);
+	for (unsigned sectIndex = 0; sectIndex < m_sections.size(); sectIndex++) //SongSections
 	{
-		SongSection& section = sections[sectIndex];
+		SongSection& section = m_sections[sectIndex];
 		fputs("CHLS", outFile);
 		u.ui = 4864UL;
 		fwrite(u.c, 1, 4, outFile);
-		fwrite(&section.size, 4, 1, outFile);
-		fwrite(&section.organized, 4, 1, outFile);
-		fwrite(&section.swapped, 4, 1, outFile);
-		fwrite(section.junk, 1, 16, outFile);
-		fwrite(&section.battlePhase, 4, 1, outFile);
-		fwrite(&section.tempo, 4, 1, outFile);
-		fwrite(&section.duration, 4, 1, outFile);
+		fwrite(&section.m_size, 4, 1, outFile);
+		fwrite(&section.m_organized, 4, 1, outFile);
+		fwrite(&section.m_swapped, 4, 1, outFile);
+		fwrite(section.m_junk, 1, 16, outFile);
+		fwrite(&section.m_battlePhase, 4, 1, outFile);
+		fwrite(&section.m_tempo, 4, 1, outFile);
+		fwrite(&section.m_duration, 4, 1, outFile);
 		fwrite("\0\0\0\0", 1, 4, outFile);
-		fwrite((unsigned long*)&section.conditions.size(), 4, 1, outFile);
-		for (size_t condIndex = 0; condIndex < section.conditions.size(); condIndex++)
-			fwrite(&section.conditions[condIndex], 16, 1, outFile);
-		fwrite(&section.numPlayers, 4, 1, outFile);
-		fwrite(&section.numCharts, 4, 1, outFile);
-		for (unsigned playerIndex = 0; playerIndex < section.numPlayers; playerIndex++)
+		fwrite((unsigned long*)&section.m_conditions.size(), 4, 1, outFile);
+		for (size_t condIndex = 0; condIndex < section.m_conditions.size(); condIndex++)
+			fwrite(&section.m_conditions[condIndex], 16, 1, outFile);
+		fwrite(&section.m_numPlayers, 4, 1, outFile);
+		fwrite(&section.m_numCharts, 4, 1, outFile);
+		for (unsigned playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
 		{
-			for (unsigned chartIndex = 0; chartIndex < section.numCharts; chartIndex++)
+			for (unsigned chartIndex = 0; chartIndex < section.m_numCharts; chartIndex++)
 			{
-				Chart& chart = section.charts[(size_t)playerIndex * section.numCharts + chartIndex];
+				Chart& chart = section.m_charts[(size_t)playerIndex * section.m_numCharts + chartIndex];
 				fputs("CHCH", outFile);
 				u.ui = 4864UL;
 				fwrite(u.c, 1, 4, outFile);
-				fwrite(&chart.size, 4, 1, outFile);
+				fwrite(&chart.m_size, 4, 1, outFile);
 				fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
-				fwrite(chart.junk, 1, 16, outFile);
-				fwrite(&chart.pivotTime, 4, 1, outFile);
-				fwrite(&chart.endTime, 4, 1, outFile);
-				fwrite((unsigned long*)&chart.tracelines.size(), 4, 1, outFile);
-				for (size_t traceIndex = 0; traceIndex < chart.tracelines.size(); traceIndex++)
+				fwrite(chart.m_junk, 1, 16, outFile);
+				fwrite(&chart.m_pivotTime, 4, 1, outFile);
+				fwrite(&chart.m_endTime, 4, 1, outFile);
+				fwrite((unsigned long*)&chart.m_tracelines.size(), 4, 1, outFile);
+				for (size_t traceIndex = 0; traceIndex < chart.m_tracelines.size(); traceIndex++)
 				{
-					fwrite(&chart.tracelines[traceIndex].pivotAlpha, 4, 1, outFile);
-					fwrite(&chart.tracelines[traceIndex].duration, 4, 1, outFile);
-					fwrite(&chart.tracelines[traceIndex].angle, 4, 1, outFile);
-					fwrite(&chart.tracelines[traceIndex].curve, 4, 1, outFile);
+					fwrite(&chart.m_tracelines[traceIndex].m_pivotAlpha, 4, 1, outFile);
+					fwrite(&chart.m_tracelines[traceIndex].m_duration, 4, 1, outFile);
+					fwrite(&chart.m_tracelines[traceIndex].m_angle, 4, 1, outFile);
+					fwrite(&chart.m_tracelines[traceIndex].m_curve, 4, 1, outFile);
 				}
-				fwrite((unsigned long*)&chart.phrases.size(), 4, 1, outFile);
-				for (size_t phraseIndex = 0; phraseIndex < chart.phrases.size(); phraseIndex++)
+				fwrite((unsigned long*)&chart.m_phrases.size(), 4, 1, outFile);
+				for (size_t phraseIndex = 0; phraseIndex < chart.m_phrases.size(); phraseIndex++)
 				{
-					fwrite(&chart.phrases[phraseIndex].pivotAlpha, 4, 1, outFile);
-					fwrite(&chart.phrases[phraseIndex].duration, 4, 1, outFile);
-					fwrite(&chart.phrases[phraseIndex].start, 4, 1, outFile);
-					fwrite(&chart.phrases[phraseIndex].end, 4, 1, outFile);
-					fwrite(&chart.phrases[phraseIndex].animation, 4, 1, outFile);
-					if (chart.phrases[phraseIndex].color != -1)
+					fwrite(&chart.m_phrases[phraseIndex].m_pivotAlpha, 4, 1, outFile);
+					fwrite(&chart.m_phrases[phraseIndex].m_duration, 4, 1, outFile);
+					fwrite(&chart.m_phrases[phraseIndex].m_start, 4, 1, outFile);
+					fwrite(&chart.m_phrases[phraseIndex].m_end, 4, 1, outFile);
+					fwrite(&chart.m_phrases[phraseIndex].m_animation, 4, 1, outFile);
+					if (chart.m_phrases[phraseIndex].m_color != -1)
 					{
 						fputs("NOTECOLR", outFile);
-						fwrite(&chart.phrases[phraseIndex].color, 4, 1, outFile);
+						fwrite(&chart.m_phrases[phraseIndex].m_color, 4, 1, outFile);
 					}
 					else
-						fwrite(chart.phrases[phraseIndex].junk, 1, 12, outFile);
+						fwrite(chart.m_phrases[phraseIndex].m_junk, 1, 12, outFile);
 				}
-				fwrite((unsigned long*)&chart.guards.size(), 4, 1, outFile);
-				for (size_t guardIndex = 0; guardIndex < chart.guards.size(); guardIndex++)
+				fwrite((unsigned long*)&chart.m_guards.size(), 4, 1, outFile);
+				for (size_t guardIndex = 0; guardIndex < chart.m_guards.size(); guardIndex++)
 				{
-					fwrite(&chart.guards[guardIndex].pivotAlpha, 4, 1, outFile);
-					fwrite(&chart.guards[guardIndex].button, 4, 1, outFile);
+					fwrite(&chart.m_guards[guardIndex].m_pivotAlpha, 4, 1, outFile);
+					fwrite(&chart.m_guards[guardIndex].m_button, 4, 1, outFile);
 					fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
 				}
 				fwrite("\0\0\0\0", 1, 4, outFile);
@@ -326,7 +307,7 @@ void CHC::create(string filename)
 	}
 	u.ui = 20UL;
 	fwrite(u.c, 1, 4, outFile);
-	fwrite(energyDamageFactors, sizeof(EnergyDamage), 20, outFile);
+	fwrite(m_energyDamageFactors, sizeof(EnergyDamage), 20, outFile);
 	fclose(outFile);
-	saved = 1;
+	m_saved = 1;
 }

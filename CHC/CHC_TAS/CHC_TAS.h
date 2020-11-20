@@ -60,7 +60,7 @@ private:
 			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
 			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
 			{ 0, 0, 0, 0, 0, 0 } } };
-		size_t frames[3][13][6] =
+		unsigned long frames[3][13][6] =
 		{ { {373, 399, 0, 0, 0, 0}, {646, 639, 646, 720, 735, 739},
 			{553, 553, 547, 680, 693, 696}, {712, 705, 711, 755, 767, 772},
 			{304, 298, 304, 0, 0, 0}, {741, 733, 739, 871, 885, 887},
@@ -83,16 +83,16 @@ private:
 			{656, 650, 657, 523, 0, 0}, {256, 580, 574, 0, 0, 0},
 			{241, 280, 406, 0, 0, 0} } };
 	} frameValues;
-	unsigned char version = 2;
-	unsigned char emulator[50] = { "PCSX2-1.7.X" };
-	unsigned char author[255] = { 0 };
-	unsigned char game[255] = { "Gitaroo Man (USA).ISO" };
-	float framerate = 59.94f;
-	LinkedList::List<TAS_Frame> players[4];
+	char m_version = 2;
+	char m_emulator[50] = { "PCSX2-1.7.X" };
+	char m_author[256] = { 0 };
+	char m_game[256] = { "Gitaroo Man (USA).ISO" };
+	float m_framerate = 59.94f;
+	LinkedList::List<TAS_Frame> m_players[4];
 public:
 	bool loadValues(std::string file = frameValues.name);
-	size_t insertFrames(size_t, size_t, size_t, bool[2], size_t);
-	void resultScreen(size_t, size_t, bool, bool[2]);
+	size_t insertFrames(const int stage, const int orientation, const int difficulty, const bool(&multi)[2], size_t numFrames);
+	void resultScreen(const int stage, const int notes, const bool singleplayer, const bool (&multi)[2]);
 	void print(std::string filename);
 };
 

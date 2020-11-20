@@ -15,6 +15,7 @@
 #include "..\..\Header\pch.h"
 #include "Global_Functions.h"
 #include "CHC_TAS.h"
+
 PCSX2TAS::Framefile PCSX2TAS::frameValues;
 using namespace std;
 
@@ -34,133 +35,133 @@ bool PCSX2TAS::loadValues(string filename)
 		frameValues.name = filename;
 		char ignore[300];
 		bool error = false, failed = true;
-		for (size_t framerate = 0; !global.quit && framerate < 3; framerate++)
+		for (int framerate = 0; !g_global.quit && framerate < 3; framerate++)
 		{
 			if (!feof(p2m2v))
 			{
 				fscanf_s(p2m2v, " %[^;]s", ignore, 300);
 				fseek(p2m2v, 1, SEEK_CUR);
-				for (size_t stage = 0; !global.quit && stage < 13; stage++)
+				for (int stage = 0; !g_global.quit && stage < 13; stage++)
 				{
-					for (size_t difficulty = 0; !global.quit && difficulty < 6; difficulty++)
+					for (int difficulty = 0; !g_global.quit && difficulty < 6; difficulty++)
 					{
 						if (!feof(p2m2v))
 						{
-							switch (valueInsertFromFile(p2m2v, frameValues.initialDisplacements[framerate][stage][difficulty], true))
+							switch (GlobalFunctions::valueInsertFromFile(p2m2v, frameValues.initialDisplacements[framerate][stage][difficulty], true))
 							{
-							case '!':
+							case GlobalFunctions::ResultType::Success:
 								failed = false;
 								break;
-							case '*':
-								printf("%sError: Invalid input (%s)\n", global.tabs.c_str(), global.invalid.c_str());
-							case 'q':
-								printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-								printf("FPS [Initial Displacements] - Stage %zu", stage + 1);
+							case GlobalFunctions::ResultType::Failed:
+								printf("%sError: Invalid input (%s)\n", g_global.tabs.c_str(), g_global.invalid.c_str());
+							case GlobalFunctions::ResultType::Quit:
+								printf("%sRead stopped at (& not including): %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+								printf("FPS [Initial Displacements] - Stage %u", stage + 1);
 								switch (difficulty)
 								{
-								case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-								case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
-								case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
-								default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
+								case 0: printf(" (Hard) [1]\n%s\n", g_global.tabs.c_str()); break;
+								case 1: printf(" (Normal) [2]\n%s\n", g_global.tabs.c_str()); break;
+								case 2: printf(" (Easy) [3]\n%s\n", g_global.tabs.c_str()); break;
+								default: printf(" (Multiplayer) [%u]\n%s\n", difficulty + 1, g_global.tabs.c_str());
 								}
 								fclose(p2m2v);
-								global.quit = true;
+								g_global.quit = true;
 							}
 						}
 						else
 						{
-							printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-							printf("FPS [Initial Displacements] - Stage %zu", stage + 1);
+							printf("%sRead stopped at (& not including): %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+							printf("FPS [Initial Displacements] - Stage %u", stage + 1);
 							switch (difficulty)
 							{
-							case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-							case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
-							case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
-							default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
+							case 0: printf(" (Hard) [1]\n%s\n", g_global.tabs.c_str()); break;
+							case 1: printf(" (Normal) [2]\n%s\n", g_global.tabs.c_str()); break;
+							case 2: printf(" (Easy) [3]\n%s\n", g_global.tabs.c_str()); break;
+							default: printf(" (Multiplayer) [%u]\n%s\n", difficulty + 1, g_global.tabs.c_str());
 							}
-							global.quit = true;
+							g_global.quit = true;
 						}
 					}
 				}
-				if (global.quit)
+				if (g_global.quit)
 					break;
 				fscanf_s(p2m2v, " %[^;]s", ignore, 300);
 				fseek(p2m2v, 1, SEEK_CUR);
-				for (size_t stage = 0; !global.quit && stage < 13; stage++)
+				for (int stage = 0; !g_global.quit && stage < 13; stage++)
 				{
-					for (size_t difficulty = 0; !global.quit && difficulty < 6; difficulty++)
+					for (int difficulty = 0; !g_global.quit && difficulty < 6; difficulty++)
 					{
 						if (!feof(p2m2v))
 						{
-							switch (valueInsertFromFile(p2m2v, frameValues.frames[framerate][stage][difficulty]))
+							switch (GlobalFunctions::valueInsertFromFile(p2m2v, frameValues.frames[framerate][stage][difficulty]))
 							{
-							case '!':
+							case GlobalFunctions::ResultType::Success:
 
 								break;
-							case '-':
-								printf("%sError: No Negative values\n", global.tabs.c_str());
-								printf("%sSkipping %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-								printf("FPS: Stage %zu - Value %zu\n%s\n", stage + 1, difficulty + 1, global.tabs.c_str());
+							case GlobalFunctions::ResultType::InvalidNegative:
+								printf("%sError: No Negative values\n", g_global.tabs.c_str());
+								printf("%sSkipping %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+								printf("FPS: Stage %u - Value %u\n%s\n", stage + 1, difficulty + 1, g_global.tabs.c_str());
 								error = true;
 								break;
-							case '*':
-								printf("%sError: Invalid input (%s)\n", global.tabs.c_str(), global.invalid.c_str());
-							case 'q':
-								printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-								printf("FPS [Frame Displacements] - Stage %zu", stage + 1);
+							case GlobalFunctions::ResultType::Failed:
+								printf("%sError: Invalid input (%s)\n", g_global.tabs.c_str(), g_global.invalid.c_str());
+							case GlobalFunctions::ResultType::Quit:
+								printf("%sRead stopped at (& not including): %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+								printf("FPS [Frame Displacements] - Stage %u", stage + 1);
 								switch (difficulty)
 								{
-								case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-								case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
-								case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
-								default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
+								case 0: printf(" (Hard) [1]\n%s\n", g_global.tabs.c_str()); break;
+								case 1: printf(" (Normal) [2]\n%s\n", g_global.tabs.c_str()); break;
+								case 2: printf(" (Easy) [3]\n%s\n", g_global.tabs.c_str()); break;
+								default: printf(" (Multiplayer) [%u]\n%s\n", difficulty + 1, g_global.tabs.c_str());
 								}
-								global.quit = true;
+								g_global.quit = true;
 							}
 						}
 						else
 						{
-							printf("%sRead stopped at (& not including): %s", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-							printf("FPS [Frame Displacements] - Stage %zu", stage + 1);
+							printf("%sRead stopped at (& not including): %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+							printf("FPS [Frame Displacements] - Stage %u", stage + 1);
 							switch (difficulty)
 							{
-							case 0: printf(" (Hard) [1]\n%s\n", global.tabs.c_str()); break;
-							case 1: printf(" (Normal) [2]\n%s\n", global.tabs.c_str()); break;
-							case 2: printf(" (Easy) [3]\n%s\n", global.tabs.c_str()); break;
-							default: printf(" (Multiplayer) [%zu]\n%s\n", difficulty + 1, global.tabs.c_str());
+							case 0: printf(" (Hard) [1]\n%s\n", g_global.tabs.c_str()); break;
+							case 1: printf(" (Normal) [2]\n%s\n", g_global.tabs.c_str()); break;
+							case 2: printf(" (Easy) [3]\n%s\n", g_global.tabs.c_str()); break;
+							default: printf(" (Multiplayer) [%u]\n%s\n", difficulty + 1, g_global.tabs.c_str());
 							}
-							global.quit = true;
+							g_global.quit = true;
 						}
 					}
 				}
 			}
 			else
 			{
-				printf("%sRead stopped before FPS %s\n", global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+				printf("%sRead stopped before FPS %s\n", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
 				break;
 			}
 		}
 		fclose(p2m2v);
 		if (!failed)
 		{
-			printf("%s%s loaded%s\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str(), error ? " with error(s)" : "");
+			printf("%s%s loaded%s\n", g_global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str(), error ? " with error(s)" : "");
 			frameValues.use = true;
 			return true;
 		}
 		else
 		{
-			printf("%s%s failed to load\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+			printf("%s%s failed to load\n", g_global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 			return false;
 		}
 	}
 	else
 	{
-		printf("%s%s could not be located\n", global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
+		printf("%s%s could not be located\n", g_global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str());
 		return false;
 	}
 }
 
-void PCSX2TAS::resultScreen(size_t stage, size_t notes, bool singleplayer, bool multi[2])
+void PCSX2TAS::resultScreen(const int stage, const int notes, const bool singleplayer, const bool(&multi)[2])
 {
 	size_t toResult = 0;
 	switch (stage)
@@ -205,14 +206,14 @@ void PCSX2TAS::resultScreen(size_t stage, size_t notes, bool singleplayer, bool 
 		toResult = 790;
 	}
 	if (stage != 0)
-		players[0].resize(players[0].size() + toResult + notes + 306);
+		m_players[0].resize(m_players[0].size() + toResult + notes + 306);
 	else
-		players[0].resize(players[0].size() + toResult);
+		m_players[0].resize(m_players[0].size() + toResult);
 	if (!singleplayer)
 	{
-		players[1].resize(players[0].size());
-		if (multi[0]) players[2].resize(players[0].size());
-		if (multi[1]) players[3].resize(players[0].size());
+		m_players[1].resize(m_players[0].size());
+		if (multi[0]) m_players[2].resize(m_players[0].size());
+		if (multi[1]) m_players[3].resize(m_players[0].size());
 	}
 }
 
@@ -220,37 +221,39 @@ void PCSX2TAS::print(string filename)
 {
 #pragma warning(suppress : 4996) 
 	FILE* outp2m2 = fopen((filename + ".p2m2").c_str(), "wb");
-	char multi[8] = { true, 0, 0, 0, players[1].size() > 0, players[2].size() > 0, players[3].size() > 0, 0 };
-	fputc(version, outp2m2);
-	fwrite(emulator, 1, 50, outp2m2);
-	fwrite(author, 1, 255, outp2m2);
-	fwrite(game, 1, 255, outp2m2);
+	char multi[8] = { true, 0, 0, 0, m_players[1].size() > 0, m_players[2].size() > 0, m_players[3].size() > 0, 0 };
+	fputc(m_version, outp2m2);
+	fwrite(m_emulator, 1, 50, outp2m2);
+	fwrite(m_author, 1, 255, outp2m2);
+	fwrite(m_game, 1, 255, outp2m2);
 	fwrite("\0", 1, 1, outp2m2);
 	fwrite(multi, 1, 8, outp2m2);
-	fwrite(&players[0].size(), 4, 1, outp2m2);
+	fwrite(&m_players[0].size(), 4, 1, outp2m2);
 	fwrite("\0\0\0\0", 1, 4, outp2m2);
 	unsigned char sequence[18] = { 0 };
-	for (size_t index = 0; index < players[0].size(); index++)
+	for (size_t index = 0; index < m_players[0].size(); index++)
 	{
 		for (long player = 0; player < 4; player++)
 		{
-			if (players[player].size())
+			if (m_players[player].size())
 			{
-				TAS_Frame& frame = players[player][index];
+				TAS_Frame& frame = m_players[player][index];
 				sequence[0] = frame.dpad;
 				sequence[1] = frame.button;
 				sequence[2] = frame.rightStickX;
 				sequence[3] = frame.rightStickY;
 				sequence[4] = frame.leftStickX;
 				sequence[5] = frame.leftStickY;
-				if (~frame.dpad & 128) sequence[7] = 0xFF;	//Left
-				if (~frame.dpad & 64) sequence[9] = 0xFF;	//Down
-				if (~frame.dpad & 32) sequence[6] = 0xFF;	//Right
-				if (~frame.dpad & 16) sequence[8] = 0xFF;	//Up
-				if (~frame.button & 128) sequence[13] = 0xFF;
-				if (~frame.button & 64) sequence[12] = 0xFF;	//Cross
-				if (~frame.button & 32) sequence[11] = 0xFF;
-				if (~frame.button & 16) sequence[10] = 0xFF;	//Triangle
+				frame.dpad = ~frame.dpad;
+				if (frame.dpad & 128) sequence[7] = 0xFF;	// Left
+				if (frame.dpad & 64) sequence[9] = 0xFF;	// Down
+				if (frame.dpad & 32) sequence[6] = 0xFF;	// Right
+				if (frame.dpad & 16) sequence[8] = 0xFF;	// Up
+				frame.button = ~frame.button;
+				if (frame.button & 128) sequence[13] = 0xFF;
+				if (frame.button & 64) sequence[12] = 0xFF;	// Cross
+				if (frame.button & 32) sequence[11] = 0xFF;
+				if (frame.button & 16) sequence[10] = 0xFF;	// Triangle
 				fwrite(sequence, 1, 18, outp2m2);
 				memset(sequence, 0, 14);
 			}
@@ -258,229 +261,242 @@ void PCSX2TAS::print(string filename)
 		fflush(outp2m2);
 	}
 	fclose(outp2m2);
-	printf("%sPCSX2 TAS Completed.\n", global.tabs.c_str());
+	printf("%sPCSX2 TAS Completed.\n", g_global.tabs.c_str());
 }
 
-size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficulty, bool multi[2], size_t numFrames)
+size_t PCSX2TAS::insertFrames(const int stage, const int orientation, const int difficulty, const bool(&multi)[2], size_t numFrames)
 {
-	if (framerate >= 60.00f)
+	if (m_framerate >= 60.00f)
 	{
 		if (!stage)
 		{
-			players[0].resize(546 + frameValues.frames[2][0][0] + numFrames);
-			players[0][253].dpad &= 247;	//Start - Title Screen
-			players[0][545].button &= 191;	//X-button - Start Tutorial
+			m_players[0].resize(size_t(546) + frameValues.frames[2][0][0] + numFrames);
+			m_players[0][253].dpad &= 247;	// Start - Title Screen
+			m_players[0][545].button &= 191;	// X-button - Start Tutorial
 		}
 		else if (stage <= 10)
 		{
-			players[0].resize(1390 + 6ULL * multi[0] + frameValues.frames[2][stage][difficulty + multi[0] + multi[1]] + numFrames);
-			size_t index = 253 + 2ULL * multi[0];
-			players[0][index++].dpad &= 247;	index += 283ULL + multi[0];		//Start - Title Screen
-			players[0][index++].dpad &= 239;									//D-pad Up - To Settings option
-			players[0][index++].button &= 191;	index += 207;					//X-button - Select Settings option
-			players[0][index++].dpad &= 223;	index++;						//D-pad Right - To Difficulty option
-			players[0][index++].dpad &= 223;									//D-pad Right - To Load Game option
-			players[0][index++].button &= 191;	index += 150ULL + multi[0];		//X-button - Select Load Game
-			players[0][index++].button &= 191;	index += 161;					//X-button - Select Memory Slot 1
-			players[0][index++].button &= 191;	index += 49;					//X-button - Select Save File 1
-			players[0][index++].button &= 191;	index += 164ULL + multi[0];		//X-button - Exit Loading Module
+			m_players[0].resize(1390 + size_t(6) * multi[0] + frameValues.frames[2][stage][difficulty + multi[0] + multi[1]] + numFrames);
+			size_t index = 253 + size_t(2) * multi[0];
+			m_players[0][index++].dpad &= 247;		index += size_t(283) + multi[0];	// Start - Title Screen
+			m_players[0][index++].dpad &= 239;											// D-pad Up - To Settings option
+			m_players[0][index++].button &= 191;	index += 207;						// X-button - Select Settings option
+			m_players[0][index++].dpad &= 223;		index++;							// D-pad Right - To Difficulty option
+			m_players[0][index++].dpad &= 223;											// D-pad Right - To Load Game option
+			m_players[0][index++].button &= 191;	index += size_t(150) + multi[0];	// X-button - Select Load Game
+			m_players[0][index++].button &= 191;	index += 161;						// X-button - Select Memory Slot 1
+			m_players[0][index++].button &= 191;	index += 49;						// X-button - Select Save File 1
+			m_players[0][index++].button &= 191;	index += size_t(164) + multi[0];	// X-button - Exit Loading Module
 			if (difficulty == 1)
 			{
-				players[0].resize(players[0].size() + 4);
-				players[0][index++].dpad &= 223;					//D-pad Right - To Difficulty option
-				players[0][index++].dpad &= 191;					//D-pad Down - Difficulty to "Hard"
-				players[0][index++].dpad &= 127;	index++;		//D-pad Left - To Vibration option
+				m_players[0].resize(m_players[0].size() + 4);
+				m_players[0][index++].dpad &= 223;					// D-pad Right - To Difficulty option
+				m_players[0][index++].dpad &= 191;					// D-pad Down - Difficulty to "Hard"
+				m_players[0][index++].dpad &= 127;	index++;		// D-pad Left - To Vibration option
 			}
 			if (orientation)
 			{
-				players[0].resize(players[0].size() + 87);
-				players[0][index++].dpad &= 127;	index++;		//D-pad Left - To Volume option
-				players[0][index++].dpad &= 127;					//D-pad Left - To Controller option
-				players[0][index++].button &= 191;	index += 34;	//X-button - Select Controller option
+				m_players[0].resize(m_players[0].size() + 87);
+				m_players[0][index++].dpad &= 127;		index++;		// D-pad Left - To Volume option
+				m_players[0][index++].dpad &= 127;						// D-pad Left - To Controller option
+				m_players[0][index++].button &= 191;	index += 34;	// X-button - Select Controller option
 				switch (orientation)
 				{
 				case 1:
-					index += 3;		//Do nothing on the Controller screen
+					index += 3;		// Do nothing on the Controller screen
 					break;
 				case 2:
-					players[0][index++].dpad &= 223; index += 2;	//D-pad Right - To Orientation 2
+					m_players[0][index++].dpad &= 223;	index += 2;	// D-pad Right - To Orientation 2
 					break;
 				case 3:
-					players[0][index++].dpad &= 223; index++;		//D-pad Right - To Orientation 2
-					players[0][index++].dpad &= 223;				//D-pad Right - To Orientation 3
+					m_players[0][index++].dpad &= 223;	index++;	// D-pad Right - To Orientation 2
+					m_players[0][index++].dpad &= 223;				// D-pad Right - To Orientation 3
 				}
-				players[0][index++].button &= 239;	index += 45;	// /\-button - Exit Controller screen
+				m_players[0][index++].button &= 239;	index += 45;	// /\-button - Exit Controller screen
 			}
-			players[0][index++].button &= 239;	index += 111ULL + multi[0];	// /\-button - Exit Settings menu / To Main menu
+			m_players[0][index++].button &= 239;	index += size_t(111) + multi[0];	// /\-button - Exit Settings menu / To Main menu
 			switch (difficulty)
 			{
-			case 0:		//Master
-				players[0].resize(players[0].size() + 1);
-				players[0][index++].dpad &= 191;				//D-pad Down - To Master Play option
-			case 1:		//Hard		Stay on Single Play option
-			case 2:		//Normal	Stay on Single Play option
+			case 0:		// Master
+				m_players[0].resize(m_players[0].size() + 1);
+				m_players[0][index++].dpad &= 191;				// D-pad Down - To Master Play option
+			case 1:		// Hard		Stay on Single Play option
+			case 2:		// Normal	Stay on Single Play option
 				break;
 			case 3:
-				players[0].resize(players[0].size() + 3);
-				players[0][index++].dpad &= 191; index++;		//D-pad Down - To Master Play option
-				players[0][index++].dpad &= 191;				//D-pad Down - To VS Play option
+				m_players[0].resize(m_players[0].size() + 3);
+				m_players[0][index++].dpad &= 191;	 index++;	// D-pad Down - To Master Play option
+				m_players[0][index++].dpad &= 191;				// D-pad Down - To VS Play option
 			}
-			players[0][index++].button &= 191;					//X-button - Select Current option
-			size_t stageSelectIndex = players[0].size();
+			m_players[0][index++].button &= 191;				// X-button - Select Current option
+			size_t stageSelectIndex = m_players[0].size();
 			if (difficulty != 3)
 			{
 				size_t stValue = (stage < 11 ? stage - 1 : stage - 11);
-				players[0].resize(players[0].size() + 143 + 2 * stValue);
+				m_players[0].resize(m_players[0].size() + 143 + 2 * stValue);
 				index += 143;
 				for (size_t stageIndex = 0; stageIndex < stValue; stageIndex++)
 				{
-					players[0][index++].dpad &= 223;	//D-pad Right - Stage Scrolling
+					m_players[0][index++].dpad &= 223;	// D-pad Right - Stage Scrolling
 					if (stage - stageIndex - 2)
 						index++;
 				}
+				m_players[0][index].button &= 191;						// X-button - Stage Start
 			}
 			else
 			{
-				players[0].resize(players[0].size() + 203ULL + 33ULL * multi[0] + 32ULL * multi[1] - 4 * ((stage - 1) / 3) + 2 * (stage / 10));
-				players[0][index++].button &= 191;	index += 48;	//X-button - MP Intro Screen
-				for (size_t stageIndex = 0, mStage = stage - ((stage - 1) / 3) - 1; stageIndex < mStage; stageIndex++)
+				size_t scrollVal = stage - size_t((stage - 1) / 3);
+				if (multi[1])
+					m_players[0].resize(m_players[0].size() + 268U);
+				else if (multi[0])
+					m_players[0].resize(m_players[0].size() + 236U);
+				else if (stage == 10)
+					m_players[0].resize(m_players[0].size() + 205U);
+				else
+					m_players[0].resize(m_players[0].size() + 203U);
+				index += 138 + 3ULL * multi[0];
+				const size_t val1 = (stage - 1) / 3, val2 = stage == 10, val3 = size_t(multi[0]) + multi[1];
+				m_players[0].resize(m_players[0].size() + 203 + (val3 << 5) + multi[0] - 2 * (2 * val1 + val2));
+				m_players[0][index++].button &= 191;	index += 48;	// X-button - MP Intro Screen
+				if (stage != 0)
 				{
-					players[0][index++].dpad &= 191;				//D-pad Down - Stage Scrolling
-					if (mStage - stageIndex - 1)
+					m_players[0][index++].dpad &= 191;		// D-pad Down - Stage Scrolling
+					for (size_t stageIndex = 1, mStage = stage - val1 - 1; stageIndex < mStage; stageIndex++)
+					{
 						index++;
+						m_players[0][index++].dpad &= 191;		// D-pad Down - Stage Scrolling
+					}
 				}
-				players[0][index++].button &= 191;					//X-button - Stage Selection
-				index += 2 * (9 - stage + 16 * ((size_t)multi[0] + multi[1]) - ((stage - 1) / 3) + (stage / 10)) + 1;		
-				players[0][index++].button &= 191;	index++;		//X-button - Character Selection
-				players[0][index++].button &= 191;	index++;		//X-button - Health Handicap Selection
-			}
-			players[0][index].button &= 191;						//X-button - Stage Start
-			if (difficulty == 3) //If Multiplayer
-			{
-				players[1].resize(players[0].size()); index = stageSelectIndex + 203 + 33ULL * multi[0] + 32ULL * multi[1] - 4 * ((stage - 1) / 3) + 2 * (stage / 10);
-				players[1][index++].button &= 191;	index++;		//X-button - Character Selection
-				players[1][index].button &= 191;					//X-button - Health Handicap Selection
-				if (multi[0]) //If Player 3
+				m_players[0][index++].button &= 191;				// X-button - Stage Selection
+				index += 2 * (size_t(9) - stage + (val3 << 4) - val1 + val2) + 1;
+				m_players[0][index++].button &= 191;	index++;	// X-button - Character Selection
+				m_players[0][index++].button &= 191;	index++;	// X-button - Health Handicap Selection
+				m_players[0][index].button &= 191;					// X-button - Stage Start
+
+				m_players[1].resize(m_players[0].size()); index = stageSelectIndex + 203 + (val3 << 5) + multi[0] - 2 * (2 * val1 + val2);
+				m_players[1][index++].button &= 191;	index++;	// X-button - Character Selection
+				m_players[1][index].button &= 191;					// X-button - Health Handicap Selection
+				if (multi[0]) // If Player 3
 				{
-					players[2].clone(players[1]);
-					if (multi[1])	//If Player 4
-						players[3].clone(players[1]);
+					m_players[2].clone(m_players[1]);
+					if (multi[1])	// If Player 4
+						m_players[3].clone(m_players[1]);
 				}
 			}
 		}
 		else
 		{
-			players[0].resize(543 + 3ULL * multi[0] + frameValues.frames[2][stage][difficulty + multi[0] + multi[1]] + numFrames);
+			m_players[0].resize(543 + 3ULL * multi[0] + frameValues.frames[2][stage][difficulty + multi[0] + multi[1]] + numFrames);
 			size_t index = 253 + 2ULL * multi[0];
-			players[0][index++].dpad &= 247;	index += 283ULL + multi[0];		//Start - Title Screen
-			players[0][index++].dpad &= 239;	index++;						//D-pad Up - To Settings option
-			players[0][index++].dpad &= 239;									//D-pad Up - To Collection option
+			m_players[0][index++].dpad &= 247;	index += 283ULL + multi[0];		// Start - Title Screen
+			m_players[0][index++].dpad &= 239;	index++;						// D-pad Up - To Settings option
+			m_players[0][index++].dpad &= 239;									// D-pad Up - To Collection option
 			if (stage == 11)
-				players[0][(++index)++].dpad &= 239;							//D-pad Up - To Theater option
-			players[0][index].button &= 191;									//X-button - Select Theater or Collection option
+				m_players[0][(++index)++].dpad &= 239;							// D-pad Up - To Theater option
+			m_players[0][index].button &= 191;									// X-button - Select Theater or Collection option
 		}
 	}
-	else if (framerate >= 59.94f)
+	else if (m_framerate >= 59.94f)
 	{
 		if (!stage)
 		{
-			players[0].resize(546 + frameValues.frames[0][0][0] + numFrames);
-			players[0][255].dpad &= 247;	//Start - Title Screen
-			players[0][545].button &= 191;	//X-button - Start Tutorial
+			m_players[0].resize(size_t(546) + frameValues.frames[0][0][0] + numFrames);
+			m_players[0][255].dpad &= 247;		// Start - Title Screen
+			m_players[0][545].button &= 191;	// X-button - Start Tutorial
 		}
 		else if (stage <= 10)
 		{
-			players[0].resize(1429 + 16ULL * multi[0] + frameValues.frames[0][stage][difficulty + multi[0] + multi[1]] + numFrames);
+			m_players[0].resize(1429 + 16ULL * multi[0] + frameValues.frames[0][stage][difficulty + multi[0] + multi[1]] + numFrames);
 			size_t index = 255ULL + 3ULL * multi[0];
-			players[0][index++].dpad &= 247;	index += 289 + 2ULL * multi[0];		//Start - Title Screen
-			players[0][index++].dpad &= 239;										//D-pad Up - To Settings option
-			players[0][index++].button &= 191;	index += 215 + 3ULL * multi[0];		//X-button - Select Settings option
-			players[0][index++].dpad &= 223;	index++;							//D-pad Right - To Difficulty option
-			players[0][index++].dpad &= 223;										//D-pad Right - To Load Game option
-			players[0][index++].button &= 191;	index += 156 + 3ULL * multi[0];		//X-button - Select Load Game
-			players[0][index++].button &= 191;	index += 161;						//X-button - Select Memory Slot 1
-			players[0][index++].button &= 191;	index += 49;						//X-button - Select Save File 1
-			players[0][index++].button &= 191;	index += 173 + 3ULL * multi[0];		//X-button - Exit Loading Module
+			m_players[0][index++].dpad &= 247;	index += 289 + 2ULL * multi[0];		// Start - Title Screen
+			m_players[0][index++].dpad &= 239;										// D-pad Up - To Settings option
+			m_players[0][index++].button &= 191;	index += 215 + 3ULL * multi[0];	// X-button - Select Settings option
+			m_players[0][index++].dpad &= 223;	index++;							// D-pad Right - To Difficulty option
+			m_players[0][index++].dpad &= 223;										// D-pad Right - To Load Game option
+			m_players[0][index++].button &= 191;	index += 156 + 3ULL * multi[0];	// X-button - Select Load Game
+			m_players[0][index++].button &= 191;	index += 161;					// X-button - Select Memory Slot 1
+			m_players[0][index++].button &= 191;	index += 49;					// X-button - Select Save File 1
+			m_players[0][index++].button &= 191;	index += 173 + 3ULL * multi[0];	// X-button - Exit Loading Module
 			if (difficulty == 1)
 			{
-				players[0].resize(players[0].size() + 4);
-				players[0][index++].dpad &= 223;					//D-pad Right - To Difficulty option
-				players[0][index++].dpad &= 191;					//D-pad Down - Difficulty to "Hard"
-				players[0][index++].dpad &= 127;	index++;		//D-pad Left - To Vibration option
+				m_players[0].resize(m_players[0].size() + 4);
+				m_players[0][index++].dpad &= 223;				// D-pad Right - To Difficulty option
+				m_players[0][index++].dpad &= 191;				// D-pad Down - Difficulty to "Hard"
+				m_players[0][index++].dpad &= 127;	index++;	// D-pad Left - To Vibration option
 			}
 			if (orientation)
 			{
-				players[0].resize(players[0].size() + 87);
-				players[0][index++].dpad &= 127;	index++;		//D-pad Left - To Volume option
-				players[0][index++].dpad &= 127;					//D-pad Left - To Controller option
-				players[0][index++].button &= 191;	index += 34;	//X-button - Select Controller option
+				m_players[0].resize(m_players[0].size() + 87);
+				m_players[0][index++].dpad &= 127;		index++;	// D-pad Left - To Volume option
+				m_players[0][index++].dpad &= 127;					// D-pad Left - To Controller option
+				m_players[0][index++].button &= 191;	index += 34;// X-button - Select Controller option
 				switch (orientation)
 				{
 				case 1:
-					index += 3;		//Do nothing on the Controller screen
+					index += 3;		// Do nothing on the Controller screen
 					break;
 				case 2:
-					players[0][index++].dpad &= 223; index += 2;	//D-pad Right - To Orientation 2
+					m_players[0][index++].dpad &= 223; index += 2;	// D-pad Right - To Orientation 2
 					break;
 				case 3:
-					players[0][index++].dpad &= 223; index++;		//D-pad Right - To Orientation 2
-					players[0][index++].dpad &= 223;				//D-pad Right - To Orientation 3
+					m_players[0][index++].dpad &= 223; index++;		// D-pad Right - To Orientation 2
+					m_players[0][index++].dpad &= 223;				// D-pad Right - To Orientation 3
 				}
-				players[0][index++].button &= 239;	index += 45;	// /\-button - Exit Controller screen
+				m_players[0][index++].button &= 239;	index += 45;// /\-button - Exit Controller screen
 			}
-			players[0][index++].button &= 239;	index += 117 + 2ULL * multi[0];	// /\-button - Exit Settings menu / To Main menu
+			m_players[0][index++].button &= 239;	index += 117 + 2ULL * multi[0];	// /\-button - Exit Settings menu / To Main menu
 			switch (difficulty)
 			{
-			case 0:		//Master
-				players[0].resize(players[0].size() + 1);
-				players[0][index++].dpad &= 191;				//D-pad Down - To Master Play option
-			case 1:		//Hard		Stay on Single Play option
-			case 2:		//Normal	Stay on Single Play option
+			case 0:		// Master
+				m_players[0].resize(m_players[0].size() + 1);
+				m_players[0][index++].dpad &= 191;				// D-pad Down - To Master Play option
+			case 1:		// Hard		Stay on Single Play option
+			case 2:		// Normal	Stay on Single Play option
 				break;
-			case 3:		//Multi-
-				players[0].resize(players[0].size() + 3);
-				players[0][index++].dpad &= 191; index++;		//D-pad Down - To Master Play option
-				players[0][index++].dpad &= 191;				//D-pad Down - To VS Play option
+			case 3:		// Multi-
+				m_players[0].resize(m_players[0].size() + 3);
+				m_players[0][index++].dpad &= 191; index++;		// D-pad Down - To Master Play option
+				m_players[0][index++].dpad &= 191;				// D-pad Down - To VS Play option
 			}
-			players[0][index++].button &= 191;					//X-button - Select Current option
+			m_players[0][index++].button &= 191;				// X-button - Select Current option
 			size_t stageSelectIndex = index;
-			if (difficulty != 3) //Single Player
+			if (difficulty != 3) // Single Player
 			{
 				if (stage != 8)
-					players[0].resize(players[0].size() + 150 + 2 * stage);
+					m_players[0].resize(m_players[0].size() + 150 + size_t(2) * stage);
 				else
-					players[0].resize(players[0].size() + 151 + 2 * stage);
+					m_players[0].resize(m_players[0].size() + 151 + size_t(2) * stage);
 				index += 152;
-				for (size_t stageIndex = 0; stageIndex < stage - 1; stageIndex++)
+				for (size_t stageIndex = 0; stageIndex < stage - size_t(1); stageIndex++)
 				{
-					players[0][index++].dpad &= 223;	//D-pad Right - Stage Scrolling
+					m_players[0][index++].dpad &= 223;	// D-pad Right - Stage Scrolling
 					if (stage - stageIndex - 2)
 						index++;
 				}
 				if (stage == 8)
 					index++;
-				players[0][index].button &= 191;		//X-button - Stage Start
+				m_players[0][index].button &= 191;	// X-button - Stage Start
 			}
-			else //Multiplayer
+			else // Multiplayer
 			{
-				size_t scrollVal = stage - ((stage - 1) / 3);
+				size_t scrollVal = stage - size_t((stage - 1) / 3);
 				if (multi[1])
-					players[0].resize(players[0].size() + 270U);
+					m_players[0].resize(m_players[0].size() + 270U);
 				else if (multi[0])
-					players[0].resize(players[0].size() + 238U);
+					m_players[0].resize(m_players[0].size() + 238U);
 				else if (stage == 10)
-					players[0].resize(players[0].size() + 205U);
+					m_players[0].resize(m_players[0].size() + 205U);
 				else
-					players[0].resize(players[0].size() + 203U);
+					m_players[0].resize(m_players[0].size() + 203U);
 				index += 141 + 3ULL * multi[0];
-				players[0][index++].button &= 191;	index += 47;	//X-button - MP Intro Screen
+				m_players[0][index++].button &= 191;	index += 47;	// X-button - MP Intro Screen
 				for (size_t stageIndex = 0; stageIndex < scrollVal; stageIndex++)
 				{
 					index++;
 					if (stageIndex + 1 != scrollVal)
-						players[0][index++].dpad &= 191;			//D-pad Down - Stage Scrolling
+						m_players[0][index++].dpad &= 191;	// D-pad Down - Stage Scrolling
 				}
-				players[0][index++].button &= 191;		//X-button - Stage Selection
+				m_players[0][index++].button &= 191;		// X-button - Stage Selection
 				if (multi[1])
 					index += 74 - (scrollVal << 1) - (stage > 1);
 				else if (multi[0])
@@ -489,76 +505,76 @@ size_t PCSX2TAS::insertFrames(size_t stage, size_t orientation, size_t difficult
 					index += 10 - (scrollVal << 1) - (stage > 1);
 				else
 					index++;
-				players[0][index++].button &= 191;	index++;		//X-button - Multiplayer Character Selection
-				players[0][index++].button &= 191;	index++;		//X-button - Health Handicap Selection/Stage Start
+				m_players[0][index++].button &= 191;	index++;	// X-button - Multiplayer Character Selection
+				m_players[0][index++].button &= 191;	index++;	// X-button - Health Handicap Selection/Stage Start
 			}
-			//If Multiplayer
+			// If Multiplayer
 			if (difficulty == 3)
 			{
-				players[1].resize(players[0].size());
+				m_players[1].resize(m_players[0].size());
 				index = stageSelectIndex + 191;
 				if (multi[1])
 					index += 75;
 				else if (multi[0])
 					index += 43;
 				else if (stage > 5)
-					index += (stage - ((stage - 1) / 3)) << 1;
+					index += (stage - size_t((stage - 1) / 3)) << 1;
 				else
 					index += 8;
-				players[1][index++].button &= 191;	index++;	//X-button - Multiplayer Character Selection
-				players[1][index].button &= 191;				//X-button - Health Handicap Selection
-				if (multi[0]) //If Player 3
+				m_players[1][index++].button &= 191;	index++;	// X-button - Multiplayer Character Selection
+				m_players[1][index].button &= 191;					// X-button - Health Handicap Selection
+				if (multi[0]) // If Player 3
 				{
-					players[2].clone(players[1]);
-					if (multi[1])	//If Player 4
-						players[3].clone(players[1]);
+					m_players[2].clone(m_players[1]);
+					if (multi[1])	// If Player 4
+						m_players[3].clone(m_players[1]);
 				}
 			}
 		}
 		else
 		{
-			players[0].resize(551 + 5ULL * multi[0] + frameValues.frames[0][stage][difficulty + multi[0] + multi[1]] + numFrames);
+			m_players[0].resize(551 + 5ULL * multi[0] + frameValues.frames[0][stage][difficulty + multi[0] + multi[1]] + numFrames);
 			size_t index = 255 + 3ULL * multi[0];
-			players[0][index++].dpad &= 247; index += 289ULL + 2ULL * multi[0];		//Start - Title Screen
-			players[0][index++].dpad &= 239; index++;								//D-pad Up - To Settings option
-			players[0][index++].dpad &= 239;										//D-pad Up - To Collection option
+			m_players[0][index++].dpad &= 247; index += 289ULL + 2ULL * multi[0];	// Start - Title Screen
+			m_players[0][index++].dpad &= 239; index++;								// D-pad Up - To Settings option
+			m_players[0][index++].dpad &= 239;										// D-pad Up - To Collection option
 			if (stage == 11)
-				players[0][(++index)++].dpad &= 239;								//D-pad Up - To Theater option
-			players[0][index].button &= 191;										//X-button - Select Theater or Collection option
+				m_players[0][(++index)++].dpad &= 239;								// D-pad Up - To Theater option
+			m_players[0][index].button &= 191;										// X-button - Select Theater or Collection option
 		}
 	}
-	return players[0].size() - numFrames;
+	return m_players[0].size() - numFrames;
 }
 
 bool TAS::buildTAS()
 {
-	if (song.imc[0] == 0)
+	if (song.m_imc[0] == 0)
 	{
-		printf("%s%s.CHC is not compatible for PS2\n", global.tabs.c_str(), song.shortname.c_str());
+		printf("%s%s.CHC is not compatible for PS2\n", g_global.tabs.c_str(), song.m_shortname.c_str());
 		return false;
 	}
-	banner(" " + song.shortname + " - TAS creation ");
+	GlobalFunctions::banner(" " + song.m_shortname + " - TAS creation ");
 	auto load = [&]()
 	{
 		do
 		{
 			string p2m2vTemp = "";
-			printf("%sDrag & drop a valid P2M2V file (or type only 'Q' to back out or only 'B' for base values):", global.tabs.c_str());
-			switch (filenameInsertion(p2m2vTemp, "b"))
+			printf("%sDrag & drop a valid P2M2V file (or type only 'Q' to back out or only 'B' for base values):", g_global.tabs.c_str());
+			switch (GlobalFunctions::stringInsertion(p2m2vTemp, "b"))
 			{
-			case 'q':
+			case GlobalFunctions::ResultType::Quit:
 				return false;
-			case 'b':
-				global.quit = true;
+			case GlobalFunctions::ResultType::SpecialCase:
+				g_global.quit = true;
 				break;
-			case '!':
+			case GlobalFunctions::ResultType::Success:
 				if (p2m2vTemp.find(".P2M2V") == string::npos)
 					p2m2vTemp += ".P2M2V";
 				if (pcsx2.loadValues(p2m2vTemp))
-					global.quit = true;
+					g_global.quit = true;
 			}
-		} while (!global.quit);
-		global.quit = false;
+		} while (!g_global.quit);
+		g_global.quit = false;
 		return true;
 	};
 	if (!PCSX2TAS::frameValues.use)
@@ -570,26 +586,29 @@ bool TAS::buildTAS()
 			size_t pos = PCSX2TAS::frameValues.name.find_last_of("\\");
 			do
 			{
-				printf("%sUse \"%s\"? [Y/N]\n", global.tabs.c_str(), PCSX2TAS::frameValues.name.substr(pos != string::npos ? pos + 1 : 0).c_str());
-				switch (menuChoices("yn"))
+				printf("%sUse \"%s\"? [Y/N]\n", g_global.tabs.c_str(), PCSX2TAS::frameValues.name.substr(pos != string::npos ? pos + 1 : 0).c_str());
+				switch (GlobalFunctions::menuChoices("yn"))
 				{
-				case 'y':
-					pcsx2.loadValues();
-					global.quit = true;
-					break;
-				case 'n':
-					if (load())
+				case GlobalFunctions::ResultType::Success:
+					if (g_global.answer.character == 'y')
 					{
-						global.quit = true;
+						pcsx2.loadValues();
+						g_global.quit = true;
 						break;
 					}
-				case 'q':
-					printf("%s\n", global.tabs.c_str());
-					printf("%sTAS creation cancelled\n", global.tabs.c_str());
+					else if (load())
+					{
+						g_global.quit = true;
+						break;
+					}
+					__fallthrough;
+				case GlobalFunctions::ResultType::Quit:
+					printf("%s\n", g_global.tabs.c_str());
+					printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
 					return false;
 				}
-			} while (!global.quit);
-			global.quit = false;
+			} while (!g_global.quit);
+			g_global.quit = false;
 		}
 		else if (!load())
 			return false;
@@ -598,466 +617,293 @@ bool TAS::buildTAS()
 		return false;
 	do
 	{
-		printf("%sSelect a framerate ('Q' to back out to Main Menu)\n", global.tabs.c_str());
-		printf("%s0 - NTSC (59.94)\n", global.tabs.c_str());
-		printf("%s1 - PAL  (50.00) [NOT YET SUPPORTED]\n", global.tabs.c_str());
-		printf("%s2 - NTSC-C (60.00)\n", global.tabs.c_str());
-		printf("%s3 - NTSC-Custom\n", global.tabs.c_str());
-		switch (menuChoices("0123"))
+		printf("%sSelect a framerate ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
+		printf("%s0 - NTSC (59.94)\n", g_global.tabs.c_str());
+		printf("%s1 - PAL  (50.00) [NOT YET SUPPORTED]\n", g_global.tabs.c_str());
+		printf("%s2 - NTSC-C (60.00)\n", g_global.tabs.c_str());
+		printf("%s3 - NTSC-Custom\n", g_global.tabs.c_str());
+		switch (GlobalFunctions::menuChoices("0123"))
 		{
-		case '0':
-			printf("%s\n", global.tabs.c_str());
-			global.quit = true;
-			break;
-		case '1':
-			printf("%sI do not own the PAl version, so optimizing for it is not something I can do just yet.\n", global.tabs.c_str());
-			printf("%s\n", global.tabs.c_str());
-			/*
-			pcsx2.framerate = 50.00;
-			global.quit = true;*/
-			break;
-		case '2':
-			printf("%s\n", global.tabs.c_str());
-			pcsx2.framerate = 60.00f;
-			global.quit = true;
-			break;
-		case '3':
-			printf("%s\n", global.tabs.c_str());
-			do
+		case GlobalFunctions::ResultType::Quit:
+			printf("%s\n", g_global.tabs.c_str());
+			printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+			return false;
+		case GlobalFunctions::ResultType::Success:
+			switch (g_global.answer.character)
 			{
-				printf("%sProvide an FPS value (minimum: 59.94) ('Q' to back out to Main Menu)\n", global.tabs.c_str());
-				printf("%sInput: ", global.tabs.c_str());
-				switch (valueInsert(pcsx2.framerate, false, 59.94f))
+			case '0':
+				printf("%s\n", g_global.tabs.c_str());
+				g_global.quit = true;
+				break;
+			case '1':
+				printf("%sI do not own the PAL version, so optimizing for it is not something I can do just yet.\n", g_global.tabs.c_str());
+				printf("%s\n", g_global.tabs.c_str());
+				/*
+				pcsx2.m_framerate = 50.00;
+				g_global.quit = true;*/
+				break;
+			case '2':
+				printf("%s\n", g_global.tabs.c_str());
+				pcsx2.m_framerate = 60.00f;
+				g_global.quit = true;
+				break;
+			case '3':
+				printf("%s\n", g_global.tabs.c_str());
+				do
 				{
-				case 'q':
-					printf("%s\n", global.tabs.c_str());
-					printf("%sTAS creation cancelled\n", global.tabs.c_str());
-					return true;
-				case '-':
-					printf("%sWhat the hell is a negative FPS?!?\n%s\n", global.tabs.c_str(), global.tabs.c_str());
-					break;
-				case '<':
-					printf("%sGiven FPS is lower than the 59.94 FPS minimum\n%s\n", global.tabs.c_str(), global.tabs.c_str());
-					break;
-				case '*':
-					printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
-				}
-				printf("%s\n", global.tabs.c_str());
-			} while (!global.quit);
-			break;
-		case 'q':
-			printf("%s\n", global.tabs.c_str());
-			printf("%sTAS creation cancelled\n", global.tabs.c_str());
-			return true;
+					printf("%sProvide an FPS value (minimum: 59.94) ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
+					printf("%sInput: ", g_global.tabs.c_str());
+					switch (GlobalFunctions::valueInsert(pcsx2.m_framerate, false, 59.94f))
+					{
+					case GlobalFunctions::ResultType::Quit:
+						printf("%s\n", g_global.tabs.c_str());
+						printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+						return false;
+					case GlobalFunctions::ResultType::InvalidNegative:
+						printf("%sWhat the hell is a negative FPS?!?\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+						break;
+					case GlobalFunctions::ResultType::MinExceeded:
+						printf("%sGiven FPS is lower than the 59.94 FPS minimum\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+						break;
+					case GlobalFunctions::ResultType::Failed:
+						printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
+					}
+					printf("%s\n", g_global.tabs.c_str());
+				} while (!g_global.quit);
+			}
 		}
-	} while (!global.quit);
-	global.quit = false;
-	size_t stage = 0;
-	size_t difficulty = 0;
-	if (song.shortname.find("ST00") != string::npos)
-	{
-		stage = 0;
+	} while (!g_global.quit);
+	g_global.quit = false;
+	int stage = song.m_stage;
+	int difficulty;
+	bool multi[2] = { false, false };
+	if (stage == 0)
 		difficulty = 0;
-	}
-	else if (song.shortname.find("ST01") != string::npos)
-	{
-		stage = 1;
-		if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST02") != string::npos)
-	{
-		stage = 2;
-		if (song.shortname.find("HE") != string::npos)
-			difficulty = 1;
-		else if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST03") != string::npos)
-	{
-		stage = 3;
-		if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST04") != string::npos)
-	{
-		stage = 4;
-		if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST05") != string::npos)
-	{
-		stage = 5;
-		if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST06") != string::npos)
-	{
-		stage = 6;
-		if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST07") != string::npos)
-	{
-		stage = 7;
-		if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST08") != string::npos)
-	{
-		stage = 8;
-		if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST09") != string::npos)
-	{
-		stage = 9;
-		if (song.shortname.find("H2") != string::npos)
-			difficulty = 1;
-		else if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST10") != string::npos)
-	{
-		stage = 10;
-		if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("E") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST11") != string::npos)
-	{
-		stage = 11;
-		if (song.shortname.find("E") != string::npos || song.shortname.find("HA") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("HB") != string::npos)
-			difficulty = 1;
-		else if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else if (song.shortname.find("ST12") != string::npos)
-	{
-		stage = 12;
-		if (song.shortname.find("E") != string::npos || song.shortname.find("HA") != string::npos)
-			difficulty = 2;
-		else if (song.shortname.find("HB") != string::npos)
-			difficulty = 1;
-		else if (song.shortname.find("H") != string::npos)
-			difficulty = 0;
-		else if (song.shortname.find("M") != string::npos)
-			difficulty = 3;
-		else
-			difficulty = 1;
-	}
-	else
+	else if (stage < 0 || stage > 12)
 	{
 		do
 		{
-			printf("%sWhich stage will be replaced? [1-10] ('Q' to back out to Main Menu)\n", global.tabs.c_str());
-			printf("%sInput: ", global.tabs.c_str());
-			switch (valueInsert(stage, false, (size_t)1, (size_t)10))
+			printf("%sWhich stage will be replaced? [1-12] ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
+			printf("%sInput: ", g_global.tabs.c_str());
+			switch (GlobalFunctions::valueInsert(stage, false, 1, 12))
 			{
-			case '!':
-				global.quit = true;
+			case GlobalFunctions::ResultType::Success:
+				g_global.quit = true;
 				break;
-			case '-':
-			case '<':
-				printf("%sGiven value cannot be less than 1\n%s\n", global.tabs.c_str(), global.tabs.c_str());
+			case GlobalFunctions::ResultType::InvalidNegative:
+			case GlobalFunctions::ResultType::MinExceeded:
+				printf("%sGiven value cannot be less than 1\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 				break;
-			case '>':
-				printf("%sGiven value cannot be greater than 10\n%s\n", global.tabs.c_str(), global.tabs.c_str());
+			case GlobalFunctions::ResultType::MaxExceeded:
+				printf("%sGiven value cannot be greater than 10\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 				break;
-			case '*':
-				printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
+			case GlobalFunctions::ResultType::Failed:
+				printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
 				break;
-			case 'q':
-				printf("%s\n", global.tabs.c_str());
-				printf("%sTAS creation cancelled\n", global.tabs.c_str());
-				return true;
+			case GlobalFunctions::ResultType::Quit:
+				printf("%s\n", g_global.tabs.c_str());
+				printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+				return false;
 			}
-		} while (!global.quit);
-		global.quit = false;
-		if (toupper(song.shortname.back()) == 'E')
-			difficulty = 2;
-		else if (toupper(song.shortname.back()) == 'N')
-			difficulty = 1;
-		else if (toupper(song.shortname.back()) == 'H')
-			difficulty = 0;
-		else if (toupper(song.shortname.back()) == 'M')
-			difficulty = 3;
+		} while (!g_global.quit);
+		g_global.quit = false;
+		if (song.m_stage > 12)
+		{
+			if (song.m_shortname.find("H") != string::npos)
+				difficulty = 0;
+			else if (song.m_shortname.find("E") != string::npos)
+				difficulty = 2;
+			else if (song.m_shortname.find("M") != string::npos)
+				difficulty = 3;
+			else
+				difficulty = 1;
+		}
 		else
 		{
 			do
 			{
-				printf("%sWhich difficulty is this chart for? ('Q' to back out to Main Menu)\n", global.tabs.c_str());
-				printf("%s 0 - Hard/Master Play\n", global.tabs.c_str());
-				printf("%s 1 - Normal\n", global.tabs.c_str());
-				printf("%s 2 - Easy\n", global.tabs.c_str());
-				printf("%s 3 - Multiplayer\n", global.tabs.c_str());
-				difficulty = menuChoices("0123");
-				switch (difficulty)
+				printf("%sWhich difficulty is this chart for? ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
+				printf("%s 0 - Hard/Master Play\n", g_global.tabs.c_str());
+				printf("%s 1 - Normal\n", g_global.tabs.c_str());
+				printf("%s 2 - Easy\n", g_global.tabs.c_str());
+				printf("%s 3 - Multiplayer\n", g_global.tabs.c_str());
+				switch (GlobalFunctions::menuChoices("0123", true))
 				{
-				case 'q':
-					printf("%s\n", global.tabs.c_str());
-					printf("%sTAS creation cancelled\n", global.tabs.c_str());
-					return true;
-				case '?':
-					printf("%s\n", global.tabs.c_str());
-				case '*':
+				case GlobalFunctions::ResultType::Quit:
+					printf("%s\n", g_global.tabs.c_str());
+					printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+					return false;
+				case GlobalFunctions::ResultType::Help:
+					printf("%s\n", g_global.tabs.c_str());
+				case GlobalFunctions::ResultType::Failed:
 					break;
 				default:
-					printf("%s\n", global.tabs.c_str());
-					global.quit = true;
+					difficulty = (int)g_global.answer.index;
+					printf("%s\n", g_global.tabs.c_str());
+					g_global.quit = true;
 				}
-			} while (!global.quit);
-			global.quit = false;
+			} while (!g_global.quit);
+			g_global.quit = false;
 		}
-	}
-	bool multi[2] = { false, false };
-	if (difficulty == 3 && stage != 10)
-	{
-		do
-		{
-			printf("%sHow many players for this multiplayer TAS [2/3/4]? ('Q' to back out to Main Menu)\n", global.tabs.c_str());
-			switch (menuChoices("234"))
-			{
-			case '4':
-				multi[1] = true;
-			case '3':
-				multi[0] = true;
-			case '2':
-				printf("%s\n", global.tabs.c_str());
-				global.quit = true;
-				break;
-			case 'q':
-				printf("%s\n", global.tabs.c_str());
-				printf("%sTAS creation cancelled\n", global.tabs.c_str());
-				return true;
-			}
-		} while (!global.quit);
-		global.quit = false;
-	}
-	char framerateIndex;
-	if (pcsx2.framerate == 59.94f)
-		framerateIndex = 0;
-	else if (pcsx2.framerate == 50.00f)
-		framerateIndex = 1;
-	else
-		framerateIndex = 2;
-	printf("%sStage %zu - Diff. %zu: ", global.tabs.c_str(), stage, difficulty);
-	printf("%zu frames | ", PCSX2TAS::frameValues.frames[framerateIndex][stage][difficulty + multi[0] + multi[1]]);
-	printf("Displacement: %li samples\n%s\n", PCSX2TAS::frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]], global.tabs.c_str());
-	printf("%sType the name of the author [255 character limit] (';' to notate the end of the name [for multi-step usage]) ('Q' to back out to Main Menu)\n", global.tabs.c_str());
-	printf("%sInput: ", global.tabs.c_str());
-	if (global.multi)
-	{
-		ungetc(global.input, stdin);
-		putchar('*');
-	}
-	scanf_s(" %c", &global.input, 1);
-	if (tolower(global.input) == 'q' && peek() == '\n')
-	{
-		scanf_s("%c", &global.input, 1);
-		printf("%s\n%sTAS creation cancelled\n", global.tabs.c_str(), global.tabs.c_str());
-		return true;
 	}
 	else
 	{
-		size_t index = 0;
-		for (; global.input != '\n' && global.input != ';'; index++)
+		if (song.m_shortname.find("HE") != string::npos || song.m_shortname.find("H2") != string::npos ||
+			song.m_shortname.find("HB") != string::npos)
+			difficulty = 1;
+		else if (song.m_shortname.find("H") != string::npos)
+			difficulty = 0;
+		else if (song.m_shortname.find("E") != string::npos)
+			difficulty = 2;
+		else if (song.m_shortname.find("M") != string::npos)
 		{
-			if (index != 255)
-			{
-				pcsx2.author[index] = global.input;
-				scanf_s("%c", &global.input, 1); 
-			}
-			else
-			{
-				pcsx2.author[254] = 0;
-				if (global.multi)
-					printf("%s\n", pcsx2.author );
-				global.multi = false;
-				printf("\n%sAuthor insertion overflow - Input buffer flushed\n", global.tabs.c_str());
-				clearIn();
-				break;
-			}
-		}
-		pcsx2.author[254] = 0;
-		if (global.multi)
-			printf("%s\n", pcsx2.author );
-		printf("%s\n", global.tabs.c_str());
-		if (global.input == '\n')
-			global.multi = false;
-		else
-		{
-			while (global.input == ';')
+			difficulty = 3;
+			if (stage != 10)
 			{
 				do
 				{
-					scanf_s("%c", &global.input, 1); 
-				} while (global.input == ' ');
-				if (global.input != '\n')
-					global.multi = true;
-				else
-					global.multi = false;
+					printf("%sHow many players for this multiplayer TAS [2/3/4]? ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
+					switch (GlobalFunctions::menuChoices("234", true))
+					{
+					case GlobalFunctions::ResultType::Quit:
+						printf("%s\n", g_global.tabs.c_str());
+						printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+						return false;
+					case GlobalFunctions::ResultType::Success:
+						switch (g_global.answer.index)
+						{
+						case 2:
+							multi[1] = true;
+						case 1:
+							multi[0] = true;
+						default:
+							printf("%s\n", g_global.tabs.c_str());
+							g_global.quit = true;
+						}
+					}
+				} while (!g_global.quit);
+				g_global.quit = false;
 			}
 		}
+		else
+			difficulty = 1;
 	}
 	
-	size_t orientation;
+	char framerateIndex = 2;
+	if (pcsx2.m_framerate == 59.94f)
+		framerateIndex = 0;
+	else if (pcsx2.m_framerate == 50.00f)
+		framerateIndex = 1;
+	printf("%sStage %i - Diff. %i: ", g_global.tabs.c_str(), stage, difficulty);
+	printf("%lu frames | ", PCSX2TAS::frameValues.frames[framerateIndex][stage][difficulty + multi[0] + multi[1]]);
+	printf("Displacement: %li samples\n%s\n", PCSX2TAS::frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]], g_global.tabs.c_str());
+	printf("%sType the name of the author [255 character limit] (';' to notate the end of the name [for multi-step usage]) ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
+	printf("%sInput: ", g_global.tabs.c_str());
+	if (GlobalFunctions::charArrayInsertion(pcsx2.m_author, 255) == GlobalFunctions::ResultType::Quit)
+	{
+		printf("%s\n%sTAS creation cancelled\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+		return false;
+	}
+	
+	int orientation;
 	do
 	{
-		printf("%sWhich orientation for all guard phrases? ('Q' to back out to Main Menu)\n", global.tabs.c_str());
-		printf("%s0 - No Orientation Change\n", global.tabs.c_str());
-		printf("%s1 - No Change - Open Config Menu\n", global.tabs.c_str());
-		printf("%s2 - Change to Orientation 2\n", global.tabs.c_str());
-		printf("%s3 - Change to Orientation 3\n", global.tabs.c_str());
-		orientation = menuChoices("0123", true);
-		switch (orientation)
+		printf("%sWhich orientation for all guard phrases? ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
+		printf("%s0 - No Orientation Change\n", g_global.tabs.c_str());
+		printf("%s1 - No Change - Open Config Menu\n", g_global.tabs.c_str());
+		printf("%s2 - Change to Orientation 2\n", g_global.tabs.c_str());
+		printf("%s3 - Change to Orientation 3\n", g_global.tabs.c_str());
+		switch (GlobalFunctions::menuChoices("0123", true))
 		{
-		case 'q':
-			printf("%s\n", global.tabs.c_str());
-			printf("%sTAS creation cancelled\n", global.tabs.c_str());
-			return true;
-		case '?':
-			printf("%s\n", global.tabs.c_str());
-		case '*':
+		case  GlobalFunctions::ResultType::Quit:
+			printf("%s\n", g_global.tabs.c_str());
+			printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+			return false;
+		case  GlobalFunctions::ResultType::Help:
+			printf("%s\n", g_global.tabs.c_str());
+		case GlobalFunctions::ResultType::Failed:
 			break;
 		default:
-			printf("%s\n", global.tabs.c_str());
-			global.quit = true;
+			orientation = (int)g_global.answer.index;
+			printf("%s\n", g_global.tabs.c_str());
+			g_global.quit = true;
 		}
-	} while (!global.quit);
-	global.quit = false;
+	} while (!g_global.quit);
+	g_global.quit = false;
 	LinkedList::List<size_t> sectionIndexes;
 	do
 	{
-		printf("%sType the number for each section that you wish to TAS - in chronological order and w/ spaces in-between\n", global.tabs.c_str());
-		for (size_t sectIndex = 0; sectIndex < song.sections.size(); sectIndex++)
-			printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, song.sections[sectIndex].getName());
+		printf("%sType the number for each section that you wish to TAS - in chronological order and w/ spaces in-between\n", g_global.tabs.c_str());
+		for (LinkedList::List<SongSection>::Iterator cur = song.m_sections.begin();
+			cur != song.m_sections.end();
+			++cur)
+			printf("%s%zu - %s\n", g_global.tabs.c_str(), cur.getIndex(), (*cur).getName());
 		if (sectionIndexes.size())
 		{
-			printf("%sCurrent LinkedList::List: ", global.tabs.c_str());
-			for (size_t index = 0; index < sectionIndexes.size(); index++)
-				printf("%s ", song.sections[sectionIndexes[index]].getName());
+			printf("%sCurrent List: ", g_global.tabs.c_str());
+			for (const size_t index : sectionIndexes)
+				printf("%s ", song.m_sections[index].getName());
 			putchar('\n');
 		}
-		switch (listValueInsert(sectionIndexes, "yntmv", song.sections.size()))
+		switch (GlobalFunctions::listValueInsert(sectionIndexes, "yntmv", song.m_sections.size()))
 		{
-		case '?':
+		case  GlobalFunctions::ResultType::Help:
 
 			break;
-		case 'q':
-			printf("%s\n", global.tabs.c_str());
-			printf("%sTAS creation cancelled\n", global.tabs.c_str());
-			return true;
-		case 'y':
-		case 't':
-		case 'm':
-		case 'v':
-			if (sectionIndexes.size())
+		case  GlobalFunctions::ResultType::Quit:
+			printf("%s\n", g_global.tabs.c_str());
+			printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+			return false;
+		case GlobalFunctions::ResultType::SpecialCase:
+			if (g_global.answer.character == 'n')
 			{
-				global.quit = true;
+				printf("%s\n", g_global.tabs.c_str());
+				printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", g_global.tabs.c_str());
+				printf("%s\n", g_global.tabs.c_str());
 				break;
 			}
-		case '!':
-			if (!sectionIndexes.size())
+			else if(sectionIndexes.size())
 			{
-				printf("%s\n", global.tabs.c_str());
-				do
-				{
-					printf("%sNo sections have been selected. Quit TAS creation? [Y/N]\n", global.tabs.c_str());
-					switch (menuChoices("yn"))
-					{
-					case 'q':
-					case 'y':
-						printf("%s\n", global.tabs.c_str());
-						printf("%sTAS creation cancelled\n", global.tabs.c_str());
-						return true;
-					case 'n':
-						printf("%s\n", global.tabs.c_str());
-						global.quit = true;
-					}
-				} while (!global.quit);
-				global.quit = false;
+				g_global.quit = true;
+				break;
 			}
 			else
-				global.quit = true;
-			break;
-		case 'n':
-			printf("%s\n", global.tabs.c_str());
-			printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", global.tabs.c_str());
-			printf("%s\n", global.tabs.c_str());
+				__fallthrough;
+		case GlobalFunctions::ResultType::Success:
+			if (!sectionIndexes.size())
+			{
+				printf("%s\n", g_global.tabs.c_str());
+				do
+				{
+					printf("%sNo sections have been selected. Quit TAS creation? [Y/N]\n", g_global.tabs.c_str());
+					switch (GlobalFunctions::menuChoices("yn"))
+					{
+					case GlobalFunctions::ResultType::Success:
+						if (g_global.answer.character == 'n')
+						{
+							printf("%s\n", g_global.tabs.c_str());
+							g_global.quit = true;
+							break;
+						}
+						__fallthrough;
+					case GlobalFunctions::ResultType::Quit:
+						printf("%s\n", g_global.tabs.c_str());
+						printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+						return false;
+					}
+				} while (!g_global.quit);
+				g_global.quit = false;
+			}
+			else
+				g_global.quit = true;
 		}
-	} while (!global.quit);
-	global.quit = false;
-	string filename = song.name.substr(0, song.name.length() - 4);
+	} while (!g_global.quit);
+	g_global.quit = false;
+	string filename = song.m_name.substr(0, song.m_name.length() - 4);
 	if (difficulty == 3)
-		filename += "_" + to_string(int(pcsx2.framerate)) + "_" + to_string(orientation) + "_" + to_string(multi[0] + multi[1] + 2) + 'P';
+		filename += "_" + to_string(int(pcsx2.m_framerate)) + "_" + to_string(orientation) + "_" + to_string(multi[0] + multi[1] + 2) + 'P';
 	else
-		filename += "_" + to_string(int(pcsx2.framerate)) + "_" + to_string(orientation) + "_SP";
+		filename += "_" + to_string(int(pcsx2.m_framerate)) + "_" + to_string(orientation) + "_SP";
 	struct NotePoint
 	{
 		long position;
@@ -1068,138 +914,123 @@ bool TAS::buildTAS()
 	};
 	struct SectPoint
 	{
-		long position = 0;
-		//0 - Technical
-		//1 - Visuals
-		//2 - Mixed
-		size_t visualType = 0;
+		long position;
+		enum class VisualType
+		{
+			Technical,
+			Visual,
+			Mixed
+		} type;
 		long sustainLimit = 0;
-		SectPoint(long pos, size_t visuals = 0, long sus = 0) : position(pos), visualType(visuals), sustainLimit(sus) {}
+		SectPoint(long pos, size_t visuals = 0, long sus = 0) : position(pos), type(static_cast<VisualType>(visuals)), sustainLimit(sus) {}
 	};
 	LinkedList::List<NotePoint> timeline[4];
-	LinkedList::List<SectPoint> markers[4];
-	const long double SAMPLES_PER_FRAME = 48000.0L / (pcsx2.framerate == 59.94f ? 59.94L : pcsx2.framerate);
+	LinkedList::List<SectPoint> markers;
+	const float SAMPLES_PER_FRAME = 48000.0f / pcsx2.m_framerate;
 	unsigned long totalDuration = 0;
 	bool endReached = false;
-	unsigned short notes[4] = { 0, 0, 0, 0 };
+	int notes[4] = { 0, 0, 0, 0 };
 	long position = PCSX2TAS::frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]];
-	//Places every single note that will appear in all chosen sections
-	//into one huge timeline.
-	for (size_t sectIndex = 0; sectIndex < sectionIndexes.size(); sectIndex++)
+	// Places every single note that will appear in all chosen sections
+	// into one huge timeline.
+	for (const size_t sectIndex : sectionIndexes)
 	{
-		SongSection& section = song.sections[sectionIndexes[sectIndex]];
-		printf("%s%s\n", global.tabs.c_str(), section.getName());
-		if (!stage || (section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK"))) //If not INTRO phase or BRK section
+		SongSection& section = song.m_sections[sectIndex];
+		printf("%s%s\n", g_global.tabs.c_str(), section.getName());
+		if (!stage ||
+			(section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK"))) // If not INTRO phase or BRK section
 		{
-			if (section.getPhase() == SongSection::Phase::END || sectionIndexes[sectIndex] + 1 == song.sections.size())
+			if (section.getPhase() == SongSection::Phase::END || sectIndex + 1 == song.m_sections.size())
 				endReached = true; // If END phase or last section
+
 			{
-				//t - Technical
-				//v - Visuals
-				//m - Mixed
-				size_t visualType = 0;
-				float sustainCoeffienct = 1; //Sustain limit set to a base of 1 beat
-				for (size_t playerIndex = 0; playerIndex < section.getNumPlayers() && !global.quit; playerIndex++)
+				// t - Technical
+				// v - Visuals
+				// m - Mixed
+				for (size_t playerIndex = 0;
+					playerIndex < section.getNumPlayers() && !g_global.quit;
+					difficulty == 3 ? ++playerIndex : playerIndex += 2)
 				{
-					if (!(playerIndex & 1) || difficulty == 3)
+					for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && !g_global.quit; chartIndex++)
 					{
-						for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && !global.quit; chartIndex++)
+						if (section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex).getNumPhrases())
 						{
-							if (section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex).getNumPhrases())
+							do
 							{
-								do
+								printf("%sHow should %s's phrase bars be played?\n", g_global.tabs.c_str(), section.getName());
+								printf("%sT - Technicality (Release at the end of all sustains)\n", g_global.tabs.c_str());
+								printf("%sV - Visually (Hold past/through the end of all sustains)\n", g_global.tabs.c_str());
+								printf("%sM - Mixed (Release only on sustain that exceeds a defined length)\n", g_global.tabs.c_str());
+								switch (GlobalFunctions::menuChoices("tvm", true))
 								{
-									printf("%sHow should %s's phrase bars be played?\n", global.tabs.c_str(), section.getName());
-									printf("%sT - Technicality (Release at the end of all sustains)\n", global.tabs.c_str());
-									printf("%sV - Visually (Hold past/through the end of all sustains)\n", global.tabs.c_str());
-									printf("%sM - Mixed (Release only on sustain that exceeds a defined length)\n", global.tabs.c_str());
-									visualType = menuChoices("tvm");
-									switch (visualType)
+								case GlobalFunctions::ResultType::Quit:
+									printf("%s\n", g_global.tabs.c_str());
+									printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+									return false;
+								case GlobalFunctions::ResultType::Help:
+									printf("%s\n", g_global.tabs.c_str());
+								case GlobalFunctions::ResultType::Failed:
+									break;
+								default:
+									printf("%s\n", g_global.tabs.c_str());
+									if (g_global.answer.index == 2)
 									{
-									case 'q':
-										printf("%s\n", global.tabs.c_str());
-										printf("%sTAS creation cancelled\n", global.tabs.c_str());
-										return true;
-									case '?':
-										printf("%s\n", global.tabs.c_str());
-									case '*':
-										break;
-									default:
-										printf("%s\n", global.tabs.c_str());
-										if (visualType == 'm')
+										do
 										{
-											do
+											printf("%sProvide a value for the sustain limit coeffienct.\n", g_global.tabs.c_str());
+											printf("%sAKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n", g_global.tabs.c_str());
+											printf("%sValue can range from 0.5 to 4.0 [Default is 1].\n", g_global.tabs.c_str());
+											printf("%sInput: ", g_global.tabs.c_str());
+											float sustainCoeffienct = 1; // Sustain limit set to a base of 1 beat
+											switch (GlobalFunctions::valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
 											{
-												printf("%sProvide a value for the sustain limit coeffienct.\n", global.tabs.c_str());
-												printf("%sAKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n", global.tabs.c_str());
-												printf("%sValue can range from 0.5 to 4.0 [Default is 1].\n", global.tabs.c_str());
-												printf("%sInput: ", global.tabs.c_str());
-												switch (valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
-												{
-												case '!':
-													global.quit = true;
-													break;
-												case 'q':
-													printf("%s\n", global.tabs.c_str());
-													printf("%sTAS creation cancelled\n", global.tabs.c_str());
-													return true;
-												case '-':
-												case '<':
-													printf("%sProvided value *must* be greater than or equal to 0.5.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
-													break;
-												case '>':
-													printf("%sProvided value *must* be less than or equal to 4.0.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
-													break;
-												case '*':
-													printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
-													clearIn();
-												}
-											} while (!global.quit);
-										}
-										global.quit = true;
+											case GlobalFunctions::ResultType::Success:
+												markers.emplace_back(position, 2, (long)round(sustainCoeffienct * s_SAMPLES_PER_MIN / section.getTempo()));
+												g_global.quit = true;
+												break;
+											case GlobalFunctions::ResultType::Quit:
+												printf("%s\n", g_global.tabs.c_str());
+												printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+												return false;
+											case GlobalFunctions::ResultType::InvalidNegative:
+											case GlobalFunctions::ResultType::MinExceeded:
+												printf("%sProvided value *must* be greater than or equal to 0.5.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+												break;
+											case GlobalFunctions::ResultType::MaxExceeded:
+												printf("%sProvided value *must* be less than or equal to 4.0.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+												break;
+											case GlobalFunctions::ResultType::Failed:
+												printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
+												GlobalFunctions::clearIn();
+											}
+										} while (!g_global.quit);
 									}
-								} while (!global.quit);
-							}
+									else
+										markers.emplace_back(position, g_global.answer.index, (long)round(s_SAMPLES_PER_MIN / section.getTempo()));
+									g_global.quit = true;
+								}
+							} while (!g_global.quit);
 						}
 					}
 				}
-				global.quit = false;
-				markers[0].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
-				if (difficulty == 3)
-				{
-					markers[1].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
-					if (multi[0])
-						markers[2].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
-					if (multi[1])
-						markers[3].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
-				}
+				g_global.quit = false;
+				
 			}
-			//Marking where in each list the current section starts
+			// Marking where in each list the current section starts
 			size_t startIndex[4] = { timeline[0].size(), timeline[1].size(), timeline[2].size(), timeline[3].size() };
 			for (size_t chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
 			{
-				for (size_t playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); playerIndex++)
+				for (size_t playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); difficulty == 3 ? ++playerIndex : playerIndex += 2)
 				{
 					Chart& chart = section.getChart(playerIndex * section.getNumCharts() + chartIndex);
-					//Player 1 will always be TAS'd, it just depends on how
-					if (!(playerIndex & 1))
-						currentPlayer = (multi[0] ? playerIndex : 0);
-					else if (difficulty == 3)
-						currentPlayer = (multi[1] ? playerIndex : 1);
-					else
-						continue;
+					currentPlayer = (multi[playerIndex & 1] ? playerIndex : playerIndex & 1);
 					LinkedList::List<NotePoint>& player = timeline[currentPlayer];
 					size_t index = startIndex[currentPlayer];
 					for (size_t i = 0; i < chart.getNumGuards(); i++)
 					{
 						long pos = chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position;
-						while (index < player.size())
-						{
-							if (pos <= player[index].position)
-								break;
-							else
-								index++;
-						}
+						while (index < player.size() && pos > player[index].position)
+							index++;
 						player.emplace(index, 1, pos, &chart.getGuard(i), i, i + 1 == chart.getNumGuards());
 						notes[currentPlayer]++;
 						index++;
@@ -1209,14 +1040,9 @@ bool TAS::buildTAS()
 					{
 						Phrase& phrase = chart.getPhrase(i);
 						long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
-						while (index < player.size())
-						{
-							if (pos <= player[index].position)
-								break;
-							else
-								index++;
-						}
-						//Combine all pieces into one Note
+						while (index < player.size() && pos > player[index].position)
+							index++;
+						// Combine all pieces into one Note
 						while (i < chart.getNumPhrases())
 						{
 							if (!chart.getPhrase(i).getEnd())
@@ -1225,21 +1051,26 @@ bool TAS::buildTAS()
 							{
 								if (i + 1 != chart.getNumPhrases())
 								{
-									if (markers[currentPlayer].back().visualType == 'v')
+									switch (markers.back().type)
 									{
-										if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers[currentPlayer].back().sustainLimit)
+									case SectPoint::VisualType::Visual:
+										if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers.back().sustainLimit)
 											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
 										else
 											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
-									}
-									else if (markers[currentPlayer].back().visualType == 'm'
-											 && chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers[currentPlayer].back().sustainLimit)
-										phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
-									else
+										break;
+									case SectPoint::VisualType::Mixed:
+										if (chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers.back().sustainLimit)
+										{
+											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
+											break;
+										}
+									default:
 										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
+									}
 								}
-								else if (markers[currentPlayer].back().visualType != 'v'
-										|| !phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5.0 * SAMPLES_PER_FRAME)))
+								else if (markers.back().type != SectPoint::VisualType::Visual ||
+										!phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5 * SAMPLES_PER_FRAME)))
 									phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 								break;
 							}
@@ -1254,13 +1085,8 @@ bool TAS::buildTAS()
 						for (size_t i = 0; i < chart.getNumTracelines(); i++)
 						{
 							long pos = chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position;
-							while (index < player.size())
-							{
-								if (pos <= player[index].position)
-									break;
-								else
-									index++;
-							}
+							while (index < player.size() && pos > player[index].position)
+								index++;
 							player.emplace(index, 1, pos, &chart.getTraceline(i), i, i + 1 == chart.getNumTracelines());
 							index++;
 						}
@@ -1272,10 +1098,10 @@ bool TAS::buildTAS()
 		totalDuration += section.getDuration();
 	}
 	size_t frameStart;
-	if (stage == 0 && song.shortname.find("ST00B") == string::npos)
+	if (stage == 0 && song.m_shortname.find("ST00B") == string::npos)
 	{
 		endReached = false;
-		string tutorialName = song.name.substr(0, song.name.length() - 5) + 'B';
+		string tutorialName = song.m_name.substr(0, song.m_name.length() - 5) + 'B';
 		try
 		{
 			tutorial = new CHC(tutorialName);
@@ -1285,17 +1111,17 @@ bool TAS::buildTAS()
 			do
 			{
 				tutorialName.clear();
-				printf("%sProvide the ST00B.CHC file to use for this TAS (Or 'N' to only TAS ST00A): ", global.tabs.c_str());
-				switch (filenameInsertion(tutorialName, "n"))
+				printf("%sProvide the ST00B.CHC file to use for this TAS (Or 'N' to only TAS ST00A): ", g_global.tabs.c_str());
+				switch (GlobalFunctions::stringInsertion(tutorialName, "n"))
 				{
-				case 'q':
-					printf("%s\n", global.tabs.c_str());
-					printf("%sTAS creation cancelled\n", global.tabs.c_str());
+				case GlobalFunctions::ResultType::Quit:
+					printf("%s\n", g_global.tabs.c_str());
+					printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
 					return false;
-				case 'n':
-					global.quit = true;
+				case GlobalFunctions::ResultType::SpecialCase:
+					g_global.quit = true;
 					break;
-				case '!':
+				case GlobalFunctions::ResultType::Success:
 					if (tutorialName.find("ST00B") != string::npos)
 					{
 						if (tutorialName.find(".CHC") != string::npos)
@@ -1303,164 +1129,169 @@ bool TAS::buildTAS()
 						try
 						{
 							tutorial = new CHC(tutorialName);
-							printf("%s\n", global.tabs.c_str());
-							global.quit = true;
+							printf("%s\n", g_global.tabs.c_str());
+							g_global.quit = true;
 						}
 						catch (...)
 						{
-							printf("%sThe given ST00B could not be successfully read.\n", global.tabs.c_str());
+							printf("%sThe given ST00B could not be successfully read.\n", g_global.tabs.c_str());
 						}
 					}
 					else
-						printf("%sOnly an ST00B.CHC file can be accepted.\n", global.tabs.c_str());
+						printf("%sOnly an ST00B.CHC file can be accepted.\n", g_global.tabs.c_str());
 				}
-			} while (!global.quit);
-			global.quit = false;
+			} while (!g_global.quit);
+			g_global.quit = false;
 		}
 		
 		if (tutorial != nullptr)
 		{
-			printf("%sStage ST00B: ", global.tabs.c_str());
-			printf("%zu frames during intermission |", PCSX2TAS::frameValues.frames[framerateIndex][0][1]);
-			printf(" Post-intermission Displacement: %li samples\n%s\n", PCSX2TAS::frameValues.initialDisplacements[framerateIndex][0][1], global.tabs.c_str());
+			printf("%sStage ST00B: ", g_global.tabs.c_str());
+			printf("%lu frames during intermission |", PCSX2TAS::frameValues.frames[framerateIndex][0][1]);
+			printf(" Post-intermission Displacement: %li samples\n%s\n", PCSX2TAS::frameValues.initialDisplacements[framerateIndex][0][1], g_global.tabs.c_str());
 			sectionIndexes.clear();
-			position += long(((long)PCSX2TAS::frameValues.frames[framerateIndex][0][1] - 1000) * SAMPLES_PER_FRAME) + PCSX2TAS::frameValues.initialDisplacements[framerateIndex][0][1];
+			position += long((PCSX2TAS::frameValues.frames[framerateIndex][0][1] - 1000) * SAMPLES_PER_FRAME) + PCSX2TAS::frameValues.initialDisplacements[framerateIndex][0][1];
 			do
 			{
-				printf("%sType the number for each section that you wish to TAS from ST00B - in chronological order and w/ spaces in-between\n", global.tabs.c_str());
-				for (size_t sectIndex = 0; sectIndex < tutorial->sections.size(); sectIndex++)
-					printf("%s%zu - %s\n", global.tabs.c_str(), sectIndex, tutorial->sections[sectIndex].getName());
+				printf("%sType the number for each section that you wish to TAS from ST00B - in chronological order and w/ spaces in-between\n", g_global.tabs.c_str());
+				for (LinkedList::List<SongSection>::Iterator cur = tutorial->m_sections.begin();
+					cur != tutorial->m_sections.end();
+					++cur)
+					printf("%s%zu - %s\n", g_global.tabs.c_str(), cur.getIndex(), (*cur).getName());
 				if (sectionIndexes.size())
 				{
-					printf("%sCurrent LinkedList::List: ", global.tabs.c_str());
-					for (size_t index = 0; index < sectionIndexes.size(); index++)
-						printf("%s ", tutorial->sections[sectionIndexes[index]].getName());
+					printf("%sCurrent List: ", g_global.tabs.c_str());
+					for (const size_t index : sectionIndexes)
+						printf("%s ", tutorial->m_sections[index].getName());
 					putchar('\n');
 				}
-				switch (listValueInsert(sectionIndexes, "yntmv", song.sections.size()))
+				switch (GlobalFunctions::listValueInsert(sectionIndexes, "yntmv", song.m_sections.size()))
 				{
-				case '?':
+				case GlobalFunctions::ResultType::Help:
 
 					break;
-				case 'q':
-					printf("%s\n", global.tabs.c_str());
-					printf("%sTAS creation cancelled\n", global.tabs.c_str());
-					return true;
-				case 'y':
-				case 't':
-				case 'm':
-				case 'v':
-					if (sectionIndexes.size())
+				case GlobalFunctions::ResultType::Quit:
+					printf("%s\n", g_global.tabs.c_str());
+					printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+					return false;
+				case GlobalFunctions::ResultType::SpecialCase:
+					if (g_global.answer.character == 'n')
 					{
-						global.quit = true;
+						printf("%s\n", g_global.tabs.c_str());
+						printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", g_global.tabs.c_str());
+						printf("%s\n", g_global.tabs.c_str());
 						break;
 					}
-				case '!':
+					else if (sectionIndexes.size())
+					{
+						g_global.quit = true;
+						break;
+					}
+				case GlobalFunctions::ResultType::Success:
 					if (!sectionIndexes.size())
 					{
-						printf("%s\n", global.tabs.c_str());
+						printf("%s\n", g_global.tabs.c_str());
 						do
 						{
-							printf("%sNo sections have been selected. Quit TAS creation? [Y/N]\n", global.tabs.c_str());
-							switch (menuChoices("yn"))
+							printf("%sNo sections have been selected. Quit TAS creation? [Y/N]\n", g_global.tabs.c_str());
+							switch (GlobalFunctions::menuChoices("yn"))
 							{
-							case 'q':
-							case 'y':
-								printf("%s\n", global.tabs.c_str());
-								printf("%sTAS creation cancelled\n", global.tabs.c_str());
-								return true;
-							case 'n':
-								printf("%s\n", global.tabs.c_str());
-								global.quit = true;
+							case GlobalFunctions::ResultType::Quit:
+							case GlobalFunctions::ResultType::Success:
+								if (g_global.answer.character == 'y')
+								{
+									printf("%s\n", g_global.tabs.c_str());
+									printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+									return false;
+								}
+								else
+								{
+									printf("%s\n", g_global.tabs.c_str());
+									g_global.quit = true;
+								}
 							}
-						} while (!global.quit);
-						global.quit = false;
+						} while (!g_global.quit);
+						g_global.quit = false;
 					}
 					else
-						global.quit = true;
-					break;
-				case 'n':
-					printf("%s\n", global.tabs.c_str());
-					printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", global.tabs.c_str());
-					printf("%s\n", global.tabs.c_str());
+						g_global.quit = true;
 				}
-			} while (!global.quit);
-			global.quit = false;
-			for (size_t sectIndex = 0; sectIndex < sectionIndexes.size(); sectIndex++)
+			} while (!g_global.quit);
+			g_global.quit = false;
+			for (const size_t sectIndex : sectionIndexes)
 			{
-				SongSection& section = tutorial->sections[sectionIndexes[sectIndex]];
-				printf("%s%s\n", global.tabs.c_str(), section.getName());
-				if (sectionIndexes[sectIndex] + 1 == tutorial->sections.size())
+				SongSection& section = tutorial->m_sections[sectIndex];
+				printf("%s%s\n", g_global.tabs.c_str(), section.getName());
+				if (sectIndex + 1 == tutorial->m_sections.size())
 					endReached = true; // If END phase or last section
 				{
-					//0 - Technical
-					//1 - Visuals
-					//2 - Mixed
-					size_t visualType = 0;
-					float sustainCoeffienct = 1; //Sustain limit set to a base of 1 beat
-					for (size_t playerIndex = 0; playerIndex < section.getNumPlayers() && !global.quit; playerIndex += 2)
+					// 0 - Technical
+					// 1 - Visuals
+					// 2 - Mixed
+					for (size_t playerIndex = 0; !g_global.quit && playerIndex < section.getNumPlayers(); playerIndex += 2)
 					{
-						for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && !global.quit; chartIndex++)
+						for (size_t chartIndex = 0; !g_global.quit && chartIndex < section.getNumCharts(); chartIndex++)
 						{
 							if (section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex).getNumPhrases())
 							{
 								do
 								{
-									printf("%sHow should %s's phrase bars be played?\n", global.tabs.c_str(), section.getName());
-									printf("%sT - Technicality (Release at the end of all sustains)\n", global.tabs.c_str());
-									printf("%sV - Visually (Hold past/through the end of all sustains)\n", global.tabs.c_str());
-									printf("%sM - Mixed (Release only on sustain that exceeds a defined length)\n", global.tabs.c_str());
-									visualType = menuChoices("tvm");
-									switch (visualType)
+									printf("%sHow should %s's phrase bars be played?\n", g_global.tabs.c_str(), section.getName());
+									printf("%sT - Technicality (Release at the end of all sustains)\n", g_global.tabs.c_str());
+									printf("%sV - Visually (Hold past/through the end of all sustains)\n", g_global.tabs.c_str());
+									printf("%sM - Mixed (Release only on sustain that exceeds a defined length)\n", g_global.tabs.c_str());
+									switch (GlobalFunctions::menuChoices("tvm", true))
 									{
-									case 'q':
-										printf("%s\n", global.tabs.c_str());
-										printf("%sTAS creation cancelled\n", global.tabs.c_str());
-										return true;
-									case '?':
-										printf("%s\n", global.tabs.c_str());
-									case '*':
+									case GlobalFunctions::ResultType::Quit:
+										printf("%s\n", g_global.tabs.c_str());
+										printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+										return false;
+									case GlobalFunctions::ResultType::Help:
+										printf("%s\n", g_global.tabs.c_str());
+									case GlobalFunctions::ResultType::Failed:
 										break;
 									default:
-										printf("%s\n", global.tabs.c_str());
-										if (visualType == 'm')
+										printf("%s\n", g_global.tabs.c_str());
+										if (g_global.answer.index == 2)
 										{
 											do
 											{
-												printf("%sProvide a value for the sustain limit coeffienct.\n", global.tabs.c_str());
-												printf("%sAKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n", global.tabs.c_str());
-												printf("%sValue can range from 0.5 to 4.0 [Default is 1].\n", global.tabs.c_str());
-												printf("%sInput: ", global.tabs.c_str());
-												switch (valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
+												printf("%sProvide a value for the sustain limit coeffienct.\n", g_global.tabs.c_str());
+												printf("%sAKA, how many beats must a sustain be before the TAS programs a sustain-release at the end of the note?\n", g_global.tabs.c_str());
+												printf("%sValue can range from 0.5 to 4.0 [Default is 1].\n", g_global.tabs.c_str());
+												printf("%sInput: ", g_global.tabs.c_str());
+												float sustainCoeffienct = 1; // Sustain limit set to a base of 1 beat
+												switch (GlobalFunctions::valueInsert(sustainCoeffienct, false, 0.5f, 4.0f))
 												{
-												case '!':
-													global.quit = true;
+												case GlobalFunctions::ResultType::Success:
+													markers.emplace_back(position, 2, (long)round(sustainCoeffienct * s_SAMPLES_PER_MIN / section.getTempo()));
+													g_global.quit = true;
 													break;
-												case 'q':
-													printf("%s\n", global.tabs.c_str());
-													printf("%sTAS creation cancelled\n", global.tabs.c_str());
-													return true;
-												case '-':
-												case '<':
-													printf("%sProvided value *must* be greater than or equal to 0.5.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
+												case GlobalFunctions::ResultType::Quit:
+													printf("%s\n", g_global.tabs.c_str());
+													printf("%sTAS creation cancelled\n", g_global.tabs.c_str());
+													return false;
+												case GlobalFunctions::ResultType::InvalidNegative:
+												case GlobalFunctions::ResultType::MinExceeded:
+													printf("%sProvided value *must* be greater than or equal to 0.5.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 													break;
-												case '>':
-													printf("%sProvided value *must* be less than or equal to 4.0.\n%s\n", global.tabs.c_str(), global.tabs.c_str());
+												case GlobalFunctions::ResultType::MaxExceeded:
+													printf("%sProvided value *must* be less than or equal to 4.0.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 													break;
-												case '*':
-													printf("%s\"%s\" is not a valid response.\n%s\n", global.tabs.c_str(), global.invalid.c_str(), global.tabs.c_str());
-													clearIn();
+												case GlobalFunctions::ResultType::Failed:
+													printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
+													GlobalFunctions::clearIn();
 												}
-											} while (!global.quit);
+											} while (!g_global.quit);
 										}
-										global.quit = true;
+										else
+											markers.emplace_back(position, g_global.answer.index, (long)round(s_SAMPLES_PER_MIN / section.getTempo()));
+										g_global.quit = true;
 									}
-								} while (!global.quit);
+								} while (!g_global.quit);
 							}
 						}
 					}
-					global.quit = false;
-					markers[0].emplace_back(position, visualType, (long)round(sustainCoeffienct * SAMPLES_PER_MIN / section.getTempo()));
 				}
 				size_t startIndex = timeline[0].size();
 				for (unsigned chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
@@ -1472,13 +1303,8 @@ bool TAS::buildTAS()
 						for (size_t i = 0; i < chart.getNumGuards(); i++)
 						{
 							long pos = chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position;
-							while (index < timeline[0].size())
-							{
-								if (pos <= timeline[0][index].position)
-									break;
-								else
+							while (index < timeline[0].size() && pos > timeline[0][index].position)
 									index++;
-							}
 							timeline[0].emplace(index, 1, pos, &chart.getGuard(i), i, i + 1 == chart.getNumGuards());
 							notes[currentPlayer]++;
 							index++;
@@ -1488,14 +1314,9 @@ bool TAS::buildTAS()
 						{
 							Phrase& phrase = chart.getPhrase(i);
 							long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
-							while (index < timeline[0].size())
-							{
-								if (pos <= timeline[0][index].position)
-									break;
-								else
-									index++;
-							}
-							//Combine all pieces into one Note
+							while (index < timeline[0].size() && pos > timeline[0][index].position)
+								index++;
+							// Combine all pieces into one Note
 							while (i < chart.getNumPhrases())
 							{
 								if (!chart.getPhrase(i).getEnd())
@@ -1504,21 +1325,26 @@ bool TAS::buildTAS()
 								{
 									if (i + 1 != chart.getNumPhrases())
 									{
-										if (markers[currentPlayer].back().visualType == 'v')
+										switch (markers.back().type)
 										{
-											if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers[currentPlayer].back().sustainLimit)
+										case SectPoint::VisualType::Visual:
+											if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers.back().sustainLimit)
 												phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
 											else
 												phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
-										}
-										else if (markers[currentPlayer].back().visualType == 'm'
-											&& chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers[currentPlayer].back().sustainLimit)
-											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
-										else
+											break;
+										case SectPoint::VisualType::Mixed:
+											if (chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers.back().sustainLimit)
+											{
+												phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
+												break;
+											}
+										default:
 											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
+										}
 									}
-									else if (markers[currentPlayer].back().visualType != 'v'
-										|| !phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5.0 * SAMPLES_PER_FRAME)))
+									else if (markers.back().type != SectPoint::VisualType::Visual ||
+											!phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5 * SAMPLES_PER_FRAME)))
 										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
 									break;
 								}
@@ -1533,13 +1359,8 @@ bool TAS::buildTAS()
 							for (size_t i = 0; i < chart.getNumTracelines(); i++)
 							{
 								long pos = chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position;
-								while (index < timeline[0].size())
-								{
-									if (pos <= timeline[0][index].position)
-										break;
-									else
-										index++;
-								}
+								while (index < timeline[0].size() && pos > timeline[0][index].position)
+									index++;
 								timeline[0].emplace(index, 1, pos, &chart.getTraceline(i), i, i + 1 == chart.getNumTracelines());
 								index++;
 							}
@@ -1554,323 +1375,273 @@ bool TAS::buildTAS()
 	}
 	else
 		frameStart = pcsx2.insertFrames(stage, orientation, difficulty, multi, (size_t)ceil(totalDuration / SAMPLES_PER_FRAME));
-	for (size_t playerIndex = 0; playerIndex < 4; playerIndex++)
+	bool results[4];
+	auto convertToFrames = [&](const size_t playerIndex)
 	{
-		if (markers[playerIndex].size())
+		FILE* taslog;
+		if (difficulty != 3)
+			fopen_s(&taslog, (filename + ".txt").c_str(), "w");
+		else
+			fopen_s(&taslog, (filename + "_P" + to_string(playerIndex + 1) + ".txt").c_str(), "w");
+
+		fprintf(taslog, "Samples per frame: %Lf\n", SAMPLES_PER_FRAME);
+		LinkedList::List<SectPoint>::Iterator markerIterator = markers.begin();
+		fprintf(taslog, "//// Section Marker 1 at sample %li\n", (*markerIterator).position);
+
+		size_t sectIndex = 0;
+		NotePoint* prevPhrase = nullptr;
+		for (LinkedList::List<NotePoint>::Iterator iter = timeline[playerIndex].begin();
+			iter != timeline[playerIndex].end();
+			++iter)
 		{
-			size_t sectIndex = 0;
-			bool inTrace = false;
-			bool connected = false;
-			FILE* taslog;
-			if (difficulty != 3)
-				fopen_s(&taslog, (filename + ".txt").c_str(), "w");
-			else
-				fopen_s(&taslog, (filename + "_P" + to_string(playerIndex + 1) + ".txt").c_str(), "w");
-			fprintf(taslog, "Samples per frame: %Lf\n", SAMPLES_PER_FRAME);
-			fprintf(taslog, "////Section Marker 1 at sample %li\n", markers[playerIndex][sectIndex].position);
-			NotePoint* prevPhrase = nullptr;
-			for (size_t noteIndex = 0; noteIndex < timeline[playerIndex].size(); noteIndex++)
+			while (markerIterator + 1 != markers.end() && (*iter).position >= (*(markerIterator + 1)).position)
 			{
-				NotePoint& point = timeline[playerIndex][noteIndex];
-				while (sectIndex + 1ULL != markers[playerIndex].size() && point.position >= markers[playerIndex][sectIndex + 1ULL].position)
+				++markerIterator;
+				fflush(taslog);
+				fprintf(taslog, "\n//// Section Marker %zu at sample %li\n\n", markerIterator.getIndex() + 1, (*markerIterator).position);
+			}
+			if (dynamic_cast<Guard*>((*iter).note) != nullptr)
+			{
+				size_t grdFrame = frameStart + (size_t)round((*iter).position / SAMPLES_PER_FRAME);
+				// If the next note, if it exists, is a guard mark
+				if (iter + 1 != timeline[playerIndex].end() && dynamic_cast<Guard*>((*(iter + 1)).note) != nullptr)
 				{
-					sectIndex++;
-					fprintf(taslog, "////Section Marker %zu at sample %li", sectIndex + 1, markers[playerIndex][sectIndex].position);
-				}
-				if (dynamic_cast<Guard*>(timeline[playerIndex][noteIndex].note) != nullptr)
-				{
-					size_t grdFrame = frameStart + (size_t)round(point.position / SAMPLES_PER_FRAME);
-					//If the next note, if it exists, is a guard mark
-					if (noteIndex + 1ULL != timeline[playerIndex].size() && dynamic_cast<Guard*>(timeline[playerIndex][noteIndex + 1ULL].note) != nullptr)
-					{
-						size_t distance = frameStart + (size_t)round(timeline[playerIndex][noteIndex + 1ULL].position / SAMPLES_PER_FRAME) - grdFrame;
-						//If two guard marks are within two frames of each other
-						if (distance < 2)
-						{
-							//Pull the current mark forwards one frame
-							grdFrame--;
-							//If they *were* within a single frame
-							if (distance == 0)
-							{
-								//Push the second mark back one frame
-								timeline[playerIndex][noteIndex + 1ULL].position += long(SAMPLES_PER_FRAME);
-								//If pushing it back places it behind the note that *was* after it, fix the order
-								if (noteIndex + 2ULL != timeline[playerIndex].size() && timeline[playerIndex][noteIndex + 1ULL].position >= timeline[playerIndex][noteIndex + 2ULL].position)
-									timeline[playerIndex].moveElements(noteIndex + 1ULL, noteIndex + 3ULL);
-							}
-						}
-					}
-					//Value for setting the button to use
-					char exponent = 7;
-					//Square - 239
-					//X/Cross  - 223
-					//Circle - 191
-					//Triangle - 127
-					switch (orientation)	//Determine button based on orientation
+
+					switch (frameStart + (size_t)round((*(iter + 1)).position / SAMPLES_PER_FRAME) - grdFrame)
 					{
 					case 0:
+						// Push the second mark back one frame
+						(*(iter + 1)).position += long(SAMPLES_PER_FRAME);
+						// If pushing it back places it behind the note that *was* after it, fix the order
+						if (iter + 1 != timeline[playerIndex].end() && (*(iter + 1)).position >= (*(iter + 2)).position)
+							timeline[playerIndex].moveElements(iter.getIndex() + 1, iter.getIndex() + 3);
+						__fallthrough;
 					case 1:
-						switch (static_cast<Guard*>(point.note)->getButton())
-						{
-						case 3:
-							exponent -= 3;
-							break;
-						case 2:
-							exponent -= 2;
-							break;
-						case 1:
-							exponent--;
-						}
-						break;
-					case 2:
-						switch (static_cast<Guard*>(point.note)->getButton())
-						{
-						case 2:
-							exponent -= 3;
-							break;
-						case 1:
-							exponent -= 2;
-							break;
-						case 0:
-							exponent--;
-						}
-						break;
-					case 3:
-						switch (static_cast<Guard*>(point.note)->getButton())
-						{
-						case 0:
-							exponent -= 3;
-							break;
-						case 3:
-							exponent -= 2;
-							break;
-						case 2:
-							exponent--;
-						}
+						// Pull the current mark forwards one frame
+						grdFrame--;
 					}
-					char safety = exponent;
-					for (unsigned i = 0; i < 4; i++)
-					{
-						//The button is already in use on the previous frame
-						if (!(pcsx2.players[playerIndex][grdFrame - 1].button & (1 << safety)))
-						{
-							//Swap to the next available button
-							if (safety != 4)
-								safety--;
-							else
-								safety = 7;
-						}
-						else
-						{
-							//Add a button press of the current type (described above) to the previous frame
-							pcsx2.players[playerIndex][grdFrame - 1].button &= 255 - (1 << safety);
-							break;
-						}
-					}
-					//Clear the button on the previous frame, then add it on the current frame
-					pcsx2.players[playerIndex][grdFrame - 1].button |= (1 << exponent);
-					pcsx2.players[playerIndex][grdFrame].button &= 255 - (1 << exponent);
-					fprintf(taslog, "Guard Mark %03zu-  Landing at sample %li | Frame #%zu\n", point.index, point.position, grdFrame - frameStart);
 				}
-				else if (dynamic_cast<Traceline*>(timeline[playerIndex][noteIndex].note) != nullptr)
+				// Clear any buttons from the prior frame
+				pcsx2.m_players[playerIndex][grdFrame - 1].button = 255;
+
+				// Square - 239
+				// X/Cross  - 223
+				// Circle - 191
+				// Triangle - 127
+				static const int orientationSets[4][4] = { {239, 223, 191, 127}, {239, 223, 191, 127}, {223, 191, 127, 239}, {127, 239, 223, 191} };
+				pcsx2.m_players[playerIndex][grdFrame].button = orientationSets[orientation][static_cast<Guard*>((*iter).note)->getButton()];
+
+				fprintf(taslog, "Guard Mark %03zu: ", (*iter).index);
+				switch (pcsx2.m_players[playerIndex][grdFrame].button)
 				{
-					for (size_t testIndex = noteIndex + 1; testIndex < timeline[playerIndex].size(); testIndex++)
+				case 239:
+					fprintf(taslog, "[Square] - Landing at sample %li | Frame #%zu\n", (*iter).position, grdFrame - frameStart);
+					break;
+				case 223:
+					fprintf(taslog, "[X/Cross] - Landing at sample %li | Frame #%zu\n", (*iter).position, grdFrame - frameStart);
+					break;
+				case 191:
+					fprintf(taslog, "[Circle] - Landing at sample %li | Frame #%zu\n", (*iter).position, grdFrame - frameStart);
+					break;
+				case 127:
+					fprintf(taslog, "[Triangle] - Landing at sample %li | Frame #%zu\n", (*iter).position, grdFrame - frameStart);
+				}
+				
+			}
+			else if (dynamic_cast<Traceline*>((*iter).note) != nullptr)
+			{
+				for (LinkedList::List<NotePoint>::Iterator test = iter + 1; test != timeline[playerIndex].end(); ++test)
+				{
+					if (dynamic_cast<Guard*>((*test).note) != nullptr && (*iter).last)
+						break;
+					else if (dynamic_cast<Traceline*>((*test).note) != nullptr)
 					{
-						if (dynamic_cast<Guard*>(timeline[playerIndex][testIndex].note) != nullptr && point.last)
+						if (!(*iter).last || 10 * ((*test).position - (long double)(*iter).position) <= 3.0L * song.m_speed * SAMPLES_PER_FRAME)
 						{
-							inTrace = false;
-							break;
-						}
-						else if (dynamic_cast<Traceline*>(timeline[playerIndex][testIndex].note) != nullptr)
-						{
-							if (!point.last || 10 * (timeline[playerIndex][testIndex].position - (long double)point.position) <= 3.0L * song.speed * SAMPLES_PER_FRAME)
+							if ((*iter).last || (*test).index - 1 == (*iter).index)
 							{
-								if (point.last || timeline[playerIndex][testIndex].index - 1 == point.index)
+								size_t currentFrame = frameStart + (size_t)round((*iter).position / SAMPLES_PER_FRAME);
+								size_t endFrame = frameStart + (size_t)round((*test).position / SAMPLES_PER_FRAME);
+								if (endFrame - currentFrame > 0)
 								{
-									if (point.last)
-										connected = true;
-									inTrace = true;
-									size_t currentFrame = frameStart + (size_t)round(point.position / SAMPLES_PER_FRAME);
-									size_t endFrame = frameStart + (size_t)round(timeline[playerIndex][testIndex].position / SAMPLES_PER_FRAME);
-									if (endFrame - currentFrame > 0)
+									long double currentAngle = static_cast<Traceline*>((*iter).note)->getAngle();
+									long double angleDif = 0;
+									if (!(*iter).last)
 									{
-										long double currentAngle = static_cast<Traceline*>(point.note)->getAngle();
-										long double angleDif = 0;
-										if (!point.last)
+										if (!(*test).last)
 										{
-											if (!timeline[playerIndex][testIndex].last)
-											{
-												angleDif = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->getAngle() - currentAngle;
-												if (angleDif > M_PI)
-													angleDif -= 2 * M_PI;
-												else if (angleDif < -M_PI)
-													angleDif += 2 * M_PI;
-											}
-										}
-										else
-											currentAngle = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->getAngle();
-										if (orientation == 2)
-											currentAngle += .5 * M_PI;
-										else if (orientation == 3)
-											currentAngle -= .5 * M_PI;
-										if (!static_cast<Traceline*>(point.note)->getCurve()) //If curve is false
-										{
-											//Iterate through all frames with a straight trace line, if any
-											for (; 20 * (endFrame - currentFrame - 1) > song.speed; currentFrame++)
-											{
-												//Only Orientation 2 uses the right stick for trace lines
-												switch (orientation)
-												{
-												case 2:
-													pcsx2.players[playerIndex][currentFrame].rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
-													pcsx2.players[playerIndex][currentFrame].rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
-													break;
-												default:
-													pcsx2.players[playerIndex][currentFrame].leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
-													pcsx2.players[playerIndex][currentFrame].leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
-												}
-											}
-										}
-										long double angleIncrement = angleDif / (endFrame - currentFrame);
-										for (; currentFrame < endFrame; currentFrame++)
-										{
-											//Only Orientation 2 uses the right stick for trace lines
-											switch (orientation)
-											{
-											case 2:
-												pcsx2.players[playerIndex][currentFrame].rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
-												pcsx2.players[playerIndex][currentFrame].rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
-												break;
-											default:
-												pcsx2.players[playerIndex][currentFrame].leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
-												pcsx2.players[playerIndex][currentFrame].leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
-											}
-											currentAngle += angleIncrement;
+											angleDif = static_cast<Traceline*>((*test).note)->getAngle() - currentAngle;
+											if (angleDif > M_PI)
+												angleDif -= 2 * M_PI;
+											else if (angleDif < -M_PI)
+												angleDif += 2 * M_PI;
 										}
 									}
-									break;
+									else
+										currentAngle = static_cast<Traceline*>((*test).note)->getAngle();
+
+									if (orientation == 2)
+										currentAngle += .5 * M_PI;
+									else if (orientation == 3)
+										currentAngle -= .5 * M_PI;
+
+									LinkedList::List<TAS_Frame>::Iterator cur = pcsx2.m_players[playerIndex].current(currentFrame);
+									if (!static_cast<Traceline*>((*iter).note)->getCurve()) // If curve is false
+									{
+										// Iterate through all frames with a straight trace line, if any
+										for (size_t compare = 20 * (endFrame - cur.getIndex() - 1); compare > song.m_speed; ++cur, compare -= 20)
+										{
+											// Only Orientation 2 uses the right stick for trace lines
+											if (orientation == 2)
+											{
+												(*cur).rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+												(*cur).rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
+											}
+											else
+											{
+												(*cur).leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+												(*cur).leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
+											}
+										}
+									}
+									long double angleIncrement = angleDif / (endFrame - cur.getIndex());
+									for (; cur.getIndex() < endFrame; ++cur)
+									{
+										// Only Orientation 2 uses the right stick for trace lines
+										if (orientation == 2)
+										{
+											(*cur).rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+											(*cur).rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
+										}
+										else
+										{
+											(*cur).leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+											(*cur).leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
+										}
+										currentAngle += angleIncrement;
+									}
 								}
-								else
-									timeline[playerIndex].erase(testIndex);
-							}
-							else
-							{
-								inTrace = false;
-								connected = false;
 								break;
 							}
-						}
-					}
-				}
-				else if (inTrace) //only go here if the confirmed to be Phrase bar is inside a trace line
-				{
-					size_t phraseStart;
-					//If this phrase bar isn't the first one in the song but is the first in its subsection
-					//&
-					//if the current & following trace lines are close enough together without interruptions
-					if (prevPhrase != nullptr && !point.index && connected)
-					{
-						size_t prevsectIndex = sectIndex;
-						//Check if the previous PB is close enough to justify connecting its
-						//sustain button press to the current PB
-						while (prevPhrase->position < markers[playerIndex][prevsectIndex].position)
-								prevsectIndex--;
-						if ((markers[playerIndex][prevsectIndex].visualType == 'm' && point.position - prevPhrase->position < markers[playerIndex][prevsectIndex].sustainLimit)
-						|| (markers[playerIndex][prevsectIndex].visualType == 'v' && point.position - prevPhrase->position < markers[playerIndex][prevsectIndex].sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
-						{
-							phraseStart = frameStart + (size_t)round((point.position - SAMPLES_PER_FRAME) / SAMPLES_PER_FRAME);
-							fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", point.position, phraseStart - frameStart);
-							size_t phraseEnd = frameStart
-							+ (size_t)ceil((SAMPLES_PER_FRAME + prevPhrase->position + static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME);
-							for (; phraseEnd < phraseStart - 1; phraseEnd++)
-							{
-								//No need to check for button slots being occupied
-								switch (orientation)
-								{
-								case 0:
-								case 1:
-									pcsx2.players[playerIndex][phraseEnd].button &= 191;
-									break;
-								case 2:
-									pcsx2.players[playerIndex][phraseEnd].button &= 223;
-									break;
-								case 3:
-									pcsx2.players[playerIndex][phraseEnd].button &= 127;
-								}
-							}
-						}
-					}
-					phraseStart = frameStart + (size_t)round(point.position / SAMPLES_PER_FRAME);
-					size_t phraseEnd = frameStart + (size_t)ceil(((double)point.position + static_cast<Phrase*>(point.note)->getDuration()) / SAMPLES_PER_FRAME);
-					fprintf(taslog, "Phrase Bar %03zu- Starting at sample %li | Frame #%zu\n", point.index, point.position, phraseStart - frameStart);
-					pcsx2.players[playerIndex][phraseStart - 1].button = 255;
-					/*
-					//Square - 239
-					//X/Cross  - 223
-					//Circle - 191
-					//Triangle - 127
-					*/
-					for (; phraseStart <= phraseEnd; phraseStart++)
-					{
-						char exponent = 7; //Triangle (base of orientation 3)
-						switch (orientation)
-						{
-						case 0:
-						case 1:
-							exponent -= 3; //Square
-							break;
-						case 2:
-							exponent -= 2; //X/Cross
-						}
-						if (phraseStart + 1 != pcsx2.players[playerIndex].size())
-						{
-							for (unsigned i = 0; i < 4; i++)
-							{
-								//If the button is already taken in the next frame
-								if (!(pcsx2.players[playerIndex][phraseStart + 1].button & (1 << exponent)))
-								{
-									if (exponent != 4)
-										exponent--;
-									else
-										exponent = 7;
-								}
-								else
-								{
-									pcsx2.players[playerIndex][phraseStart].button &= 255 - (1 << exponent);
-									break;
-								}
-							}
+							else
+								timeline[playerIndex].erase(test.getIndex());
 						}
 						else
-							pcsx2.players[playerIndex][phraseStart].button &= 255 - (1 << exponent);
+							break;
 					}
-					fprintf(taslog, "\t      -   Ending at sample %li | Frame #%zu\n" , point.position + static_cast<Phrase*>(point.note)->getDuration(), phraseEnd - frameStart);
-					prevPhrase = &point;
 				}
 			}
-			fclose(taslog);
+			else
+			{
+				// Square - 239
+				// X/Cross  - 223
+				// Triangle - 127
+				static const int orientationsSet[4] = { 239, 239, 223, 127 };
+				LinkedList::List<TAS_Frame>::Iterator start =
+					pcsx2.m_players[playerIndex].current(frameStart + (size_t)round((*iter).position / SAMPLES_PER_FRAME) - 1);
+				// If this phrase bar isn't the first one in the song but is the first in its subsection
+				// &
+				// if the current & following trace lines are close enough together without interruptions
+				if ((*start).leftStickX != 127 || (*start).leftStickY != 127)
+				{
+					if (!(*iter).index && prevPhrase != nullptr)
+					{
+						LinkedList::List<SectPoint>::Iterator prevSect = markerIterator;
+						// Check if the previous PB is close enough to justify connecting its
+						// sustain button press to the current PB
+						while (prevPhrase->position < (*prevSect).position)
+							--prevSect;
+						if (((*prevSect).type == SectPoint::VisualType::Mixed && (*iter).position - prevPhrase->position < (*prevSect).sustainLimit) ||
+							((*prevSect).type == SectPoint::VisualType::Visual && (*iter).position - prevPhrase->position < (*prevSect).sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
+						{
+							fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", (*iter).position, start.getIndex() - frameStart);
+							LinkedList::List<TAS_Frame>::Iterator phraseEnd =
+								pcsx2.m_players[playerIndex].current(frameStart
+									+ (size_t)ceil(((SAMPLES_PER_FRAME + prevPhrase->position + static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME)));
+							
+							--start;
+							while (phraseEnd < start)
+								(*phraseEnd++).button = orientationsSet[orientation];
+							++start;
+						}
+					}
+				}
+
+				if ((*++start).leftStickX != 127 || (*start).leftStickY != 127)
+				{
+					const size_t phraseEnd = frameStart + (size_t)ceil(((*iter).position + static_cast<Phrase*>((*iter).note)->getDuration()) / SAMPLES_PER_FRAME);
+					fprintf(taslog, "Phrase Bar %03zu- Starting at sample %li | Frame #%zu\n", (*iter).index, (*iter).position, start.getIndex() - frameStart);
+					(*(start - 1)).button = 255;
+					while (start.getIndex() <= phraseEnd)
+						(*start++).button = orientationsSet[orientation];
+					fprintf(taslog, "\t      -   Ending at sample %li | Frame #%zu\n", (*iter).position + static_cast<Phrase*>((*iter).note)->getDuration(), phraseEnd - frameStart);
+					prevPhrase = &(*iter);
+				}
+			}
 		}
+		fclose(taslog);
+		results[playerIndex] = true;
+	};
+
+	if (difficulty == 3 && processor_count > 1)
+	{
+		struct threadControl
+		{
+			size_t playerIndex;
+			std::thread thisThread;
+			threadControl(const size_t index) : playerIndex(index) {}
+		};
+		LinkedList::List<threadControl> threads;
+		for (size_t playerIndex = 0; playerIndex < 4; playerIndex++)
+		{
+			if (timeline[playerIndex].size())
+			{
+				while (threads.size() == processor_count - 1)
+				{
+					for (size_t thr = 0; thr < threads.size();)
+					{
+						if (results[threads[thr].playerIndex])
+						{
+							threads[thr].thisThread.join();
+							threads.erase(thr);
+						}
+						else
+							++thr;
+					}
+				}
+				threads.emplace_back(playerIndex).thisThread = std::thread(convertToFrames, playerIndex);
+			}
+		}
+		for (threadControl& thr : threads)
+			thr.thisThread.join();
 	}
+	else
+	{
+		for (size_t playerIndex = 0; playerIndex < 4; playerIndex++)
+			if (timeline[playerIndex].size())
+				convertToFrames(playerIndex);
+	}
+
 	if (endReached)
 	{
 		if (notes[0] + notes[2] > notes[1] + notes[3])
-			pcsx2.resultScreen(stage, (size_t)notes[0] + notes[2], difficulty != 3, multi);
+			pcsx2.resultScreen(stage, notes[0] + notes[2], difficulty != 3, multi);
 		else
-			pcsx2.resultScreen(stage, (size_t)notes[1] + notes[3], false, multi);
+			pcsx2.resultScreen(stage, notes[1] + notes[3], false, multi);
 	}
 	while (true)
 	{
-		switch (fileOverwriteCheck(filename + ".p2m2"))
+		switch (GlobalFunctions::fileOverwriteCheck(filename + ".p2m2"))
 		{
-		case 'n':
-			printf("%s\n", global.tabs.c_str());
+		case GlobalFunctions::ResultType::No:
+			printf("%s\n", g_global.tabs.c_str());
 			filename += "_T";
 			break;
-		case 'y':
+		case GlobalFunctions::ResultType::Yes:
 			pcsx2.print(filename);
 			return true;
-		case 'q':
-			printf("%s\n%sPCSX2 TAS was completed, but the file generation was cancelled.\n", global.tabs.c_str(), global.tabs.c_str());
+		case GlobalFunctions::ResultType::Quit:
+			printf("%s\n%sPCSX2 TAS was completed, but the file generation was cancelled.\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			return false;
 		}
 	}

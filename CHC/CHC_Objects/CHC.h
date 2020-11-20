@@ -35,7 +35,7 @@ private:
 	//Short version
 	std::string m_shortname;
 	//Stage number
-	unsigned char m_stage;
+	int m_stage;
 	//Holds header data from original file
 	char m_header[36] = { 0 };
 

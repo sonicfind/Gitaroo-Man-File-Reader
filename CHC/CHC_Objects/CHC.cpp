@@ -65,29 +65,7 @@ CHC::CHC(string filename) : m_name(filename + ".CHC"), m_saved(2)
 	}
 	catch (...)
 	{
-		do
-		{
-			printf("%sWhich number do you wish to give this stage? (Think:\"ST##\") ('Q' to cancel CHC load)\n", g_global.tabs.c_str());
-			printf("%sWarning: setting it the 0 alters how some functions behave (especially organizing)\n", g_global.tabs.c_str());
-			printf("%sInput: ", g_global.tabs.c_str());
-			switch (GlobalFunctions::valueInsert(m_stage, false))
-			{
-			case GlobalFunctions::ResultType::Success:
-				g_global.quit = true;
-				break;
-			case GlobalFunctions::ResultType::InvalidNegative:
-				printf("%sGiven value cannot be negative\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
-				break;
-			case GlobalFunctions::ResultType::Failed:
-				printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-				break;
-			case GlobalFunctions::ResultType::Quit:
-				printf("%s\n", g_global.tabs.c_str());
-				//printf("%s", g_global.tabs.c_str(), "CHC load cancelled\n";
-				throw "Stage number not provided.";
-			}
-		} while (!g_global.quit);
-		g_global.quit = false;
+		m_stage = -1;
 	}
 	union {
 		char c[4];

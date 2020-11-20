@@ -50,7 +50,7 @@ public:
 	void traverseCondition(const size_t sectIndex, const size_t condIndex, bool** conds, bool* results, bool* reach);
 	//SongSections
 	void sectionSubMenu();
-	void reorganize(SongSection& section);
+	bool reorganize(SongSection& section);
 	void playerSwap(SongSection& section);
 	void changeName(SongSection& section);
 	void changeAudio(SongSection& section);

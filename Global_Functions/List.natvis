@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
   <Type Name="LinkedList::List&lt;*&gt;">
-    <DisplayString>{{Count = {s_shared->m_count}}}</DisplayString>
+    <DisplayString>{{Count = {sh_shared->m_count}}}</DisplayString>
     <Expand>
-      <Item Name="Shared">s_shared._Ptr</Item>
+      <Item Name="Shared">sh_shared._Ptr</Item>
       <LinkedListItems>
-        <Size>s_shared->m_count</Size>
-        <HeadPointer>s_shared->m_root</HeadPointer>
+        <Size>sh_shared->m_count</Size>
+        <HeadPointer>sh_shared->m_root</HeadPointer>
         <NextPointer>next</NextPointer>
         <ValueNode>data.object</ValueNode>
       </LinkedListItems>

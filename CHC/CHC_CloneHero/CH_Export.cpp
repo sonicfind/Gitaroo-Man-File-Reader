@@ -754,7 +754,7 @@ bool CH_Exporter::getFrets(unsigned long& strumFret, const char* sectionName, un
 			{
 				strumFret = prevFret;
 				size_t numColoredFrets = 0;
-				g_global.adjustTabs(2);
+				++g_global;
 				choices = "12345pf";
 				if (piece == 1 && playerIndex)
 					choices += 't';
@@ -943,7 +943,7 @@ bool CH_Exporter::getFrets(unsigned long& strumFret, const char* sectionName, un
 						}
 					}
 				} while (!g_global.quit);
-				g_global.adjustTabs(1);
+				--g_global;
 			}
 			break;
 			default:

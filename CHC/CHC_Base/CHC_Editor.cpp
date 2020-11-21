@@ -122,9 +122,9 @@ void CHC_Editor::editSong(const bool multi)
 		case GlobalFunctions::ResultType::Failed:
 			break;
 		default:
-			g_global.adjustTabs(2);
+			++g_global;
 			(this->*functions[g_global.answer.index])();
-			g_global.adjustTabs(1);
+			--g_global;
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
@@ -1022,9 +1022,9 @@ void CHC_Editor::sectionMenu()
 		case GlobalFunctions::ResultType::Failed:
 			break;
 		default:
-			g_global.adjustTabs(3);
+			++g_global;
 			(this->*results[g_global.answer.index])();
-			g_global.adjustTabs(2);
+			--g_global;
 		}
 	} while (!g_global.quit);
 }
@@ -1551,7 +1551,7 @@ void CHC_Editor::sectionSubMenu()
 		case GlobalFunctions::ResultType::Quit:
 			return;
 		case GlobalFunctions::ResultType::Success:
-			g_global.adjustTabs(4);
+			++g_global;
 			do
 			{
 				GlobalFunctions::banner(" " + song->m_shortname + ".CHC - " + song->m_sections[val].m_name + " - Modify ");
@@ -1596,7 +1596,7 @@ void CHC_Editor::sectionSubMenu()
 				case GlobalFunctions::ResultType::Help:
 					printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 				case GlobalFunctions::ResultType::Success:
-					g_global.adjustTabs(5);
+					++g_global;
 					switch (g_global.answer.character)
 					{
 					case 'n':
@@ -1650,11 +1650,11 @@ void CHC_Editor::sectionSubMenu()
 						playerSwap(section);
 						song->m_saved = false;
 					}
-					g_global.adjustTabs(4);
+					--g_global;
 				}
 			} while (!g_global.quit);
 			g_global.quit = false;
-			g_global.adjustTabs(3);
+			--g_global;
 		}
 	}
 }
@@ -2491,7 +2491,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 			GlobalFunctions::clearIn();
 			break;
 		case GlobalFunctions::ResultType::Success:
-			g_global.adjustTabs(6);
+			++g_global;
 			do
 			{
 				GlobalFunctions::banner(" " + song->m_shortname + ".CHC - Section " + section.m_name + " - Condition " + to_string(val) + ' ', 1.5);
@@ -2542,7 +2542,7 @@ void CHC_Editor::conditionMenu(SongSection& section)
 				case GlobalFunctions::ResultType::Failed:
 					break;
 				default:
-					g_global.adjustTabs(7);
+					++g_global;
 					switch (g_global.answer.character)
 					{
 					case 'c':
@@ -2561,11 +2561,11 @@ void CHC_Editor::conditionMenu(SongSection& section)
 						adjustTempo(song->m_sections[val]);
 						break;
 					}
-					g_global.adjustTabs(6);
+					--g_global;
 				}
 			} while (!g_global.quit);
 			g_global.quit = false;
-			g_global.adjustTabs(3);
+			--g_global;
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;

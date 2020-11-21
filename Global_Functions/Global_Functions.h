@@ -71,8 +71,10 @@ extern "C" GLOBALFUNCTIONS_API FileType g_dlls[20];
 		"tabs"  - std::string used to add empty space at the beginning of most new lines in the console window. Different menus will add or remove space from this std::string depening on scope. Utilizing this can make the console window look more organized.
 	  "invalid" - std::string used to capture an entire segment of invalid inputs for any menu screen.
 	*/
-struct GlobalVars
+class GlobalVars
 {
+	unsigned tabCount = 0;
+public:
 	bool quit = false;
 	char input = 0;
 	struct Answers
@@ -83,7 +85,17 @@ struct GlobalVars
 	bool multi = false;
 	std::string tabs = "", invalid = "";
 	//Adjust pre-fix tab "||"s to the given length
-	void adjustTabs(size_t value) { tabs = value > 0 ? std::string(--value, '\t') + "      ||" : ""; }
+	void adjustTabs(const unsigned value)
+	{
+		tabCount = value;
+		tabs = value > 0 ? std::string(value - 1, '\t') + "      ||" : "";
+	}
+	void operator++() { tabs = std::string(++tabCount - 1, '\t') + "      ||"; }
+	void operator--()
+	{
+		if (tabCount)
+			tabs = --tabCount > 0 ? std::string(tabCount - 1, '\t') + "      ||" : "";
+	}
 };
 extern "C" GLOBALFUNCTIONS_API GlobalVars g_global;
 
@@ -488,11 +500,10 @@ namespace GlobalFunctions
 	extern ResultType ListIndexSelector(size_t& index, LinkedList::List<T>& list, const char* type)
 	{
 		printf("%sType the index for the %s that you wish to operate with\n", g_global.tabs.c_str(), type);
-		{
-			size_t objIndex = 0;
-			for (T& object : list)
-				printf("%s%zu - %s\n", g_global.tabs.c_str(), objIndex++, object.getName());
-		}
+		size_t objIndex = 0;
+		for (T& object : list)
+			printf("%s%zu - %s\n", g_global.tabs.c_str(), objIndex++, object.getName());
+		printf("%sInput: ", g_global.tabs.c_str());
 		switch (valueInsert(index, false, size_t(0), list.size() - 1))
 		{
 		case ResultType::Quit:

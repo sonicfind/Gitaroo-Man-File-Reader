@@ -84,6 +84,7 @@ bool loadMultiCHC(LinkedList::List<string>* files)
 					}
 				}
 			}
+			g_global.quit = false;
 			printf("%sQ - Quit Program\n", g_global.tabs.c_str());
 			result = GlobalFunctions::menuChoices(choices);
 		}
@@ -152,7 +153,7 @@ bool loadMultiCHC(LinkedList::List<string>* files)
 			else
 			{
 				const char choice = g_global.answer.character;
-				g_global.adjustTabs(1);
+				++g_global;
 				while (files->size())
 				{
 					try
@@ -163,7 +164,7 @@ bool loadMultiCHC(LinkedList::List<string>* files)
 						case 'e':
 							if (chc.menu(files->size()))
 							{
-								g_global.adjustTabs(0);
+								--g_global;
 								return false;
 							}
 							else
@@ -208,7 +209,7 @@ bool loadMultiCHC(LinkedList::List<string>* files)
 					}
 					files->pop_front();
 				}
-				g_global.adjustTabs(0);
+				--g_global;
 				g_global.quit = true;
 			}
 		}
@@ -372,7 +373,7 @@ bool CHC_Main::menu(size_t fileCount)
 				return false;
 			else
 			{
-				g_global.adjustTabs(1);
+				++g_global;
 				switch (g_global.answer.character)
 				{
 				case 's':
@@ -405,7 +406,7 @@ bool CHC_Main::menu(size_t fileCount)
 				case 'c':
 					createColorTemplate();
 				}
-				g_global.adjustTabs(0);
+				--g_global;
 			}
 		}
 	}

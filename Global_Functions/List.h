@@ -265,7 +265,7 @@ namespace LinkedList
 				clear();
 			}
 		};
-		std::shared_ptr<SharedValues> s_shared;
+		std::shared_ptr<SharedValues> sh_shared;
 
 		/* Sets the shared iterator to the node at the given index.
 		* @param index - the index to iterate to
@@ -273,44 +273,44 @@ namespace LinkedList
 		*/
 		Node* setIterator(size_t index)
 		{
-			if (index < s_shared->m_count)
+			if (index < sh_shared->m_count)
 			{
-				if (s_shared->m_iterator != index)
+				if (sh_shared->m_iterator != index)
 				{
 					if (index == 0)
-						s_shared->m_iterator = { s_shared->m_root, 0 };
-					else if (index == (s_shared->m_count) - 1)
-						s_shared->m_iterator = { s_shared->m_tail, s_shared->m_count - 1 };
-					else if (s_shared->m_iterator.m_currentNode == nullptr || index << 1 <= s_shared->m_iterator.m_currentIndex)
+						sh_shared->m_iterator = { sh_shared->m_root, 0 };
+					else if (index == (sh_shared->m_count) - 1)
+						sh_shared->m_iterator = { sh_shared->m_tail, sh_shared->m_count - 1 };
+					else if (sh_shared->m_iterator.m_currentNode == nullptr || index << 1 <= sh_shared->m_iterator.m_currentIndex)
 					{
 						// Start from root and go up
-						s_shared->m_iterator = { s_shared->m_root->next, 1 };
-						while (s_shared->m_iterator.m_currentIndex < index)
-							++s_shared->m_iterator;
+						sh_shared->m_iterator = { sh_shared->m_root->next, 1 };
+						while (sh_shared->m_iterator.m_currentIndex < index)
+							++sh_shared->m_iterator;
 					}
-					else if (index <= s_shared->m_iterator.m_currentIndex)
+					else if (index <= sh_shared->m_iterator.m_currentIndex)
 					{
 						// Start from current iterator and go down
-						do --s_shared->m_iterator;
-						while (s_shared->m_iterator.m_currentIndex > index);
+						do --sh_shared->m_iterator;
+						while (sh_shared->m_iterator.m_currentIndex > index);
 					}
 					else
 					{
-						if (index - s_shared->m_iterator.m_currentIndex <= s_shared->m_count - index)
+						if (index - sh_shared->m_iterator.m_currentIndex <= sh_shared->m_count - index)
 						{
 							// Start from current iterator and go up
-							do ++s_shared->m_iterator;
-							while (s_shared->m_iterator.m_currentIndex < index);
+							do ++sh_shared->m_iterator;
+							while (sh_shared->m_iterator.m_currentIndex < index);
 						}
 						else // Start from tail and go down
 						{
-							s_shared->m_iterator = { s_shared->m_tail->prev, s_shared->m_count - 2 };
-							while (s_shared->m_iterator.m_currentIndex > index)
-								--s_shared->m_iterator;
+							sh_shared->m_iterator = { sh_shared->m_tail->prev, sh_shared->m_count - 2 };
+							while (sh_shared->m_iterator.m_currentIndex > index)
+								--sh_shared->m_iterator;
 						}
 					}
 				}
-				return s_shared->m_iterator.m_currentNode;
+				return sh_shared->m_iterator.m_currentNode;
 			}
 			else
 				return nullptr;
@@ -319,121 +319,121 @@ namespace LinkedList
 		// Returns the index for where, in proper order, the new node was placed
 		size_t createOrderedNode(Node* node)
 		{
-			while (s_shared->m_iterator.m_currentNode != nullptr)
+			while (sh_shared->m_iterator.m_currentNode != nullptr)
 			{
-				if (*s_shared->m_iterator.m_currentNode == *node)
+				if (*sh_shared->m_iterator.m_currentNode == *node)
 				{
-					node->prev = s_shared->m_iterator.m_currentNode->prev;
-					node->next = s_shared->m_iterator.m_currentNode->next;
+					node->prev = sh_shared->m_iterator.m_currentNode->prev;
+					node->next = sh_shared->m_iterator.m_currentNode->next;
 					if (node->prev)
 						node->prev->next = node;
 					else
-						s_shared->m_root = node;
+						sh_shared->m_root = node;
 					if (node->next)
 						node->next->prev = node;
 					else
-						s_shared->m_tail = node;
-					delete s_shared->m_iterator.m_currentNode;
-					s_shared->m_iterator.m_currentNode = node;
-					return s_shared->m_iterator.m_currentIndex;
+						sh_shared->m_tail = node;
+					delete sh_shared->m_iterator.m_currentNode;
+					sh_shared->m_iterator.m_currentNode = node;
+					return sh_shared->m_iterator.m_currentIndex;
 				}
-				else if (*node < *s_shared->m_iterator.m_currentNode)
+				else if (*node < *sh_shared->m_iterator.m_currentNode)
 					break;
 				else
-					++s_shared->m_iterator;
+					++sh_shared->m_iterator;
 			}
 
-			if (s_shared->m_iterator.m_currentNode == nullptr)
+			if (sh_shared->m_iterator.m_currentNode == nullptr)
 			{
-				node->prev = s_shared->m_tail;
-				s_shared->m_iterator.m_currentNode = s_shared->m_tail = node;
+				node->prev = sh_shared->m_tail;
+				sh_shared->m_iterator.m_currentNode = sh_shared->m_tail = node;
 
 				if (node->prev)
 					node->prev->next = node;
 				else
-					s_shared->m_root = node;
+					sh_shared->m_root = node;
 			}
 			else
 			{
-				--s_shared->m_iterator;
-				while (s_shared->m_iterator.m_currentNode != nullptr)
+				--sh_shared->m_iterator;
+				while (sh_shared->m_iterator.m_currentNode != nullptr)
 				{
-					if (*s_shared->m_iterator.m_currentNode == *node)
+					if (*sh_shared->m_iterator.m_currentNode == *node)
 					{
-						node->prev = s_shared->m_iterator.m_currentNode->prev;
-						node->next = s_shared->m_iterator.m_currentNode->next;
+						node->prev = sh_shared->m_iterator.m_currentNode->prev;
+						node->next = sh_shared->m_iterator.m_currentNode->next;
 						if (node->prev)
 							node->prev->next = node;
 						else
-							s_shared->m_root = node;
+							sh_shared->m_root = node;
 						node->next->prev = node;
-						delete s_shared->m_iterator.m_currentNode;
-						s_shared->m_iterator.m_currentNode = node;
-						return s_shared->m_iterator.m_currentIndex;
+						delete sh_shared->m_iterator.m_currentNode;
+						sh_shared->m_iterator.m_currentNode = node;
+						return sh_shared->m_iterator.m_currentIndex;
 					}
-					else if (*s_shared->m_iterator.m_currentNode < *node)
+					else if (*sh_shared->m_iterator.m_currentNode < *node)
 						break;
 					else
-						--s_shared->m_iterator;
+						--sh_shared->m_iterator;
 				}
 
-				if (s_shared->m_iterator.m_currentNode == nullptr)
+				if (sh_shared->m_iterator.m_currentNode == nullptr)
 				{
-					node->next = s_shared->m_root;
-					s_shared->m_iterator.m_currentNode = s_shared->m_root = s_shared->m_root->prev = node;
+					node->next = sh_shared->m_root;
+					sh_shared->m_iterator.m_currentNode = sh_shared->m_root = sh_shared->m_root->prev = node;
 				}
 				else
 				{
-					node->prev = s_shared->m_iterator.m_currentNode;
-					node->next = s_shared->m_iterator.m_currentNode->next;
+					node->prev = sh_shared->m_iterator.m_currentNode;
+					node->next = sh_shared->m_iterator.m_currentNode->next;
 					node->prev->next = node;
 					node->next->prev = node;
 				}
 			}
-			++s_shared->m_count;
-			return s_shared->m_iterator.m_currentIndex;
+			++sh_shared->m_count;
+			return sh_shared->m_iterator.m_currentIndex;
 		}
 
 	public:
 		// Root wrapped in Iterator type
 		Iterator begin() const
 		{
-			return Iterator(s_shared->m_root, 0);
+			return Iterator(sh_shared->m_root, 0);
 		}
 
 		// Return current iterator state
 		Iterator current() const
 		{
-			return s_shared->m_iterator;
+			return sh_shared->m_iterator;
 		}
 
 		// Navigates to the given index, if possible, and returns the resulting iterator
 		Iterator current(const size_t index)
 		{
 			setIterator(index);
-			return s_shared->m_iterator;
+			return sh_shared->m_iterator;
 		}
 
 		// Tail wrapped in Iterator type
 		Iterator end() const
 		{
-			return Iterator(nullptr, s_shared->m_count);
+			return Iterator(nullptr, sh_shared->m_count);
 		}
 
 		// Creates an empty list
-		List() : s_shared(std::make_shared<SharedValues>()) {}
+		List() : sh_shared(std::make_shared<SharedValues>()) {}
 
 		// Creates a list of specified size
 		// Every parameter after "size" is used in the construction of every new node
 		template <class... Args>
-		List(size_t size, Args&&... args) : s_shared(std::make_shared<SharedValues>())
+		List(size_t size, Args&&... args) : sh_shared(std::make_shared<SharedValues>())
 		{
 			for (unsigned i = 0; i < size; i++)
 				emplace_back(args...);
 		}
 
 		// Creates a list based off the provided initializer list
-		List(const std::initializer_list<T>& init) : s_shared(std::make_shared<SharedValues>())
+		List(const std::initializer_list<T>& init) : sh_shared(std::make_shared<SharedValues>())
 		{
 			for (unsigned i = 0; i < init.size(); i++)
 				push_back(init.begin()[i]);
@@ -442,14 +442,14 @@ namespace LinkedList
 		// Creates a list based off the provided initializer list
 		// Uses each sublist as the basis for constructing a new object of the specified type
 		template <class... Args>
-		List(const std::initializer_list<Args...>& init) : s_shared(std::make_shared<SharedValues>())
+		List(const std::initializer_list<Args...>& init) : sh_shared(std::make_shared<SharedValues>())
 		{
 			for (unsigned i = 0; i < init.size(); i++)
 				emplace_back(init.begin()[i]);
 		}
 
 		// Create a list with cloned elements from the provided list
-		List(const List& list) : s_shared(std::make_shared<SharedValues>())
+		List(const List& list) : sh_shared(std::make_shared<SharedValues>())
 		{
 			for (T& obj : list)
 				emplace_back(obj);
@@ -461,19 +461,19 @@ namespace LinkedList
 		{
 			if (Type<T>::s_allowCloning)
 			{
-				s_shared = std::make_shared<SharedValues>();
+				sh_shared = std::make_shared<SharedValues>();
 				for (T& obj : list)
 					emplace_back(obj);
 			}
 			else
-				s_shared = list.s_shared;
+				sh_shared = list.sh_shared;
 			return *this;
 		}
 
 		//Assigns the curent linked list to hold the values presented by the initialized list
 		List& operator=(const std::initializer_list<T>& init)
 		{
-			s_shared = std::make_shared<SharedValues>();
+			sh_shared = std::make_shared<SharedValues>();
 			for (unsigned i = 0; i < init.size(); i++)
 				push_back(init.begin()[i]);
 			return *this;
@@ -484,7 +484,7 @@ namespace LinkedList
 		template <class... Args>
 		List& operator=(const std::initializer_list<std::initializer_list<Args...>>& init)
 		{
-			s_shared = std::make_shared<SharedValues>();
+			sh_shared = std::make_shared<SharedValues>();
 			for (unsigned i = 0; i < init.size(); i++)
 				emplace_back(init.begin()[i].begin()...);
 			return *this;
@@ -494,12 +494,12 @@ namespace LinkedList
 		// They will both point to the same locations
 		List& operator=(const List& list)
 		{
-			s_shared = list.s_shared;
+			sh_shared = list.sh_shared;
 			return *this;
 		}
 
 		//Returns the size of the list
-		size_t& size() const { return s_shared->m_count; }
+		size_t& size() const { return sh_shared->m_count; }
 
 		//Creates a new element at the end of the list using a copy of the provided object
 		//
@@ -507,12 +507,12 @@ namespace LinkedList
 		//The compiler will throw an error if that is not the case.
 		void push_back(const T& data)
 		{
-			if (s_shared->m_tail)
-				s_shared->m_tail = s_shared->m_tail->next = new Node(data, s_shared->m_tail);
+			if (sh_shared->m_tail)
+				sh_shared->m_tail = sh_shared->m_tail->next = new Node(data, sh_shared->m_tail);
 			else
-				s_shared->m_root = s_shared->m_tail = new Node(data);
-			s_shared->m_iterator = { s_shared->m_tail, s_shared->m_count };
-			s_shared->m_count++;
+				sh_shared->m_root = sh_shared->m_tail = new Node(data);
+			sh_shared->m_iterator = { sh_shared->m_tail, sh_shared->m_count };
+			sh_shared->m_count++;
 		}
 
 		//Creates a new element at the beginning of the list using a copy of the provided object
@@ -521,12 +521,12 @@ namespace LinkedList
 		//The compiler will throw an error if that is not the case.
 		void push_front(const T& data)
 		{
-			if (s_shared->m_root)
-				s_shared->m_root = s_shared->m_root->prev = new Node(data, nullptr, s_shared->m_root);
+			if (sh_shared->m_root)
+				sh_shared->m_root = sh_shared->m_root->prev = new Node(data, nullptr, sh_shared->m_root);
 			else
-				s_shared->m_root = s_shared->m_tail = new Node(data);
-			s_shared->m_iterator = { s_shared->m_root, 0 };
-			s_shared->m_count++;
+				sh_shared->m_root = sh_shared->m_tail = new Node(data);
+			sh_shared->m_iterator = { sh_shared->m_root, 0 };
+			sh_shared->m_count++;
 		}
 
 		//Creates a new element at the end of the list using a constructor that 
@@ -537,12 +537,12 @@ namespace LinkedList
 		template <class... Args>
 		T& emplace_back(Args&&... args)
 		{
-			if (s_shared->m_tail)
-				s_shared->m_tail = s_shared->m_tail->next = new Node(s_shared->m_tail, nullptr, args...);
+			if (sh_shared->m_tail)
+				sh_shared->m_tail = sh_shared->m_tail->next = new Node(sh_shared->m_tail, nullptr, args...);
 			else
-				s_shared->m_root = s_shared->m_tail = new Node(nullptr, nullptr, args...);
-			s_shared->m_iterator = { s_shared->m_tail, s_shared->m_count++ };
-			return s_shared->m_tail->data.object;
+				sh_shared->m_root = sh_shared->m_tail = new Node(nullptr, nullptr, args...);
+			sh_shared->m_iterator = { sh_shared->m_tail, sh_shared->m_count++ };
+			return sh_shared->m_tail->data.object;
 		}
 
 		//Creates a new element at the beginning of the list using a constructor that 
@@ -553,56 +553,56 @@ namespace LinkedList
 		template <class... Args>
 		T& emplace_front(Args&&... args)
 		{
-			if (s_shared->m_root)
-				s_shared->m_root = s_shared->m_root->prev = new Node(nullptr, s_shared->m_root, args...);
+			if (sh_shared->m_root)
+				sh_shared->m_root = sh_shared->m_root->prev = new Node(nullptr, sh_shared->m_root, args...);
 			else
-				s_shared->m_root = s_shared->m_tail = new Node(nullptr, nullptr, args...);
-			s_shared->m_iterator = { s_shared->m_root, 0 };
-			s_shared->m_count++;
-			return s_shared->m_root->data.object;
+				sh_shared->m_root = sh_shared->m_tail = new Node(nullptr, nullptr, args...);
+			sh_shared->m_iterator = { sh_shared->m_root, 0 };
+			sh_shared->m_count++;
+			return sh_shared->m_root->data.object;
 		}
 
 		//Maneuvers to the specified index and then creates numElements number of new elements
 		//as shallow copies of T object "data"
 		size_t insert(size_t index, size_t numElements, const T& data)
 		{
-			if (!s_shared->m_count)
+			if (!sh_shared->m_count)
 			{
-				s_shared->m_root = new Node(data);
-				s_shared->m_iterator = { s_shared->m_root, 0 };
-				s_shared->m_count++;
+				sh_shared->m_root = new Node(data);
+				sh_shared->m_iterator = { sh_shared->m_root, 0 };
+				sh_shared->m_count++;
 			}
 			else if (index == 0)
 			{
-				s_shared->m_root = s_shared->m_root->prev = new Node(data, nullptr, s_shared->m_root);
-				s_shared->m_iterator = { s_shared->m_root, 0 };
-				s_shared->m_count++;
+				sh_shared->m_root = sh_shared->m_root->prev = new Node(data, nullptr, sh_shared->m_root);
+				sh_shared->m_iterator = { sh_shared->m_root, 0 };
+				sh_shared->m_count++;
 			}
 			else if (setIterator(index))
 			{
-				s_shared->m_iterator.m_currentNode =
-					s_shared->m_iterator.m_currentNode->prev =
-					s_shared->m_iterator.m_currentNode->prev->next =
-					new Node(data, s_shared->m_iterator.m_currentNode->prev, s_shared->m_iterator.m_currentNode);
-				s_shared->m_count++;
+				sh_shared->m_iterator.m_currentNode =
+					sh_shared->m_iterator.m_currentNode->prev =
+					sh_shared->m_iterator.m_currentNode->prev->next =
+					new Node(data, sh_shared->m_iterator.m_currentNode->prev, sh_shared->m_iterator.m_currentNode);
+				sh_shared->m_count++;
 			}
 			else
 			{
-				s_shared->m_tail->next = new Node(data, s_shared->m_tail, nullptr);
-				s_shared->m_iterator = { s_shared->m_tail->next, s_shared->m_count };
-				s_shared->m_count++;
+				sh_shared->m_tail->next = new Node(data, sh_shared->m_tail, nullptr);
+				sh_shared->m_iterator = { sh_shared->m_tail->next, sh_shared->m_count };
+				sh_shared->m_count++;
 			}
 
-			while (s_shared->m_iterator.m_currentIndex < index + numElements - 1)
+			while (sh_shared->m_iterator.m_currentIndex < index + numElements - 1)
 			{
-				s_shared->m_iterator.m_currentNode->next = new Node(data, s_shared->m_iterator.m_currentNode, s_shared->m_iterator.m_currentNode->next);
-				++s_shared->m_iterator;
-				s_shared->m_count++;
+				sh_shared->m_iterator.m_currentNode->next = new Node(data, sh_shared->m_iterator.m_currentNode, sh_shared->m_iterator.m_currentNode->next);
+				++sh_shared->m_iterator;
+				sh_shared->m_count++;
 			}
 
-			if (s_shared->m_iterator.m_currentIndex == s_shared->m_count - 1)
-				s_shared->m_tail = s_shared->m_iterator.m_currentNode;
-			return s_shared->m_iterator.m_currentIndex;
+			if (sh_shared->m_iterator.m_currentIndex == sh_shared->m_count - 1)
+				sh_shared->m_tail = sh_shared->m_iterator.m_currentNode;
+			return sh_shared->m_iterator.m_currentIndex;
 		}
 
 		//Maneuvers to the specified index and then creates a new element 
@@ -617,53 +617,53 @@ namespace LinkedList
 		template <class... Args>
 		size_t emplace(size_t index, size_t numElements, Args&&... args)
 		{
-			if (!s_shared->m_root)
+			if (!sh_shared->m_root)
 			{
-				s_shared->m_root = new Node(nullptr, nullptr, args...);
-				s_shared->m_iterator = { s_shared->m_root, 0 };
-				s_shared->m_count++;
+				sh_shared->m_root = new Node(nullptr, nullptr, args...);
+				sh_shared->m_iterator = { sh_shared->m_root, 0 };
+				sh_shared->m_count++;
 			}
 			else if (index == 0)
 			{
-				s_shared->m_root = s_shared->m_root->prev = new Node(nullptr, s_shared->m_root, args...);
-				s_shared->m_iterator = { s_shared->m_root, 0 };
-				s_shared->m_count++;
+				sh_shared->m_root = sh_shared->m_root->prev = new Node(nullptr, sh_shared->m_root, args...);
+				sh_shared->m_iterator = { sh_shared->m_root, 0 };
+				sh_shared->m_count++;
 			}
 			else if (setIterator(index))
 			{
-				s_shared->m_iterator.m_currentNode =
-					s_shared->m_iterator.m_currentNode->prev =
-					s_shared->m_iterator.m_currentNode->prev->next =
-					new Node(s_shared->m_iterator.m_currentNode->prev, s_shared->m_iterator.m_currentNode, args...);
-				s_shared->m_count++;
+				sh_shared->m_iterator.m_currentNode =
+					sh_shared->m_iterator.m_currentNode->prev =
+					sh_shared->m_iterator.m_currentNode->prev->next =
+					new Node(sh_shared->m_iterator.m_currentNode->prev, sh_shared->m_iterator.m_currentNode, args...);
+				sh_shared->m_count++;
 			}
 			else
 			{
-				s_shared->m_tail->next = new Node(s_shared->m_tail, nullptr, args...);
-				s_shared->m_iterator = { s_shared->m_tail->next, s_shared->m_count };
-				s_shared->m_count++;
+				sh_shared->m_tail->next = new Node(sh_shared->m_tail, nullptr, args...);
+				sh_shared->m_iterator = { sh_shared->m_tail->next, sh_shared->m_count };
+				sh_shared->m_count++;
 			}
 
-			while (s_shared->m_iterator.m_currentIndex < index + numElements - 1)
+			while (sh_shared->m_iterator.m_currentIndex < index + numElements - 1)
 			{
-				s_shared->m_iterator.m_currentNode->next = new Node(s_shared->m_iterator.m_currentNode, s_shared->m_iterator.m_currentNode->next, args...);
-				++s_shared->m_iterator;
-				s_shared->m_count++;
+				sh_shared->m_iterator.m_currentNode->next = new Node(sh_shared->m_iterator.m_currentNode, sh_shared->m_iterator.m_currentNode->next, args...);
+				++sh_shared->m_iterator;
+				sh_shared->m_count++;
 			}
 
-			if (s_shared->m_iterator.m_currentIndex == s_shared->m_count - 1)
-				s_shared->m_tail = s_shared->m_iterator.m_currentNode;
-			return s_shared->m_iterator.m_currentIndex;
+			if (sh_shared->m_iterator.m_currentIndex == sh_shared->m_count - 1)
+				sh_shared->m_tail = sh_shared->m_iterator.m_currentNode;
+			return sh_shared->m_iterator.m_currentIndex;
 		}
 
 		//Uses "data" to find the proper position in the list then constructs
 		//a new element in that position with a shallow copy of "data"
 		size_t insert_ordered(const T& data)
 		{
-			if (s_shared->m_count)
+			if (sh_shared->m_count)
 			{
 				createOrderedNode(new Node(data));
-				return s_shared->m_iterator.m_currentIndex;
+				return sh_shared->m_iterator.m_currentIndex;
 			}
 			else
 			{
@@ -677,10 +677,10 @@ namespace LinkedList
 		template <class... Args>
 		size_t emplace_ordered(Args&&... args)
 		{
-			if (s_shared->m_count)
+			if (sh_shared->m_count)
 			{
 				createOrderedNode(new Node(nullptr, nullptr, args...));
-				return s_shared->m_iterator.m_currentIndex;
+				return sh_shared->m_iterator.m_currentIndex;
 			}
 			else
 			{
@@ -698,38 +698,38 @@ namespace LinkedList
 		template <class... Args>
 		void resize(size_t newSize, Args&&... args)
 		{
-			if (newSize > s_shared->m_count)
+			if (newSize > sh_shared->m_count)
 			{
-				if (!s_shared->m_count)
+				if (!sh_shared->m_count)
 				{
-					s_shared->m_root = s_shared->m_tail = new Node(nullptr, nullptr, args...);
-					++s_shared->m_count;
+					sh_shared->m_root = sh_shared->m_tail = new Node(nullptr, nullptr, args...);
+					++sh_shared->m_count;
 				}
-				while (s_shared->m_count < newSize)
+				while (sh_shared->m_count < newSize)
 				{
-					s_shared->m_tail = s_shared->m_tail->next = new Node(s_shared->m_tail, nullptr, args...);
-					++s_shared->m_count;
+					sh_shared->m_tail = sh_shared->m_tail->next = new Node(sh_shared->m_tail, nullptr, args...);
+					++sh_shared->m_count;
 				}
-				s_shared->m_iterator = { s_shared->m_tail, s_shared->m_count - 1 };
+				sh_shared->m_iterator = { sh_shared->m_tail, sh_shared->m_count - 1 };
 			}
-			else if (newSize < s_shared->m_count)
+			else if (newSize < sh_shared->m_count)
 			{
-				while (s_shared->m_count > newSize)
+				while (sh_shared->m_count > newSize)
 				{
-					Node* cur = s_shared->m_tail;
-					s_shared->m_tail = s_shared->m_tail->prev;
-					s_shared->m_count--;
+					Node* cur = sh_shared->m_tail;
+					sh_shared->m_tail = sh_shared->m_tail->prev;
+					sh_shared->m_count--;
 					delete cur;
 				}
-				if (s_shared->m_count)
+				if (sh_shared->m_count)
 				{
-					s_shared->m_tail->next = nullptr;
-					s_shared->m_iterator = { s_shared->m_tail, s_shared->m_count - 1 };
+					sh_shared->m_tail->next = nullptr;
+					sh_shared->m_iterator = { sh_shared->m_tail, sh_shared->m_count - 1 };
 				}
 				else
 				{
-					s_shared->m_root = nullptr;
-					s_shared->m_iterator = { nullptr, 0 };
+					sh_shared->m_root = nullptr;
+					sh_shared->m_iterator = { nullptr, 0 };
 				}
 			}
 		}
@@ -741,38 +741,38 @@ namespace LinkedList
 		//--If newSize is smaller, elements are removed starting from the end
 		void resize(T& data, size_t newSize)
 		{
-			if (newSize > s_shared->m_count)
+			if (newSize > sh_shared->m_count)
 			{
-				if (!s_shared->m_count)
+				if (!sh_shared->m_count)
 				{
-					s_shared->m_root = s_shared->m_tail = new Node(data);
-					s_shared->m_count++;
+					sh_shared->m_root = sh_shared->m_tail = new Node(data);
+					sh_shared->m_count++;
 				}
-				while (s_shared->m_count < newSize)
+				while (sh_shared->m_count < newSize)
 				{
-					s_shared->m_tail = s_shared->m_tail->next = new Node(data, s_shared->m_tail);
-					s_shared->m_count++;
+					sh_shared->m_tail = sh_shared->m_tail->next = new Node(data, sh_shared->m_tail);
+					sh_shared->m_count++;
 				}
-				s_shared->m_iterator = { s_shared->m_tail, s_shared->m_count - 1 };
+				sh_shared->m_iterator = { sh_shared->m_tail, sh_shared->m_count - 1 };
 			}
-			else if (newSize < s_shared->m_count)
+			else if (newSize < sh_shared->m_count)
 			{
-				while (s_shared->m_count > newSize)
+				while (sh_shared->m_count > newSize)
 				{
-					Node* cur = s_shared->m_tail;
-					s_shared->m_tail = s_shared->m_tail->prev;
-					s_shared->m_count--;
+					Node* cur = sh_shared->m_tail;
+					sh_shared->m_tail = sh_shared->m_tail->prev;
+					sh_shared->m_count--;
 					delete cur;
 				}
-				if (s_shared->m_count)
+				if (sh_shared->m_count)
 				{
-					s_shared->m_tail->next = nullptr;
-					s_shared->m_iterator = { s_shared->m_tail, s_shared->m_count - 1 };
+					sh_shared->m_tail->next = nullptr;
+					sh_shared->m_iterator = { sh_shared->m_tail, sh_shared->m_count - 1 };
 				}
 				else
 				{
-					s_shared->m_root = nullptr;
-					s_shared->m_iterator = { nullptr, 0 };
+					sh_shared->m_root = nullptr;
+					sh_shared->m_iterator = { nullptr, 0 };
 				}
 			}
 		}
@@ -780,69 +780,69 @@ namespace LinkedList
 		//Removes the first element
 		void pop_front()
 		{
-			if (s_shared->m_count)
+			if (sh_shared->m_count)
 			{
-				Node* cur = s_shared->m_root;
-				s_shared->m_root = s_shared->m_root->next;
+				Node* cur = sh_shared->m_root;
+				sh_shared->m_root = sh_shared->m_root->next;
 				delete cur;
-				if (s_shared->m_root != nullptr)
-					s_shared->m_root->prev = nullptr;
+				if (sh_shared->m_root != nullptr)
+					sh_shared->m_root->prev = nullptr;
 				else
-					s_shared->m_tail = nullptr;
-				s_shared->m_iterator = { s_shared->m_root , 0 };
-				--s_shared->m_count;
+					sh_shared->m_tail = nullptr;
+				sh_shared->m_iterator = { sh_shared->m_root , 0 };
+				--sh_shared->m_count;
 			}
 		}
 
 		//Removes the last element
 		void pop_back()
 		{
-			if (s_shared->m_count)
+			if (sh_shared->m_count)
 			{
-				Node* cur = s_shared->m_tail;
-				s_shared->m_tail = s_shared->m_tail->prev;
+				Node* cur = sh_shared->m_tail;
+				sh_shared->m_tail = sh_shared->m_tail->prev;
 				delete cur;
-				if (s_shared->m_tail != nullptr)
-					s_shared->m_tail->next = nullptr;
+				if (sh_shared->m_tail != nullptr)
+					sh_shared->m_tail->next = nullptr;
 				else
-					s_shared->m_root = nullptr;
-				s_shared->m_count--;
-				s_shared->m_iterator = { s_shared->m_tail , s_shared->m_count - 1 };
-				--s_shared->m_count;
+					sh_shared->m_root = nullptr;
+				sh_shared->m_count--;
+				sh_shared->m_iterator = { sh_shared->m_tail , sh_shared->m_count - 1 };
+				--sh_shared->m_count;
 			}
 		}
 
 		//Deletes "numElements" number of elements from the list starting at the provided index
 		bool erase(size_t index, size_t numElements = 1)
 		{
-			if (index < s_shared->m_count)
+			if (index < sh_shared->m_count)
 			{
 				Node* beg = setIterator(index)->prev;
-				while (numElements > 0 && s_shared->m_iterator.m_currentNode != nullptr)
+				while (numElements > 0 && sh_shared->m_iterator.m_currentNode != nullptr)
 				{
-					delete (s_shared->m_iterator++).m_currentNode;
+					delete (sh_shared->m_iterator++).m_currentNode;
 					--numElements;
-					--s_shared->m_count;
-					--s_shared->m_iterator.m_currentIndex;
+					--sh_shared->m_count;
+					--sh_shared->m_iterator.m_currentIndex;
 				}
 				if (beg)
 				{
-					beg->next = s_shared->m_iterator.m_currentNode;
+					beg->next = sh_shared->m_iterator.m_currentNode;
 					if (beg->next)
-						s_shared->m_iterator.m_currentNode->prev = beg;
+						sh_shared->m_iterator.m_currentNode->prev = beg;
 					else
 					{
-						s_shared->m_tail = beg;
-						s_shared->m_iterator = { s_shared->m_tail , s_shared->m_count - 1 };
+						sh_shared->m_tail = beg;
+						sh_shared->m_iterator = { sh_shared->m_tail , sh_shared->m_count - 1 };
 					}
 				}
-				else if (s_shared->m_iterator.m_currentNode)
+				else if (sh_shared->m_iterator.m_currentNode)
 				{
-					s_shared->m_iterator.m_currentNode->prev = beg;
-					s_shared->m_root = s_shared->m_iterator.m_currentNode;
+					sh_shared->m_iterator.m_currentNode->prev = beg;
+					sh_shared->m_root = sh_shared->m_iterator.m_currentNode;
 				}
 				else
-					s_shared->m_root = s_shared->m_tail = nullptr;
+					sh_shared->m_root = sh_shared->m_tail = nullptr;
 				return true;
 			}
 			return false;
@@ -851,16 +851,16 @@ namespace LinkedList
 		//Deletes all elements
 		void clear()
 		{
-			s_shared->clear();
+			sh_shared->clear();
 		}
 
 		//Returns first element if one exists
 		T& front()
 		{
-			if (s_shared->m_root)
+			if (sh_shared->m_root)
 			{
-				s_shared->m_iterator = { s_shared->m_root, 0 };
-				return s_shared->m_root->data.object;
+				sh_shared->m_iterator = { sh_shared->m_root, 0 };
+				return sh_shared->m_root->data.object;
 			}
 			else
 				throw "Error: list index out of range";
@@ -869,10 +869,10 @@ namespace LinkedList
 		//Returns last element if one exists
 		T& back()
 		{
-			if (s_shared->m_tail)
+			if (sh_shared->m_tail)
 			{
-				s_shared->m_iterator = { s_shared->m_tail, s_shared->m_count - 1 };
-				return s_shared->m_tail->data.object;
+				sh_shared->m_iterator = { sh_shared->m_tail, sh_shared->m_count - 1 };
+				return sh_shared->m_tail->data.object;
 			}
 			else
 				throw "Error: list index out of range";
@@ -881,7 +881,7 @@ namespace LinkedList
 		//Returns element at index if one exists
 		T& operator[](size_t index)
 		{
-			if (index < s_shared->m_count)
+			if (index < sh_shared->m_count)
 				return setIterator(index)->data.object;
 			else
 				throw "Error: list index out of range";
@@ -894,11 +894,11 @@ namespace LinkedList
 		{
 			if (setIterator(startIndex))
 			{
-				while (s_shared->m_iterator.m_currentNode)
+				while (sh_shared->m_iterator.m_currentNode)
 				{
-					if (*s_shared->m_iterator.m_currentNode == compare)
-						return (signed)s_shared->m_iterator.m_currentIndex;
-					++s_shared->m_iterator;
+					if (*sh_shared->m_iterator.m_currentNode == compare)
+						return (signed)sh_shared->m_iterator.m_currentIndex;
+					++sh_shared->m_iterator;
 				}
 			}
 			return -1;
@@ -907,14 +907,14 @@ namespace LinkedList
 		//Moves numElements number of elements starting at position index to position newPosition if both positions are valid.
 		void moveElements(size_t index, size_t newPosition, size_t numElements = 1)
 		{
-			if (index >= s_shared->m_count)
+			if (index >= sh_shared->m_count)
 				throw "Error: list index out of range";
-			else if (newPosition > s_shared->m_count)
+			else if (newPosition > sh_shared->m_count)
 				throw "Error: list newPosition index out of range";
 			else
 			{
-				if (index + numElements > s_shared->m_count)
-					numElements = s_shared->m_count - index;
+				if (index + numElements > sh_shared->m_count)
+					numElements = sh_shared->m_count - index;
 				else if (numElements == 0)
 					numElements = 1;
 				if (newPosition < index)
@@ -926,15 +926,15 @@ namespace LinkedList
 					if (end->next)
 						end->next->prev = beg->prev;
 					else
-						s_shared->m_tail = beg->prev;
+						sh_shared->m_tail = beg->prev;
 					end->next = pos;
 					beg->prev = pos->prev;
 					pos->prev = end;
 					if (beg->prev)
 						beg->prev->next = beg;
 					else
-						s_shared->m_root = beg;
-					s_shared->m_iterator.m_currentNode = beg;
+						sh_shared->m_root = beg;
+					sh_shared->m_iterator.m_currentNode = beg;
 				}
 				else if (newPosition > index + numElements)
 				{
@@ -945,15 +945,15 @@ namespace LinkedList
 					if (beg->prev)
 						beg->prev->next = end->next;
 					else
-						s_shared->m_root = end->next;
+						sh_shared->m_root = end->next;
 					beg->prev = prePos;
 					end->next = prePos->next;
 					prePos->next = beg;
 					if (end->next)
 						end->next->prev = end;
 					else
-						s_shared->m_tail = end;
-					s_shared->m_iterator.m_currentIndex = newPosition - numElements;
+						sh_shared->m_tail = end;
+					sh_shared->m_iterator.m_currentIndex = newPosition - numElements;
 				}
 			}
 		}
@@ -961,7 +961,7 @@ namespace LinkedList
 		//Swaps the contents of the two lists.
 		List<T>& swap(List<T>& other)
 		{
-			s_shared.swap(other.s_shared);
+			sh_shared.swap(other.sh_shared);
 			return *this;
 		}
 	};

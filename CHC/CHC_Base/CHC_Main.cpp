@@ -417,7 +417,7 @@ void CHC_Main::saveFile(bool onExit)
 {
 	GlobalFunctions::banner(" " + song.m_shortname + ".CHC Save Prompt ");
 	string ext = "_T";
-	string filename = song.m_name.substr(0, song.m_name.length() - 4);
+	string filename = song.m_filename.substr(0, song.m_filename.length() - 4);
 	do
 	{
 		string choices = "a";
@@ -437,7 +437,7 @@ void CHC_Main::saveFile(bool onExit)
 			{
 			case 's':
 				printf("%sSaving %s.CHC\n", g_global.tabs.c_str(), song.m_shortname.c_str());
-				song.create(song.m_name);
+				song.create(song.m_filename);
 				song.m_saved = 2;
 				g_global.quit = true;
 				break;
@@ -468,7 +468,7 @@ void CHC_Main::saveFile(bool onExit)
 									case GlobalFunctions::ResultType::Success:
 										if (g_global.answer.character == 'y')
 										{
-											song.m_name = filename + ext + ".CHC";
+											song.m_filename = filename + ext + ".CHC";
 											song.m_shortname += ext;
 											song.m_saved = 2;
 										}
@@ -495,8 +495,8 @@ void CHC_Main::writeTxt()
 {
 	GlobalFunctions::banner(" Writing " + song.m_shortname + "_CHC.txt ");
 	FILE* outTXT, * outSimpleTXT;
-	fopen_s(&outTXT, (song.m_name.substr(0, song.m_name.length() - 4) + "_CHC.txt").c_str(), "w");
-	fopen_s(&outSimpleTXT, (song.m_name.substr(0, song.m_name.length() - 4) + "_CHC_SIMPLIFIED.txt").c_str(), "w");
+	fopen_s(&outTXT, (song.m_filename.substr(0, song.m_filename.length() - 4) + "_CHC.txt").c_str(), "w");
+	fopen_s(&outSimpleTXT, (song.m_filename.substr(0, song.m_filename.length() - 4) + "_CHC_SIMPLIFIED.txt").c_str(), "w");
 	try
 	{
 		fprintf(outTXT, "Header: %s", song.m_header);
@@ -865,7 +865,7 @@ bool CHC_Main::applyChanges(const bool fix, const bool swap, const bool save)
 			editor.playerSwapAll();
 		}
 		if (save)
-			song.create(song.m_name);
+			song.create(song.m_filename);
 		return true;
 	}
 	catch (exception e)
@@ -1042,8 +1042,8 @@ bool CHC_Main::createColorTemplate()
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
-	string filename = song.m_name.substr(0, song.m_name.length() - 4) + "_COLORDEF";
-	string filename2 = song.m_name.substr(0, song.m_name.length() - 4) + "_COLORDEF_FRAGS";
+	string filename = song.m_filename.substr(0, song.m_filename.length() - 4) + "_COLORDEF";
+	string filename2 = song.m_filename.substr(0, song.m_filename.length() - 4) + "_COLORDEF_FRAGS";
 	FILE *outSheet = nullptr, *outSheet2 = nullptr;
 	do
 	{

@@ -899,7 +899,7 @@ bool TAS::buildTAS()
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
-	string filename = song.m_name.substr(0, song.m_name.length() - 4);
+	string filename = song.m_filename.substr(0, song.m_filename.length() - 4);
 	if (difficulty == 3)
 		filename += "_" + to_string(int(pcsx2.m_framerate)) + "_" + to_string(orientation) + "_" + to_string(multi[0] + multi[1] + 2) + 'P';
 	else
@@ -1101,7 +1101,7 @@ bool TAS::buildTAS()
 	if (stage == 0 && song.m_shortname.find("ST00B") == string::npos)
 	{
 		endReached = false;
-		string tutorialName = song.m_name.substr(0, song.m_name.length() - 5) + 'B';
+		string tutorialName = song.m_filename.substr(0, song.m_filename.length() - 5) + 'B';
 		try
 		{
 			tutorial = new CHC(tutorialName);

@@ -538,11 +538,11 @@ void CHC_Editor::PSPToPS2()
 			case '1':
 				enemy = true;
 			}
-			song->m_name = song->m_name.substr(0, song->m_name.length() - 4) + "_PS2_" + to_string(player2 + 1) + 'v' + (enemy ? 'E' : '2') + ".CHC";
+			song->m_filename = song->m_filename.substr(0, song->m_filename.length() - 4) + "_PS2_" + to_string(player2 + 1) + 'v' + (enemy ? 'E' : '2') + ".CHC";
 			{
-				size_t pos = song->m_name.find_last_of("\\");
+				size_t pos = song->m_filename.find_last_of("\\");
 				if (pos != string::npos)
-					song->m_shortname = song->m_name.substr(pos + 1, song->m_name.length() - pos - 5);
+					song->m_shortname = song->m_filename.substr(pos + 1, song->m_filename.length() - pos - 5);
 				else
 					song->m_shortname = song->m_shortname.substr(0, song->m_shortname.length() - 4);
 			}

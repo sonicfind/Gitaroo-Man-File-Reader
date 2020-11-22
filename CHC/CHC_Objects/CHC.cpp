@@ -18,10 +18,10 @@
 using namespace std;
 
 //Creates a CHC object with 1 songsection
-CHC::CHC() : m_sections(1), m_name(""), m_shortname(""), m_stage(0), m_speed(0), m_unorganized(0), m_optimized(false), m_saved(2) {}
+CHC::CHC() : m_sections(1), m_filename(""), m_shortname(""), m_stage(0), m_speed(0), m_unorganized(0), m_optimized(false), m_saved(2) {}
 
 CHC::CHC(const CHC& song)
-	: m_sections(song.m_sections), m_name(song.m_name), m_shortname(song.m_shortname), m_stage(song.m_stage),
+	: m_sections(song.m_sections), m_filename(song.m_filename), m_shortname(song.m_shortname), m_stage(song.m_stage),
 		m_speed(song.m_speed), m_unorganized(song.m_unorganized), m_optimized(song.m_optimized), m_saved(song.m_saved)
 {
 	std::copy(song.m_header, song.m_header + 36, m_header);
@@ -33,7 +33,7 @@ CHC::CHC(const CHC& song)
 
 CHC& CHC::operator=(CHC& song)
 {
-	m_name = song.m_name;
+	m_filename = song.m_filename;
 	m_shortname = song.m_shortname;
 	m_stage = song.m_stage;
 	std::copy(song.m_header, song.m_header + 36, m_header);
@@ -52,7 +52,7 @@ CHC& CHC::operator=(CHC& song)
 //Creates a CHC object using values from the CHC file pointed to by the provided filename.
 //
 //Value names chosen to be kept are based off the CHC tab in the Gitaroo Pals shoutwiki
-CHC::CHC(string filename) : m_name(filename + ".CHC"), m_saved(2)
+CHC::CHC(string filename) : m_filename(filename + ".CHC"), m_saved(2)
 {
 	{
 		size_t pos = filename.find_last_of('\\');
@@ -72,8 +72,8 @@ CHC::CHC(string filename) : m_name(filename + ".CHC"), m_saved(2)
 		unsigned ui;
 	} u;
 	FILE* inFile;
-	if (fopen_s(&inFile, m_name.c_str(), "rb"))
-		throw "Error: " + m_name + " does not exist.";
+	if (fopen_s(&inFile, m_filename.c_str(), "rb"))
+		throw "Error: " + m_filename + " does not exist.";
 	fread(m_header, 1, 36, inFile);
 	if (!strstr(m_header, "SNGS"))
 	{

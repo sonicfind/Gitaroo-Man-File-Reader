@@ -182,7 +182,7 @@ bool CH_Importer::importChart()
 			}
 		} while (!g_global.quit);
 		g_global.quit = false;
-		if (m_song.m_name.find("IMPORTED") == string::npos)
+		if (m_song.m_filename.find("IMPORTED") == string::npos)
 		{
 			do
 			{
@@ -198,7 +198,7 @@ bool CH_Importer::importChart()
 				case GlobalFunctions::ResultType::Success:
 					if (g_global.answer.character == 'c')
 					{
-						m_song.m_name = m_song.m_name.substr(0, m_song.m_name.length() - 4) + "_IMPORTED.CHC";
+						m_song.m_filename = m_song.m_filename.substr(0, m_song.m_filename.length() - 4) + "_IMPORTED.CHC";
 						m_song.m_shortname += "_IMPORTED";
 					}
 					printf("%s\n", g_global.tabs.c_str());
@@ -221,7 +221,7 @@ bool CH_Importer::importChart()
 				case GlobalFunctions::ResultType::Success:
 					if (g_global.answer.character == 'c')
 					{
-						m_song.m_name = m_song.m_name.substr(0, m_song.m_name.length() - 4) + "_T.CHC";
+						m_song.m_filename = m_song.m_filename.substr(0, m_song.m_filename.length() - 4) + "_T.CHC";
 						m_song.m_shortname += "_T";
 					}
 					printf("%s\n", g_global.tabs.c_str());
@@ -243,7 +243,7 @@ bool CH_Importer::importChart()
 				if (g_global.answer.character == 'y')
 				{
 					printf("%s\n", g_global.tabs.c_str());
-					string filename = m_song.m_name.substr(0, m_song.m_name.length() - 4);
+					string filename = m_song.m_filename.substr(0, m_song.m_filename.length() - 4);
 					string ext = "";
 					do
 					{
@@ -255,7 +255,7 @@ bool CH_Importer::importChart()
 							break;
 						case GlobalFunctions::ResultType::Yes:
 							m_song.create(filename + ext + ".CHC");
-							m_song.m_name = filename + ext + ".CHC";
+							m_song.m_filename = filename + ext + ".CHC";
 							m_song.m_shortname += ext;
 							m_song.m_saved = 2;
 							g_global.quit = true;

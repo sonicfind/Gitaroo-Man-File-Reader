@@ -104,7 +104,7 @@ bool CH_Exporter::exportChart()
 		return false;
 	GlobalFunctions::banner(" All Notes Converted ");
 	printf("%s\n", g_global.tabs.c_str());
-	string filename = m_song->m_name.substr(0, m_song->m_name.length() - 4);
+	string filename = m_song->m_filename.substr(0, m_song->m_filename.length() - 4);
 	bool written = false;
 	if (modchart)
 	{

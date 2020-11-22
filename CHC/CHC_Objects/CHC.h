@@ -31,7 +31,7 @@ class CHC
 	friend class CH_Importer;
 private:
 	//Full filename
-	std::string m_name;
+	std::string m_filename;
 	//Short version
 	std::string m_shortname;
 	//Stage number

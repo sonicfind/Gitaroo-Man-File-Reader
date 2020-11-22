@@ -88,13 +88,21 @@ public:
 	void adjustTabs(const unsigned value)
 	{
 		tabCount = value;
-		tabs = value > 0 ? std::string(value - 1, '\t') + "      ||" : "";
+		if (tabCount)
+			tabs = std::string((tabCount << 3) - 2, '=') + "||";
+		else
+			tabs.clear();
 	}
-	void operator++() { tabs = std::string(++tabCount - 1, '\t') + "      ||"; }
+	void operator++() { tabs = std::string((++tabCount << 3) - 2, '=') + "||"; }
 	void operator--()
 	{
 		if (tabCount)
-			tabs = --tabCount > 0 ? std::string(tabCount - 1, '\t') + "      ||" : "";
+		{
+			if (--tabCount)
+				tabs = std::string((tabCount << 3) - 2, '=') + "||";
+			else
+				tabs.clear();
+		}
 	}
 };
 extern "C" GLOBALFUNCTIONS_API GlobalVars g_global;
@@ -198,8 +206,11 @@ namespace GlobalFunctions
 		default:
 			auto rangeTest = [&]()
 			{
-				double tmp;
-				scanf_s("%lg", &tmp);
+				char val[40];
+				scanf_s("%39[0-9. ]", val, 40);
+				//scanf_s("%c", &wtf, 1);
+				double tmp = atof(val);
+				//scanf_s("%lg", &tmp);
 				if (!min)
 				{
 					if (!max)

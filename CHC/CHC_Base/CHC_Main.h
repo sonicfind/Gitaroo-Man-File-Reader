@@ -22,13 +22,13 @@
 class CHC_Editor
 {
 private:
-	CHC* song;
+	CHC* m_song;
 public:
-	CHC_Editor() : song(nullptr) {}
-	CHC_Editor(CHC& song) : song(&song) {}
+	CHC_Editor() : m_song(nullptr) {}
+	CHC_Editor(CHC& song) : m_song(&song) {}
 	CHC_Editor& operator=(CHC_Editor& edtr)
 	{
-		song = edtr.song;
+		m_song = edtr.m_song;
 	}
 	//Songs
 	void editSong(const bool multi = false);

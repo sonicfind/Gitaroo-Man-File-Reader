@@ -73,7 +73,7 @@ extern "C" GLOBALFUNCTIONS_API FileType g_dlls[20];
 	*/
 class GlobalVars
 {
-	unsigned tabCount = 0;
+	size_t tabCount = 0;
 public:
 	bool quit = false;
 	char input = 0;
@@ -206,7 +206,7 @@ namespace GlobalFunctions
 		default:
 			auto rangeTest = [&]()
 			{
-				char val[40];
+				char val[40] = { 0 };
 				scanf_s("%39[0-9. ]", val, 40);
 				//scanf_s("%c", &wtf, 1);
 				double tmp = atof(val);

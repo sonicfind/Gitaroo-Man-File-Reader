@@ -82,4 +82,5 @@ public:
 	CHC(std::string filename);
 	CHC& operator=(CHC&);
 	void create(std::string filename);
+	size_t getNumSections() { return m_sections.size(); }
 };

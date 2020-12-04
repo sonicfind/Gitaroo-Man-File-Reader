@@ -47,6 +47,18 @@ void NoteTrack::write(FILE* outFile, const size_t player)
 	}
 }
 
+void NoteTrack::writeDuet(FILE* outFile, const size_t player)
+{
+	const char* headers[2] = { "[ExpertSingle]\n{\n", "[ExpertDoubleGuitar]\n{\n" };
+	if (m_allNotes.size())
+	{
+		fprintf(outFile, headers[player]);
+		for (CHNote* note : m_allNotes)
+			note->write(outFile);
+		fprintf(outFile, "}\n");
+	}
+}
+
 void NoteTrack::clear()
 {
 	m_allNotes.clear();

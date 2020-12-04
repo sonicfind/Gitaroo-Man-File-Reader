@@ -349,7 +349,7 @@ void ChartFileImporter::read(CH_Importer& importer)
 		do
 		{
 			printf("%sGMFR import, while compatible, works best with a .chart file updated to the current Moonscraper->CHC charting style. Create a converted version of this file? [Y/N]\n", g_global.tabs.c_str());
-			printf("%sEnter 'C' if this file already utilizes this style (his will add the proper g_global event marker that defines the GMFR import version).\n", g_global.tabs.c_str());
+			printf("%sEnter 'C' if this file already utilizes this style (this will add the proper global event marker that defines the GMFR import version).\n", g_global.tabs.c_str());
 			switch (GlobalFunctions::menuChoices("ync"))
 			{
 			case GlobalFunctions::ResultType::Quit:
@@ -418,14 +418,16 @@ void ChartFileImporter::read(CH_Importer& importer)
 	if (chartVersion < 2)
 	{
 		LinkedList::List<Event> events(1, 0, "GMFR EXPORT V2.0");
-		for (size_t sectIndex = 0; sectIndex < importer.m_sections.size(); sectIndex++)
-			events.emplace_back(importer.m_sections[sectIndex].m_position_ticks, importer.m_sections[sectIndex].m_name);
-		ChartFileExporter converter;
+		for (Section& section : importer.m_sections)
+			events.emplace_back(section.m_position_ticks, section.m_name);
+
+		ChartFileExporter converter(tempos, events, importer.m_notes);
 		if (chartVersion == 0)
 			converter.open(m_file + "v2.0 Convert");
 		else
 			converter.open(m_file);
-		converter.write(tempos, events, importer.m_notes, false);
+
+		converter.write(false);
 		converter.close();
 	}
 }

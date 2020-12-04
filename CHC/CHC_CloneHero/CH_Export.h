@@ -19,16 +19,24 @@
 class CH_Exporter
 {
 	CHC* m_song;
-	NoteTrack m_modchartNotes[2];
-	NoteTrack m_reimportNotes[2];
+	unsigned m_phraseBarPromptType[2] = { 0, 0 };
+	unsigned long m_strumFret[2] = { 0, 0 };
+	unsigned m_guardPromptType = 0;
+	unsigned m_guardOrientation = 2;
+	double m_position = 0;
+	double m_samepleDuration = 0;
+	bool m_modchart = false;
+	ChartFileExporter m_exporter;
 public:
 	CH_Exporter(CHC* song) : m_song(song) {}
 	bool exportChart();
-	bool getFrets(unsigned long& strumFret, const char* sectionName, unsigned promptType, size_t playerIndex = 0, size_t chartIndex = 0, size_t note = 1, size_t piece = 1, unsigned long prevFret = 0);
-	bool getOrientation(const char* sectionName, unsigned orientation, size_t player = 0, size_t chart = 0);
-	bool convertSong(LinkedList::List<size_t>& sectionIndexes, LinkedList::List<SyncTrack>& sync, LinkedList::List<Event>& m_events, bool modchart, double& totalDuration);
-	size_t convertGuard(Chart& chart, const double position, const double TICKS_PER_SAMPLE, const size_t currentPlayer, const unsigned orientation, const bool modchart);
-	void convertTrace(Chart& chart, const double position, const double TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer, const bool modchart);
-	size_t convertPhrase(SongSection& section, const size_t playerIndex, const size_t chartIndex, const double position,
-		const double TICKS_PER_SAMPLE, const size_t currentPlayer, const unsigned colorType, unsigned long& strumFret, const bool modchart);
+	bool convertSong(LinkedList::List<size_t>& sectionIndexes);
+
+	size_t convertGuard(Chart& chart, const double TICKS_PER_SAMPLE, const size_t currentPlayer);
+	bool getOrientation(const char* sectionName, const size_t player = 0, const size_t chart = 0);
+
+	void convertTrace(Chart& chart, const double TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer);
+
+	size_t convertPhrase(SongSection& section, const size_t playerIndex, const size_t chartIndex, const double TICKS_PER_SAMPLE, const size_t currentPlayer);
+	bool getFrets(const char* sectionName, unsigned promptType, size_t playerIndex = 0, size_t chartIndex = 0, size_t note = 1, size_t piece = 1);
 };

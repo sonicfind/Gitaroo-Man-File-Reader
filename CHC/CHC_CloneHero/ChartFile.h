@@ -29,10 +29,19 @@ public:
 
 class ChartFileExporter : public ChartFile
 {
+	friend class CH_Exporter;
+	friend class ChartFileImporter;
+	LinkedList::List<SyncTrack> m_sync;
+	LinkedList::List<Event> m_events;
+	NoteTrack m_modchartNotes[2];
+	NoteTrack m_reimportNotes[2];
 public:
 	ChartFileExporter() : ChartFile() {}
 	ChartFileExporter(std::string filename) : ChartFile(filename, true) {}
+	ChartFileExporter(LinkedList::List<SyncTrack>& sync, LinkedList::List<Event>& events, NoteTrack(&notes)[2]);
 	bool open(std::string filename) { return ChartFile::open(filename, true); }
-	void write(LinkedList::List<SyncTrack>& sync, LinkedList::List<Event>& events, NoteTrack(&notes)[2], const bool modchart);
-	void writeIni(const unsigned char stageNumber, const double totalDuration, const bool jap = true);
+	void writeHeader(const bool modchart);
+	void write(const bool modchart);
+	void writeDuetModchart();
+	void writeIni(const unsigned char stageNumber, const unsigned long totalDuration, const bool jap = true);
 };

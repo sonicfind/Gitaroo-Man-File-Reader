@@ -83,5 +83,6 @@ struct NoteTrack
 	size_t addEvent(double pos, std::string nam);
 	size_t addStarPower(double pos, double sustain);
 	void write(FILE* outFile, const size_t player);
+	void writeDuet(FILE* outFile, const size_t player);
 	void clear();
 };

@@ -313,7 +313,7 @@ void ChartFileImporter::read(CH_Importer& importer)
 				{
 					Section::Tempo& prev = importer.m_sections.back().m_tempos.back();
 					double pos_samples = prev.m_position_samples + ((*currTempo).m_position - prev.m_position_ticks)
-						* (s_SAMPLES_PER_MIN / (TICKS_PER_BEAT * prev.m_bpm / 1000));
+						* (s_SAMPLES_PER_MIN / (s_TICKS_PER_BEAT * prev.m_bpm / 1000));
 					//Creates new tempo object
 					importer.m_sections.back().m_tempos.emplace_back((*currTempo).m_bpm, (*currTempo).m_position, pos_samples);
 				}
@@ -325,7 +325,7 @@ void ChartFileImporter::read(CH_Importer& importer)
 			{
 				Section::Tempo& prev = importer.m_sections.back().m_tempos.back();
 				pos_samples = importer.m_sections.back().m_position_samples + prev.m_position_samples + (ev.m_position - prev.m_position_ticks)
-					* (s_SAMPLES_PER_MIN / (TICKS_PER_BEAT * prev.m_bpm / 1000));
+					* (s_SAMPLES_PER_MIN / (s_TICKS_PER_BEAT * prev.m_bpm / 1000));
 			}
 
 			Section& section = importer.m_sections.emplace_back(ev.m_name, ev.m_position, pos_samples, (*currTempo).m_bpm);
@@ -445,7 +445,7 @@ void CH_Importer::fillSections()
 			LinkedList::List<Section::Tempo>::Iterator currTempo = (*currSection).m_tempos.begin();
 			LinkedList::List<Chart>::Iterator currChart = (*currSection).m_subs[playerIndex].begin();
 
-			long double SAMPLES_PER_TICK = s_SPT_CONSTANT / (TICKS_PER_BEAT * (*currTempo).m_bpm);
+			long double SAMPLES_PER_TICK = s_SPT_CONSTANT / (s_TICKS_PER_BEAT * (*currTempo).m_bpm);
 
 			for (CHNote* note : m_notes[playerIndex].m_allNotes)
 			{
@@ -454,11 +454,11 @@ void CH_Importer::fillSections()
 					++currSection;
 					currTempo = (*currSection).m_tempos.begin();
 					currChart = (*currSection).m_subs[playerIndex].begin();
-					SAMPLES_PER_TICK = s_SPT_CONSTANT / (TICKS_PER_BEAT * (*currTempo).m_bpm);
+					SAMPLES_PER_TICK = s_SPT_CONSTANT / (s_TICKS_PER_BEAT * (*currTempo).m_bpm);
 				}
 
 				while (currTempo + 1 != (*currSection).m_tempos.end() && note->m_position >= (*(currTempo + 1)).m_position_ticks)
-					SAMPLES_PER_TICK = s_SPT_CONSTANT / (TICKS_PER_BEAT * (*++currTempo).m_bpm);
+					SAMPLES_PER_TICK = s_SPT_CONSTANT / (s_TICKS_PER_BEAT * (*++currTempo).m_bpm);
 
 				switch (note->m_type)
 				{
@@ -527,7 +527,7 @@ void CH_Importer::replaceNotes(SongSection& section, LinkedList::List<Section>::
 	if (currSection + 1 != m_sections.end())
 	{
 		//Sets Section duration to an even and equal spacing based off marked tempo
-		const long double numBeats = (long double)round(((*(currSection + 1)).m_position_ticks - section2.m_position_ticks) / TICKS_PER_BEAT);
+		const long double numBeats = (long double)round(((*(currSection + 1)).m_position_ticks - section2.m_position_ticks) / s_TICKS_PER_BEAT);
 		section.setDuration((unsigned long)round(s_SAMPLES_PER_MIN * numBeats / section.getTempo()));
 	}
 
@@ -644,7 +644,7 @@ void CH_Importer::addTraceLine(double pos, string name, LinkedList::List<Section
 				pos = double(currChart->m_tracelines.front().getPivotAlpha()) - 1;
 		}
 
-		pos += ((*currSection).m_position_ticks - prevtempo.m_position_ticks) * (s_SPT_CONSTANT / (TICKS_PER_BEAT * prevtempo.m_bpm)) + prevtempo.m_position_samples;
+		pos += ((*currSection).m_position_ticks - prevtempo.m_position_ticks) * (s_SPT_CONSTANT / (s_TICKS_PER_BEAT * prevtempo.m_bpm)) + prevtempo.m_position_samples;
 		insert = &prevSection.m_subs[playerIndex].back();
 	}
 	else

@@ -14,7 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-constexpr long double TICKS_PER_BEAT = 480.0;
+constexpr long double s_TICKS_PER_BEAT = 480.0;
 struct CHItem
 {
 	double m_position;

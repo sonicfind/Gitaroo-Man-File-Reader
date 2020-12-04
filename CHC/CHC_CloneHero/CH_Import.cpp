@@ -45,126 +45,112 @@ bool CH_Importer::importChart()
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
+
 	chart.read(*this);
+
 	bool charted[2] = { m_notes[0].m_allNotes.size() > 0, m_notes[1].m_allNotes.size() > 0 };
 	if (charted[0] || charted[1])
 	{
 		fillSections();
-		for (size_t sectIndex = 0; sectIndex < m_song.m_sections.size(); sectIndex++)
+		if (processor_count > 1)
 		{
-			SongSection& section = m_song.m_sections[sectIndex];
-			if (!(section.getPhase() == SongSection::Phase::INTRO || strstr(section.getName(), "BRK") || strstr(section.getName(), "BREAK")))
+			int* results = new int[m_song.m_sections.size()]();
+			bool* sectionUsage = new bool[m_sections.size()]();
+			struct threadControl
 			{
-				for (size_t sectIndex2 = 0; sectIndex2 < m_sections.size(); sectIndex2++)
+				size_t sectIndex;
+				std::thread thisThread;
+				threadControl(const size_t index) : sectIndex(index) {}
+			};
+
+			auto printResult = [&]()
+			{
+				for (LinkedList::List<SongSection>::Iterator currSection = m_song.m_sections.begin();
+					currSection != m_song.m_sections.end(); ++currSection)
 				{
-					if (string(section.getName()).substr(0, m_sections[sectIndex2].m_name.length()).find(m_sections[sectIndex2].m_name) != string::npos)
+					while (!results[currSection.getIndex()]);
+					if (!(*currSection).getOrganized())
 					{
-						if (sectIndex2 + 1ULL != m_sections.size())
+						++m_song.m_unorganized;
+						printf("%sReplaced %s (%zu)\n", g_global.tabs.c_str(), (*currSection).getName(), currSection.getIndex());
+					}
+				}
+			};
+
+			auto replace = [&](LinkedList::List<SongSection>::Iterator currSection, LinkedList::List<Section>::Iterator currSection2)
+			{
+				while (sectionUsage[currSection2.getIndex()]);
+				sectionUsage[currSection2.getIndex()] = true;
+				replaceNotes(*currSection, currSection2, charted, duet);
+				sectionUsage[currSection2.getIndex()] = false;
+				results[currSection.getIndex()] = true;
+			};
+
+			LinkedList::List<threadControl> threads;
+			std::thread resultLoop(printResult);
+			for (LinkedList::List<SongSection>::Iterator currSection = m_song.m_sections.begin();
+				currSection != m_song.m_sections.end(); ++currSection)
+			{
+				SongSection& section = *currSection;
+				if (!(section.getPhase() == SongSection::Phase::INTRO || strstr(section.getName(), "BRK") || strstr(section.getName(), "BREAK")))
+				{
+					LinkedList::List<Section>::Iterator currSection2 = m_sections.begin();
+					for (; currSection2 != m_sections.end(); ++currSection2)
+					{
+						if (string(section.getName()).substr(0, (*currSection2).m_name.length()).find((*currSection2).m_name) != string::npos)
 						{
-							//Sets Section duration to an even and equal spacing based off marked tempo
-							const long double numBeats = (long double)round((m_sections[sectIndex2 + 1ULL].m_position_ticks - m_sections[sectIndex2].m_position_ticks) / TICKS_PER_BEAT);
-							section.setDuration((unsigned long)round(s_SAMPLES_PER_MIN * numBeats / section.getTempo()));
-						}
-						//This differentiation is needed due to the difference in how
-						//subsections are split in PS2 charts vs. Duet charts
-						long lastNotes[2] = { 0, 0 };
-						if (!duet)
-						{
-							bool swapped[2];
-							swapped[0] = swapped[1] = section.getSwapped() & 1;
-							for (size_t chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
+							while (threads.size() == processor_count - 2)
 							{
-								for (size_t playerIndex = 0; playerIndex < section.getNumPlayers(); playerIndex++)
+								for (size_t thr = 0; thr < threads.size();)
 								{
-									if (charted[playerIndex & 1])
+									if (results[threads[thr].sectIndex])
 									{
-										size_t val = 2 * chartIndex + (playerIndex >> 1);
-										if (val < m_sections[sectIndex2].m_subs[playerIndex & 1].size())
-										{
-											Chart& imp = m_sections[sectIndex2].m_subs[playerIndex & 1][val];
-											if (imp.m_tracelines.size() > 1 || imp.m_guards.size())
-											{
-												section.setOrganized(false);
-												Chart& ins = section.getChart(playerIndex * section.getNumCharts() + chartIndex);
-												long buf = ins.insertNotes(imp);
-												if (lastNotes[playerIndex & 1] < buf)
-													lastNotes[playerIndex & 1] = buf;
-												if (section.getPhase() == SongSection::Phase::BATTLE)
-												{
-													if (ins.m_guards.size() && ins.m_tracelines.size() > 1)
-													{
-														//Determining which comes first
-														if (ins.m_guards.front().getPivotAlpha() < ins.m_tracelines.front().getPivotAlpha())
-														{
-															if ((playerIndex & 1))
-																swapped[1] = true;
-														}
-														else if (ins.m_tracelines.front().getPivotAlpha() < ins.m_guards.front().getPivotAlpha())
-														{
-															if (!(playerIndex & 1))
-																swapped[0] = true;
-														}
-													}
-												}
-											}
-										}
-										else
-										{
-											//Checks if the data in any unchanged subsections needs to be deleted as to not interfere with inserted m_notes
-											Chart& skipped = section.getChart(playerIndex * section.getNumCharts() + chartIndex);
-											if (skipped.m_guards.size() && skipped.m_guards.front().getPivotAlpha() < lastNotes[playerIndex & 1]
-												|| skipped.m_tracelines.size() > 1 && skipped.m_tracelines.front().getPivotAlpha() < lastNotes[playerIndex & 1])
-											{
-												skipped.clear();
-											}
-										}
+										threads[thr].thisThread.join();
+										threads.erase(thr);
 									}
+									else
+										++thr;
 								}
 							}
-							if (swapped[0] && swapped[1])
-								section.setSwapped(1);
+							threads.emplace_back(currSection.getIndex()).thisThread = std::thread(replace, currSection, currSection2);
+							break;
 						}
-						else
+					}
+
+					if (currSection2 == m_sections.end())
+						results[currSection.getIndex()] = true;
+				}
+				else
+					results[currSection.getIndex()] = true;
+			}
+
+			for (threadControl& thr : threads)
+				thr.thisThread.join();
+
+			resultLoop.join();
+			delete[m_song.m_sections.size()] results;
+			delete[m_sections.size()] sectionUsage;
+		}
+		else
+		{
+			for (SongSection& section : m_song.m_sections)
+			{
+				if (!(section.getPhase() == SongSection::Phase::INTRO || strstr(section.getName(), "BRK") || strstr(section.getName(), "BREAK")))
+				{
+					for (LinkedList::List<Section>::Iterator currSection = m_sections.begin();
+						currSection != m_sections.end(); ++currSection)
+					{
+						if (string(section.getName()).substr(0, (*currSection).m_name.length()).find((*currSection).m_name) != string::npos)
 						{
-							for (size_t playerIndex = 0; playerIndex < 2; playerIndex++)
-							{
-								if (charted[playerIndex & 1])
-								{
-									for (size_t chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
-									{
-										if (chartIndex < m_sections[sectIndex2].m_subs[playerIndex].size())
-										{
-											Chart& imp = m_sections[sectIndex2].m_subs[playerIndex][chartIndex];
-											if (imp.m_tracelines.size() > 1 || imp.m_guards.size())
-											{
-												section.setOrganized(false);
-												long buf = section.getChart(2 * playerIndex * section.getNumCharts() + chartIndex).insertNotes(imp);
-												if (lastNotes[playerIndex & 1] < buf)
-													lastNotes[playerIndex & 1] = buf;
-											}
-											else
-											{
-												//Checks if the data in any unchanged subsections needs to be deleted as to not interfere with inserted m_notes
-												Chart& skipped = section.getChart(2 * playerIndex * section.getNumCharts() + chartIndex);
-												if (skipped.m_guards.size() && skipped.m_guards.front().getPivotAlpha() < lastNotes[playerIndex & 1]
-													|| skipped.m_tracelines.size() > 1 && skipped.m_tracelines.front().getPivotAlpha() < lastNotes[playerIndex & 1])
-												{
-													skipped.clear();
-												}
-											}
-										}
-									}
-								}
-							}
+							replaceNotes(section, currSection, charted, duet);
+							break;
 						}
-						if (!section.getOrganized())
-							m_song.m_unorganized++;
-						printf("%sReplaced %s\n", g_global.tabs.c_str(), section.getName());
-						break;
 					}
 				}
 			}
 		}
+
+
 		do
 		{
 			printf("%sFix & reorganize the newly imported notes for safety? [Y/N][or Q to cancel save]\n", g_global.tabs.c_str());
@@ -289,8 +275,10 @@ void ChartFileImporter::read(CH_Importer& importer)
 	fscanf_s(m_chart, " %[^}]", ignore, 400);
 	fscanf_s(m_chart, " %[^{]", ignore, 400);
 	fseek(m_chart, 1, SEEK_CUR);
-	char test = 0;
+
 	LinkedList::List<SyncTrack> tempos;
+
+	char test = 0;
 	fscanf_s(m_chart, " %c", &test, 1);
 	//Checking for the end of the synctrack section
 	while (test != '}')
@@ -300,34 +288,37 @@ void ChartFileImporter::read(CH_Importer& importer)
 		tempos.emplace_back(m_chart);
 		fscanf_s(m_chart, " %c", &test, 1);
 	}
+	LinkedList::List<SyncTrack>::Iterator currTempo = tempos.begin();
+
 	fscanf_s(m_chart, " %[^{]", ignore, 400);
 	fseek(m_chart, 1, SEEK_CUR);
-	size_t tempoIndex = 0;
 	fscanf_s(m_chart, " %c", &test, 1);
 	//Checking for the end of the event section
 	while (test != '}')
 	{
 		fseek(m_chart, -1, SEEK_CUR);
 		Event ev(m_chart);
-		//For example, if the m_name is "BATTLE - something,"
-		//only use "something."
+		// For example, if the section name is "BATTLE - something",
+		// only use "something" / disregard "BATTLE - ".
 		if (ev.m_name.find("section") != string::npos)
 		{
 			ev.m_name = ev.m_name.substr(ev.m_name.find_last_of(' ') + 1);
-			//Add all m_tempos between the current section event and the previous section
+
+			//Add all tempos between the current section event and the previous section
 			//to the previous section
-			while (tempoIndex + 1ULL < tempos.size() && (ev.m_position >= tempos[tempoIndex + 1ULL].m_position || tempos[tempoIndex].m_bpm == 0))
+			while (currTempo + 1 != tempos.end() && (ev.m_position >= (*(currTempo + 1)).m_position || (*currTempo).m_bpm == 0))
 			{
-				if (ev.m_position > tempos[tempoIndex + 1ULL].m_position && tempos[tempoIndex + 1ULL].m_bpm > 0)
+				++currTempo;
+				if (ev.m_position > (*currTempo).m_position && (*currTempo).m_bpm > 0)
 				{
 					Section::Tempo& prev = importer.m_sections.back().m_tempos.back();
-					double pos_samples = prev.m_position_samples + (tempos[tempoIndex + 1ULL].m_position - prev.m_position_ticks)
+					double pos_samples = prev.m_position_samples + ((*currTempo).m_position - prev.m_position_ticks)
 						* (s_SAMPLES_PER_MIN / (TICKS_PER_BEAT * prev.m_bpm / 1000));
 					//Creates new tempo object
-					importer.m_sections.back().m_tempos.emplace_back(tempos[tempoIndex + 1ULL].m_bpm, tempos[tempoIndex + 1ULL].m_position, pos_samples);
+					importer.m_sections.back().m_tempos.emplace_back((*currTempo).m_bpm, (*currTempo).m_position, pos_samples);
 				}
-				tempoIndex++;
 			}
+
 			double pos_samples = 0;
 			//If this isn't the first section
 			if (importer.m_sections.size())
@@ -336,9 +327,10 @@ void ChartFileImporter::read(CH_Importer& importer)
 				pos_samples = importer.m_sections.back().m_position_samples + prev.m_position_samples + (ev.m_position - prev.m_position_ticks)
 					* (s_SAMPLES_PER_MIN / (TICKS_PER_BEAT * prev.m_bpm / 1000));
 			}
-			Section& section = importer.m_sections.emplace_back(ev.m_name, ev.m_position, pos_samples, tempos[tempoIndex].m_bpm);
-			section.m_subs[0].emplace_front().clearTracelines();
-			section.m_subs[1].emplace_front().clearTracelines();
+
+			Section& section = importer.m_sections.emplace_back(ev.m_name, ev.m_position, pos_samples, (*currTempo).m_bpm);
+			section.m_subs[0].emplace_front(false);
+			section.m_subs[1].emplace_front(false);
 		}
 		else if (ev.m_name.find("GMFR EXPORT V2.0") != string::npos)
 			chartVersion = 2;
@@ -369,52 +361,62 @@ void ChartFileImporter::read(CH_Importer& importer)
 		} while (!g_global.quit);
 		g_global.quit = false;
 	}
+
 	while (!feof(m_chart))
 	{
 		fscanf_s(m_chart, " %[^{]", ignore, 400);
 		fseek(m_chart, 1, SEEK_CUR);
+
 		if (feof(m_chart))
 			break;
-		fscanf_s(m_chart, " %c", &test, 1);
-		size_t playerIndex;
+
+		NoteTrack* track = nullptr;
+		NoteTrack* throwaway = nullptr;
 		if (strstr(ignore, "[ExpertSingle]"))
-			playerIndex = 0;
+			track = importer.m_notes;
 		else if (strstr(ignore, "[ExpertDoubleRhythm]"))
-			playerIndex = 1;
-		while (test != '}')
+			track = importer.m_notes + 1;
+		else
+			track = throwaway = new NoteTrack();
+
+		fscanf_s(m_chart, " %c", &test, 1);
+		while (test != '}' && !feof(m_chart))
 		{
 			fseek(m_chart, -1, SEEK_CUR);
 			CHNote note(m_chart);
 			switch (note.m_type)
 			{
 			case CHNote::NoteType::EVENT:
-				importer.m_notes[playerIndex].addEvent(note.m_position, note.m_name);
+				track->addEvent(note.m_position, note.m_name);
 				break;
 			case CHNote::NoteType::NOTE:
 				if (note.m_mod == CHNote::Modifier::NORMAL)
 				{
 					note.m_fret.m_lane = 1 << note.m_fret.m_lane;
-					importer.m_notes[playerIndex].addNote(note);
+					track->addNote(note);
 				}
 				else if (!chartVersion)
 				{
 					if (note.m_mod == CHNote::Modifier::TAP)
 					{
-						importer.m_notes[playerIndex].addModifier(note.m_position, CHNote::Modifier::FORCED);
-						importer.m_notes[playerIndex].addModifier(note.m_position, CHNote::Modifier::TAP);
+						track->addModifier(note.m_position, CHNote::Modifier::FORCED);
+						track->addModifier(note.m_position, CHNote::Modifier::TAP);
 					}
 				}
 				else if (note.m_mod == CHNote::Modifier::FORCED)
-					importer.m_notes[playerIndex].addModifier(note.m_position, CHNote::Modifier::FORCED);
+					track->addModifier(note.m_position, CHNote::Modifier::FORCED);
 			}
 			fscanf_s(m_chart, " %c", &test, 1);
 		}
+
+		if (throwaway)
+			delete throwaway;
+
 		if (!feof(m_chart))
 			fseek(m_chart, 1, SEEK_CUR);
-		else
-			break;
 	}
 	close();
+
 	if (chartVersion < 2)
 	{
 		LinkedList::List<Event> events(1, 0, "GMFR EXPORT V2.0");
@@ -439,44 +441,46 @@ void CH_Importer::fillSections()
 		const size_t listSize = m_notes[playerIndex].m_allNotes.size();
 		if (listSize)
 		{
-			size_t sectIndex = 0;
-			size_t tempoIndex = 0;
-			long double SAMPLES_PER_TICK = s_SAMPLES_PER_MIN / (TICKS_PER_BEAT * m_sections[0].m_tempos[0].m_bpm / 1000);
-			Section* currSection = &m_sections[0];
-			Chart* currChart = &currSection->m_subs[0].back();
-			for (size_t itemIndex = 0; itemIndex < listSize; itemIndex++)
+			LinkedList::List<Section>::Iterator currSection = m_sections.begin();
+			LinkedList::List<Section::Tempo>::Iterator currTempo = (*currSection).m_tempos.begin();
+			LinkedList::List<Chart>::Iterator currChart = (*currSection).m_subs[playerIndex].begin();
+
+			long double SAMPLES_PER_TICK = s_SPT_CONSTANT / (TICKS_PER_BEAT * (*currTempo).m_bpm);
+
+			for (CHNote* note : m_notes[playerIndex].m_allNotes)
 			{
-				CHNote* note = m_notes[playerIndex].m_allNotes[itemIndex];
-				while (sectIndex + 1 < m_sections.size() && note->m_position >= m_sections[sectIndex + 1].m_position_ticks)
+				while (currSection + 1 != m_sections.end() && note->m_position >= (*(currSection + 1)).m_position_ticks)
 				{
-					currSection = &m_sections[++sectIndex];
-					currChart = &currSection->m_subs[playerIndex].back();
-					tempoIndex = 0;
-					SAMPLES_PER_TICK = s_SAMPLES_PER_MIN / (TICKS_PER_BEAT * currSection->m_tempos[tempoIndex].m_bpm / 1000);
+					++currSection;
+					currTempo = (*currSection).m_tempos.begin();
+					currChart = (*currSection).m_subs[playerIndex].begin();
+					SAMPLES_PER_TICK = s_SPT_CONSTANT / (TICKS_PER_BEAT * (*currTempo).m_bpm);
 				}
-				while (tempoIndex + 1 < currSection->m_tempos.size() && note->m_position >= currSection->m_tempos[tempoIndex + 1].m_position_ticks)
-					SAMPLES_PER_TICK = s_SAMPLES_PER_MIN / (TICKS_PER_BEAT * currSection->m_tempos[++tempoIndex].m_bpm / 1000);
+
+				while (currTempo + 1 != (*currSection).m_tempos.end() && note->m_position >= (*(currTempo + 1)).m_position_ticks)
+					SAMPLES_PER_TICK = s_SPT_CONSTANT / (TICKS_PER_BEAT * (*++currTempo).m_bpm);
+
 				switch (note->m_type)
 				{
 				case CHNote::NoteType::EVENT:
 					//Signals the insertion of a new chart/subsection
 					if (note->m_name.find("start") != string::npos)
 					{
-						currChart = &currSection->m_subs[playerIndex].emplace_back();
-						currChart->clearTracelines();
+						(*currSection).m_subs[playerIndex].emplace_back(false);
+						++currChart;
 					}
 					//Signals a trace line related function or note
 					else if (note->m_name.find("Trace") != string::npos)
 					{
 						//Set previous Trace line's curve set to true
 						if (note->m_name.find("curve") != string::npos)
-							currChart->m_tracelines.back().setCurve(true);
+							(*currChart).m_tracelines.back().setCurve(true);
 						else
 						{
 							try
 							{
-								addTraceLine(((note->m_position - currSection->m_tempos[tempoIndex].m_position_ticks) * SAMPLES_PER_TICK) + currSection->m_tempos[tempoIndex].m_position_samples,
-									note->m_name, sectIndex, playerIndex, currChart);
+								addTraceLine(((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK) + (*currTempo).m_position_samples,
+									note->m_name, currSection, playerIndex, &*currChart);
 							}
 							catch (...)
 							{
@@ -486,14 +490,14 @@ void CH_Importer::fillSections()
 						}
 					}
 					else if (note->m_name.find("Anim") != string::npos)
-						currChart->m_phrases.back().setAnimation(stoi(note->m_name.substr(5)));
+						(*currChart).m_phrases.back().setAnimation(stoi(note->m_name.substr(5)));
 					break;
 				case CHNote::NoteType::NOTE:
 					//If Phrase Bar
 					if (note->m_fret.m_sustain)
 					{
-						addPhraseBar((long)round((note->m_position - currSection->m_tempos[tempoIndex].m_position_ticks) * SAMPLES_PER_TICK + currSection->m_tempos[tempoIndex].m_position_samples),
-										(unsigned long)round(note->m_fret.m_sustain * SAMPLES_PER_TICK), 1UL << note->m_fret.m_lane, currChart, (long)round(SAMPLES_PER_TICK));
+						addPhraseBar((long)round((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK + (*currTempo).m_position_samples),
+										(unsigned long)round(note->m_fret.m_sustain * SAMPLES_PER_TICK), 1UL << note->m_fret.m_lane, &*currChart, (long)round(SAMPLES_PER_TICK));
 					}
 					else
 					{
@@ -501,13 +505,13 @@ void CH_Importer::fillSections()
 						{
 						case CHNote::Modifier::NORMAL: //Guard Mark
 						{
-							addGuardMark((long)round(((note->m_position - m_sections[sectIndex].m_tempos[tempoIndex].m_position_ticks) * SAMPLES_PER_TICK) + m_sections[sectIndex].m_tempos[tempoIndex].m_position_samples),
-											(unsigned long)note->m_fret.m_lane, currChart);
+							addGuardMark((long)round(((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK) + (*currTempo).m_position_samples),
+											(unsigned long)note->m_fret.m_lane, &*currChart);
 						}
 						break;
 						case CHNote::Modifier::FORCED:
-							applyForced((long)round(((note->m_position - m_sections[sectIndex].m_tempos[tempoIndex].m_position_ticks) * SAMPLES_PER_TICK) + m_sections[sectIndex].m_tempos[tempoIndex].m_position_samples),
-											currChart, currSection, playerIndex);
+							applyForced((long)round(((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK) + (*currTempo).m_position_samples),
+								&*currChart, &*currSection, playerIndex);
 						}
 					}
 				}
@@ -517,15 +521,121 @@ void CH_Importer::fillSections()
 	}
 }
 
-void CH_Importer::addTraceLine(double pos, string name, const size_t sectIndex, const size_t playerIndex, Chart* currChart)
+void CH_Importer::replaceNotes(SongSection& section, LinkedList::List<Section>::Iterator currSection, const bool(&charted)[2], const bool duet)
 {
-	//If the trace line goes into the previous subsection
-	Chart* insert;
-	if ((name.find('P') != string::npos || name.find('p') != string::npos || (name.find("end") != string::npos && pos == 0))
-		&& sectIndex > 0)
+	Section& section2 = *currSection;
+	if (currSection + 1 != m_sections.end())
 	{
-		Section& prevSection = m_sections[sectIndex - 1];
+		//Sets Section duration to an even and equal spacing based off marked tempo
+		const long double numBeats = (long double)round(((*(currSection + 1)).m_position_ticks - section2.m_position_ticks) / TICKS_PER_BEAT);
+		section.setDuration((unsigned long)round(s_SAMPLES_PER_MIN * numBeats / section.getTempo()));
+	}
+
+	//This differentiation is needed due to the difference in how
+	//subsections are split in PS2 charts vs. Duet charts
+	if (!duet)
+	{
+		long lastNotes[2] = { 0, 0 };
+		bool swapped[2] = { (section.getSwapped() & 1) > 0, (section.getSwapped() & 1) > 0 };
+		for (size_t chartIndex = 0; chartIndex < section.getNumCharts(); ++chartIndex)
+		{
+			for (size_t playerIndex = 0; playerIndex < section.getNumPlayers(); ++playerIndex)
+			{
+				if (charted[playerIndex & 1])
+				{
+					size_t val = (chartIndex << 1) + (playerIndex >> 1);
+					if (val < section2.m_subs[playerIndex & 1].size())
+					{
+						Chart& imp = section2.m_subs[playerIndex & 1][val];
+						if (imp.m_tracelines.size() > 1 || imp.m_guards.size())
+						{
+							section.setOrganized(false);
+							Chart& ins = section.getChart(playerIndex * section.getNumCharts() + chartIndex);
+							long buf = ins.insertNotes(imp);
+
+							if (lastNotes[playerIndex & 1] < buf)
+								lastNotes[playerIndex & 1] = buf;
+
+							if (section.getPhase() == SongSection::Phase::BATTLE)
+							{
+								if (ins.m_guards.size() && ins.m_tracelines.size() > 1)
+								{
+									//Determining which comes first
+									if (ins.m_guards.front().getPivotAlpha() < ins.m_tracelines.front().getPivotAlpha())
+									{
+										if ((playerIndex & 1))
+											swapped[1] = true;
+									}
+									else if (ins.m_tracelines.front().getPivotAlpha() < ins.m_guards.front().getPivotAlpha())
+									{
+										if (!(playerIndex & 1))
+											swapped[0] = true;
+									}
+								}
+							}
+						}
+					}
+					else
+					{
+						//Checks if the data in any unchanged subsections needs to be deleted as to not interfere with inserted m_notes
+						Chart& skipped = section.getChart(playerIndex * section.getNumCharts() + chartIndex);
+						if ((skipped.m_guards.size() && skipped.m_guards.front().getPivotAlpha() < lastNotes[playerIndex & 1]) ||
+							(skipped.m_tracelines.size() > 1 && skipped.m_tracelines.front().getPivotAlpha() < lastNotes[playerIndex & 1]))
+						{
+							skipped.clear();
+						}
+					}
+				}
+			}
+		}
+		if (swapped[0] && swapped[1])
+			section.setSwapped(1);
+	}
+	else
+	{
+		long lastNotes[2] = { 0, 0 };
+		for (size_t playerIndex = 0; playerIndex < 2; playerIndex++)
+		{
+			if (charted[playerIndex])
+			{
+				LinkedList::List<Chart>& sub = section2.m_subs[playerIndex];
+				for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && chartIndex < sub.size(); chartIndex++)
+				{
+					Chart& imp = sub[chartIndex];
+					if (imp.m_tracelines.size() > 1 || imp.m_guards.size())
+					{
+						section.setOrganized(false);
+						long buf = section.getChart(2 * playerIndex * section.getNumCharts() + chartIndex).insertNotes(imp);
+
+						if (lastNotes[playerIndex & 1] < buf)
+							lastNotes[playerIndex & 1] = buf;
+					}
+					else
+					{
+						//Checks if the data in any unchanged subsections needs to be deleted as to not interfere with inserted m_notes
+						Chart& skipped = section.getChart(2 * playerIndex * section.getNumCharts() + chartIndex);
+						if ((skipped.m_guards.size() && skipped.m_guards.front().getPivotAlpha() < lastNotes[playerIndex & 1]) ||
+							(skipped.m_tracelines.size() > 1 && skipped.m_tracelines.front().getPivotAlpha() < lastNotes[playerIndex & 1]))
+						{
+							skipped.clear();
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void CH_Importer::addTraceLine(double pos, string name, LinkedList::List<Section>::Iterator currSection, const size_t playerIndex, Chart* currChart)
+{
+	Chart* insert = nullptr;
+	//If the trace line goes into the previous subsection
+	if ((name.find('P') != string::npos || name.find('p') != string::npos || (name.find("end") != string::npos && pos == 0))
+		&& currSection.getIndex() > 0)
+	{
+		Section& prevSection = *(currSection - 1);
 		Section::Tempo& prevtempo = prevSection.m_tempos.back();
+
 		if (name.find("end") != string::npos && pos == 0)
 			pos--;
 		else if (currChart->m_tracelines.size() > 0)
@@ -533,7 +643,8 @@ void CH_Importer::addTraceLine(double pos, string name, const size_t sectIndex, 
 			if (currChart->m_tracelines.front().getPivotAlpha() <= pos)
 				pos = double(currChart->m_tracelines.front().getPivotAlpha()) - 1;
 		}
-		pos += (m_sections[sectIndex].m_position_ticks - prevtempo.m_position_ticks) * (s_SAMPLES_PER_MIN / (TICKS_PER_BEAT * prevtempo.m_bpm / 1000)) + prevtempo.m_position_samples;
+
+		pos += ((*currSection).m_position_ticks - prevtempo.m_position_ticks) * (s_SPT_CONSTANT / (TICKS_PER_BEAT * prevtempo.m_bpm)) + prevtempo.m_position_samples;
 		insert = &prevSection.m_subs[playerIndex].back();
 	}
 	else
@@ -624,25 +735,11 @@ void CH_Importer::addPhraseBar(long pos, unsigned long sus, unsigned long lane, 
 		currChart->emplacePhrase(pos, sus, true, true, 0, lane);
 }
 
-void CH_Importer::addGuardMark(const long pos, const unsigned long button, Chart* currChart)
+void CH_Importer::addGuardMark(const long pos, const unsigned long fret, Chart* currChart)
 {
+	static const int buttons[5] = { 1, 2, -1, 0, 3 };
 	if (currChart->m_guards.size() == 0 || currChart->m_guards.back().getPivotAlpha() < pos)
-	{
-		switch (button)
-		{
-		case 0:
-			currChart->emplaceGuard(pos, 1);
-			break;
-		case 1:
-			currChart->emplaceGuard(pos, 2);
-			break;
-		case 3:
-			currChart->emplaceGuard(pos, 0);
-			break;
-		case 4:
-			currChart->emplaceGuard(pos, 3);
-		}
-	}
+		currChart->emplaceGuard(pos, buttons[fret]);
 }
 
 void CH_Importer::applyForced(const long pos, Chart* currChart, const Section* currSection, const size_t playerIndex)
@@ -668,9 +765,8 @@ void CH_Importer::applyForced(const long pos, Chart* currChart, const Section* c
 				while (index > 0)
 				{
 					Phrase& previous = currChart->m_phrases[--index];
-					for (size_t color = 0; color < 6; color++)
+					for (unsigned long color = 0, val = 1; color < 6; ++color, val <<= 1)
 					{
-						unsigned long val = 1UL << color;
 						if (!(base.getColor() & val) && (previous.getColor() & val))
 						{
 							if (remove)

@@ -42,6 +42,8 @@ struct Section
 	}
 };
 
+class CH_Importer;
+
 class ChartFileImporter : public ChartFile
 {
 public:
@@ -58,12 +60,14 @@ class CH_Importer
 	LinkedList::List<Section> m_sections;
 	NoteTrack m_notes[2];
 public:
+	constexpr static double s_SPT_CONSTANT = s_SAMPLES_PER_MIN * 1000;
 	CH_Importer(CHC& song) : m_song(song) {}
 	CHC& getSong() { return m_song; }
 	bool importChart();
 	void fillSections();
-	void addTraceLine(double pos, std::string name, const size_t sectIndex, const size_t playerIndex, Chart* currChart);
+	void replaceNotes(SongSection& section, LinkedList::List<Section>::Iterator currSection, const bool(&charted)[2], const bool duet);
+	void addTraceLine(double pos, std::string name, LinkedList::List<Section>::Iterator currSection, const size_t playerIndex, Chart* currChart);
 	void addPhraseBar(long pos, unsigned long sus, unsigned long lane, Chart* currChart, const long SAMPLES_PER_TICK_ROUNDED);
-	void addGuardMark(const long pos, const unsigned long button, Chart* currChart);
+	void addGuardMark(const long pos, const unsigned long fret, Chart* currChart);
 	void applyForced(const long pos, Chart* currChart, const Section* currSection, const size_t playerIndex);
 };

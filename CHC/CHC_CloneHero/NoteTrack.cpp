@@ -41,8 +41,8 @@ void NoteTrack::write(FILE* outFile, const size_t player)
 	if (m_allNotes.size())
 	{
 		fprintf(outFile, headers[player]);
-		for (size_t n = 0; n < m_allNotes.size(); n++)
-			m_allNotes[n]->write(outFile);
+		for (CHNote* note : m_allNotes)
+			note->write(outFile);
 		fprintf(outFile, "}\n");
 	}
 }
@@ -50,8 +50,8 @@ void NoteTrack::write(FILE* outFile, const size_t player)
 void NoteTrack::clear()
 {
 	m_allNotes.clear();
-	for (size_t col = 0; col < 6; col++)
-		m_colors[col].clear();
+	for (LinkedList::List<CHNote>& track : m_colors)
+		track.clear();
 	m_modifiers.clear();
 	m_events.clear();
 }

@@ -144,18 +144,18 @@ bool CHNote::operator==(const CHNote& note) const
 		case NoteType::NOTE:
 			return m_fret.m_lane == note.m_fret.m_lane && m_mod == note.m_mod;
 		case NoteType::EVENT:
-		{
 			if (m_name.length() == note.m_name.length())
 			{
-				const size_t length = m_name.length();
-				for (size_t index = 0; index < length; index++)
-					if (tolower(m_name[index]) != tolower(note.m_name[index]))
+				for (std::string::const_iterator iter1 = m_name.begin(), iter2 = note.m_name.begin();
+					iter1 != m_name.end(); ++iter1, ++iter2)
+				{
+					if (tolower(*iter1) != tolower(*iter2))
 						return false;
+				}
 				return true;
 			}
 			else
 				return false;
-		}
 		default:
 			return true;
 		}
@@ -209,20 +209,18 @@ bool CHNote::operator<(const CHNote& note) const
 			switch (note.m_type)
 			{
 			case NoteType::EVENT:
-			{
-				const size_t len1 = m_name.length(), len2 = note.m_name.length();
-				for (size_t index = 0; index < len1 && index < len2; index++)
+				for (std::string::const_iterator iter1 = m_name.begin(), iter2 = note.m_name.begin();
+					iter1 != m_name.end() && iter2 != note.m_name.end(); ++iter1, ++iter2)
 				{
-					if (tolower(m_name[index]) < tolower(note.m_name[index]))
+					if (tolower(*iter1) < tolower(*iter2))
 						return true;
-					else if (tolower(m_name[index]) > tolower(note.m_name[index]))
+					else if (tolower(*iter1) > tolower(*iter2))
 						return false;
 				}
-				if (len1 < len2)
+				if (m_name.length() < note.m_name.length())
 					return true;
 				else
 					return false;
-			}
 			default:
 				return false;
 
@@ -276,20 +274,18 @@ bool CHNote::operator>(const CHNote& note) const
 			switch (note.m_type)
 			{
 			case NoteType::EVENT:
-			{
-				const size_t len1 = m_name.length(), len2 = note.m_name.length();
-				for (size_t index = 0; index < len1 && index < len2; index++)
+				for (std::string::const_iterator iter1 = m_name.begin(), iter2 = note.m_name.begin();
+					iter1 != m_name.end() && iter2 != note.m_name.end(); ++iter1, ++iter2)
 				{
-					if (tolower(m_name[index]) > tolower(note.m_name[index]))
+					if (tolower(*iter1) > tolower(*iter2))
 						return true;
-					else if (tolower(m_name[index]) < tolower(note.m_name[index]))
+					else if (tolower(*iter1) < tolower(*iter2))
 						return false;
 				}
-				if (len1 > len2)
+				if (m_name.length() > note.m_name.length())
 					return true;
 				else
 					return false;
-			}
 			default:
 				return true;
 

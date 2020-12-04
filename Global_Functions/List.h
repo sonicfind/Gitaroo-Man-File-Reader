@@ -164,7 +164,7 @@ namespace LinkedList
 		public:
 			Iterator() noexcept : m_currentNode(nullptr), m_currentIndex(0) {}
 			Iterator(Node* pNode, const size_t pIndex) noexcept : m_currentNode(pNode), m_currentIndex(pIndex) {}
-			Iterator operator+(size_t val)
+			Iterator operator+(size_t val) const
 			{
 				Iterator iterator = *this;
 				for (unsigned index = 0; index < val && iterator.m_currentNode; ++index)
@@ -189,7 +189,7 @@ namespace LinkedList
 				return iterator;
 			}
 
-			Iterator operator-(size_t val)
+			Iterator operator-(size_t val) const
 			{
 				Iterator iterator = *this;
 				for (unsigned index = 0; index < val && iterator.m_currentNode; ++index)
@@ -219,6 +219,11 @@ namespace LinkedList
 				return m_currentNode != iterator.m_currentNode;
 			}
 
+			bool operator==(const Iterator& iterator)
+			{
+				return m_currentNode == iterator.m_currentNode;
+			}
+
 			bool operator<(const Iterator& iterator)
 			{
 				return m_currentIndex < iterator.m_currentIndex;
@@ -239,7 +244,7 @@ namespace LinkedList
 				return m_currentNode->data.object;
 			}
 
-			size_t getIndex() { return m_currentIndex; }
+			size_t getIndex() const { return m_currentIndex; }
 		private:
 			size_t m_currentIndex;
 			Node* m_currentNode;

@@ -109,5 +109,5 @@ public:
 	void clear();
 	//Takes the notes from the source chart and moves them into
 	//the current chart (replacing any old notes that would overlap
-	long insertNotes(Chart& source);
+	long insertNotes(Chart* source);
 };

@@ -252,92 +252,97 @@ void Chart::clearGuards()
 	m_guards.clear();
 }
 
-long Chart::insertNotes(Chart& source)
+long Chart::insertNotes(Chart* source)
 {
 	long lastNote = 0;
 	clearPhrases();
-	size_t listSize = source.m_phrases.size();
-	for (size_t phraseIndex = 0; phraseIndex < listSize; phraseIndex++)
+	for (LinkedList::List<Phrase>::Iterator phr = source->m_phrases.begin();
+		phr != source->m_phrases.end(); ++phr)
 	{
-		Phrase& phr = source.m_phrases[phraseIndex];
-		lastNote = phr.getPivotAlpha();
-		if (!phr.getEnd())
+		lastNote = (*phr).getPivotAlpha();
+		if (!(*phr).getEnd())
 		{
-			if (phraseIndex + 1 == listSize)
-				phr.setEnd(true);
+			if (phr + 1 == source->m_phrases.end())
+				(*phr).setEnd(true);
 			else
-				phr.changeEndAlpha(source.m_phrases[phraseIndex + 1].getPivotAlpha());
+				(*phr).changeEndAlpha((*(phr + 1)).getPivotAlpha());
 		}
 		//Pivot alpha was previous set to the total displacement from the start of the section
-		m_phrases.emplace_back(phr).adjustPivotAlpha(-m_pivotTime);
+		m_phrases.emplace_back(*phr).adjustPivotAlpha(-m_pivotTime);
+		m_size += 32;
 	}
-	if (source.getNumTracelines() > 1)
+
+	clearTracelines();
+	for (LinkedList::List<Traceline>::Iterator trace = source->m_tracelines.begin();
+		trace != source->m_tracelines.end(); ++trace)
 	{
-		clearTracelines();
-		listSize = source.m_tracelines.size();
-		for (size_t traceIndex = 0; traceIndex < listSize; traceIndex++)
-		{
-			Traceline& trace = source.m_tracelines[traceIndex];
-			if (trace.getPivotAlpha() > lastNote)
-				lastNote = trace.getPivotAlpha();
-			if (traceIndex + 1 < listSize)
-				trace.changeEndAlpha(source.m_tracelines[traceIndex + 1].getPivotAlpha());
-			m_tracelines.emplace_back(trace).adjustPivotAlpha(-m_pivotTime);
-		}
+		if ((*trace).getPivotAlpha() > lastNote)
+			lastNote = (*trace).getPivotAlpha();
+		if (trace + 1 != source->m_tracelines.end())
+			(*trace).changeEndAlpha((*(trace + 1)).getPivotAlpha());
+		m_tracelines.emplace_back(*trace).adjustPivotAlpha(-m_pivotTime);
+		m_size += 16;
 	}
 	//Go through every phrase bar & trace line to find places where phrase bars
 	//should be split into two pieces
-	for (size_t traceIndex = 0, phraseIndex = 0; traceIndex < getNumTracelines(); traceIndex++)
 	{
-		Traceline& trace = getTraceline(traceIndex);
-		while (phraseIndex < getNumPhrases())
+		LinkedList::List<Phrase>::Iterator phr = m_phrases.begin();
+		for (LinkedList::List<Traceline>::Iterator tr = m_tracelines.begin();
+			tr != m_tracelines.end(); ++tr)
 		{
-			Phrase* phr = &getPhrase(phraseIndex);
-			if (traceIndex == 0)
+			Traceline& trace = *tr;
+			while (phr != m_phrases.end())
 			{
-				if (trace.getPivotAlpha() > phr->getPivotAlpha())
-					trace.changePivotAlpha(phr->getPivotAlpha());
-				break;
-			}
-			else if (trace.getPivotAlpha() >= phr->getEndAlpha())
-				phraseIndex++;
-			else if (trace.getPivotAlpha() > phr->getPivotAlpha())
-			{
+				Phrase* phrase = &*phr;
+				if (tr == m_tracelines.begin())
+				{
+					if (trace.getPivotAlpha() > phrase->getPivotAlpha())
+						trace.changePivotAlpha(phrase->getPivotAlpha());
+					break;
+				}
+				else if (trace.getPivotAlpha() >= phrase->getEndAlpha())
+					++phr;
+				else if (trace.getPivotAlpha() > phrase->getPivotAlpha())
+				{
 
-				unsigned long dur = phr->getEndAlpha() - trace.getPivotAlpha();
-				bool end = phr->getEnd();
-				phr->changeEndAlpha(trace.getPivotAlpha());
-				phr->setEnd(false);
-				emplacePhrase(trace.getPivotAlpha(), dur, false, end, 0, phr->getColor());
-				phraseIndex++;
-				break;
-			}
-			else if (traceIndex + 1ULL != getNumTracelines())
-				break;
-			//If the phrase bar lands at or after the last trace line, delete
-			else if (phr->getPivotAlpha() >= trace.getPivotAlpha())
-			{
-				if (!phr->getStart())
-					getPhrase(phraseIndex - 1).setEnd(true);
-				if (remove(phraseIndex, 'p'))
-					printf("Phrase bar %zu removed\n", phraseIndex);
-			}
-			else if (phr->getEndAlpha() > trace.getPivotAlpha())
-			{
-				phr->changeEndAlpha(trace.getPivotAlpha());
-				phr->setEnd(true);
-				phraseIndex++;
+					unsigned long dur = phrase->getEndAlpha() - trace.getPivotAlpha();
+					bool end = phrase->getEnd();
+					phrase->changeEndAlpha(trace.getPivotAlpha());
+					phrase->setEnd(false);
+					emplacePhrase(trace.getPivotAlpha(), dur, false, end, 0, phrase->getColor());
+					++phr;
+					break;
+				}
+				else if (tr.getIndex() + 1 == m_tracelines.size())
+				{
+					//If the phrase bar lands at or after the last trace line, delete
+					if (phrase->getPivotAlpha() >= trace.getPivotAlpha())
+					{
+						if (!phrase->getStart())
+							(*(phr - 1)).setEnd(true);
+						if (remove((phr--).getIndex(), 'p'))
+							printf("Phrase bar %zu removed\n", (++phr).getIndex());
+					}
+					else if (phrase->getEndAlpha() > trace.getPivotAlpha())
+					{
+						phrase->changeEndAlpha(trace.getPivotAlpha());
+						phrase->setEnd(true);
+						++phr;
+					}
+				}
+				else
+					break;
 			}
 		}
 	}
 	clearGuards();
-	listSize = source.m_guards.size();
-	for (size_t guardIndex = 0; guardIndex < listSize; guardIndex++)
+	for (LinkedList::List<Guard>::Iterator grd = source->m_guards.begin();
+		grd != source->m_guards.end(); ++grd)
 	{
-		Guard& imp = source.m_guards[guardIndex];
-		if (imp.getPivotAlpha() > lastNote)
-			lastNote = imp.getPivotAlpha();
-		m_guards.emplace_back(imp).adjustPivotAlpha(-getPivotTime());
+		if ((*grd).getPivotAlpha() > lastNote)
+			lastNote = (*grd).getPivotAlpha();
+		m_guards.emplace_back(*grd).adjustPivotAlpha(-m_pivotTime);
+		m_size += 16;
 	}
 	return lastNote;
 }

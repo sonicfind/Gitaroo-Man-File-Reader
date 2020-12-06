@@ -546,27 +546,27 @@ void CH_Importer::replaceNotes(SongSection& section, LinkedList::List<Section>::
 					size_t val = (chartIndex << 1) + (playerIndex >> 1);
 					if (val < section2.m_subs[playerIndex & 1].size())
 					{
-						Chart& imp = section2.m_subs[playerIndex & 1][val];
-						if (imp.m_tracelines.size() > 1 || imp.m_guards.size())
+						Chart* imp = &section2.m_subs[playerIndex & 1][val];
+						if (imp->m_tracelines.size() > 1 || imp->m_guards.size())
 						{
 							section.setOrganized(false);
-							Chart& ins = section.getChart(playerIndex * section.getNumCharts() + chartIndex);
-							long buf = ins.insertNotes(imp);
+							Chart* ins = &section.getChart(playerIndex * section.getNumCharts() + chartIndex);
+							long buf = ins->insertNotes(imp);
 
 							if (lastNotes[playerIndex & 1] < buf)
 								lastNotes[playerIndex & 1] = buf;
 
 							if (section.getPhase() == SongSection::Phase::BATTLE)
 							{
-								if (ins.m_guards.size() && ins.m_tracelines.size() > 1)
+								if (ins->m_guards.size() && ins->m_tracelines.size() > 1)
 								{
 									//Determining which comes first
-									if (ins.m_guards.front().getPivotAlpha() < ins.m_tracelines.front().getPivotAlpha())
+									if (ins->m_guards.front().getPivotAlpha() < ins->m_tracelines.front().getPivotAlpha())
 									{
 										if ((playerIndex & 1))
 											swapped[1] = true;
 									}
-									else if (ins.m_tracelines.front().getPivotAlpha() < ins.m_guards.front().getPivotAlpha())
+									else if (ins->m_tracelines.front().getPivotAlpha() < ins->m_guards.front().getPivotAlpha())
 									{
 										if (!(playerIndex & 1))
 											swapped[0] = true;
@@ -601,8 +601,8 @@ void CH_Importer::replaceNotes(SongSection& section, LinkedList::List<Section>::
 				LinkedList::List<Chart>& sub = section2.m_subs[playerIndex];
 				for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && chartIndex < sub.size(); chartIndex++)
 				{
-					Chart& imp = sub[chartIndex];
-					if (imp.m_tracelines.size() > 1 || imp.m_guards.size())
+					Chart* imp = &sub[chartIndex];
+					if (imp->m_tracelines.size() > 1 || imp->m_guards.size())
 					{
 						section.setOrganized(false);
 						long buf = section.getChart(2 * playerIndex * section.getNumCharts() + chartIndex).insertNotes(imp);

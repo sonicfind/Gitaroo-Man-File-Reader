@@ -150,13 +150,12 @@ CHC::CHC(string filename) : m_filename(filename + ".CHC"), m_saved(2)
 					throw "Error: No 'CHCH' Tag for section " + to_string(sectIndex) + " - subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) +
 						" [File offset: " + to_string(ftell(inFile) - 4) + "].";
 				}
-				Chart chart;
+				Chart chart(false);
 				//Skip Chart size as the embedded value can be wrong
 				fseek(inFile, 16, SEEK_CUR);
 				fread(chart.m_junk, 1, 16, inFile);
 				fread(&chart.m_pivotTime, 4, 1, inFile);
 				fread(&chart.m_endTime, 4, 1, inFile);
-				chart.clearTracelines();
 				fread(u.c, 1, 4, inFile); //Read number of trace lines
 				//Uses Traceline FILE* constructor
 				for (unsigned traceIndex = 0; traceIndex < u.ui; traceIndex++)

@@ -41,6 +41,7 @@ private:
 	//Linked list of all guard marks
 	LinkedList::List<Guard> m_guards;
 public:
+	Chart(const bool tracelines);
 	Chart();
 	Chart(const Chart&) = default;
 	void operator=(const Chart&);

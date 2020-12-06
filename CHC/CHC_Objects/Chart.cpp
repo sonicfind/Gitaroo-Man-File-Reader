@@ -17,11 +17,18 @@
 #include <algorithm>
 
 //Creates Chart object with 1 Trace line
-Chart::Chart() : m_size(76), m_pivotTime(0), m_endTime(0), m_tracelines(1)
+Chart::Chart(const bool tracelines) : m_size(76), m_pivotTime(0), m_endTime(0)
 {
-	m_size = 76;
+	m_size = 60;
 	m_pivotTime = m_endTime = 0;
+	if (tracelines)
+	{
+		emplaceTraceline();
+		++m_endTime;
+	}
 }
+
+Chart::Chart() : Chart(true) {}
 
 void Chart::operator=(const Chart& chart)
 {
@@ -174,9 +181,7 @@ bool Chart::remove(size_t index, char type, size_t extra)
 		}
 		else
 		{
-			if (m_tracelines.size() == 1)
-				printf("Cannot delete this trace line as a chart must always have at least one note\n");
-			else
+			if (m_tracelines.size() != 1)
 				printf("Index out of range - # of Trace Lines: %zu\n", m_tracelines.size());
 			return false;
 		}
@@ -203,9 +208,7 @@ bool Chart::remove(size_t index, char type, size_t extra)
 		}
 		else
 		{
-			if (m_guards.size() == 1)
-				printf("Cannot delete this Guard Mark as a chart must always have at least one note\n");
-			else
+			if (m_guards.size() != 1)
 				printf("Index out of range - # of Guard mark: %zu\n", m_guards.size());
 			return false;
 		}

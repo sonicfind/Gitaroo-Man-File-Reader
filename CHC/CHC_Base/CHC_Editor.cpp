@@ -1787,9 +1787,8 @@ bool CHC_Editor::reorganize(SongSection& section)
 			//Save angle value
 			angle = currentChart->m_tracelines[traceIndex].m_angle;
 			//Remove trace line
-			printf("%s%s: ", g_global.tabs.c_str(), section.m_name);
 			if (currentChart->remove(traceIndex, 't'))
-				printf("Trace line %zu removed\n", traceIndex);
+				printf("%s%s: Trace line %zu removed\n", g_global.tabs.c_str(), section.m_name, traceIndex);
 			if (currentChart->m_tracelines.size())
 			{
 				//Same idea for phrase bars
@@ -1801,9 +1800,8 @@ bool CHC_Editor::reorganize(SongSection& section)
 						//Delete the phrase bar
 						if (!currentChart->m_phrases[phraseIndex].m_start)
 							currentChart->m_phrases[phraseIndex - 1ULL].m_end = true;
-						printf("%s%s: ", g_global.tabs.c_str(), section.m_name);
 						if (currentChart->remove(phraseIndex, 'p'))
-							printf("Phrase bar %zu removed\n", phraseIndex);
+							printf("%s%s: Phrase bar %zu removed\n", g_global.tabs.c_str(), section.m_name, phraseIndex);
 					}
 					else
 					{
@@ -1817,17 +1815,14 @@ bool CHC_Editor::reorganize(SongSection& section)
 			else
 			{
 				for (size_t phraseIndex = currentChart->m_phrases.size(); phraseIndex > 0;)
-				{
-					printf("%s%s: ", g_global.tabs.c_str(), section.m_name);
 					if (currentChart->remove(--phraseIndex, 'p'))
-						printf("Phrase bar %zu removed\n", phraseIndex);
-				}
+						printf("%s%s: Phrase bar %zu removed\n", g_global.tabs.c_str(), section.m_name, phraseIndex);
 			}
 		};
 		for (size_t pl = 0; pl < (m_song->m_imc[0] ? 2U : 4U); pl++)
 		{
 			size_t currentPlayer = pl;
-			newCharts[currentPlayer].emplace_back();
+			newCharts[currentPlayer].emplace_front();
 			Chart* currentChart = &newCharts[currentPlayer][0];
 			bool isPlayer = !(pl & 1) || section.m_swapped >= 4;
 			if (notes[pl].size())
@@ -2034,9 +2029,8 @@ bool CHC_Editor::reorganize(SongSection& section)
 													//Delete the phrase bar
 													if (!currentChart->m_phrases[phraseIndex].m_start)
 														currentChart->m_phrases[phraseIndex - 1ULL].m_end = true;
-													printf("%s%s: ", g_global.tabs.c_str(), section.m_name);
 													if (currentChart->remove(phraseIndex, 'p'))
-														printf("Phrase bar %zu removed\n", phraseIndex);
+														printf("%s%s: Phrase bar %zu removed\n", g_global.tabs.c_str(), section.m_name, phraseIndex);
 												}
 												else
 												{
@@ -2076,9 +2070,7 @@ bool CHC_Editor::reorganize(SongSection& section)
 									currentPlayer += 2;
 							}
 							startingIndex = ntIndex + 1;
-							newCharts[currentPlayer].emplace_back();
-							currentChart = &newCharts[currentPlayer].back();
-							currentChart->clearTracelines();
+							currentChart = &newCharts[currentPlayer].emplace_back(false);
 						}
 					}
 				}
@@ -2089,7 +2081,7 @@ bool CHC_Editor::reorganize(SongSection& section)
 			}
 		}
 		section.m_numCharts = 1;
-		//Finds the proper new value for "section.numcharts"
+		//Finds the proper new value for "section.m_numcharts"
 		for (size_t pl = 0; pl < 4; pl++)
 		{
 			size_t perChart = newCharts[pl].size();

@@ -27,7 +27,7 @@ bool CH_Exporter::exportChart()
 			printf("%s%zu - %s\n", g_global.tabs.c_str(), sectIndex, m_song.m_sections[sectIndex].getName());
 		if (sectionIndexes.size())
 		{
-			printf("%sCurrent LinkedList::List: ", g_global.tabs.c_str());
+			printf("%sCurrent std::vector: ", g_global.tabs.c_str());
 			for (size_t index : sectionIndexes)
 				printf("%s ",m_song.m_sections[index].getName());
 			putchar('\n');

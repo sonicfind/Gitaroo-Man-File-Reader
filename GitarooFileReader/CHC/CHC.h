@@ -134,7 +134,7 @@ private:
 		Condition(FILE* inFile);
 		Condition(const Condition& cond) = default;
 	};
-	//LinkedList::List of all conditions
+	//std::vector of all conditions
 	std::vector<Condition> m_conditions;
 	//Number of players assigned to the section, always 4
 	unsigned long m_numPlayers = 4;

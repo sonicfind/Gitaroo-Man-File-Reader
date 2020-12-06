@@ -15,6 +15,9 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "CHC/CHC_Main.h"
+#include "XGM/XGM_Main.h"
+#include "IMX/IMX_Main.h"
+#include "XG/XG_Main.h"
 using namespace std;
 
 bool multi(int fileCount, char** files);
@@ -34,8 +37,8 @@ The main function has two modes:
 \---------------------------------------------------------------------*/
 int main(int argc, char** argv)
 {
-	g_filetypes = { new CHCType };
-	GlobalFunctions::banner(" Gitaroo File Reader v1.0 ");
+	g_filetypes = { new CHCType, new XGMType, new IMXType, new XGType };
+	GlobalFunctions::banner(" Gitaroo File Reader v1.1.0 ");
 	GlobalFunctions::banner(" 'Q' is the universal \"quit\" option | Use ';' for \"multi-step\" actions ");
 
 	if (!multi(argc, argv))

@@ -249,8 +249,8 @@ bool CHC_Main::menu(size_t fileCount)
 		}
 		if (GlobalFunctions::LoadLib(g_dlls[s_DLL_INDEX].m_libraries[2]))
 		{
-			printf("%sG - Export as \".chart\" for chart editing in Moonscraper\n", g_global.tabs.c_str());
-			choices += 'g';
+			printf("%sE - Export as \".chart\" for chart editing in Moonscraper\n", g_global.tabs.c_str());
+			choices += 'e';
 			printf("%sI - Import notes from a Clone/Guitar Hero \".chart\" file\n", g_global.tabs.c_str());
 			choices += 'i';
 		}
@@ -352,7 +352,7 @@ bool CHC_Main::menu(size_t fileCount)
 
 			if (GlobalFunctions::LoadLib(g_dlls[s_DLL_INDEX].m_libraries[2]))
 			{
-				printf("%sG - Export as \".chart\" for chart editing in Moonscraper\n", g_global.tabs.c_str());
+				printf("%sE - Export as \".chart\" for chart editing in Moonscraper\n", g_global.tabs.c_str());
 				printf("%sConverts the CHC into .chart for use in the Guitar Hero/Clone Hero chart editor, Moonscraper. You can download Moonscraper from the #test-builds channel.\n", g_global.tabs.c_str());
 				printf("%sin their discord: https://discord.gg/5BdQnsN \n", g_global.tabs.c_str());
 				printf("%sNote: this can only be used with CHCs that are fixed & organized.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
@@ -397,7 +397,7 @@ bool CHC_Main::menu(size_t fileCount)
 				case 't':
 					makeTAS();
 					break;
-				case 'g':
+				case 'e':
 					exportChart();
 					break;
 				case 'i':

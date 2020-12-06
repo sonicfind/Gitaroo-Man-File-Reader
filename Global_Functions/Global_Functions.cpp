@@ -230,6 +230,9 @@ namespace GlobalFunctions
 					scanf_s("%c", &g_global.input, 1);
 				}
 
+				if (g_global.multi)
+					printf("\n");
+
 				while (g_global.input == ' ' || g_global.input == ';')
 					scanf_s("%c", &g_global.input, 1);
 
@@ -436,8 +439,10 @@ namespace GlobalFunctions
 				{
 				case 0:
 					printf("\n");
+					break;
 				case 2:
 					printf("Q\n");
+					break;
 				default:
 					printf("?\n");
 				}

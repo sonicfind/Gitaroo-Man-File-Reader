@@ -271,73 +271,77 @@ void CHC_Editor::fixNotes()
 					size_t barsRemoved = 0, linesRemoved = 0;
 					try
 					{
-						for (size_t traceIndex = 0, phraseIndex = 0; traceIndex < chart.m_tracelines.size() - 1; traceIndex++)
+						if (chart.m_tracelines.size() > 1)
 						{
-							Traceline* trace = &chart.m_tracelines[traceIndex];
-							bool adjust = trace->m_angle == chart.m_tracelines[traceIndex + 1].m_angle;
-							for (; phraseIndex < chart.m_phrases.size(); phraseIndex++)
+							
+							LinkedList::List<Phrase>::Iterator phrase = chart.m_phrases.begin();
+							for (LinkedList::List<Traceline>::Iterator trace = chart.m_tracelines.begin();
+								trace + 1 != chart.m_tracelines.end(); ++trace)
 							{
-								Phrase* phrase = &chart.m_phrases[phraseIndex];
-								if (phrase->m_pivotAlpha >= trace->getEndAlpha())
-									break;
-								if (phrase->m_start)
+								bool adjust = (*trace).m_angle == (*(trace + 1)).m_angle;
+								for (; phrase != chart.m_phrases.end(); ++phrase)
 								{
-									if (phraseIndex && phrase->m_pivotAlpha - chart.m_phrases[phraseIndex - 1].getEndAlpha() < SongSection::s_SAMPLE_GAP)
+									if ((*phrase).m_pivotAlpha >= (*trace).getEndAlpha())
+										break;
+									if ((*phrase).m_start)
 									{
-										chart.m_phrases[phraseIndex - 1].changeEndAlpha(phrase->m_pivotAlpha - SongSection::s_SAMPLE_GAP);
-										strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-										strings[sectIndex].push_back("Phrase bar " + to_string(phraseIndex + barsRemoved - 1) + " shortened\n");
-										++phrasesShortened;
-									}
-									while (!phrase->m_end && (phrase->m_pivotAlpha >= trace->getEndAlpha() - 3000)
-										&& (phrase->m_pivotAlpha - trace->m_pivotAlpha > 800))
-									{
-										phrase->m_duration += chart.m_phrases[phraseIndex + 1].m_duration;
-										phrase->m_end = chart.m_phrases[phraseIndex + 1].m_end;
-										memcpy_s(phrase->m_junk, 12, chart.m_phrases[phraseIndex + 1].m_junk, 12);
-										if (!trace->changeEndAlpha(phrase->m_pivotAlpha))
+										if (phrase.getIndex() && (*phrase).m_pivotAlpha - (*(phrase - 1)).getEndAlpha() < SongSection::s_SAMPLE_GAP)
 										{
+											(*(phrase - 1)).changeEndAlpha((*phrase).m_pivotAlpha - SongSection::s_SAMPLE_GAP);
 											strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-											if (chart.remove(traceIndex, 't', linesRemoved))
-												strings[sectIndex].push_back("Trace line " + to_string(traceIndex + linesRemoved) + " removed\n");
-											++linesRemoved;
+											strings[sectIndex].push_back("Phrase bar " + to_string(phrase.getIndex() + barsRemoved - 1) + " shortened\n");
+											++phrasesShortened;
 										}
-										else
-											++traceIndex;
-										trace = &chart.m_tracelines[traceIndex];
-										trace->changePivotAlpha(phrase->m_pivotAlpha);
-										adjust = traceIndex + 1 < chart.m_tracelines.size() && trace->m_angle == chart.m_tracelines[traceIndex + 1].m_angle;
-										strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-										if (chart.remove(phraseIndex + 1, 'p', barsRemoved))
-											strings[sectIndex].push_back("Phrase bar " + to_string(phraseIndex + barsRemoved + 1) + " removed\n");
-										++barsRemoved;
-									}
-									if (adjust && !trace->m_curve && m_song->m_imc[0])
-									{
-										if (phrase->m_pivotAlpha >= trace->getEndAlpha() - 8000)
+										while (!(*phrase).m_end && ((*phrase).m_pivotAlpha >= (*trace).getEndAlpha() - 3000)
+											&& ((*phrase).m_pivotAlpha - (*trace).m_pivotAlpha > 800))
 										{
-
-											trace->m_curve = true;
+											(*phrase).m_duration += (*(phrase + 1)).m_duration;
+											(*phrase).m_end = (*(phrase + 1)).m_end;
+											memcpy_s((*phrase).m_junk, 12, (*(phrase + 1)).m_junk, 12);
+											if (!(*trace).changeEndAlpha((*phrase).m_pivotAlpha))
+											{
+												strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
+												if (chart.remove((trace--).getIndex(), 't', linesRemoved))
+													strings[sectIndex].push_back("Trace line " + to_string(trace.getIndex() + 1 + linesRemoved) + " removed\n");
+												++linesRemoved;
+											}
+											++trace;
+											(*trace).changePivotAlpha((*phrase).m_pivotAlpha);
+											adjust = trace + 1 != chart.m_tracelines.end() && (*trace).m_angle == (*(trace + 1)).m_angle;
 											strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-											strings[sectIndex].push_back("Trace line " + to_string(traceIndex + linesRemoved) + " set to \"smooth\"\n");
-											++tracelinesCurved;
-											adjust = false;
+											if (chart.remove(phrase.getIndex() + 1, 'p', barsRemoved))
+												strings[sectIndex].push_back("Phrase bar " + to_string(phrase.getIndex() + barsRemoved + 1) + " removed\n");
+											++barsRemoved;
+										}
+										if (adjust && !(*trace).m_curve && m_song->m_imc[0])
+										{
+											if ((*phrase).m_pivotAlpha >= (*trace).getEndAlpha() - 8000)
+											{
+
+												(*trace).m_curve = true;
+												strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
+												strings[sectIndex].push_back("Trace line " + to_string(trace.getIndex() + linesRemoved) + " set to \"smooth\"\n");
+												++tracelinesCurved;
+												adjust = false;
+											}
 										}
 									}
 								}
-							}
-							if (adjust && trace->m_curve)
-							{
-								trace->m_curve = false;
-								strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-								strings[sectIndex].push_back("Trace line " + to_string(traceIndex + linesRemoved) + " set to \"rigid\"\n");
-								++tracelinesStraightened;
+								if (adjust && (*trace).m_curve)
+								{
+									(*trace).m_curve = false;
+									strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
+									strings[sectIndex].push_back("Trace line " + to_string(trace.getIndex() + linesRemoved) + " set to \"rigid\"\n");
+									++tracelinesStraightened;
+								}
 							}
 						}
 					}
 					catch (...)
 					{
-						printf("%sThere was an error when attempting to apply phrase bar & trace line fixes to section #%zu (%s) - Subsection %zu\n", g_global.tabs.c_str(), sectIndex, section.m_name, playerIndex * section.m_numCharts + chartIndex);
+						strings[sectIndex].clear();
+						strings[sectIndex].push_back(g_global.tabs + "There was an error when attempting to apply phrase bar & trace line fixes to section " + to_string(sectIndex)
+														+ " (" + section.m_name + ") - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + "\n");
 						m_song->m_optimized = false;
 					}
 					tracelinesDeleted += linesRemoved;
@@ -492,18 +496,31 @@ void CHC_Editor::fixNotes()
 		m_song->m_optimized = false;
 	}
 	printf("%s\n", g_global.tabs.c_str());
+
 	if (tracelinesCurved)
-		printf("%s%zu%s\n", g_global.tabs.c_str(), tracelinesCurved, (tracelinesCurved > 1 ? " rigid Trace lines set to \"smooth\"" : " rigid Trace line set to \"smooth\""));
+		printf("%s%zu \"rigid\"%s set to \"smooth\"\n", g_global.tabs.c_str(), tracelinesCurved, (tracelinesCurved > 1 ? " Trace lines" : " Trace line"));
+	
 	if (tracelinesStraightened)
-		printf("%s%zu%s\n", g_global.tabs.c_str(), tracelinesStraightened, (tracelinesStraightened > 1 ? " smooth Trace lines set to \"rigid\"" : " smooth Trace line set to \"rigid\""));
+		printf("%s%zu \"smooth\"%s set to \"rigid\"\n", g_global.tabs.c_str(), tracelinesStraightened, (tracelinesStraightened > 1 ? " Trace lines" : " Trace line"));
+	
 	if (tracelinesDeleted)
 		printf("%s%zu%s deleted to accommodate deleted phrase bars\n", g_global.tabs.c_str(), tracelinesDeleted, (tracelinesDeleted > 1 ? " Trace lines" : " Trace line"));
+	
 	if (phrasesDeleted)
-		printf("%s%zu%s deleted for starting with durations under 3000 samples\n", g_global.tabs.c_str(), phrasesDeleted, (phrasesDeleted > 1 ? " Phrase bars" : " Phrase bar"));
-	if (phrasesShortened)
-		printf("%s%zu%s Phrase Bars shortened for ending too close to following Phrase Bars\n", g_global.tabs.c_str(), phrasesShortened, (phrasesShortened > 1 ? " Phrase bars" : " Phrase bar"));
-	if (guardsDeleted)
-		printf("%s%zu%s deleted for being within 1600 samples of a preceeding Guard Mark\n", g_global.tabs.c_str(), guardsDeleted, (guardsDeleted > 1 ? " Guard marks" : " Guard mark"));
+		printf("%s1 Phrase bar deleted for starting with a duration under 3000 samples\n", g_global.tabs.c_str());
+	else if (phrasesDeleted)
+		printf("%s%zu Phrase bars deleted for starting with durations under 3000 samples\n", g_global.tabs.c_str(), phrasesDeleted);
+	
+	if (phrasesShortened == 1)
+		printf("%s1 Phrase Bar shortened for ending too close to a following Phrase Bar\n", g_global.tabs.c_str());
+	else if (phrasesShortened)
+		printf("%s%zu Phrase Bars shortened for ending too close to following Phrase Bars\n", g_global.tabs.c_str(), phrasesShortened);
+
+	if (guardsDeleted == 1)
+		printf("%s1 Guard Mark deleted for being within 1600 samples of a preceeding Guard Mark\n", g_global.tabs.c_str());
+	else if (guardsDeleted)
+		printf("%s%zu Guard Marks deleted for being within 1600 samples of preceeding Guard Marks\n", g_global.tabs.c_str(), guardsDeleted);
+		
 	if (tracelinesStraightened || tracelinesCurved || phrasesDeleted || phrasesShortened || guardsDeleted)
 	{
 		printf("%s\n%sChanges will be applied if you choose to save the file\n", g_global.tabs.c_str(), g_global.tabs.c_str());

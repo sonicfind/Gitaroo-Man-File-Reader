@@ -22,16 +22,19 @@ struct PString
 	PString(std::string str);
 	//For List emplacement only
 	PString(FILE* inFile);
-	PString(std::string str, FILE* outFile);
 	PString(const PString& str);
 	PString& operator=(const PString& str);
 	void fill(std::string str);
 	//Fill in values from a File stream
 	void fill(FILE* inFile);
-	//Pull out values into a file stream
+	//Prints values into a file stream
 	void push(FILE* outFile) const;
-	//Pull out values into a file stream
-	void push(std::string str, FILE* outFile);
+	//Pulls and discards data of the PString format from the given file stream
+	static void pull(FILE* inFile);
+	//Prints the given character to the given file stream using the PString format
+	static void push(const char character, FILE* outFile);
+	//Prints the given string to the given file stream using the PString format
+	static void push(const std::string& str, FILE* outFile);
 	bool operator==(const PString& str);
 	bool operator!=(const PString& str);
 	~PString();

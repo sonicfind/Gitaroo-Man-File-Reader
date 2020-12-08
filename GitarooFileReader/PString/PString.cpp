@@ -30,12 +30,6 @@ PString::PString(FILE* inFile)
 	fread(m_pstring, 1, m_size, inFile);
 }
 
-PString::PString(std::string str, FILE* outFile) : PString(str)
-{
-	fwrite(&m_size, 1, 1, outFile);
-	fwrite(m_pstring, 1, m_size, outFile);
-}
-
 void PString::fill(std::string str)
 {
 	if (m_pstring != nullptr)
@@ -60,11 +54,23 @@ void PString::push(FILE* outFile) const
 	fwrite(m_pstring, 1, m_size, outFile);
 }
 
-void PString::push(std::string str, FILE* outFile)
+void PString::pull(FILE* inFile)
 {
-	fill(str);
-	fwrite(&m_size, 1, 1, outFile);
-	fwrite(m_pstring, 1, m_size, outFile);
+	static char buffer[255];
+	fread(buffer, 1, fgetc(inFile), inFile);
+}
+
+void PString::push(const char character, FILE* outFile)
+{
+	fputc(1, outFile);
+	fwrite(&character, 1, 1, outFile);
+}
+
+void PString::push(const std::string& str, FILE* outFile)
+{
+	char size = (char)str.length();
+	fwrite(&size, 1, 1, outFile);
+	fwrite(str.c_str(), 1, size, outFile);
 }
 
 PString::PString(const PString& str) : m_size(str.m_size), m_pstring(new char[str.m_size + 1ULL]())

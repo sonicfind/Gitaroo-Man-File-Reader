@@ -56,10 +56,9 @@ xgBgGeometry::Vertices::~Vertices()
 }
 void xgBgGeometry::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_density, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_vertexData.m_vertexFlags, 4, 1, inFile);
 	fread(&m_vertexData.m_numVerts, 4, 1, inFile);
 	m_vertexData.m_vertices = new float* [m_vertexData.m_numVerts];
@@ -77,24 +76,24 @@ void xgBgGeometry::read(FILE* inFile)
 		m_vertexData.m_vertices[v] = new float[size];
 		fread(m_vertexData.m_vertices[v], 4, size, inFile);
 	}
-	test.fill(inFile);
+	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
 		m_inputGeometryNames.emplace_back(inFile);
-		piece.fill(inFile);
+		PString::pull(inFile);
 		test.fill(inFile);
 	}
 }
 void xgBgGeometry::create(FILE* outFile, bool full)
 {
-	PString buffer("xgBgGeometry", outFile);
+	PString::push("xgBgGeometry", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("density", outFile);
+		PString::push('{', outFile);
+		PString::push("density", outFile);
 		fwrite(&m_density, 4, 1, outFile);
-		buffer.push("vertices", outFile);
+		PString::push("vertices", outFile);
 		fwrite(&m_vertexData.m_vertexFlags, 4, 1, outFile);
 		fwrite(&m_vertexData.m_numVerts, 4, 1, outFile);
 		size_t size = 0;
@@ -110,14 +109,14 @@ void xgBgGeometry::create(FILE* outFile, bool full)
 			fwrite(m_vertexData.m_vertices[v], 4, size, outFile);
 		for (size_t inp = 0; inp < m_inputGeometryNames.size(); inp++)
 		{
-			buffer.push("inputGeometry", outFile);
+			PString::push("inputGeometry", outFile);
 			m_inputGeometryNames[inp].push(outFile);
-			buffer.push("outputGeometry", outFile);
+			PString::push("outputGeometry", outFile);
 		}
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgBgGeometry::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -147,14 +146,13 @@ void xgBgGeometry::writeTXT(FILE* outTXT, bool fromXgm)
 
 void xgBgMatrix::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(m_position, 4, 3, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(m_rotation, 4, 4, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(m_scale, 4, 3, inFile);
-	test.fill(inFile);
+	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
 		if (strstr(test.m_pstring, "inputPosition"))
@@ -165,51 +163,51 @@ void xgBgMatrix::read(FILE* inFile)
 			m_inputScale.fill(inFile);
 		else
 			m_inputParentMatrix.fill(inFile);
-		piece.fill(inFile);
+		PString::pull(inFile);
 		test.fill(inFile);
 	}
 }
 void xgBgMatrix::create(FILE* outFile, bool full)
 {
-	PString buffer("xgBgMatrix", outFile);
+	PString::push("xgBgMatrix", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("position", outFile);
+		PString::push('{', outFile);
+		PString::push("position", outFile);
 		fwrite(m_position, 4, 3, outFile);
-		buffer.push("rotation", outFile);
+		PString::push("rotation", outFile);
 		fwrite(m_rotation, 4, 4, outFile);
-		buffer.push("scale", outFile);
+		PString::push("scale", outFile);
 		fwrite(m_scale, 4, 3, outFile);
 		if (m_inputPosition.m_size)
 		{
-			buffer.push("inputPosition", outFile);
+			PString::push("inputPosition", outFile);
 			m_inputPosition.push(outFile);
-			buffer.push("outputVec3", outFile);
+			PString::push("outputVec3", outFile);
 		}
 		if (m_inputRotation.m_size)
 		{
-			buffer.push("inputRotation", outFile);
+			PString::push("inputRotation", outFile);
 			m_inputRotation.push(outFile);
-			buffer.push("outputQuat", outFile);
+			PString::push("outputQuat", outFile);
 		}
 		if (m_inputScale.m_size)
 		{
-			buffer.push("inputScale", outFile);
+			PString::push("inputScale", outFile);
 			m_inputScale.push(outFile);
-			buffer.push("outputVec3", outFile);
+			PString::push("outputVec3", outFile);
 		}
 		if (m_inputParentMatrix.m_size)
 		{
-			buffer.push("inputParentMatrix", outFile);
+			PString::push("inputParentMatrix", outFile);
 			m_inputParentMatrix.push(outFile);
-			buffer.push("outputMatrix", outFile);
+			PString::push("outputMatrix", outFile);
 		}
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgBgMatrix::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -228,30 +226,29 @@ void xgBgMatrix::writeTXT(FILE* outTXT, bool fromXgm)
 
 void xgBone::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(m_restMatrix, 4, 16, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	m_inputMatrix.fill(inFile);
-	piece.fill(inFile);
-	test.fill(inFile);
+	PString::pull(inFile);
+	PString::pull(inFile);
 }
 void xgBone::create(FILE* outFile, bool full)
 {
-	PString buffer("xgBone", outFile);
+	PString::push("xgBone", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("restMatrix", outFile);
+		PString::push('{', outFile);
+		PString::push("restMatrix", outFile);
 		fwrite(m_restMatrix, 4, 16, outFile);
-		buffer.push("inputMatrix", outFile);
+		PString::push("inputMatrix", outFile);
 		m_inputMatrix.push(outFile);
-		buffer.push("outputMatrix", outFile);
-		buffer.push("}", outFile);
+		PString::push("outputMatrix", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgBone::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -274,105 +271,104 @@ xgDagMesh::Data::~Data()
 }
 void xgDagMesh::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_primType, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_primCount, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_primData.m_arraySize, 4, 1, inFile);
 	if (m_primData.m_arraySize > 0)
 	{
 		m_primData.m_arrayData = new unsigned long[m_primData.m_arraySize];
 		fread(m_primData.m_arrayData, 4, m_primData.m_arraySize, inFile);
 	}
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_triFanCount, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_triFanData.m_arraySize, 4, 1, inFile);
 	if (m_triFanData.m_arraySize > 0)
 	{
 		m_triFanData.m_arrayData = new unsigned long[m_triFanData.m_arraySize];
 		fread(m_triFanData.m_arrayData, 4, m_triFanData.m_arraySize, inFile);
 	}
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_triStripCount, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_triStripData.m_arraySize, 4, 1, inFile);
 	if (m_triStripData.m_arraySize > 0)
 	{
 		m_triStripData.m_arrayData = new unsigned long[m_triStripData.m_arraySize];
 		fread(m_triStripData.m_arrayData, 4, m_triStripData.m_arraySize, inFile);
 	}
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_triListCount, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_triListData.m_arraySize, 4, 1, inFile);
 	if (m_triListData.m_arraySize > 0)
 	{
 		m_triListData.m_arrayData = new unsigned long[m_triListData.m_arraySize];
 		fread(m_triListData.m_arrayData, 4, m_triListData.m_arraySize, inFile);
 	}
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_cullFunc, 4, 1, inFile);
-	test.fill(inFile);
+	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
 		if (strstr(test.m_pstring, "inputGeometry"))
 			m_inputGeometry.emplace_back(inFile);
 		else
 			m_inputMaterial.emplace_back(inFile);
-		piece.fill(inFile);
+		PString::pull(inFile);
 		test.fill(inFile);
 	}
 }
 void xgDagMesh::create(FILE* outFile, bool full)
 {
-	PString buffer("xgDagMesh", outFile);
+	PString::push("xgDagMesh", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("primType", outFile);
+		PString::push('{', outFile);
+		PString::push("primType", outFile);
 		fwrite(&m_primType, 4, 1, outFile);
-		buffer.push("primCount", outFile);
+		PString::push("primCount", outFile);
 		fwrite(&m_primCount, 4, 1, outFile);
-		buffer.push("primData", outFile);
+		PString::push("primData", outFile);
 		fwrite(&m_primData.m_arraySize, 4, 1, outFile);
 		fwrite(m_primData.m_arrayData, 4, m_primData.m_arraySize, outFile);
-		buffer.push("triFanCount", outFile);
+		PString::push("triFanCount", outFile);
 		fwrite(&m_triFanCount, 4, 1, outFile);
-		buffer.push("triFanData", outFile);
+		PString::push("triFanData", outFile);
 		fwrite(&m_triFanData.m_arraySize, 4, 1, outFile);
 		fwrite(m_triFanData.m_arrayData, 4, m_triFanData.m_arraySize, outFile);
-		buffer.push("triStripCount", outFile);
+		PString::push("triStripCount", outFile);
 		fwrite(&m_triStripCount, 4, 1, outFile);
-		buffer.push("triStripData", outFile);
+		PString::push("triStripData", outFile);
 		fwrite(&m_triStripData.m_arraySize, 4, 1, outFile);
 		fwrite(m_triStripData.m_arrayData, 4, m_triStripData.m_arraySize, outFile);
-		buffer.push("triListCount", outFile);
+		PString::push("triListCount", outFile);
 		fwrite(&m_triListCount, 4, 1, outFile);
-		buffer.push("triListData", outFile);
+		PString::push("triListData", outFile);
 		fwrite(&m_triListData.m_arraySize, 4, 1, outFile);
 		fwrite(m_triListData.m_arrayData, 4, m_triListData.m_arraySize, outFile);
-		buffer.push("cullFunc", outFile);
+		PString::push("cullFunc", outFile);
 		fwrite(&m_cullFunc, 4, 1, outFile);
 		for (size_t geo = 0; geo < m_inputGeometry.size(); geo++)
 		{
-			buffer.push("inputGeometry", outFile);
+			PString::push("inputGeometry", outFile);
 			m_inputGeometry[geo].push(outFile);
-			buffer.push("outputGeometry", outFile);
+			PString::push("outputGeometry", outFile);
 		}
 		for (size_t mat = 0; mat < m_inputMaterial.size(); mat++)
 		{
-			buffer.push("inputMaterial", outFile);
+			PString::push("inputMaterial", outFile);
 			m_inputMaterial[mat].push(outFile);
-			buffer.push("outputMaterial", outFile);
+			PString::push("outputMaterial", outFile);
 		}
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgDagMesh::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -465,32 +461,31 @@ void xgDagMesh::writeTXT(FILE* outTXT, bool fromXgm)
 
 void xgDagTransform::read(FILE* inFile)
 {
-	PString piece, test;
-	test.fill(inFile);
+	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
 		m_inputMatrix.emplace_back(inFile);
-		piece.fill(inFile);
+		PString::pull(inFile);
 		test.fill(inFile);
 	}
 }
 void xgDagTransform::create(FILE* outFile, bool full)
 {
-	PString buffer("xgDagTransform", outFile);
+	PString::push("xgDagTransform", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
+		PString::push('{', outFile);
 		for (size_t mat = 0; mat < m_inputMatrix.size(); mat++)
 		{
-			buffer.push("inputMatrix", outFile);
+			PString::push("inputMatrix", outFile);
 			m_inputMatrix[mat].push(outFile);
-			buffer.push("outputMatrix", outFile);
+			PString::push("outputMatrix", outFile);
 		}
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgDagTransform::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -521,59 +516,58 @@ xgEnvelope::Targets::~Targets()
 }
 void xgEnvelope::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_startVertex, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_key.m_numweights, 4, 1, inFile);
 	m_key.m_weights = new float[m_key.m_numweights][4];
 	fread(m_key.m_weights, 16, m_key.m_numweights, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_vertices.m_numTargets, 4, 1, inFile);
 	m_vertices.m_vertexTargets = new long[m_vertices.m_numTargets];
 	fread(m_vertices.m_vertexTargets, 4, m_vertices.m_numTargets, inFile);
-	test.fill(inFile);
+	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
 		if (strstr(test.m_pstring, "inputMatrix1"))
 			m_inputMatrix1.emplace_back(inFile);
 		else
 			m_inputGeometry.emplace_back(inFile);
-		piece.fill(inFile);
+		PString::pull(inFile);
 		test.fill(inFile);
 	}
 }
 void xgEnvelope::create(FILE* outFile, bool full)
 {
-	PString buffer("xgEnvelope", outFile);
+	PString::push("xgEnvelope", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("startVertex", outFile);
+		PString::push('{', outFile);
+		PString::push("startVertex", outFile);
 		fwrite(&m_startVertex, 4, 1, outFile);
-		buffer.push("weights", outFile);
+		PString::push("weights", outFile);
 		fwrite(&m_key.m_numweights, 4, 1, outFile);
 		fwrite(m_key.m_weights, 16, m_key.m_numweights, outFile);
-		buffer.push("vertexTargets", outFile);
+		PString::push("vertexTargets", outFile);
 		fwrite(&m_vertices.m_numTargets, 4, 1, outFile);
 		fwrite(m_vertices.m_vertexTargets, 4, m_vertices.m_numTargets, outFile);
 		for (size_t mat = 0; mat < m_inputMatrix1.size(); mat++)
 		{
-			buffer.push("inputMatrix1", outFile);
+			PString::push("inputMatrix1", outFile);
 			m_inputMatrix1[mat].push(outFile);
-			buffer.push("envelopeMatrix", outFile);
+			PString::push("envelopeMatrix", outFile);
 		}
 		for (size_t geo = 0; geo < m_inputGeometry.size(); geo++)
 		{
-			buffer.push("inputGeometry", outFile);
+			PString::push("inputGeometry", outFile);
 			m_inputGeometry[geo].push(outFile);
-			buffer.push("outputGeometry", outFile);
+			PString::push("outputGeometry", outFile);
 		}
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgEnvelope::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -582,76 +576,75 @@ void xgEnvelope::writeTXT(FILE* outTXT, bool fromXgm)
 
 void xgMaterial::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_blendType, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_shadingType, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_diffuse.red, 4, 1, inFile);
 	fread(&m_diffuse.green, 4, 1, inFile);
 	fread(&m_diffuse.blue, 4, 1, inFile);
 	fread(&m_diffuse.alpha, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_specular.red, 4, 1, inFile);
 	fread(&m_specular.green, 4, 1, inFile);
 	fread(&m_specular.blue, 4, 1, inFile);
 	fread(&m_specular.exponent, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_flags, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_textureEnv, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_uTile, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_vTile, 4, 1, inFile);
-	test.fill(inFile);
+	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
 		m_inputTexture.emplace_back(inFile);
-		piece.fill(inFile);
+		PString::pull(inFile);
 		test.fill(inFile);
 	}
 }
 void xgMaterial::create(FILE* outFile, bool full)
 {
-	PString buffer("xgMaterial", outFile);
+	PString::push("xgMaterial", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("blendType", outFile);
+		PString::push('{', outFile);
+		PString::push("blendType", outFile);
 		fwrite(&m_blendType, 4, 1, outFile);
-		buffer.push("shadingType", outFile);
+		PString::push("shadingType", outFile);
 		fwrite(&m_shadingType, 4, 1, outFile);
-		buffer.push("diffuse", outFile);
+		PString::push("diffuse", outFile);
 		fwrite(&m_diffuse.red, 4, 1, outFile);
 		fwrite(&m_diffuse.green, 4, 1, outFile);
 		fwrite(&m_diffuse.blue, 4, 1, outFile);
 		fwrite(&m_diffuse.alpha, 4, 1, outFile);
-		buffer.push("specular", outFile);
+		PString::push("specular", outFile);
 		fwrite(&m_specular.red, 4, 1, outFile);
 		fwrite(&m_specular.green, 4, 1, outFile);
 		fwrite(&m_specular.blue, 4, 1, outFile);
 		fwrite(&m_specular.exponent, 4, 1, outFile);
-		buffer.push("flags", outFile);
+		PString::push("flags", outFile);
 		fwrite(&m_flags, 4, 1, outFile);
-		buffer.push("textureEnv", outFile);
+		PString::push("textureEnv", outFile);
 		fwrite(&m_textureEnv, 4, 1, outFile);
-		buffer.push("uTile", outFile);
+		PString::push("uTile", outFile);
 		fwrite(&m_uTile, 4, 1, outFile);
-		buffer.push("vTile", outFile);
+		PString::push("vTile", outFile);
 		fwrite(&m_vTile, 4, 1, outFile);
 		for (size_t tex = 0; tex < m_inputTexture.size(); tex++)
 		{
-			buffer.push("inputTexture", outFile);
+			PString::push("inputTexture", outFile);
 			m_inputTexture[tex].push(outFile);
-			buffer.push("outputTexture", outFile);
+			PString::push("outputTexture", outFile);
 		}
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgMaterial::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -660,32 +653,32 @@ void xgMaterial::writeTXT(FILE* outTXT, bool fromXgm)
 
 void xgMultiPassMaterial::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
+	PString test;
 	do
 	{
 		m_inputMaterial.emplace_back(inFile);
-		piece.fill(inFile);
+		PString::pull(inFile);
 		test.fill(inFile);
 	} while (!strchr(test.m_pstring, '}'));
 }
 void xgMultiPassMaterial::create(FILE* outFile, bool full)
 {
-	PString buffer("xgMultiPassMaterial", outFile);
+	PString::push("xgMultiPassMaterial", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
+		PString::push('{', outFile);
 		for (size_t mat = 0; mat < m_inputMaterial.size(); mat++)
 		{
-			buffer.push("inputMaterial", outFile);
+			PString::push("inputMaterial", outFile);
 			m_inputMaterial[mat].push(outFile);
-			buffer.push("outputMaterial", outFile);
+			PString::push("outputMaterial", outFile);
 		}
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgMultiPassMaterial::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -735,14 +728,13 @@ xgNormalInterpolator::xgNormalInterpolator(xgNormalInterpolator& norm)
 }
 void xgNormalInterpolator::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_times.m_numtimes, 4, 1, inFile);
 	m_times.m_times = new float[m_times.m_numtimes];
 	fread(m_times.m_times, 4, m_times.m_numtimes, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_numkeys, 4, 1, inFile);
 	m_keys = new Key[m_numkeys];
 	for (size_t k = 0; k < m_numkeys; k++)
@@ -751,44 +743,44 @@ void xgNormalInterpolator::read(FILE* inFile)
 		m_keys[k].m_normals = new float[m_keys[k].m_numNormals][3];
 		fread(m_keys[k].m_normals, 12, m_keys[k].m_numNormals, inFile);
 	}
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_targets.m_numTargets, 4, 1, inFile);
 	m_targets.m_targets = new unsigned long[m_targets.m_numTargets];
 	fread(m_targets.m_targets, 4, m_targets.m_numTargets, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	m_inputTime.fill(inFile);
-	piece.fill(inFile);
-	test.fill(inFile);
+	PString::pull(inFile);
+	PString::pull(inFile);
 }
 void xgNormalInterpolator::create(FILE* outFile, bool full)
 {
-	PString buffer("xgNormalInterpolator", outFile);
+	PString::push("xgNormalInterpolator", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("type", outFile);
+		PString::push('{', outFile);
+		PString::push("type", outFile);
 		fwrite(&m_type, 4, 1, outFile);
-		buffer.push("times", outFile);
+		PString::push("times", outFile);
 		fwrite(&m_times.m_numtimes, 4, 1, outFile);
 		fwrite(m_times.m_times, 4, m_times.m_numtimes, outFile);
-		buffer.push("keys", outFile);
+		PString::push("keys", outFile);
 		fwrite(&m_numkeys, 4, 1, outFile);
 		for (size_t k = 0; k < m_numkeys; k++)
 		{
 			fwrite(&m_keys[k].m_numNormals, 4, 1, outFile);
 			fwrite(m_keys[k].m_normals, 12, m_keys[k].m_numNormals, outFile);
 		}
-		buffer.push("targets", outFile);
+		PString::push("targets", outFile);
 		fwrite(&m_targets.m_numTargets, 4, 1, outFile);
 		fwrite(m_targets.m_targets, 4, m_targets.m_numTargets, outFile);
-		buffer.push("inputTime", outFile);
+		PString::push("inputTime", outFile);
 		m_inputTime.push(outFile);
-		buffer.push("outputTime", outFile);
-		buffer.push("}", outFile);
+		PString::push("outputTime", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 xgNormalInterpolator::~xgNormalInterpolator()
 {
@@ -813,37 +805,36 @@ xgQuatInterpolator::Key::~Key()
 }
 void xgQuatInterpolator::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_keyStruct.m_numkeys, 4, 1, inFile);
 	m_keyStruct.m_keys = new float[m_keyStruct.m_numkeys][4];
 	fread(m_keyStruct.m_keys, 16, m_keyStruct.m_numkeys, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	m_inputTime.fill(inFile);
-	piece.fill(inFile);
-	test.fill(inFile);
+	PString::pull(inFile);
+	PString::pull(inFile);
 }
 void xgQuatInterpolator::create(FILE* outFile, bool full)
 {
-	PString buffer("xgQuatInterpolator", outFile);
+	PString::push("xgQuatInterpolator", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("type", outFile);
+		PString::push('{', outFile);
+		PString::push("type", outFile);
 		fwrite(&m_type, 4, 1, outFile);
-		buffer.push("keys", outFile);
+		PString::push("keys", outFile);
 		fwrite(&m_keyStruct.m_numkeys, 4, 1, outFile);
 		fwrite(m_keyStruct.m_keys, 16, m_keyStruct.m_numkeys, outFile);
-		buffer.push("inputTime", outFile);
+		PString::push("inputTime", outFile);
 		m_inputTime.push(outFile);
-		buffer.push("outputTime", outFile);
-		buffer.push("}", outFile);
+		PString::push("outputTime", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgQuatInterpolator::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -906,14 +897,13 @@ xgShapeInterpolator::xgShapeInterpolator(xgShapeInterpolator& shape)
 }
 void xgShapeInterpolator::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_times.m_numtimes, 4, 1, inFile);
 	m_times.m_times = new float[m_times.m_numtimes];
 	fread(m_times.m_times, 4, m_times.m_numtimes, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_numkeys, 4, 1, inFile);
 	m_keys = new Key[m_numkeys];
 	for (size_t k = 0; k < m_numkeys; k++)
@@ -937,24 +927,24 @@ void xgShapeInterpolator::read(FILE* inFile)
 			fread(key.m_vertices[v], 4, size, inFile);
 		}
 	}
-	piece.fill(inFile);
+	PString::pull(inFile);
 	m_inputTime.fill(inFile);
-	piece.fill(inFile);
-	test.fill(inFile);
+	PString::pull(inFile);
+	PString::pull(inFile);
 }
 void xgShapeInterpolator::create(FILE* outFile, bool full)
 {
-	PString buffer("xgShapeInterpolator", outFile);
+	PString::push("xgShapeInterpolator", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("type", outFile);
+		PString::push('{', outFile);
+		PString::push("type", outFile);
 		fwrite(&m_type, 4, 1, outFile);
-		buffer.push("times", outFile);
+		PString::push("times", outFile);
 		fwrite(&m_times.m_numtimes, 4, 1, outFile);
 		fwrite(m_times.m_times, 4, m_times.m_numtimes, outFile);
-		buffer.push("keys", outFile);
+		PString::push("keys", outFile);
 		fwrite(&m_numkeys, 4, 1, outFile);
 		for (size_t k = 0; k < m_numkeys; k++)
 		{
@@ -973,13 +963,13 @@ void xgShapeInterpolator::create(FILE* outFile, bool full)
 			for (size_t v = 0; v < key.m_numVerts; v++)
 				fwrite(key.m_vertices[v], 4, size, outFile);
 		}
-		buffer.push("inputTime", outFile);
+		PString::push("inputTime", outFile);
 		m_inputTime.push(outFile);
-		buffer.push("outputTime", outFile);
-		buffer.push("}", outFile);
+		PString::push("outputTime", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 xgShapeInterpolator::~xgShapeInterpolator()
 {
@@ -1034,14 +1024,13 @@ xgTexCoordInterpolator::xgTexCoordInterpolator(xgTexCoordInterpolator& tex)
 }
 void xgTexCoordInterpolator::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_times.m_numtimes, 4, 1, inFile);
 	m_times.m_times = new float[m_times.m_numtimes];
 	fread(m_times.m_times, 4, m_times.m_numtimes, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_numkeys, 4, 1, inFile);
 	m_keys = new Key[m_numkeys];
 	for (size_t k = 0; k < m_numkeys; k++)
@@ -1050,44 +1039,44 @@ void xgTexCoordInterpolator::read(FILE* inFile)
 		m_keys[k].m_texcoords = new float[m_keys[k].m_numVerts][2];
 		fread(m_keys[k].m_texcoords, 8, m_keys[k].m_numVerts, inFile);
 	}
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_targets.m_numTargets, 4, 1, inFile);
 	m_targets.m_targets = new unsigned long[m_targets.m_numTargets];
 	fread(m_targets.m_targets, 4, m_targets.m_numTargets, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	m_inputTime.fill(inFile);
-	piece.fill(inFile);
-	test.fill(inFile);
+	PString::pull(inFile);
+	PString::pull(inFile);
 }
 void xgTexCoordInterpolator::create(FILE* outFile, bool full)
 {
-	PString buffer("xgTexCoordInterpolator", outFile);
+	PString::push("xgTexCoordInterpolator", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("type", outFile);
+		PString::push('{', outFile);
+		PString::push("type", outFile);
 		fwrite(&m_type, 4, 1, outFile);
-		buffer.push("times", outFile);
+		PString::push("times", outFile);
 		fwrite(&m_times.m_numtimes, 4, 1, outFile);
 		fwrite(m_times.m_times, 4, m_times.m_numtimes, outFile);
-		buffer.push("keys", outFile);
+		PString::push("keys", outFile);
 		fwrite(&m_numkeys, 4, 1, outFile);
 		for (size_t k = 0; k < m_numkeys; k++)
 		{
 			fwrite(&m_keys[k].m_numVerts, 4, 1, outFile);
 			fwrite(m_keys[k].m_texcoords, 8, m_keys[k].m_numVerts, outFile);
 		}
-		buffer.push("targets", outFile);
+		PString::push("targets", outFile);
 		fwrite(&m_targets.m_numTargets, 4, 1, outFile);
 		fwrite(m_targets.m_targets, 4, m_targets.m_numTargets, outFile);
-		buffer.push("inputTime", outFile);
+		PString::push("inputTime", outFile);
 		m_inputTime.push(outFile);
-		buffer.push("outputTime", outFile);
-		buffer.push("}", outFile);
+		PString::push("outputTime", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 xgTexCoordInterpolator::~xgTexCoordInterpolator()
 {
@@ -1101,28 +1090,27 @@ void xgTexCoordInterpolator::writeTXT(FILE* outTXT, bool fromXgm)
 
 void xgTexture::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	m_imxName.fill(inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_mipmap_depth, 4, 1, inFile);
-	test.fill(inFile);
+	PString::pull(inFile);
 }
 void xgTexture::create(FILE* outFile, bool full)
 {
-	PString buffer("xgTexture", outFile);
+	PString::push("xgTexture", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("url", outFile);
+		PString::push('{', outFile);
+		PString::push("url", outFile);
 		m_imxName.push(outFile);
-		buffer.push("mipmap_depth", outFile);
+		PString::push("mipmap_depth", outFile);
 		fwrite(&m_mipmap_depth, 4, 1, outFile);
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgTexture::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -1131,28 +1119,27 @@ void xgTexture::writeTXT(FILE* outTXT, bool fromXgm)
 
 void xgTime::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_numFrames, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_time, 4, 1, inFile);
-	test.fill(inFile);
+	PString::pull(inFile);
 }
 void xgTime::create(FILE* outFile, bool full)
 {
-	PString buffer("xgTime", outFile);
+	PString::push("xgTime", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("numFrames", outFile);
+		PString::push('{', outFile);
+		PString::push("numFrames", outFile);
 		fwrite(&m_numFrames, 4, 1, outFile);
-		buffer.push("time", outFile);
+		PString::push("time", outFile);
 		fwrite(&m_time, 4, 1, outFile);
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgTime::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -1172,37 +1159,36 @@ xgVec3Interpolator::Key::~Key()
 }
 void xgVec3Interpolator::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_keyStruct.m_numkeys, 4, 1, inFile);
 	m_keyStruct.m_keys = new float[m_keyStruct.m_numkeys][3];
 	fread(m_keyStruct.m_keys, 12, m_keyStruct.m_numkeys, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	m_inputTime.fill(inFile);
-	piece.fill(inFile);
-	test.fill(inFile);
+	PString::pull(inFile);
+	PString::pull(inFile);
 }
 void xgVec3Interpolator::create(FILE* outFile, bool full)
 {
-	PString buffer("xgVec3Interpolator", outFile);
+	PString::push("xgVec3Interpolator", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("type", outFile);
+		PString::push('{', outFile);
+		PString::push("type", outFile);
 		fwrite(&m_type, 4, 1, outFile);
-		buffer.push("keys", outFile);
+		PString::push("keys", outFile);
 		fwrite(&m_keyStruct.m_numkeys, 4, 1, outFile);
 		fwrite(m_keyStruct.m_keys, 12, m_keyStruct.m_numkeys, outFile);
-		buffer.push("inputTime", outFile);
+		PString::push("inputTime", outFile);
 		m_inputTime.push(outFile);
-		buffer.push("outputTime", outFile);
-		buffer.push("}", outFile);
+		PString::push("outputTime", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 void xgVec3Interpolator::writeTXT(FILE* outTXT, bool fromXgm)
 {
@@ -1252,14 +1238,13 @@ xgVertexInterpolator::xgVertexInterpolator(xgVertexInterpolator& vert)
 }
 void xgVertexInterpolator::read(FILE* inFile)
 {
-	PString piece, test;
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_times.m_numtimes, 4, 1, inFile);
 	m_times.m_times = new float[m_times.m_numtimes];
 	fread(m_times.m_times, 4, m_times.m_numtimes, inFile);
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_numkeys, 4, 1, inFile);
 	m_keys = new Key[m_numkeys];
 	for (size_t k = 0; k < m_numkeys; k++)
@@ -1268,50 +1253,50 @@ void xgVertexInterpolator::read(FILE* inFile)
 		m_keys[k].m_nums = new float[m_keys[k].m_numsize][3];
 		fread(m_keys[k].m_nums, 12, m_keys[k].m_numsize, inFile);
 	}
-	piece.fill(inFile);
+	PString::pull(inFile);
 	fread(&m_targets.m_numTargets, 4, 1, inFile);
 	m_targets.m_targets = new unsigned long[m_targets.m_numTargets];
 	fread(m_targets.m_targets, 4, m_targets.m_numTargets, inFile);
-	test.fill(inFile);
+	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
 		m_inputTimes.emplace_back(inFile);
-		piece.fill(inFile);
+		PString::pull(inFile);
 		test.fill(inFile);
 	}
 }
 void xgVertexInterpolator::create(FILE* outFile, bool full)
 {
-	PString buffer("xgVertexInterpolator", outFile);
+	PString::push("xgVertexInterpolator", outFile);
 	m_name.push(outFile);
 	if (full)
 	{
-		buffer.push("{", outFile);
-		buffer.push("type", outFile);
+		PString::push('{', outFile);
+		PString::push("type", outFile);
 		fwrite(&m_type, 4, 1, outFile);
-		buffer.push("times", outFile);
+		PString::push("times", outFile);
 		fwrite(&m_times.m_numtimes, 4, 1, outFile);
 		fwrite(m_times.m_times, 4, m_times.m_numtimes, outFile);
-		buffer.push("keys", outFile);
+		PString::push("keys", outFile);
 		fwrite(&m_numkeys, 4, 1, outFile);
 		for (size_t k = 0; k < m_numkeys; k++)
 		{
 			fwrite(&m_keys[k].m_numsize, 4, 1, outFile);
 			fwrite(m_keys[k].m_nums, 12, m_keys[k].m_numsize, outFile);
 		}
-		buffer.push("targets", outFile);
+		PString::push("targets", outFile);
 		fwrite(&m_targets.m_numTargets, 4, 1, outFile);
 		fwrite(m_targets.m_targets, 4, m_targets.m_numTargets, outFile);
 		for (size_t time = 0; time < m_inputTimes.size(); time++)
 		{
-			buffer.push("inputTime", outFile);
+			PString::push("inputTime", outFile);
 			m_inputTimes[time].push(outFile);
-			buffer.push("outputTime", outFile);
+			PString::push("outputTime", outFile);
 		}
-		buffer.push("}", outFile);
+		PString::push('}', outFile);
 	}
 	else
-		buffer.push(";", outFile);
+		PString::push(';', outFile);
 }
 xgVertexInterpolator::~xgVertexInterpolator()
 {

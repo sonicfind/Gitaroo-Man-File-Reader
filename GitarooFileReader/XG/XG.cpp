@@ -130,7 +130,6 @@ XG::Animation::Animation(FILE* inFile)
 
 XG_Data::XG_Data(FILE* inFile)
 {
-	PString type, xgName, colonTest;
 	char test[8] = { 0 };
 	static bool(XG_Data::* types[])(PString&, PString&) =
 	{
@@ -159,9 +158,10 @@ XG_Data::XG_Data(FILE* inFile)
 		fclose(inFile);
 		throw "Error: No 'XGB' tag for model ";
 	}
-	type.fill(inFile);
-	xgName.fill(inFile);
-	colonTest.fill(inFile);
+
+	PString type(inFile);
+	PString xgName(inFile);
+	PString colonTest(inFile);
 	do
 	{
 		for (size_t t = 0; t < 18; t++)
@@ -285,11 +285,12 @@ void XG_Data::create(FILE* outFile)
 		m_nodes[n]->create(outFile, false);
 	for (size_t n = 0; n < m_nodes.size(); n++)
 		m_nodes[n]->create(outFile, true);
-	PString buffer("m_dag", outFile);
-	buffer.push("{", outFile);
+	PString::push("dag", outFile);
+	PString::push('{', outFile);
 	for (size_t d = 0; d < m_dag.size(); d++)
 		m_dag[d].create(outFile, true);
-	buffer.push("}", outFile);
+	
+	PString::push('}', outFile);
 }
 
 XG_Data::DagBase::DagBase() : m_base(nullptr) {}
@@ -298,12 +299,11 @@ XG_Data::DagBase::DagBase(std::shared_ptr<XGNode> m_base) : m_base(m_base) {}
 
 void XG_Data::DagBase::create(FILE* outFile, bool braces)
 {
-	const static PString brace[2] = { {"["}, {"]"} };
 	m_base->m_name.push(outFile);
 	if (braces || m_connected.size())
-		brace[0].push(outFile);
+		PString::push('[', outFile);
 	for (size_t m_dag = 0; m_dag < m_connected.size(); m_dag++)
 		m_connected[m_dag].create(outFile);
 	if (braces || m_connected.size())
-		brace[1].push(outFile);
+		PString::push(']', outFile);
 }

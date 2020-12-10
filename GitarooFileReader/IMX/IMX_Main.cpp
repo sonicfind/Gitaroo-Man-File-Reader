@@ -285,25 +285,10 @@ void IMX_Main::writeTxt()
 			fputs("8-bit indexed, RGBA 8888 palette\n", outTXT);
 		fprintf_s(outTXT, "\t    Palette Size: %lu bytes (%lu colors)\n", imx.m_data->m_colorData->m_paletteSize, imx.m_data->m_colorData->m_paletteSize >> 2);
 		fputs("\t\t Palette: R  | G  | B  | A\n", outTXT);
-		fputs("\t\t         ------------------\n", outTXT);
-		fputs("\t\t          ", outTXT);
-		for (size_t p = 0; p < imx.m_data->m_colorData->m_paletteSize >> 2; p++)
-		{
-			for (size_t c = 0; c < 4; c++)
-			{
-				fprintf_s(outTXT, "%02x", imx.m_data->m_colorData->m_palette[p][c]);
-				if ((p << 2) + c + 1 != imx.m_data->m_colorData->m_paletteSize)
-				{
-					if (c != 3)
-						fputs(" | ", outTXT);
-					else
-						fputs("\n\t\t\t  ", outTXT);
-				}
-				else
-					fputc('\n', outTXT);
-			}
-
-		}
+		fputs("\t\t         -------------------\n", outTXT);
+		for (unsigned char* palette = imx.m_data->m_colorData->m_palette[0], *end = palette + imx.m_data->m_colorData->m_paletteSize;
+			palette < end;)
+			fprintf_s(outTXT, "\t\t\t  %02x | %02x | %02x | %02x\n", *(palette++), *(palette++), *(palette++), *(palette++));
 	}
 	else if (imx.m_data->m_pixelVal1 == 3 && imx.m_data->m_pixelVal2 == 2)
 		fputs("24-bit RGB 888\n", outTXT);
@@ -330,24 +315,10 @@ void IMX_Main::writeTxt(FILE* outTXT, FILE* outSimpleTXT)
 			fputs("8-bit indexed, RGBA 8888 palette\n", outTXT);
 		fprintf_s(outTXT, "\t\t\t\tPalette Size: %lu bytes (%lu colors)\n", imx.m_data->m_colorData->m_paletteSize, imx.m_data->m_colorData->m_paletteSize >> 2);
 		fputs("\t\t\t\t     Palette: R  | G  | B  | A\n", outTXT);
-		fputs("\t\t\t\t              ------------------\n", outTXT);
-		fputs("\t\t\t\t              ", outTXT);
-		for (size_t p = 0; p < imx.m_data->m_colorData->m_paletteSize >> 2; p++)
-		{
-			for (size_t c = 0; c < 4; c++)
-			{
-				fprintf_s(outTXT, "%02x", imx.m_data->m_colorData->m_palette[p][c]);
-				if ((p << 2) + c + 1 != imx.m_data->m_colorData->m_paletteSize)
-				{
-					if (c != 3)
-						fputs(" | ", outTXT);
-					else
-						fputs("\n\t\t\t\t\t      ", outTXT);
-				}
-				else
-					fputc('\n', outTXT);
-			}
-		}
+		fputs("\t\t\t\t             -------------------\n", outTXT);
+		for (unsigned char* palette = imx.m_data->m_colorData->m_palette[0], *end = palette + imx.m_data->m_colorData->m_paletteSize;
+			palette < end;)
+			fprintf_s(outTXT, "\t\t\t\t\t      %02x | %02x | %02x | %02x\n", *(palette++), *(palette++), *(palette++), *(palette++));
 	}
 	else if (imx.m_data->m_pixelVal1 == 3 && imx.m_data->m_pixelVal2 == 2)
 		fputs("24-bit RGB 888\n", outTXT);

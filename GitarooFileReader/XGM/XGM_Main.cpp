@@ -372,8 +372,8 @@ void XGM_Main::writeTxt()
 		//XG Data
 		XG_Main x_Main(xg);
 		x_Main.writeTxt(outTXT, outSimpleTXT);
-		fflush(outTXT);
 		fflush(outSimpleTXT);
+		// outTXT already flushed
 	}
 	fclose(outTXT);
 	fclose(outSimpleTXT);

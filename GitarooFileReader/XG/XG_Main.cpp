@@ -269,7 +269,6 @@ void XG_Main::saveFile(bool onExit)
 
 void XG_Main::writeTxt()
 {
-#ifndef NOT_YET_IMPLEMENTED
 	GlobalFunctions::banner(" Writing " + xg.m_shortname + "_XG.txt ");
 	FILE* outSimpleTXT;
 	if (fopen_s(&outSimpleTXT, (xg.m_directory + xg.m_shortname + "_XG_SIMPLIFIED.txt").c_str(), "w"))
@@ -295,21 +294,17 @@ void XG_Main::writeTxt()
 		}
 		fclose(outTXT);
 	}
-#else // !NOT_YET_IMPLEMENTED
-	GlobalFunctions::banner(" XG Writing Not Yet Implemented ");
-#endif
 }
 
 void XG_Main::writeTxt(FILE* outTXT, FILE* outSimpleTXT)
 {
-#ifndef NOT_YET_IMPLEMENTED
 	fprintf_s(outTXT, "\t\t            # of Nodes: %zu\n", xg.m_data->m_nodes.size());
 	fprintf_s(outSimpleTXT, "\t\t       # of Nodes: %zu\n", xg.m_data->m_nodes.size());
 	for (size_t index = 0; index < xg.m_data->m_nodes.size(); index++)
 	{
 		std::shared_ptr<XGNode> node = xg.m_data->m_nodes[index];
-		GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t    Node %03zu - %s\n", index + 1, node->m_name.m_pstring, 17);
+		GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t     Node %03zu - %s\n", index + 1, node->m_name.m_pstring, 17);
 		node->writeTXT(outTXT, true);
+		fflush(outTXT);
 	}
-#endif
 }

@@ -16,6 +16,7 @@
 #include "Global_Functions.h"
 #include "XGM_Main.h"
 #include "IMX/IMX_Main.h"
+#include "IMX/IMX_Image.h"
 #include "XG/XG_Main.h"
 using namespace std;
 
@@ -46,12 +47,14 @@ bool XGMType::loadMulti()
 	do
 	{
 		GlobalFunctions::ResultType result = GlobalFunctions::ResultType::Success;
-		string choices = "iw";
+		string choices = "iwem";
 		if (m_files.size() > 1)
 		{
 			GlobalFunctions::banner(" XGM Mode Selection ");
 			printf("%sI - Evaluate each XGM individually\n", g_global.tabs.c_str());
 			printf("%sW - Write all XGMs included to readable .txts\n", g_global.tabs.c_str());
+			printf("%sE - Export all textures from every XGM to image files [Gitarootools install required]\n", g_global.tabs.c_str());
+			printf("%sM - Import textures from image files into all XGMs [Gitarootools install required]\n", g_global.tabs.c_str());
 			for (size_t i = 2; i < g_filetypes.size(); ++i)
 			{
 				if (g_filetypes[i]->m_files.size() > 0)
@@ -95,6 +98,11 @@ bool XGMType::loadMulti()
 							break;
 						case 'w':
 							xgm.writeTxt();
+						case 'e':
+							xgm.exportImages();
+							break;
+						case 'm':
+							xgm.importImages();
 						}
 					}
 					catch (string str)
@@ -124,9 +132,11 @@ bool XGM_Main::menu(size_t fileCount)
 	do
 	{
 		GlobalFunctions::banner(" " + xgm.m_shortname + ".XGM - Mode Selection ");
-		string choices = "swtm";
+		string choices = "sweitm";
 		printf("%sS - Save\n", g_global.tabs.c_str());
 		printf("%sW - Write %s.txt\n", g_global.tabs.c_str(), xgm.m_shortname.c_str());
+		printf("%sE - Export textures to image files [Gitarootools install required]\n", g_global.tabs.c_str());
+		printf("%sI - Import textures from image files [Gitarootools install required]\n", g_global.tabs.c_str());
 		printf("%sT - Select a texture [Count: %zu]\n", g_global.tabs.c_str(), xgm.m_textures.size());
 		printf("%sM - Select a model   [Count: %zu]\n", g_global.tabs.c_str(), xgm.m_models.size());
 		if (fileCount > 1)
@@ -195,6 +205,12 @@ bool XGM_Main::menu(size_t fileCount)
 					break;
 				case 'w':
 					writeTxt();
+					break;
+				case 'e':
+					exportImages();
+					break;
+				case 'i':
+					importImages();
 					break;
 				case 't':
 					do
@@ -377,4 +393,16 @@ void XGM_Main::writeTxt()
 	}
 	fclose(outTXT);
 	fclose(outSimpleTXT);
+}
+
+bool XGM_Main::exportImages()
+{
+	ImageConverter convert(ImageType::PNG);
+	return convert.exportImages(xgm);
+}
+
+bool XGM_Main::importImages()
+{
+	ImageConverter convert(ImageType::PNG);
+	return convert.importImages(xgm);
 }

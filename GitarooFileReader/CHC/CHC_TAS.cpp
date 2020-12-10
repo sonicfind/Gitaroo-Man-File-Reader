@@ -40,7 +40,7 @@ bool TAS::loadValues(string filename)
 					p2m2v.getline(line, 128);
 					if (strchr(line, ';'))
 						break;
-					std::strstream str;
+					std::stringstream str;
 					str << line;
 					unsigned int stage;
 					str >> stage;
@@ -88,7 +88,7 @@ bool TAS::loadValues(string filename)
 					p2m2v.getline(line, 128);
 					if (strchr(line, ';'))
 						break;
-					std::strstream str;
+					std::stringstream str;
 					str << line;
 					unsigned stage;
 					str >> stage;

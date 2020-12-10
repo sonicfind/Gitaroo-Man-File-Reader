@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "IMX_Main.h"
+#include "IMX_Image.h"
 using namespace std;
 
 bool IMXType::loadSingle(string filename)
@@ -44,12 +45,14 @@ bool IMXType::loadMulti()
 	do
 	{
 		GlobalFunctions::ResultType result = GlobalFunctions::ResultType::Success;
-		string choices = "tw";
+		string choices = "twei";
 		if (m_files.size() > 1)
 		{
 			GlobalFunctions::banner(" IMX Mode Selection ");
 			printf("%sT - Evaluate each texture individually\n", g_global.tabs.c_str());
 			printf("%sW - Write out all textures included to readable .txts\n", g_global.tabs.c_str());
+			printf("%sE - Export textures to image files [Gitarootools install required]\n", g_global.tabs.c_str());
+			printf("%sI - Import textures from image files [Gitarootools install required]\n", g_global.tabs.c_str());
 			for (size_t i = 3; i < g_filetypes.size(); ++i)
 			{
 				if (g_filetypes[i]->m_files.size() > 0)
@@ -95,6 +98,12 @@ bool IMXType::loadMulti()
 							break;
 						case 'w':
 							imx.writeTxt();
+							break;
+						case 'e':
+							imx.exportImage();
+							break;
+						case 'i':
+							imx.importImage();
 						}
 					}
 					catch (string str)
@@ -123,9 +132,12 @@ bool IMX_Main::menu(size_t fileCount)
 {
 	do
 	{
-		GlobalFunctions::banner(" " + imx.m_shortname + ".IMX - Mode Selection "); string choices = "sw";
+		GlobalFunctions::banner(" " + imx.m_shortname + ".IMX - Mode Selection ");
+		string choices = "swei";
 		printf("%sS - Save\n", g_global.tabs.c_str());
 		printf("%sW - Write %s.txt\n", g_global.tabs.c_str(), imx.m_shortname.c_str());
+		printf("%sE - Export to an image file [Gitarootools install required]\n", g_global.tabs.c_str());
+		printf("%sI - Import from an image file [Gitarootools install required]\n", g_global.tabs.c_str());
 		if (fileCount > 1)
 		{
 			printf("%sN - Next IMX file\n", g_global.tabs.c_str());
@@ -192,6 +204,12 @@ bool IMX_Main::menu(size_t fileCount)
 					break;
 				case 'w':
 					writeTxt();
+					break;
+				case 'e':
+					exportImage();
+					break;
+				case 'i':
+					importImage();
 				}
 				--g_global;
 			}
@@ -328,4 +346,16 @@ void IMX_Main::writeTxt(FILE* outTXT, FILE* outSimpleTXT)
 		fputs("Unknown\n", outTXT);
 	fprintf_s(outTXT, "\t\t       Image Data Size: %lu\n", imx.m_data->m_colorData->m_imageSize);
 	fprintf_s(outSimpleTXT, "\t\t  Image Data Size: %lu\n", imx.m_data->m_colorData->m_imageSize);
+}
+
+bool IMX_Main::exportImage()
+{
+	ImageConverter convert(ImageType::PNG);
+	return convert.exportImage(imx);
+}
+
+bool IMX_Main::importImage()
+{
+	ImageConverter convert(ImageType::PNG);
+	return convert.importImage(imx);
 }

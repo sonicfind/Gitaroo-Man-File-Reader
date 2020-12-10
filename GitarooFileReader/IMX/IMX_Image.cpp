@@ -12,20 +12,34 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-// pch.h: This is a precompiled header file.
-// Files listed below are compiled only once, improving build performance for future builds.
-// This also affects IntelliSense performance, including code completion and many code browsing features.
-// However, files listed here are ALL re-compiled if any one of them is updated between builds.
-// Do not add files here that you will be updating frequently as this negates the performance advantage.
+#include "pch.h"
+#include "Global_Functions.h"
+#include "IMX_Image.h"
 
-#ifndef PCH_H
-#define PCH_H
+bool ImageConverter::exportImage(IMX& image)
+{
+	GlobalFunctions::banner(" " + image.m_shortname + " - Texture Export ");
+	m_png.exportPNG(image);
+	return true;
+}
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#include <string>
-#include <windows.h>
-#include <thread>
-#include <vector>
-#include <list>
-#include <sstream>
-#endif //PCH_H
+bool ImageConverter::exportImages(XGM& pack)
+{
+	GlobalFunctions::banner(" " + pack.m_shortname + " - Multi-Texture Export ");
+	m_png.exportPNG(pack);
+	return true;
+}
+
+bool ImageConverter::importImage(IMX& image)
+{
+	GlobalFunctions::banner(" " + image.m_shortname + " - Texture Import ");
+	m_png.importPNG(image);
+	return true;
+}
+
+bool ImageConverter::importImages(XGM& pack)
+{
+	GlobalFunctions::banner(" " + pack.m_shortname + " - Multi-Texture Import ");
+	m_png.importPNG(pack);
+	return true;
+}

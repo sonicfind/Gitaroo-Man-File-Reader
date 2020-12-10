@@ -301,7 +301,7 @@ namespace GlobalFunctions
 	Failed - User entered an invalid character
 	*/
 	template<typename T>
-	extern ResultType insertFromStream(std::strstream& str, T& value, bool allowNegatives = false, T min = 0, T max = 0)
+	extern ResultType insertFromStream(std::stringstream& str, T& value, bool allowNegatives = false, T min = 0, T max = 0)
 	{
 		auto rangeTest = [&]()
 		{

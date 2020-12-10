@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,20 +13,23 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-// pch.h: This is a precompiled header file.
-// Files listed below are compiled only once, improving build performance for future builds.
-// This also affects IntelliSense performance, including code completion and many code browsing features.
-// However, files listed here are ALL re-compiled if any one of them is updated between builds.
-// Do not add files here that you will be updating frequently as this negates the performance advantage.
 
-#ifndef PCH_H
-#define PCH_H
+#include "IMX.h"
+#include "XGM\XGM.h"
+#include "IMX_PNG.h"
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#include <string>
-#include <windows.h>
-#include <thread>
-#include <vector>
-#include <list>
-#include <sstream>
-#endif //PCH_H
+enum class ImageType
+{
+	PNG
+};
+
+struct ImageConverter
+{
+	ImageType m_mode;
+	IMX_PNG m_png;
+	ImageConverter(ImageType type) : m_mode(type) {}
+	bool exportImage(IMX& image);
+	bool exportImages(XGM& pack);
+	bool importImage(IMX& image);
+	bool importImages(XGM& pack);
+};

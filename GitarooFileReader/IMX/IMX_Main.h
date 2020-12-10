@@ -40,4 +40,6 @@ public:
 	void saveFile(bool onExit = false);
 	void writeTxt();
 	void writeTxt(FILE* outTXT, FILE* outSimpleTXT);
+	bool importImage();
+	bool exportImage();
 };

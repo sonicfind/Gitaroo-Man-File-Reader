@@ -32,4 +32,6 @@ public:
 	bool menu(size_t fileCount = 0);
 	void saveFile(bool onExit = false);
 	void writeTxt();
+	bool importImages();
+	bool exportImages();
 };

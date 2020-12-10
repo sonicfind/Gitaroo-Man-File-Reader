@@ -176,7 +176,16 @@ namespace GlobalFunctions
 	*/
 	extern "C" GLOBALFUNCTIONS_API ResultType fileOverwriteCheck(std::string fileName);
 
-	// Function for inserting any value from the standard input stream
+	/* 
+	Function for inserting any value from the standard input stream
+	Success - Valid Entry
+	SpecialCase - User entered a special character
+	Quit - User entered the "quit" or 'Q' character
+	InvalidNegative - Input stream given a negative value with allowNegatives set to false
+	MinExceeded - Input value less than minimum
+	MaxExceeded - Input value greater than maximum
+	Failed - User entered an invalid character
+	*/
 	template<typename T>
 	extern ResultType valueInsert(T& value, bool allowNegatives = false, T min = 0, T max = 0, std::string specials = "")
 	{
@@ -339,12 +348,12 @@ namespace GlobalFunctions
 	/*
 	Function for inserting any value from a file
 	Return values:
-	'!' - Valid Entry
-	'q' - User entered the "quit" or 'Q' character
-	'-' - Input stream given a negative value with allowNegatives set to false
-	GlobalFunctions::ResultType::MinExceeded - Input value less than minimum
-	GlobalFunctions::ResultType::MaxExceeded - Input value greater than maximum
-	GlobalFunctions::ResultType::Failed - User entered an invalid character
+	Success - Valid Entry
+	Quit - User entered the "quit" or 'Q' character
+	InvalidNegative - Input stream given a negative value with allowNegatives set to false
+	MinExceeded - Input value less than minimum
+	MaxExceeded - Input value greater than maximum
+	Failed - User entered an invalid character
 	*/
 	template<typename T>
 	extern ResultType valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false, T min = 0, T max = 0)
@@ -495,11 +504,11 @@ namespace GlobalFunctions
 	/*
 	Function for inserting any value from the input stream (with no set custom min or max) [has special characters]
 	Return values:
-	'!' - Valid Entry
-	'q' - User entered the "quit"/'Q' character
-	'-' - Input stream given a negative value with allowNegatives set to false
-	GlobalFunctions::ResultType::Failed - User entered an invalid character
-	 or one of the special input characters
+	Success - Valid Entry
+	SpecialCase - User entered a special character
+	Quit - User entered the "quit" or 'Q' character
+	InvalidNegative - Input stream given a negative value with allowNegatives set to false
+	Failed - User entered an invalid character
 	*/
 	template<typename T>
 	extern ResultType valueInsert(T& value, bool allowNegatives, std::string specials)
@@ -508,14 +517,14 @@ namespace GlobalFunctions
 	}
 
 	template<typename T>
-	extern ResultType ListIndexSelector(size_t& index, LinkedList::List<T>& list, const char* type)
+	extern ResultType ListIndexSelector(LinkedList::List<T>& list, const char* type)
 	{
 		printf("%sType the index for the %s that you wish to operate with\n", g_global.tabs.c_str(), type);
 		size_t objIndex = 0;
 		for (T& object : list)
 			printf("%s%zu - %s\n", g_global.tabs.c_str(), objIndex++, object.getName());
 		printf("%sInput: ", g_global.tabs.c_str());
-		switch (valueInsert(index, false, size_t(0), list.size() - 1))
+		switch (valueInsert(g_global.answer.index, false, size_t(0), list.size() - 1))
 		{
 		case ResultType::Quit:
 			return ResultType::Quit;

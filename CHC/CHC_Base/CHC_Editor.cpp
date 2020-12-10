@@ -1565,17 +1565,17 @@ void CHC_Editor::sectionSubMenu()
 	while (true)
 	{
 		GlobalFunctions::banner(" " + m_song->m_shortname + ".CHC - Section Selection");
-		size_t val = 0;
-		switch (GlobalFunctions::ListIndexSelector(val, m_song->m_sections, "section"))
+		switch (GlobalFunctions::ListIndexSelector(m_song->m_sections, "section"))
 		{
 		case GlobalFunctions::ResultType::Quit:
 			return;
 		case GlobalFunctions::ResultType::Success:
 			++g_global;
+			size_t index = g_global.answer.index;
 			do
 			{
-				GlobalFunctions::banner(" " + m_song->m_shortname + ".CHC - " + m_song->m_sections[val].m_name + " - Modify ");
-				SongSection& section = m_song->m_sections[val];
+				GlobalFunctions::banner(" " + m_song->m_shortname + ".CHC - " + m_song->m_sections[index].m_name + " - Modify ");
+				SongSection& section = m_song->m_sections[index];
 				string choices = "nafptdes"; //ENABLE CONDITION OPTION
 				printf("%sN - Name\n", g_global.tabs.c_str());
 				printf("%sA - Change the section of audio used: %s\n", g_global.tabs.c_str(), section.m_audio);
@@ -1642,7 +1642,7 @@ void CHC_Editor::sectionSubMenu()
 						break;
 					case 'e':
 						GlobalFunctions::banner(" " + m_song->m_shortname + ".CHC - " + section.m_name + " - Transversal ");
-						if (pathTest(val))
+						if (pathTest(index))
 							printf("%s%s can reach the end of the stage.\n", g_global.tabs.c_str(), section.m_name);
 						else
 							printf("%s%s is unable to reach the end of the stage.\n", g_global.tabs.c_str(), section.m_name);

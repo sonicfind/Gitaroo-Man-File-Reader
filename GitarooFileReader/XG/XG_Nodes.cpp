@@ -14,7 +14,33 @@
  */
 #include "pch.h"
 #include "XG_Nodes.h"
-void XGNode::read(FILE* inFile)
+
+SharedNode::SharedNode(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
+{
+	fill(inFile, nodeList);
+}
+void SharedNode::fill(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
+{
+	PString name(inFile);
+	for (const std::shared_ptr<XGNode>& node : nodeList)
+	{
+		if (node->m_name == name)
+		{
+			m_node = node.get();
+			break;
+		}
+	}
+}
+void SharedNode::push(FILE* outFile)
+{
+	m_node->m_name.push(outFile);
+}
+PString* SharedNode::getPString()
+{
+	return &m_node->m_name;
+}
+
+void XGNode::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	throw "Error: Unrecognized XGNode type [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
 }
@@ -24,7 +50,7 @@ xgBgGeometry::Vertices::Vertices(const Vertices& verts)
 	m_vertexFlags = verts.m_vertexFlags;
 	m_numVerts = verts.m_numVerts;
 	m_vertices = new float* [m_numVerts];
-	size_t size = 0;
+	int size = 0;
 	if (m_vertexFlags & 1)
 		size += 4;
 	if (m_vertexFlags & 2)
@@ -33,7 +59,7 @@ xgBgGeometry::Vertices::Vertices(const Vertices& verts)
 		size += 4;
 	if (m_vertexFlags & 8)
 		size += 2;
-	for (size_t v = 0; v < m_numVerts; v++)
+	for (unsigned long v = 0; v < m_numVerts; ++v)
 	{
 		m_vertices[v] = new float[size];
 		std::copy(verts.m_vertices[v], verts.m_vertices[v] + size, m_vertices[v]);
@@ -41,7 +67,7 @@ xgBgGeometry::Vertices::Vertices(const Vertices& verts)
 }
 xgBgGeometry::Vertices::~Vertices()
 {
-	size_t size = 0;
+	int size = 0;
 	if (m_vertexFlags & 1)
 		size += 4;
 	if (m_vertexFlags & 2)
@@ -50,11 +76,11 @@ xgBgGeometry::Vertices::~Vertices()
 		size += 4;
 	if (m_vertexFlags & 8)
 		size += 2;
-	for (size_t v = 0; v < m_numVerts; v++)
+	for (unsigned long v = 0; v < m_numVerts; ++v)
 		delete[size] m_vertices[v];
 	delete[m_numVerts] m_vertices;
 }
-void xgBgGeometry::read(FILE* inFile)
+void xgBgGeometry::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_density, 4, 1, inFile);
@@ -62,7 +88,7 @@ void xgBgGeometry::read(FILE* inFile)
 	fread(&m_vertexData.m_vertexFlags, 4, 1, inFile);
 	fread(&m_vertexData.m_numVerts, 4, 1, inFile);
 	m_vertexData.m_vertices = new float* [m_vertexData.m_numVerts];
-	size_t size = 0;
+	int size = 0;
 	if (m_vertexData.m_vertexFlags & 1)
 		size += 4;
 	if (m_vertexData.m_vertexFlags & 2)
@@ -71,7 +97,7 @@ void xgBgGeometry::read(FILE* inFile)
 		size += 4;
 	if (m_vertexData.m_vertexFlags & 8)
 		size += 2;
-	for (size_t v = 0; v < m_vertexData.m_numVerts; v++)
+	for (unsigned long v = 0; v < m_vertexData.m_numVerts; ++v)
 	{
 		m_vertexData.m_vertices[v] = new float[size];
 		fread(m_vertexData.m_vertices[v], 4, size, inFile);
@@ -79,7 +105,7 @@ void xgBgGeometry::read(FILE* inFile)
 	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
-		m_inputGeometryNames.emplace_back(inFile);
+		m_inputGeometryNames.emplace_back(inFile, nodeList);
 		PString::pull(inFile);
 		test.fill(inFile);
 	}
@@ -96,7 +122,7 @@ void xgBgGeometry::create(FILE* outFile, bool full)
 		PString::push("vertices", outFile);
 		fwrite(&m_vertexData.m_vertexFlags, 4, 1, outFile);
 		fwrite(&m_vertexData.m_numVerts, 4, 1, outFile);
-		size_t size = 0;
+		int size = 0;
 		if (m_vertexData.m_vertexFlags & 1)
 			size += 4;
 		if (m_vertexData.m_vertexFlags & 2)
@@ -105,12 +131,12 @@ void xgBgGeometry::create(FILE* outFile, bool full)
 			size += 4;
 		if (m_vertexData.m_vertexFlags & 8)
 			size += 2;
-		for (size_t v = 0; v < m_vertexData.m_numVerts; v++)
+		for (unsigned long v = 0; v < m_vertexData.m_numVerts; ++v)
 			fwrite(m_vertexData.m_vertices[v], 4, size, outFile);
-		for (size_t inp = 0; inp < m_inputGeometryNames.size(); inp++)
+		for (SharedNode& node : m_inputGeometryNames)
 		{
 			PString::push("inputGeometry", outFile);
-			m_inputGeometryNames[inp].push(outFile);
+			node.push(outFile);
 			PString::push("outputGeometry", outFile);
 		}
 		PString::push('}', outFile);
@@ -120,31 +146,35 @@ void xgBgGeometry::create(FILE* outFile, bool full)
 }
 void xgBgGeometry::writeTXT(FILE* outTXT, bool fromXgm)
 {
-	fprintf_s(outTXT, "\t                     Density: %f\n", m_density);
-	fprintf_s(outTXT, "\t                Vertex Flags: %lu\n", m_vertexData.m_vertexFlags);
-	fprintf_s(outTXT, "\t               # of Vertices: %lu\n", m_vertexData.m_numVerts);
-	for (unsigned long index = 0; index < m_vertexData.m_numVerts; index++)
+	std::string tab;
+	if (fromXgm)
+		tab = "\t\t\t    ";
+	const char* tabPtr = tab.c_str();
+	fprintf_s(outTXT, "\t%s                     Density: %g\n", tabPtr, m_density);
+	fprintf_s(outTXT, "\t%s                Vertex Flags: %lu\n", tabPtr, m_vertexData.m_vertexFlags);
+	fprintf_s(outTXT, "\t%s               # of Vertices: %lu\n", tabPtr, m_vertexData.m_numVerts);
+	for (unsigned long index = 0; index < m_vertexData.m_numVerts; ++index)
 	{
-		fprintf_s(outTXT, "\t                    Vertex %03lu:\n", index);
+		fprintf_s(outTXT, "\t%s                    Vertex %03lu\n", tabPtr, index);
 		float* data = m_vertexData.m_vertices[index];
 		if (m_vertexData.m_vertexFlags & 1) // Position
-			fprintf_s(outTXT, "\t						Position (XYZ+Unk): %f, %f, %f, %f\n", *(data++), *(data++), *(data++), *(data++));
+			fprintf_s(outTXT, "\t%s						Position (XYZ+Unk): %g, %g, %g, %g\n", tabPtr, *(data++), *(data++), *(data++), *(data++));
 		if (m_vertexData.m_vertexFlags & 2) // Normal
-			fprintf_s(outTXT, "\t							  Normal (XYZ): %f, %f, %f\n", *(data++), *(data++), *(data++));
+			fprintf_s(outTXT, "\t%s							  Normal (XYZ): %g, %g, %g\n", tabPtr, *(data++), *(data++), *(data++));
 		if (m_vertexData.m_vertexFlags & 4) // Color
-			fprintf_s(outTXT, "\t							  Color (RGBA): %f, %f, %f, %f\n", *(data++), *(data++), *(data++), *(data++));
+			fprintf_s(outTXT, "\t%s							  Color (RGBA): %g, %g, %g, %g\n", tabPtr, *(data++), *(data++), *(data++), *(data++));
 		if (m_vertexData.m_vertexFlags & 8) // Texture Coordinate
-			fprintf_s(outTXT, "\t				   Texture Coordinate (ST): %f, %f\n", *(data++), *(data++));
+			fprintf_s(outTXT, "\t%s				   Texture Coordinate (ST): %g, %g\n", tabPtr, *(data++), *(data++));
 	}
 	if (m_inputGeometryNames.size())
 	{
-		fprintf_s(outTXT, "\t       # of Input Geometries: %zu\n", m_inputGeometryNames.size());
-		for (size_t index = 0; index < m_inputGeometryNames.size(); index++)
-			fprintf_s(outTXT, "\t\t\t   %zu. %s\n", index, m_inputGeometryNames[index].m_pstring);
+		fprintf_s(outTXT, "\t%s       # of Input Geometries: %zu\n", tabPtr, m_inputGeometryNames.size());
+		for (size_t index = 0; index < m_inputGeometryNames.size(); ++index)
+			fprintf_s(outTXT, "\t\t\t%s   %zu. %s\n", tabPtr, index, m_inputGeometryNames[index].getPString()->m_pstring);
 	}
 }
 
-void xgBgMatrix::read(FILE* inFile)
+void xgBgMatrix::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(m_position, 4, 3, inFile);
@@ -156,13 +186,13 @@ void xgBgMatrix::read(FILE* inFile)
 	while (!strchr(test.m_pstring, '}'))
 	{
 		if (strstr(test.m_pstring, "inputPosition"))
-			m_inputPosition.fill(inFile);
+			m_inputPosition.fill(inFile, nodeList);
 		else if (strstr(test.m_pstring, "inputRotation"))
-			m_inputRotation.fill(inFile);
+			m_inputRotation.fill(inFile, nodeList);
 		else if (strstr(test.m_pstring, "inputScale"))
-			m_inputScale.fill(inFile);
+			m_inputScale.fill(inFile, nodeList);
 		else
-			m_inputParentMatrix.fill(inFile);
+			m_inputParentMatrix.fill(inFile, nodeList);
 		PString::pull(inFile);
 		test.fill(inFile);
 	}
@@ -180,25 +210,25 @@ void xgBgMatrix::create(FILE* outFile, bool full)
 		fwrite(m_rotation, 4, 4, outFile);
 		PString::push("scale", outFile);
 		fwrite(m_scale, 4, 3, outFile);
-		if (m_inputPosition.m_size)
+		if (m_inputPosition.isValid())
 		{
 			PString::push("inputPosition", outFile);
 			m_inputPosition.push(outFile);
 			PString::push("outputVec3", outFile);
 		}
-		if (m_inputRotation.m_size)
+		if (m_inputRotation.isValid())
 		{
 			PString::push("inputRotation", outFile);
 			m_inputRotation.push(outFile);
 			PString::push("outputQuat", outFile);
 		}
-		if (m_inputScale.m_size)
+		if (m_inputScale.isValid())
 		{
 			PString::push("inputScale", outFile);
 			m_inputScale.push(outFile);
 			PString::push("outputVec3", outFile);
 		}
-		if (m_inputParentMatrix.m_size)
+		if (m_inputParentMatrix.isValid())
 		{
 			PString::push("inputParentMatrix", outFile);
 			m_inputParentMatrix.push(outFile);
@@ -211,25 +241,29 @@ void xgBgMatrix::create(FILE* outFile, bool full)
 }
 void xgBgMatrix::writeTXT(FILE* outTXT, bool fromXgm)
 {
-	fprintf_s(outTXT, "\t         Grid Position (XYZ): %f, %f, %f\n", m_position[0], m_position[1], m_position[2]);
-	fprintf_s(outTXT, "\t        Grid Rotation (XYZW): %f, %f, %f, %f\n", m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
-	fprintf_s(outTXT, "\t            Grid Scale (XYZ): %f, %f, %f\n", m_scale[0], m_scale[1], m_scale[2]);
-	if (m_inputPosition.m_size > 0)
-		fprintf_s(outTXT, "\t    Position offset from: %s\n", m_inputPosition.m_pstring);
-	if (m_inputRotation.m_size > 0)
-		fprintf_s(outTXT, "\t    Rotation offset from: %s\n", m_inputPosition.m_pstring);
-	if (m_inputScale.m_size > 0)
-		fprintf_s(outTXT, "\t       Scale offset from: %s\n", m_inputPosition.m_pstring);
-	if (m_inputParentMatrix.m_size > 0)
-		fprintf_s(outTXT, "\t     Parent Input Matrix: %s\n", m_inputPosition.m_pstring);
+	std::string tab;
+	if (fromXgm)
+		tab = "\t\t\t    ";
+	const char* tabPtr = tab.c_str();
+	fprintf_s(outTXT, "\t%s         Grid Position (XYZ): %g, %g, %g\n", tabPtr, m_position[0], m_position[1], m_position[2]);
+	fprintf_s(outTXT, "\t%s        Grid Rotation (XYZW): %g, %g, %g, %g\n", tabPtr, m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
+	fprintf_s(outTXT, "\t%s            Grid Scale (XYZ): %g, %g, %g\n", tabPtr, m_scale[0], m_scale[1], m_scale[2]);
+	if (m_inputPosition.isValid())
+		fprintf_s(outTXT, "\t%s    Position offset from: %s\n", tabPtr, m_inputPosition.getPString()->m_pstring);
+	if (m_inputRotation.isValid())
+		fprintf_s(outTXT, "\t%s    Rotation offset from: %s\n", tabPtr, m_inputRotation.getPString()->m_pstring);
+	if (m_inputScale.isValid())
+		fprintf_s(outTXT, "\t%s       Scale offset from: %s\n", tabPtr, m_inputScale.getPString()->m_pstring);
+	if (m_inputParentMatrix.isValid())
+		fprintf_s(outTXT, "\t%s     Parent Input Matrix: %s\n", tabPtr, m_inputParentMatrix.getPString()->m_pstring);
 }
 
-void xgBone::read(FILE* inFile)
+void xgBone::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(m_restMatrix, 4, 16, inFile);
 	PString::pull(inFile);
-	m_inputMatrix.fill(inFile);
+	m_inputMatrix.fill(inFile, nodeList);
 	PString::pull(inFile);
 	PString::pull(inFile);
 }
@@ -252,10 +286,14 @@ void xgBone::create(FILE* outFile, bool full)
 }
 void xgBone::writeTXT(FILE* outTXT, bool fromXgm)
 {
-	fprintf_s(outTXT, "\t                 Rest Matrix:\n");
-	for (size_t index = 0; index < 16; index++)
-		fprintf_s(outTXT, "\t                      Value %02zu: %f\n", index, m_restMatrix[index]);
-	fprintf_s(outTXT, "\t           Input Matrix from: %s\n", m_inputMatrix.m_pstring);
+	std::string tab;
+	if (fromXgm)
+		tab = "\t\t\t    ";
+	const char* tabPtr = tab.c_str();
+	fprintf_s(outTXT, "\t%s                 Rest Matrix:\n", tabPtr);
+	for (int index = 0; index < 16; ++index)
+		fprintf_s(outTXT, "\t%s                      Value %02u: %g\n", tabPtr, index, m_restMatrix[index]);
+	fprintf_s(outTXT, "\t%s           Input Matrix from: %s\n", tabPtr, m_inputMatrix.getPString()->m_pstring);
 }
 
 xgDagMesh::Data::Data(const Data& data)
@@ -269,7 +307,7 @@ xgDagMesh::Data::~Data()
 	if (m_arrayData != nullptr)
 		delete[m_arraySize] m_arrayData;
 }
-void xgDagMesh::read(FILE* inFile)
+void xgDagMesh::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_primType, 4, 1, inFile);
@@ -280,7 +318,8 @@ void xgDagMesh::read(FILE* inFile)
 	if (m_primData.m_arraySize > 0)
 	{
 		m_primData.m_arrayData = new unsigned long[m_primData.m_arraySize];
-		fread(m_primData.m_arrayData, 4, m_primData.m_arraySize, inFile);
+		if (fread(m_primData.m_arrayData, 4, m_primData.m_arraySize, inFile) != m_primData.m_arraySize)
+			throw;
 	}
 	PString::pull(inFile);
 	fread(&m_triFanCount, 4, 1, inFile);
@@ -289,7 +328,8 @@ void xgDagMesh::read(FILE* inFile)
 	if (m_triFanData.m_arraySize > 0)
 	{
 		m_triFanData.m_arrayData = new unsigned long[m_triFanData.m_arraySize];
-		fread(m_triFanData.m_arrayData, 4, m_triFanData.m_arraySize, inFile);
+		if (fread(m_triFanData.m_arrayData, 4, m_triFanData.m_arraySize, inFile) != m_triFanData.m_arraySize)
+			throw;
 	}
 	PString::pull(inFile);
 	fread(&m_triStripCount, 4, 1, inFile);
@@ -298,7 +338,8 @@ void xgDagMesh::read(FILE* inFile)
 	if (m_triStripData.m_arraySize > 0)
 	{
 		m_triStripData.m_arrayData = new unsigned long[m_triStripData.m_arraySize];
-		fread(m_triStripData.m_arrayData, 4, m_triStripData.m_arraySize, inFile);
+		if (fread(m_triStripData.m_arrayData, 4, m_triStripData.m_arraySize, inFile) != m_triStripData.m_arraySize)
+			throw;
 	}
 	PString::pull(inFile);
 	fread(&m_triListCount, 4, 1, inFile);
@@ -307,7 +348,8 @@ void xgDagMesh::read(FILE* inFile)
 	if (m_triListData.m_arraySize > 0)
 	{
 		m_triListData.m_arrayData = new unsigned long[m_triListData.m_arraySize];
-		fread(m_triListData.m_arrayData, 4, m_triListData.m_arraySize, inFile);
+		if (fread(m_triListData.m_arrayData, 4, m_triListData.m_arraySize, inFile) != m_triListData.m_arraySize)
+			throw;
 	}
 	PString::pull(inFile);
 	fread(&m_cullFunc, 4, 1, inFile);
@@ -315,9 +357,9 @@ void xgDagMesh::read(FILE* inFile)
 	while (!strchr(test.m_pstring, '}'))
 	{
 		if (strstr(test.m_pstring, "inputGeometry"))
-			m_inputGeometry.emplace_back(inFile);
+			m_inputGeometry.emplace_back(inFile, nodeList);
 		else
-			m_inputMaterial.emplace_back(inFile);
+			m_inputMaterial.emplace_back(inFile, nodeList);
 		PString::pull(inFile);
 		test.fill(inFile);
 	}
@@ -353,16 +395,18 @@ void xgDagMesh::create(FILE* outFile, bool full)
 		fwrite(m_triListData.m_arrayData, 4, m_triListData.m_arraySize, outFile);
 		PString::push("cullFunc", outFile);
 		fwrite(&m_cullFunc, 4, 1, outFile);
-		for (size_t geo = 0; geo < m_inputGeometry.size(); geo++)
+
+		for (SharedNode& node : m_inputGeometry)
 		{
 			PString::push("inputGeometry", outFile);
-			m_inputGeometry[geo].push(outFile);
+			node.push(outFile);
 			PString::push("outputGeometry", outFile);
 		}
-		for (size_t mat = 0; mat < m_inputMaterial.size(); mat++)
+
+		for (SharedNode& node : m_inputMaterial)
 		{
 			PString::push("inputMaterial", outFile);
-			m_inputMaterial[mat].push(outFile);
+			node.push(outFile);
 			PString::push("outputMaterial", outFile);
 		}
 		PString::push('}', outFile);
@@ -372,7 +416,11 @@ void xgDagMesh::create(FILE* outFile, bool full)
 }
 void xgDagMesh::writeTXT(FILE* outTXT, bool fromXgm)
 {
-	fprintf_s(outTXT, "\t                    PrimType: ");
+	std::string tab;
+	if (fromXgm)
+		tab = "\t\t\t    ";
+	const char* tabPtr = tab.c_str();
+	fprintf_s(outTXT, "\t%s                    PrimType: ", tabPtr);
 	if (m_primType == 4)
 		fprintf_s(outTXT, "Kick vertices separately\n");
 	else if (m_primType == 5)
@@ -381,59 +429,59 @@ void xgDagMesh::writeTXT(FILE* outTXT, bool fromXgm)
 		fprintf_s(outTXT, "Who the heck knows\n");
 	if (m_primType == 4)
 	{
-		fprintf_s(outTXT, "\t                # of TriFans: %lu\n", m_triFanCount);
-		for (unsigned long index = 0, valueIndex = 0; index < m_triFanCount; index++)
+		fprintf_s(outTXT, "\t%s                # of TriFans: %lu\n", tabPtr, m_triFanCount);
+		for (unsigned long index = 0, valueIndex = 0; index < m_triFanCount; ++index)
 		{
 			const unsigned long numIndexes = m_triFanData.m_arrayData[valueIndex++];
-			fprintf_s(outTXT, "\t					TriFan %03lu\n", index);
-			fprintf_s(outTXT, "\t					    # of Vertex Indexes: %03lu\n", numIndexes);
-			for (unsigned long vertex = 0; vertex < numIndexes; vertex++, valueIndex++)
-			fprintf_s(outTXT, "\t					            Index %03lu: %lu\n", vertex, m_triFanData.m_arrayData[valueIndex]);
+			fprintf_s(outTXT, "\t%s                   TriFan %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t%s                       # of Vertex Indexes: %03lu\n", tabPtr, numIndexes);
+			for (unsigned long vertex = 0; vertex < numIndexes; ++vertex, ++valueIndex)
+				fprintf_s(outTXT, "\t%s                               Index %03lu: %lu\n", tabPtr, vertex, m_triFanData.m_arrayData[valueIndex]);
 		}
-		fprintf_s(outTXT, "\t              # of TriStrips: %lu\n", m_triFanCount);
-		for (unsigned long index = 0, valueIndex = 0; index < m_triStripCount; index++)
+		fprintf_s(outTXT, "\t%s              # of TriStrips: %lu\n", tabPtr, m_triFanCount);
+		for (unsigned long index = 0, valueIndex = 0; index < m_triStripCount; ++index)
 		{
 			const unsigned long numIndexes = m_triStripData.m_arrayData[valueIndex++];
-			fprintf_s(outTXT, "\t					TriStrip %03lu\n", index);
-			fprintf_s(outTXT, "\t					    # of Vertex Indexes: %03lu\n", numIndexes);
-			for (unsigned long vertex = 0; vertex < numIndexes; vertex++, valueIndex++)
-				fprintf_s(outTXT, "\t					            Index %03lu: %lu\n", vertex, m_triStripData.m_arrayData[valueIndex]);
+			fprintf_s(outTXT, "\t%s                   TriStrip %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t%s                       # of Vertex Indexes: %03lu\n", tabPtr, numIndexes);
+			for (unsigned long vertex = 0; vertex < numIndexes; ++vertex, ++valueIndex)
+				fprintf_s(outTXT, "\t%s                               Index %03lu: %lu\n", tabPtr, vertex, m_triStripData.m_arrayData[valueIndex]);
 		}
-		fprintf_s(outTXT, "\t               # of TriLists: %lu\n", m_triFanCount);
-		for (unsigned long index = 0, valueIndex = 0; index < m_triListCount; index++)
+		fprintf_s(outTXT, "\t%s               # of TriLists: %lu\n", tabPtr, m_triFanCount);
+		for (unsigned long index = 0, valueIndex = 0; index < m_triListCount; ++index)
 		{
 			const unsigned long numIndexes = m_triListData.m_arrayData[valueIndex++];
-			fprintf_s(outTXT, "\t					TriList %03lu\n", index);
-			fprintf_s(outTXT, "\t					    # of Vertex Indexes: %03lu\n", numIndexes);
-			for (unsigned long vertex = 0; vertex < numIndexes; vertex++, valueIndex++)
-				fprintf_s(outTXT, "\t					            Index %03lu: %lu\n", vertex, m_triListData.m_arrayData[valueIndex]);
+			fprintf_s(outTXT, "\t%s                   TriList %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t%s                       # of Vertex Indexes: %03lu\n", tabPtr, numIndexes);
+			for (unsigned long vertex = 0; vertex < numIndexes; vertex++, ++valueIndex)
+				fprintf_s(outTXT, "\t%s                               Index %03lu: %lu\n", tabPtr, vertex, m_triListData.m_arrayData[valueIndex]);
 		}
 	}
 	else if (m_primType == 5)
 	{
-		fprintf_s(outTXT, "\t                 TriFanCount: %lu\n", m_triFanCount);
-		for (unsigned long index = 0, valueIndex = 0; index < m_triFanCount; index++)
+		fprintf_s(outTXT, "\t%s                 TriFanCount: %lu\n", tabPtr, m_triFanCount);
+		for (unsigned long index = 0, valueIndex = 0; index < m_triFanCount; ++index)
 		{
-			fprintf_s(outTXT, "\t					TriFan %03lu\n", index);
-			fprintf_s(outTXT, "\t					    Initial Vertex Index: %03lu\n", m_triFanData.m_arrayData[valueIndex++]);
-			fprintf_s(outTXT, "\t					           # of Vertices: %lu\n", m_triFanData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t%s                   TriFan %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t%s                       Initial Vertex Index: %03lu\n", tabPtr, m_triFanData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t%s                              # of Vertices: %lu\n", tabPtr, m_triFanData.m_arrayData[valueIndex++]);
 		}
-		fprintf_s(outTXT, "\t               TriStripCount: %lu\n", m_triStripCount);
-		for (unsigned long index = 0, valueIndex = 0; index < m_triStripCount; index++)
+		fprintf_s(outTXT, "\t%s               TriStripCount: %lu\n", tabPtr, m_triStripCount);
+		for (unsigned long index = 0, valueIndex = 0; index < m_triStripCount; ++index)
 		{
-			fprintf_s(outTXT, "\t					TriStrip %03lu\n", index);
-			fprintf_s(outTXT, "\t					    Initial Vertex Index: %03lu\n", m_triStripData.m_arrayData[valueIndex++]);
-			fprintf_s(outTXT, "\t					           # of Vertices: %lu\n", m_triStripData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t%s                   TriStrip %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t%s                       Initial Vertex Index: %03lu\n", tabPtr, m_triStripData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t%s                              # of Vertices: %lu\n", tabPtr, m_triStripData.m_arrayData[valueIndex++]);
 		}
-		fprintf_s(outTXT, "\t                TriListCount: %lu\n", m_triListCount);
-		for (unsigned long index = 0, valueIndex = 0; index < m_triListCount; index++)
+		fprintf_s(outTXT, "\t%s                TriListCount: %lu\n", tabPtr, m_triListCount);
+		for (unsigned long index = 0, valueIndex = 0; index < m_triListCount; ++index)
 		{
-			fprintf_s(outTXT, "\t					TriList %03lu\n", index);
-			fprintf_s(outTXT, "\t					    Initial Vertex Index: %03lu\n", m_triListData.m_arrayData[valueIndex++]);
-			fprintf_s(outTXT, "\t					           # of Vertices: %lu\n", m_triListData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t%s                   TriList %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t%s                       Initial Vertex Index: %03lu\n", tabPtr, m_triListData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t%s                              # of Vertices: %lu\n", tabPtr, m_triListData.m_arrayData[valueIndex++]);
 		}
 	}
-	fprintf_s(outTXT, "\t                    CullFunc: ");
+	fprintf_s(outTXT, "\t%s                    CullFunc: ", tabPtr);
 	switch (m_cullFunc)
 	{
 	case 0:
@@ -447,24 +495,24 @@ void xgDagMesh::writeTXT(FILE* outTXT, bool fromXgm)
 	}
 	if (m_inputGeometry.size())
 	{
-		fprintf_s(outTXT, "\t       # of Input Geometries: %zu\n", m_inputGeometry.size());
-		for (size_t index = 0; index < m_inputGeometry.size(); index++)
-			fprintf_s(outTXT, "\t\t\t   %zu. %s\n", index, m_inputGeometry[index].m_pstring);
+		fprintf_s(outTXT, "\t%s       # of Input Geometries: %zu\n", tabPtr, m_inputGeometry.size());
+		for (size_t index = 0; index < m_inputGeometry.size(); ++index)
+			fprintf_s(outTXT, "\t\t\t%s   %zu. %s\n", tabPtr, index, m_inputGeometry[index].getPString()->m_pstring);
 	}
 	if (m_inputMaterial.size())
 	{
-		fprintf_s(outTXT, "\t        # of Input Materials: %zu\n", m_inputMaterial.size());
-		for (size_t index = 0; index < m_inputMaterial.size(); index++)
-			fprintf_s(outTXT, "\t\t\t   %zu. %s\n", index, m_inputMaterial[index].m_pstring);
+		fprintf_s(outTXT, "\t%s        # of Input Materials: %zu\n", tabPtr, m_inputMaterial.size());
+		for (size_t index = 0; index < m_inputMaterial.size(); ++index)
+			fprintf_s(outTXT, "\t\t\t%s   %zu. %s\n", tabPtr, index, m_inputMaterial[index].getPString()->m_pstring);
 	}
 }
 
-void xgDagTransform::read(FILE* inFile)
+void xgDagTransform::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
-		m_inputMatrix.emplace_back(inFile);
+		m_inputMatrix.emplace_back(inFile, nodeList);
 		PString::pull(inFile);
 		test.fill(inFile);
 	}
@@ -476,10 +524,10 @@ void xgDagTransform::create(FILE* outFile, bool full)
 	if (full)
 	{
 		PString::push('{', outFile);
-		for (size_t mat = 0; mat < m_inputMatrix.size(); mat++)
+		for (SharedNode& node : m_inputMatrix)
 		{
 			PString::push("inputMatrix", outFile);
-			m_inputMatrix[mat].push(outFile);
+			node.push(outFile);
 			PString::push("outputMatrix", outFile);
 		}
 		PString::push('}', outFile);
@@ -514,25 +562,27 @@ xgEnvelope::Targets::~Targets()
 	if (m_vertexTargets != nullptr)
 		delete[m_numTargets] m_vertexTargets;
 }
-void xgEnvelope::read(FILE* inFile)
+void xgEnvelope::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_startVertex, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_key.m_numweights, 4, 1, inFile);
 	m_key.m_weights = new float[m_key.m_numweights][4];
-	fread(m_key.m_weights, 16, m_key.m_numweights, inFile);
+	if (fread(m_key.m_weights, 16, m_key.m_numweights, inFile) != m_key.m_numweights)
+		throw;
 	PString::pull(inFile);
 	fread(&m_vertices.m_numTargets, 4, 1, inFile);
 	m_vertices.m_vertexTargets = new long[m_vertices.m_numTargets];
-	fread(m_vertices.m_vertexTargets, 4, m_vertices.m_numTargets, inFile);
+	if (fread(m_vertices.m_vertexTargets, 4, m_vertices.m_numTargets, inFile) != m_vertices.m_numTargets)
+		throw;
 	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
 		if (strstr(test.m_pstring, "inputMatrix1"))
-			m_inputMatrix1.emplace_back(inFile);
+			m_inputMatrix1.emplace_back(inFile, nodeList);
 		else
-			m_inputGeometry.emplace_back(inFile);
+			m_inputGeometry.emplace_back(inFile, nodeList);
 		PString::pull(inFile);
 		test.fill(inFile);
 	}
@@ -552,16 +602,16 @@ void xgEnvelope::create(FILE* outFile, bool full)
 		PString::push("vertexTargets", outFile);
 		fwrite(&m_vertices.m_numTargets, 4, 1, outFile);
 		fwrite(m_vertices.m_vertexTargets, 4, m_vertices.m_numTargets, outFile);
-		for (size_t mat = 0; mat < m_inputMatrix1.size(); mat++)
+		for (SharedNode& node : m_inputMatrix1)
 		{
 			PString::push("inputMatrix1", outFile);
-			m_inputMatrix1[mat].push(outFile);
+			node.push(outFile);
 			PString::push("envelopeMatrix", outFile);
 		}
-		for (size_t geo = 0; geo < m_inputGeometry.size(); geo++)
+		for (SharedNode& node : m_inputGeometry)
 		{
 			PString::push("inputGeometry", outFile);
-			m_inputGeometry[geo].push(outFile);
+			node.push(outFile);
 			PString::push("outputGeometry", outFile);
 		}
 		PString::push('}', outFile);
@@ -574,7 +624,7 @@ void xgEnvelope::writeTXT(FILE* outTXT, bool fromXgm)
 
 }
 
-void xgMaterial::read(FILE* inFile)
+void xgMaterial::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_blendType, 4, 1, inFile);
@@ -601,7 +651,7 @@ void xgMaterial::read(FILE* inFile)
 	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
-		m_inputTexture.emplace_back(inFile);
+		m_inputTexture.emplace_back(inFile, nodeList);
 		PString::pull(inFile);
 		test.fill(inFile);
 	}
@@ -635,10 +685,10 @@ void xgMaterial::create(FILE* outFile, bool full)
 		fwrite(&m_uTile, 4, 1, outFile);
 		PString::push("vTile", outFile);
 		fwrite(&m_vTile, 4, 1, outFile);
-		for (size_t tex = 0; tex < m_inputTexture.size(); tex++)
+		for (SharedNode& node : m_inputTexture)
 		{
 			PString::push("inputTexture", outFile);
-			m_inputTexture[tex].push(outFile);
+			node.push(outFile);
 			PString::push("outputTexture", outFile);
 		}
 		PString::push('}', outFile);
@@ -651,13 +701,13 @@ void xgMaterial::writeTXT(FILE* outTXT, bool fromXgm)
 
 }
 
-void xgMultiPassMaterial::read(FILE* inFile)
+void xgMultiPassMaterial::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	PString test;
 	do
 	{
-		m_inputMaterial.emplace_back(inFile);
+		m_inputMaterial.emplace_back(inFile, nodeList);
 		PString::pull(inFile);
 		test.fill(inFile);
 	} while (!strchr(test.m_pstring, '}'));
@@ -669,10 +719,10 @@ void xgMultiPassMaterial::create(FILE* outFile, bool full)
 	if (full)
 	{
 		PString::push('{', outFile);
-		for (size_t mat = 0; mat < m_inputMaterial.size(); mat++)
+		for (SharedNode& node : m_inputMaterial)
 		{
 			PString::push("inputMaterial", outFile);
-			m_inputMaterial[mat].push(outFile);
+			node.push(outFile);
 			PString::push("outputMaterial", outFile);
 		}
 		PString::push('}', outFile);
@@ -723,21 +773,22 @@ xgNormalInterpolator::xgNormalInterpolator(xgNormalInterpolator& norm)
 	: XGNode(norm.m_name), m_type(norm.m_type), m_times(norm.m_times), m_numkeys(norm.m_numkeys), m_targets(norm.m_targets), m_inputTime(norm.m_inputTime)
 {
 	m_keys = new Key[m_numkeys];
-	for (size_t k = 0; k < m_numkeys; k++)
+	for (unsigned long k = 0; k < m_numkeys; ++k)
 		m_keys[k] = norm.m_keys[k];
 }
-void xgNormalInterpolator::read(FILE* inFile)
+void xgNormalInterpolator::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_times.m_numtimes, 4, 1, inFile);
 	m_times.m_times = new float[m_times.m_numtimes];
-	fread(m_times.m_times, 4, m_times.m_numtimes, inFile);
+	if (fread(m_times.m_times, 4, m_times.m_numtimes, inFile) != m_times.m_numtimes)
+		throw;
 	PString::pull(inFile);
 	fread(&m_numkeys, 4, 1, inFile);
 	m_keys = new Key[m_numkeys];
-	for (size_t k = 0; k < m_numkeys; k++)
+	for (unsigned long k = 0; k < m_numkeys; ++k)
 	{
 		fread(&m_keys[k].m_numNormals, 4, 1, inFile);
 		m_keys[k].m_normals = new float[m_keys[k].m_numNormals][3];
@@ -746,9 +797,10 @@ void xgNormalInterpolator::read(FILE* inFile)
 	PString::pull(inFile);
 	fread(&m_targets.m_numTargets, 4, 1, inFile);
 	m_targets.m_targets = new unsigned long[m_targets.m_numTargets];
-	fread(m_targets.m_targets, 4, m_targets.m_numTargets, inFile);
+	if (fread(m_targets.m_targets, 4, m_targets.m_numTargets, inFile) != m_targets.m_numTargets)
+		throw;
 	PString::pull(inFile);
-	m_inputTime.fill(inFile);
+	m_inputTime.fill(inFile, nodeList);
 	PString::pull(inFile);
 	PString::pull(inFile);
 }
@@ -766,7 +818,7 @@ void xgNormalInterpolator::create(FILE* outFile, bool full)
 		fwrite(m_times.m_times, 4, m_times.m_numtimes, outFile);
 		PString::push("keys", outFile);
 		fwrite(&m_numkeys, 4, 1, outFile);
-		for (size_t k = 0; k < m_numkeys; k++)
+		for (unsigned long k = 0; k < m_numkeys; ++k)
 		{
 			fwrite(&m_keys[k].m_numNormals, 4, 1, outFile);
 			fwrite(m_keys[k].m_normals, 12, m_keys[k].m_numNormals, outFile);
@@ -803,16 +855,17 @@ xgQuatInterpolator::Key::~Key()
 	if (m_keys != nullptr)
 		delete[m_numkeys] m_keys;
 }
-void xgQuatInterpolator::read(FILE* inFile)
+void xgQuatInterpolator::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_keyStruct.m_numkeys, 4, 1, inFile);
 	m_keyStruct.m_keys = new float[m_keyStruct.m_numkeys][4];
-	fread(m_keyStruct.m_keys, 16, m_keyStruct.m_numkeys, inFile);
+	if (fread(m_keyStruct.m_keys, 16, m_keyStruct.m_numkeys, inFile) != m_keyStruct.m_numkeys)
+		throw;
 	PString::pull(inFile);
-	m_inputTime.fill(inFile);
+	m_inputTime.fill(inFile, nodeList);
 	PString::pull(inFile);
 	PString::pull(inFile);
 }
@@ -857,7 +910,7 @@ xgShapeInterpolator::Key& xgShapeInterpolator::Key::operator=(const Key& m_key)
 	m_vertexType = m_key.m_vertexType;
 	m_numVerts = m_key.m_numVerts;
 	m_vertices = new float* [m_numVerts];
-	size_t size = 0;
+	int size = 0;
 	if (m_vertexType & 1)
 		size += 4;
 	if (m_vertexType & 2)
@@ -866,7 +919,7 @@ xgShapeInterpolator::Key& xgShapeInterpolator::Key::operator=(const Key& m_key)
 		size += 4;
 	if (m_vertexType & 8)
 		size += 2;
-	for (size_t v = 0; v < m_numVerts; v++)
+	for (unsigned long v = 0; v < m_numVerts; ++v)
 	{
 		m_vertices[v] = new float[size];
 		std::copy(m_key.m_vertices[v], m_key.m_vertices[v] + size, m_vertices[v]);
@@ -875,7 +928,7 @@ xgShapeInterpolator::Key& xgShapeInterpolator::Key::operator=(const Key& m_key)
 }
 xgShapeInterpolator::Key::~Key()
 {
-	size_t size = 0;
+	int size = 0;
 	if (m_vertexType & 1)
 		size += 4;
 	if (m_vertexType & 2)
@@ -884,7 +937,7 @@ xgShapeInterpolator::Key::~Key()
 		size += 4;
 	if (m_vertexType & 8)
 		size += 2;
-	for (size_t v = 0; v < m_numVerts; v++)
+	for (unsigned long v = 0; v < m_numVerts; ++v)
 		delete[size] m_vertices[v];
 	delete[m_numVerts] m_vertices;
 }
@@ -892,25 +945,26 @@ xgShapeInterpolator::xgShapeInterpolator(xgShapeInterpolator& shape)
 	: XGNode(shape.m_name), m_type(shape.m_type), m_times(shape.m_times), m_numkeys(shape.m_numkeys), m_inputTime(shape.m_inputTime)
 {
 	m_keys = new Key[m_numkeys];
-	for (size_t k = 0; k < m_numkeys; k++)
+	for (unsigned long k = 0; k < m_numkeys; ++k)
 		m_keys[k] = shape.m_keys[k];
 }
-void xgShapeInterpolator::read(FILE* inFile)
+void xgShapeInterpolator::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_times.m_numtimes, 4, 1, inFile);
 	m_times.m_times = new float[m_times.m_numtimes];
-	fread(m_times.m_times, 4, m_times.m_numtimes, inFile);
+	if (fread(m_times.m_times, 4, m_times.m_numtimes, inFile) != m_times.m_numtimes)
+		throw;
 	PString::pull(inFile);
 	fread(&m_numkeys, 4, 1, inFile);
 	m_keys = new Key[m_numkeys];
-	for (size_t k = 0; k < m_numkeys; k++)
+	for (unsigned long k = 0; k < m_numkeys; ++k)
 	{
 		Key& key = m_keys[k];
 		fread(&key.m_vertexType, 4, 1, inFile);
-		size_t size = 0;
+		int size = 0;
 		if (key.m_vertexType & 1)
 			size += 4;
 		if (key.m_vertexType & 2)
@@ -921,14 +975,14 @@ void xgShapeInterpolator::read(FILE* inFile)
 			size += 2;
 		fread(&key.m_numVerts, 4, 1, inFile);
 		key.m_vertices = new float* [key.m_numVerts];
-		for (size_t v = 0; v < key.m_numVerts; v++)
+		for (unsigned long v = 0; v < key.m_numVerts; ++v)
 		{
 			key.m_vertices[v] = new float[size];
 			fread(key.m_vertices[v], 4, size, inFile);
 		}
 	}
 	PString::pull(inFile);
-	m_inputTime.fill(inFile);
+	m_inputTime.fill(inFile, nodeList);
 	PString::pull(inFile);
 	PString::pull(inFile);
 }
@@ -946,11 +1000,11 @@ void xgShapeInterpolator::create(FILE* outFile, bool full)
 		fwrite(m_times.m_times, 4, m_times.m_numtimes, outFile);
 		PString::push("keys", outFile);
 		fwrite(&m_numkeys, 4, 1, outFile);
-		for (size_t k = 0; k < m_numkeys; k++)
+		for (unsigned long k = 0; k < m_numkeys; ++k)
 		{
 			Key& key = m_keys[k];
 			fwrite(&key.m_vertexType, 4, 1, outFile);
-			size_t size = 0;
+			int size = 0;
 			if (key.m_vertexType & 1)
 				size += 4;
 			if (key.m_vertexType & 2)
@@ -960,7 +1014,7 @@ void xgShapeInterpolator::create(FILE* outFile, bool full)
 			if (key.m_vertexType & 8)
 				size += 2;
 			fwrite(&key.m_numVerts, 4, 1, outFile);
-			for (size_t v = 0; v < key.m_numVerts; v++)
+			for (unsigned long v = 0; v < key.m_numVerts; ++v)
 				fwrite(key.m_vertices[v], 4, size, outFile);
 		}
 		PString::push("inputTime", outFile);
@@ -1019,21 +1073,22 @@ xgTexCoordInterpolator::xgTexCoordInterpolator(xgTexCoordInterpolator& tex)
 	: XGNode(tex.m_name), m_type(tex.m_type), m_times(tex.m_times), m_numkeys(tex.m_numkeys), m_targets(tex.m_targets), m_inputTime(tex.m_inputTime)
 {
 	m_keys = new Key[m_numkeys];
-	for (size_t k = 0; k < m_numkeys; k++)
+	for (unsigned long k = 0; k < m_numkeys; ++k)
 		m_keys[k] = tex.m_keys[k];
 }
-void xgTexCoordInterpolator::read(FILE* inFile)
+void xgTexCoordInterpolator::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_times.m_numtimes, 4, 1, inFile);
 	m_times.m_times = new float[m_times.m_numtimes];
-	fread(m_times.m_times, 4, m_times.m_numtimes, inFile);
+	if (fread(m_times.m_times, 4, m_times.m_numtimes, inFile) != m_times.m_numtimes)
+		throw;
 	PString::pull(inFile);
 	fread(&m_numkeys, 4, 1, inFile);
 	m_keys = new Key[m_numkeys];
-	for (size_t k = 0; k < m_numkeys; k++)
+	for (unsigned long k = 0; k < m_numkeys; ++k)
 	{
 		fread(&m_keys[k].m_numVerts, 4, 1, inFile);
 		m_keys[k].m_texcoords = new float[m_keys[k].m_numVerts][2];
@@ -1042,9 +1097,10 @@ void xgTexCoordInterpolator::read(FILE* inFile)
 	PString::pull(inFile);
 	fread(&m_targets.m_numTargets, 4, 1, inFile);
 	m_targets.m_targets = new unsigned long[m_targets.m_numTargets];
-	fread(m_targets.m_targets, 4, m_targets.m_numTargets, inFile);
+	if (fread(m_targets.m_targets, 4, m_targets.m_numTargets, inFile) != m_targets.m_numTargets)
+		throw;
 	PString::pull(inFile);
-	m_inputTime.fill(inFile);
+	m_inputTime.fill(inFile, nodeList);
 	PString::pull(inFile);
 	PString::pull(inFile);
 }
@@ -1062,7 +1118,7 @@ void xgTexCoordInterpolator::create(FILE* outFile, bool full)
 		fwrite(m_times.m_times, 4, m_times.m_numtimes, outFile);
 		PString::push("keys", outFile);
 		fwrite(&m_numkeys, 4, 1, outFile);
-		for (size_t k = 0; k < m_numkeys; k++)
+		for (unsigned long k = 0; k < m_numkeys; ++k)
 		{
 			fwrite(&m_keys[k].m_numVerts, 4, 1, outFile);
 			fwrite(m_keys[k].m_texcoords, 8, m_keys[k].m_numVerts, outFile);
@@ -1088,7 +1144,7 @@ void xgTexCoordInterpolator::writeTXT(FILE* outTXT, bool fromXgm)
 
 }
 
-void xgTexture::read(FILE* inFile)
+void xgTexture::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	m_imxName.fill(inFile);
@@ -1117,7 +1173,7 @@ void xgTexture::writeTXT(FILE* outTXT, bool fromXgm)
 
 }
 
-void xgTime::read(FILE* inFile)
+void xgTime::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_numFrames, 4, 1, inFile);
@@ -1157,16 +1213,17 @@ xgVec3Interpolator::Key::~Key()
 	if (m_keys != nullptr)
 		delete[m_numkeys] m_keys;
 }
-void xgVec3Interpolator::read(FILE* inFile)
+void xgVec3Interpolator::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_keyStruct.m_numkeys, 4, 1, inFile);
 	m_keyStruct.m_keys = new float[m_keyStruct.m_numkeys][3];
-	fread(m_keyStruct.m_keys, 12, m_keyStruct.m_numkeys, inFile);
+	if (fread(m_keyStruct.m_keys, 12, m_keyStruct.m_numkeys, inFile) != m_keyStruct.m_numkeys)
+		throw;
 	PString::pull(inFile);
-	m_inputTime.fill(inFile);
+	m_inputTime.fill(inFile, nodeList);
 	PString::pull(inFile);
 	PString::pull(inFile);
 }
@@ -1233,21 +1290,22 @@ xgVertexInterpolator::xgVertexInterpolator(xgVertexInterpolator& vert)
 	: XGNode(vert.m_name), m_type(vert.m_type), m_times(vert.m_times), m_numkeys(vert.m_numkeys), m_targets(vert.m_targets), m_inputTimes(vert.m_inputTimes)
 {
 	m_keys = new Key[m_numkeys];
-	for (size_t k = 0; k < m_numkeys; k++)
+	for (unsigned long k = 0; k < m_numkeys; ++k)
 		m_keys[k] = vert.m_keys[k];
 }
-void xgVertexInterpolator::read(FILE* inFile)
+void xgVertexInterpolator::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_type, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_times.m_numtimes, 4, 1, inFile);
 	m_times.m_times = new float[m_times.m_numtimes];
-	fread(m_times.m_times, 4, m_times.m_numtimes, inFile);
+	if (fread(m_times.m_times, 4, m_times.m_numtimes, inFile) != m_times.m_numtimes)
+		throw;
 	PString::pull(inFile);
 	fread(&m_numkeys, 4, 1, inFile);
 	m_keys = new Key[m_numkeys];
-	for (size_t k = 0; k < m_numkeys; k++)
+	for (unsigned long k = 0; k < m_numkeys; ++k)
 	{
 		fread(&m_keys[k].m_numsize, 4, 1, inFile);
 		m_keys[k].m_nums = new float[m_keys[k].m_numsize][3];
@@ -1256,11 +1314,12 @@ void xgVertexInterpolator::read(FILE* inFile)
 	PString::pull(inFile);
 	fread(&m_targets.m_numTargets, 4, 1, inFile);
 	m_targets.m_targets = new unsigned long[m_targets.m_numTargets];
-	fread(m_targets.m_targets, 4, m_targets.m_numTargets, inFile);
+	if (fread(m_targets.m_targets, 4, m_targets.m_numTargets, inFile) != m_targets.m_numTargets)
+		throw;
 	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
-		m_inputTimes.emplace_back(inFile);
+		m_inputTimes.emplace_back(inFile, nodeList);
 		PString::pull(inFile);
 		test.fill(inFile);
 	}
@@ -1279,7 +1338,7 @@ void xgVertexInterpolator::create(FILE* outFile, bool full)
 		fwrite(m_times.m_times, 4, m_times.m_numtimes, outFile);
 		PString::push("keys", outFile);
 		fwrite(&m_numkeys, 4, 1, outFile);
-		for (size_t k = 0; k < m_numkeys; k++)
+		for (unsigned long k = 0; k < m_numkeys; ++k)
 		{
 			fwrite(&m_keys[k].m_numsize, 4, 1, outFile);
 			fwrite(m_keys[k].m_nums, 12, m_keys[k].m_numsize, outFile);
@@ -1287,10 +1346,10 @@ void xgVertexInterpolator::create(FILE* outFile, bool full)
 		PString::push("targets", outFile);
 		fwrite(&m_targets.m_numTargets, 4, 1, outFile);
 		fwrite(m_targets.m_targets, 4, m_targets.m_numTargets, outFile);
-		for (size_t time = 0; time < m_inputTimes.size(); time++)
+		for (SharedNode& node : m_inputTimes)
 		{
 			PString::push("inputTime", outFile);
-			m_inputTimes[time].push(outFile);
+			node.push(outFile);
 			PString::push("outputTime", outFile);
 		}
 		PString::push('}', outFile);

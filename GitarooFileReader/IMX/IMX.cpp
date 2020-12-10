@@ -258,10 +258,7 @@ IMX_Data& IMX_Data::operator=(IMX_Data& imx)
 
 void IMX_Data::create(FILE* outFile)
 {
-	union {
-		char c[4];
-		unsigned ui;
-	} u;
+	unsigned long value = 0;
 	fwrite("IMX\0", 1, 4, outFile);
 	fwrite("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 1, 16, outFile);
 	fwrite(&m_width, 4, 1, outFile);
@@ -272,8 +269,7 @@ void IMX_Data::create(FILE* outFile)
 	{
 		fwrite(&m_colorData->m_paletteSize, 4, 1, outFile);
 		fwrite(m_colorData->m_palette, 4, m_colorData->m_paletteSize >> 2, outFile);
-		u.ui = 2;
-		fwrite(u.c, 1, 4, outFile);
+		fwrite(&(value = 2), 1, 4, outFile);
 		fwrite(&m_colorData->m_imageSize, 4, 1, outFile);
 		fwrite(m_colorData->m_pix4, sizeof(Pixel4), m_colorData->m_imageSize, outFile);
 	}
@@ -281,8 +277,7 @@ void IMX_Data::create(FILE* outFile)
 	{
 		fwrite(&m_colorData->m_paletteSize, 4, 1, outFile);
 		fwrite(m_colorData->m_palette, 4, m_colorData->m_paletteSize >> 2, outFile);
-		u.ui = 2;
-		fwrite(u.c, 1, 4, outFile);
+		fwrite(&(value = 2), 1, 4, outFile);
 		fwrite(&m_colorData->m_imageSize, 4, 1, outFile);
 		fwrite(m_colorData->m_pix8, sizeof(Pixel8), m_colorData->m_imageSize, outFile);
 	}
@@ -296,8 +291,7 @@ void IMX_Data::create(FILE* outFile)
 		fwrite(&m_colorData->m_imageSize, 4, 1, outFile);
 		fwrite(m_colorData->m_pix32, sizeof(Pixel32), m_colorData->m_imageSize >> 2, outFile);
 	}
-	u.ui = 3;
-	fwrite(u.c, 1, 4, outFile);
+	fwrite(&(value = 3), 1, 4, outFile);
 	fwrite("\0\0\0\0", 1, 4, outFile);
 }
 

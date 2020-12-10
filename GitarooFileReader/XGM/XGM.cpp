@@ -25,9 +25,11 @@ XGM::XGM(std::string filename) : m_saved(2), m_name(filename + ".XGM")
 	FILE* inFile;
 	if (fopen_s(&inFile, m_name.c_str(), "rb") || inFile == nullptr)
 		throw "Error: " + m_name + " could not be located.";
+
 	unsigned long numT, numM;
 	if (fread(&numT, 4, 1, inFile) != 1 || fread(&numM, 4, 1, inFile) != 1)
 		throw "Error: " + m_name + " is not of sufficient size.";
+
 	const string directory = pos != std::string::npos ? filename.substr(0, pos + 1) : "";
 	for (size_t t = 0; t < numT; t++)
 		m_textures.emplace_back(inFile, directory);
@@ -47,20 +49,22 @@ void XGM::create(string filename)
 	fopen_s(&outFile, filename.c_str(), "wb");
 	if (outFile == nullptr)
 		throw "Error: " + filename + " could not be created.";
+
 	unsigned long sizes = (unsigned long)m_textures.size();
 	fwrite(&sizes, 4, 1, outFile);
 	sizes = (unsigned long)m_models.size();
 	fwrite(&sizes, 4, 1, outFile);
 
 	sizes = 0;
-	for (size_t t = 0; t < m_textures.size(); t++)
+	for (IMX& imx : m_textures)
 	{
-		m_textures[t].create(outFile, sizes);
+		imx.create(outFile, sizes);
 		fflush(outFile);
 	}
-	for (size_t m = 0; m < m_models.size(); m++)
+
+	for (XG& xg : m_models)
 	{
-		m_models[m].create(outFile);
+		xg.create(outFile);
 		fflush(outFile);
 	}
 	fclose(outFile);

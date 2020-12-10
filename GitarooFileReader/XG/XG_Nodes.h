@@ -15,17 +15,32 @@
  */
 #include "Global_Functions.h"
 #include "PString\PString.h"
+
 struct XGNode
 {
 	PString m_name;
 	XGNode() = default;
 	XGNode(PString& name) : m_name(name) {}
-	virtual void read(FILE* inFile);
+	virtual void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	virtual void create(FILE* outFile, bool full) {}
 	virtual void writeTXT(FILE* outTXT, bool fromXgm) {}
 	virtual ~XGNode() {}
 	static const char* getType() { return "Unspecified"; }
 };
+
+struct SharedNode
+{
+	XGNode* m_node = nullptr;
+	SharedNode() = default;
+	SharedNode(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
+	void fill(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
+	// Warning: Does NOT perform a nullptr check
+	void push(FILE* outFile);
+	bool isValid() { return m_node != nullptr; }
+	// Warning: Does NOT perform a nullptr check
+	PString* getPString();
+};
+
 struct xgBgGeometry : public XGNode
 {
 	float m_density = 0;
@@ -38,10 +53,10 @@ struct xgBgGeometry : public XGNode
 		Vertices(const Vertices& verts);
 		~Vertices();
 	} m_vertexData;
-	std::vector<PString> m_inputGeometryNames;
+	std::vector<SharedNode> m_inputGeometryNames;
 	xgBgGeometry() = default;
 	xgBgGeometry(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	static const char* getType() { return "xgBgGeometry"; }
@@ -52,13 +67,13 @@ struct xgBgMatrix : public XGNode
 	float m_position[3] = { 0 };
 	float m_rotation[4] = { 0 };
 	float m_scale[3] = { 0 };
-	PString m_inputPosition;
-	PString m_inputRotation;
-	PString m_inputScale;
-	PString m_inputParentMatrix;
+	SharedNode m_inputPosition;
+	SharedNode m_inputRotation;
+	SharedNode m_inputScale;
+	SharedNode m_inputParentMatrix;
 	xgBgMatrix() = default;
 	xgBgMatrix(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	~xgBgMatrix() {}
@@ -68,10 +83,10 @@ struct xgBgMatrix : public XGNode
 struct xgBone : public XGNode
 {
 	float m_restMatrix[16] = { 0 };
-	PString m_inputMatrix;
+	SharedNode m_inputMatrix;
 	xgBone() = default;
 	xgBone(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	~xgBone() {}
@@ -98,11 +113,11 @@ struct xgDagMesh : public XGNode
 	unsigned long m_triListCount = 0; //number of triLists
 	Data m_triListData; // triListsize
 	unsigned long m_cullFunc = 0;
-	std::vector<PString> m_inputGeometry;
-	std::vector<PString> m_inputMaterial;
+	std::vector<SharedNode> m_inputGeometry;
+	std::vector<SharedNode> m_inputMaterial;
 	xgDagMesh() = default;
 	xgDagMesh(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	static const char* getType() { return "xgDagMesh"; }
@@ -110,10 +125,10 @@ struct xgDagMesh : public XGNode
 
 struct xgDagTransform : public XGNode
 {
-	std::vector<PString> m_inputMatrix;
+	std::vector<SharedNode> m_inputMatrix;
 	xgDagTransform() = default;
 	xgDagTransform(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	static const char* getType() { return "xgDagTransform"; }
@@ -138,11 +153,11 @@ struct xgEnvelope : public XGNode
 		Targets(const Targets& targets);
 		~Targets();
 	} m_vertices;
-	std::vector<PString> m_inputMatrix1;
-	std::vector<PString> m_inputGeometry;
+	std::vector<SharedNode> m_inputMatrix1;
+	std::vector<SharedNode> m_inputGeometry;
 	xgEnvelope() = default;
 	xgEnvelope(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	static const char* getType() { return "xgEnvelope"; }
@@ -170,10 +185,10 @@ struct xgMaterial : public XGNode
 	unsigned long m_textureEnv = 0;
 	unsigned long m_uTile = 0;
 	unsigned long m_vTile = 0;
-	std::vector<PString> m_inputTexture;
+	std::vector<SharedNode> m_inputTexture;
 	xgMaterial() = default;
 	xgMaterial(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	static const char* getType() { return "xgMaterial"; }
@@ -181,10 +196,10 @@ struct xgMaterial : public XGNode
 
 struct xgMultiPassMaterial : public XGNode
 {
-	std::vector<PString> m_inputMaterial;
+	std::vector<SharedNode> m_inputMaterial;
 	xgMultiPassMaterial() = default;
 	xgMultiPassMaterial(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	static const char* getType() { return "xgMultiPassMaterial"; }
@@ -217,11 +232,11 @@ struct xgNormalInterpolator : public XGNode
 		Targets(const Targets& targets);
 		~Targets();
 	} m_targets;
-	PString m_inputTime;
+	SharedNode m_inputTime;
 	xgNormalInterpolator() = default;
 	xgNormalInterpolator(PString& name) : XGNode(name) {}
 	xgNormalInterpolator(xgNormalInterpolator& norm);
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	~xgNormalInterpolator();
@@ -239,10 +254,10 @@ struct xgQuatInterpolator : public XGNode
 		Key(const Key& keyStruct);
 		~Key();
 	} m_keyStruct;
-	PString m_inputTime;
+	SharedNode m_inputTime;
 	xgQuatInterpolator() = default;
 	xgQuatInterpolator(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	static const char* getType() { return "xgQuatInterpolator"; }
@@ -268,11 +283,11 @@ struct xgShapeInterpolator : public XGNode
 		Key& operator=(const Key & keyStruct);
 		~Key();
 	} *m_keys = nullptr; // numKeys
-	PString m_inputTime;
+	SharedNode m_inputTime;
 	xgShapeInterpolator() = default;
 	xgShapeInterpolator(PString& name) : XGNode(name) {}
 	xgShapeInterpolator(xgShapeInterpolator& shape);
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	~xgShapeInterpolator();
@@ -306,11 +321,11 @@ struct xgTexCoordInterpolator : public XGNode
 		Targets(const Targets& targets);
 		~Targets();
 	} m_targets;
-	PString m_inputTime;
+	SharedNode m_inputTime;
 	xgTexCoordInterpolator() = default;
 	xgTexCoordInterpolator(PString& name) : XGNode(name) {}
 	xgTexCoordInterpolator(xgTexCoordInterpolator& tex);
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	~xgTexCoordInterpolator();
@@ -323,7 +338,7 @@ struct xgTexture : public XGNode
 	unsigned long m_mipmap_depth = 0;
 	xgTexture() = default;
 	xgTexture(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	~xgTexture() {}
@@ -336,7 +351,7 @@ struct xgTime : public XGNode
 	float m_time = 0;
 	xgTime() = default;
 	xgTime(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	~xgTime() {}
@@ -354,10 +369,10 @@ struct xgVec3Interpolator : public XGNode
 		Key(const Key& keyStruct);
 		~Key();
 	} m_keyStruct;
-	PString m_inputTime;
+	SharedNode m_inputTime;
 	xgVec3Interpolator() = default;
 	xgVec3Interpolator(PString& name) : XGNode(name) {}
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	static const char* getType() { return "xgVec3Interpolator"; }
@@ -390,11 +405,11 @@ struct xgVertexInterpolator : public XGNode
 		Targets(const Targets& targets);
 		~Targets();
 	} m_targets;
-	std::vector<PString> m_inputTimes;
+	std::vector<SharedNode> m_inputTimes;
 	xgVertexInterpolator() = default;
 	xgVertexInterpolator(PString& name) : XGNode(name) {}
 	xgVertexInterpolator(xgVertexInterpolator& vert);
-	void read(FILE* inFile);
+	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
 	void writeTXT(FILE* outTXT, bool fromXgm);
 	~xgVertexInterpolator();

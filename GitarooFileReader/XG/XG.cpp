@@ -29,8 +29,9 @@ XG::XG(FILE* inFile, const std::string& directory) : m_directory(directory), m_s
 	unsigned long numAnims;
 	fread(&numAnims, 4, 1, inFile);
 	fread(&m_unk, 4, 1, inFile);
-	for (size_t a = 0; a < numAnims; a++)
+	for (size_t a = 0; a < numAnims; ++a)
 		m_animations.emplace_back(inFile);
+
 	try
 	{
 		m_data = std::make_shared<XG_Data>(inFile);
@@ -60,6 +61,7 @@ XG::XG(std::string filename, bool useBanner) : m_modelIndex(0), m_unk(false), m_
 	FILE* inFile = nullptr;
 	if (fopen_s(&inFile, (filename + ".XG").c_str(), "rb"))
 		throw "Error: " + filename + ".XG could not be located.";
+
 	if (useBanner)
 		GlobalFunctions::banner(" Loading " + m_shortname + ".XG ");
 	try
@@ -116,8 +118,10 @@ void XG::create(string filename)
 	}
 	FILE* outFile = nullptr;
 	fopen_s(&outFile, filename.c_str(), "wb");
+
 	if (outFile == nullptr)
 		throw "Error: " + filename + " could not be created.";
+
 	m_data->create(outFile);
 	fclose(outFile);
 	m_saved = 1;
@@ -164,28 +168,27 @@ XG_Data::XG_Data(FILE* inFile)
 	PString colonTest(inFile);
 	do
 	{
-		for (size_t t = 0; t < 18; t++)
+		for (bool(XG_Data::* func)(PString&, PString&) : types)
 		{
-			if (types[t])
-			{
-				if ((this->*types[t])(type, xgName))
-					break;
-			}
-			else
+			if (!func)
 			{
 				fclose(inFile);
 				throw "Error: Unrecognized xgNode type - " + std::string(type.m_pstring) + " [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
 			}
+			else if ((this->*func)(type, xgName))
+				break;
 		}
+
 		type.fill(inFile);
 		xgName.fill(inFile);
 		colonTest.fill(inFile);
 	} while (strchr(colonTest.m_pstring, ';'));
+
 	for (size_t n = 0; n < m_nodes.size(); n++)
 	{
 		try
 		{
-			m_nodes[n]->read(inFile);
+			m_nodes[n]->read(inFile, m_nodes);
 			if (n + 1 != m_nodes.size())
 			{
 				type.fill(inFile);
@@ -199,10 +202,11 @@ XG_Data::XG_Data(FILE* inFile)
 			throw str;
 		}
 	}
+
 	type.fill(inFile);		// Grabs the .dag std::string
 	colonTest.fill(inFile); // Grabs the { character
 	xgName.fill(inFile);
-	std::vector<std::vector<XG_Data::DagBase>*> dagStack = { &m_dag };
+	std::list<std::vector<XG_Data::DagBase>*> dagStack = { &m_dag };
 	while (!strchr(xgName.m_pstring, '}'))
 	{
 		if (strchr(xgName.m_pstring, '['))
@@ -211,11 +215,11 @@ XG_Data::XG_Data(FILE* inFile)
 			dagStack.pop_back();
 		else
 		{
-			for (size_t b = 0; b < m_nodes.size(); b++)
+			for (std::shared_ptr<XGNode>& node : m_nodes)
 			{
-				if (m_nodes[b]->m_name == xgName)
+				if (node->m_name == xgName)
 				{
-					dagStack.back()->emplace_back(m_nodes[b]);
+					dagStack.back()->emplace_back(node);
 					break;
 				}
 			}
@@ -245,16 +249,18 @@ XG_Data::XG_Data(XG_Data& xg)
 	&XG_Data::cloneNode<xgVertexInterpolator>,
 	&XG_Data::cloneNode<XGNode>
 	};
-	for (size_t n = 0; n < xg.m_nodes.size(); n++)
+
+	for (std::shared_ptr<XGNode>& node : xg.m_nodes)
 	{
-		for (size_t t = 0; t < 17; t++)
-			if ((this->*types[t])(xg.m_nodes[n]))
+		for (bool(XG_Data::* func)(std::shared_ptr<XGNode>&) : types)
+			if ((this->*func)(node))
 				break;
+
 		if (m_dag.size() < xg.m_dag.size())
 		{
-			for (size_t d = 0; d < xg.m_dag.size(); d++)
+			for (DagBase& dag : xg.m_dag)
 			{
-				if (xg.m_dag[d].m_base->m_name == m_nodes.back()->m_name)
+				if (dag.m_base->m_name == m_nodes.back()->m_name)
 				{
 					m_dag.push_back(m_nodes.back());
 					break;
@@ -262,15 +268,16 @@ XG_Data::XG_Data(XG_Data& xg)
 			}
 		}
 	}
-	for (size_t d = 0; d < xg.m_dag.size(); d++)
+
+	for (size_t d = 0; d < xg.m_dag.size(); ++d)
 	{
-		for (size_t c = 0; c < xg.m_dag[d].m_connected.size(); c++)
+		for (DagBase& base : xg.m_dag[d].m_connected)
 		{
-			for (size_t n = 0; n < m_nodes.size(); n++)
+			for (std::shared_ptr<XGNode>& node : m_nodes)
 			{
-				if (m_nodes[n]->m_name == xg.m_dag[d].m_connected[c].m_base->m_name)
+				if (node->m_name == base.m_base->m_name)
 				{
-					m_dag[d].m_connected.push_back(m_nodes[n]);
+					m_dag[d].m_connected.push_back(node);
 					break;
 				}
 			}
@@ -281,15 +288,19 @@ XG_Data::XG_Data(XG_Data& xg)
 void XG_Data::create(FILE* outFile)
 {
 	fwrite("XGBv1.00", 1, 8, outFile);
-	for (size_t n = 0; n < m_nodes.size(); n++)
-		m_nodes[n]->create(outFile, false);
-	for (size_t n = 0; n < m_nodes.size(); n++)
-		m_nodes[n]->create(outFile, true);
+
+	for (std::shared_ptr<XGNode>& node : m_nodes)
+		node->create(outFile, false);
+
+	for (std::shared_ptr<XGNode>& node : m_nodes)
+		node->create(outFile, true);
+
 	PString::push("dag", outFile);
 	PString::push('{', outFile);
-	for (size_t d = 0; d < m_dag.size(); d++)
-		m_dag[d].create(outFile, true);
-	
+
+	for (DagBase& base : m_dag)
+		base.create(outFile, true);
+
 	PString::push('}', outFile);
 }
 
@@ -302,8 +313,10 @@ void XG_Data::DagBase::create(FILE* outFile, bool braces)
 	m_base->m_name.push(outFile);
 	if (braces || m_connected.size())
 		PString::push('[', outFile);
-	for (size_t m_dag = 0; m_dag < m_connected.size(); m_dag++)
-		m_connected[m_dag].create(outFile);
+
+	for (DagBase& dag : m_connected)
+		dag.create(outFile);
+
 	if (braces || m_connected.size())
 		PString::push(']', outFile);
 }

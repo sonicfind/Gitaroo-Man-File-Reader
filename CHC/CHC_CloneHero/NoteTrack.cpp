@@ -17,19 +17,19 @@
 #include "NoteTrack.h"
 using namespace std;
 
-size_t NoteTrack::addModifier(double pos, CHNote::Modifier mod)
+size_t NoteTrack::addModifier(float pos, CHNote::Modifier mod)
 {
 	m_modifiers.emplace_back(pos, 5 + (mod == CHNote::Modifier::TAP), 0, true, mod);
 	return m_allNotes.insert_ordered(&m_modifiers.back());
 }
 
-size_t NoteTrack::addEvent(double pos, std::string name)
+size_t NoteTrack::addEvent(float pos, std::string name)
 {
 	m_events.emplace_back(pos, 0, 0, true, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, name);
 	return m_allNotes.insert_ordered(&m_events.back());
 }
 
-size_t NoteTrack::addStarPower(double pos, double sustain)
+size_t NoteTrack::addStarPower(float pos, float sustain)
 {
 	m_star.emplace_back(pos, 0, sustain, true, CHNote::Modifier::NORMAL, CHNote::NoteType::STAR);
 	return m_allNotes.insert_ordered(&m_star.back());

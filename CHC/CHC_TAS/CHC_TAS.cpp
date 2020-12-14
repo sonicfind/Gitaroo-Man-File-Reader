@@ -1456,7 +1456,7 @@ bool TAS::buildTAS()
 						break;
 					else if (dynamic_cast<Traceline*>((*test).note) != nullptr)
 					{
-						if (!(*iter).last || 10 * ((*test).position - (long double)(*iter).position) <= 3.0L * song.m_speed * SAMPLES_PER_FRAME)
+						if (!(*iter).last || 10 * ((*test).position - (float)(*iter).position) <= 3.0 * song.m_speed * SAMPLES_PER_FRAME)
 						{
 							if ((*iter).last || (*test).index - 1 == (*iter).index)
 							{
@@ -1464,8 +1464,8 @@ bool TAS::buildTAS()
 								size_t endFrame = frameStart + (size_t)round((*test).position / SAMPLES_PER_FRAME);
 								if (endFrame - currentFrame > 0)
 								{
-									long double currentAngle = static_cast<Traceline*>((*iter).note)->getAngle();
-									long double angleDif = 0;
+									float currentAngle = static_cast<Traceline*>((*iter).note)->getAngle();
+									float angleDif = 0;
 									if (!(*iter).last)
 									{
 										if (!(*test).last)
@@ -1504,7 +1504,7 @@ bool TAS::buildTAS()
 											}
 										}
 									}
-									long double angleIncrement = angleDif / (endFrame - cur.getIndex());
+									float angleIncrement = angleDif / (endFrame - cur.getIndex());
 									for (; cur.getIndex() < endFrame; ++cur)
 									{
 										// Only Orientation 2 uses the right stick for trace lines

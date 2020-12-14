@@ -14,12 +14,12 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-constexpr long double s_TICKS_PER_BEAT = 480.0;
+constexpr float s_TICKS_PER_BEAT = 480.0f;
 struct CHItem
 {
-	double m_position;
+	float m_position;
 	CHItem() : m_position(0) {}
-	CHItem(double pos) : m_position(pos) {}
+	CHItem(float pos) : m_position(pos) {}
 	bool operator==(const CHItem& item) const { return m_position == item.m_position; }
 	bool operator<(const CHItem& item) const { return m_position < item.m_position; }
 	bool operator<=(const CHItem& item) const { return operator==(item) || operator<(item); }
@@ -34,7 +34,7 @@ struct SyncTrack : public CHItem
 	std::string m_eighth;
 	SyncTrack() : CHItem(), m_timeSig(4), m_bpm(120), m_eighth("") {}
 	SyncTrack(FILE* inFile);
-	SyncTrack(double pos, unsigned long ts = 4, unsigned long tempo = 120, bool writeTimeSig = true, std::string egth = "");
+	SyncTrack(float pos, unsigned long ts = 4, unsigned long tempo = 120, bool writeTimeSig = true, std::string egth = "");
 	void write(FILE* outFile);
 };
 
@@ -43,7 +43,7 @@ struct Event : public CHItem
 	std::string m_name;
 	Event() : CHItem(), m_name("") {}
 	Event(FILE* inFile);
-	Event(double pos, std::string nam = "") : CHItem(pos), m_name(nam) {}
+	Event(float pos, std::string nam = "") : CHItem(pos), m_name(nam) {}
 	void write(FILE* outFile);
 };
 
@@ -54,10 +54,10 @@ struct CHNote : public CHItem
 	struct Fret
 	{
 		unsigned m_lane;
-		double m_sustain;
+		float m_sustain;
 		bool m_writeSustain;
 		Fret() : m_lane(0), m_sustain(0), m_writeSustain(true) {}
-		Fret(unsigned lane, double sus = 0, bool write = true) : m_lane(lane), m_sustain(sus), m_writeSustain(write) {}
+		Fret(unsigned lane, float sus = 0, bool write = true) : m_lane(lane), m_sustain(sus), m_writeSustain(write) {}
 		Fret(const Fret& fret) : m_lane(fret.m_lane), m_sustain(fret.m_sustain), m_writeSustain(fret.m_writeSustain) {}
 	};
 	Fret m_fret;
@@ -66,10 +66,10 @@ struct CHNote : public CHItem
 	std::string m_name;
 	CHNote() : CHItem(), m_mod(Modifier::NORMAL), m_type(NoteType::NOTE), m_name("") {}
 	CHNote(FILE* inFile);
-	CHNote(double pos, unsigned lane = 0, double sus = 0, bool write = true, Modifier md = Modifier::NORMAL, NoteType tp = NoteType::NOTE, std::string nam = "")
+	CHNote(float pos, unsigned lane = 0, float sus = 0, bool write = true, Modifier md = Modifier::NORMAL, NoteType tp = NoteType::NOTE, std::string nam = "")
 		: CHItem(pos), m_fret(lane, sus, write), m_mod(md), m_type(tp), m_name(nam) {}
 	CHNote(const CHNote& note) = default;
-	double setEndPoint(double endTick)
+	float setEndPoint(float endTick)
 	{
 		m_fret.m_sustain = endTick - m_position;
 		return m_fret.m_sustain;

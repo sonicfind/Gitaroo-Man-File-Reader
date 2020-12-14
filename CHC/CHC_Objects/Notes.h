@@ -108,7 +108,7 @@ public:
 	//Sets the radian angle value of the trace line to the provided value
 	void setAngle(float ang) { m_angle = ang; }
 	//Adjusts the radian angle value of the trace line by the provided value
-	void adJustAngle(long double change) { m_angle = float(m_angle + change); }
+	void adJustAngle(float change) { m_angle += change; }
 	//Returns whether the trace line is set to curve
 	bool getCurve() const { return m_curve; }
 	//Sets the trace line's curve value to the provided value

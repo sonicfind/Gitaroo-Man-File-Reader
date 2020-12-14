@@ -16,11 +16,7 @@
 #include "SongSection.h"
 constexpr size_t s_DLL_INDEX = 0;
 
-#if defined(_M_X64)
-constexpr double s_SAMPLES_PER_MIN = 2880000.0;
-#else
 constexpr float s_SAMPLES_PER_MIN = 2880000.0f;
-#endif
 
 class CHC
 {

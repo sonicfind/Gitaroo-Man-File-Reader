@@ -20,11 +20,7 @@
 #endif
 #include "List.h"
 
-#if defined(_M_X64)
-constexpr double M_PI = 3.141592653589793116;
-#else
 constexpr float M_PI = 3.141592741f;
-#endif
 const auto processor_count = std::thread::hardware_concurrency();
 
 //Holds all data pertaining to applicable file extensions.
@@ -116,7 +112,7 @@ namespace GlobalFunctions
 	extern "C" GLOBALFUNCTIONS_API void testForMulti();
 
 	//Generates banner
-	extern "C" GLOBALFUNCTIONS_API void banner(std::string title, double coef = 1);
+	extern "C" GLOBALFUNCTIONS_API void banner(std::string title, float coef = 1);
 
 	extern "C" GLOBALFUNCTIONS_API bool LoadLib(FileType::dllPair & pair);
 
@@ -554,7 +550,7 @@ namespace GlobalFunctions
 	*/
 	extern "C" GLOBALFUNCTIONS_API ResultType listValueInsert(LinkedList::List<size_t> & values, std::string outCharacters, size_t max, bool allowRepeats = true, size_t min = 0);
 
-	extern "C" GLOBALFUNCTIONS_API long radiansToDegrees(double angle);
+	extern "C" GLOBALFUNCTIONS_API long radiansToDegrees(float angle);
 
-	extern GLOBALFUNCTIONS_API std::string angleToFraction(double angle);
+	extern GLOBALFUNCTIONS_API std::string angleToFraction(float angle);
 }

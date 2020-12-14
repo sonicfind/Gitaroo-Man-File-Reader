@@ -743,13 +743,13 @@ void CHC_Editor::audioSettings()
 			for (size_t index = 0; index < 8; index++)
 			{
 				printf("%s     %zu    ||", g_global.tabs.c_str(), index + 1);
-				printf("%7lu  ||%7g%%   ||", m_song->m_audio[index].volume, ((double)m_song->m_audio[index].volume) * 100 / 32767);
+				printf("%7lu  ||%7g%%   ||", m_song->m_audio[index].volume, ((float)m_song->m_audio[index].volume) * 100 / 32767);
 				switch (m_song->m_audio[index].pan)
 				{
 				case 0:     printf("   Left   |           ||\n"); break;
 				case 16383: printf("        Center        ||\n"); break;
 				case 32767: printf("          |   Right   ||\n"); break;
-				default: printf("%8g%% |%8g%% ||\n", 100 - (((double)m_song->m_audio[index].pan) * 100 / 32767), ((double)m_song->m_audio[index].pan) * 100 / 32767);
+				default: printf("%8g%% |%8g%% ||\n", 100 - (((float)m_song->m_audio[index].pan) * 100 / 32767), ((float)m_song->m_audio[index].pan) * 100 / 32767);
 				}
 			}
 			printf("%s==========================================================||\n", g_global.tabs.c_str());
@@ -766,7 +766,7 @@ void CHC_Editor::audioSettings()
 			for (size_t index = 2; index < 8; index++)
 			{
 				printf("%s     %zu    ||", g_global.tabs.c_str(), index + 1);
-				printf("%7lu  ||%7g%%   ||", m_song->m_audio[index].volume, ((double)m_song->m_audio[index].volume) * 100 / 32767);
+				printf("%7lu  ||%7g%%   ||", m_song->m_audio[index].volume, ((float)m_song->m_audio[index].volume) * 100 / 32767);
 			}
 			printf("%s==================================||\n", g_global.tabs.c_str());
 			printf("%sChoose the channel you wish to edit [Type 'Q' to exit audio settings]\n", g_global.tabs.c_str());
@@ -1798,7 +1798,7 @@ bool CHC_Editor::reorganize(SongSection& section)
 				}
 			}
 		}
-		const long double SAMPLES_PER_BEAT = 2880000.0L / section.m_tempo;
+		const float SAMPLES_PER_BEAT = s_SAMPLES_PER_MIN / section.m_tempo;
 		auto adjustPhrases = [&](Chart* currentChart, const size_t traceIndex, const long& endAlpha, float& angle)
 		{
 			//Save angle value

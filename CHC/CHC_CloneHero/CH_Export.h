@@ -23,8 +23,8 @@ class CH_Exporter
 	unsigned long m_strumFret[2] = { 0, 0 };
 	unsigned m_guardPromptType = 0;
 	unsigned m_guardOrientation = 2;
-	double m_position = 0;
-	double m_samepleDuration = 0;
+	float m_position = 0;
+	float m_samepleDuration = 0;
 	bool m_modchart = false;
 	ChartFileExporter m_exporter;
 public:
@@ -32,11 +32,11 @@ public:
 	bool exportChart();
 	bool convertSong(LinkedList::List<size_t>& sectionIndexes);
 
-	size_t convertGuard(Chart& chart, const double TICKS_PER_SAMPLE, const size_t currentPlayer);
+	size_t convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer);
 	bool getOrientation(const char* sectionName, const size_t player = 0, const size_t chart = 0);
 
-	void convertTrace(Chart& chart, const double TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer);
+	void convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer);
 
-	size_t convertPhrase(SongSection& section, const size_t playerIndex, const size_t chartIndex, const double TICKS_PER_SAMPLE, const size_t currentPlayer);
+	size_t convertPhrase(SongSection& section, const size_t playerIndex, const size_t chartIndex, const float TICKS_PER_SAMPLE, const size_t currentPlayer);
 	bool getFrets(const char* sectionName, unsigned promptType, size_t playerIndex = 0, size_t chartIndex = 0, size_t note = 1, size_t piece = 1);
 };

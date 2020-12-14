@@ -96,7 +96,7 @@ bool CH_Exporter::exportChart()
 #endif
 	//Used for modchart song.ini file that accompanies the .chart
 	//Fills in the "song_length" tag
-	double totalDuration = 0;
+	float totalDuration = 0;
 	if (!convertSong(sectionIndexes))
 		return false;
 	printf("%s\n", g_global.tabs.c_str());
@@ -337,7 +337,7 @@ bool CH_Exporter::convertSong(LinkedList::List<size_t>& sectionIndexes)
 				}
 				g_global.quit = false;
 			}
-			const double TICKS_PER_SAMPLE = section.getTempo() * s_TICKS_PER_BEAT / s_SAMPLES_PER_MIN;
+			const float TICKS_PER_SAMPLE = section.getTempo() * s_TICKS_PER_BEAT / s_SAMPLES_PER_MIN;
 			//Marking where each the list the current section starts
 			for (size_t chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
 			{
@@ -377,9 +377,9 @@ bool CH_Exporter::convertSong(LinkedList::List<size_t>& sectionIndexes)
 					if ((chartIndex != 0 || (playerIndex >= 2 && m_song->m_imc[0])) && (chart.getNumTracelines() > 1 || chart.getNumGuards()))
 					{
 						//AKA, if any notes or trace lines were added
-						double pos;
+						float pos;
 						if (markIndex < m_exporter.m_reimportNotes[currentPlayer].m_allNotes.size())
-							pos = (m_exporter.m_reimportNotes[currentPlayer].m_allNotes[markIndex]->m_position + m_exporter.m_reimportNotes[currentPlayer].m_allNotes[markIndex - 1]->m_position) / 2;
+							pos = 0.5f * (m_exporter.m_reimportNotes[currentPlayer].m_allNotes[markIndex]->m_position + m_exporter.m_reimportNotes[currentPlayer].m_allNotes[markIndex - 1]->m_position);
 						else if (markIndex > 0)
 							pos = m_exporter.m_reimportNotes[currentPlayer].m_allNotes[markIndex - 1]->m_position + 160;
 						else
@@ -394,38 +394,38 @@ bool CH_Exporter::convertSong(LinkedList::List<size_t>& sectionIndexes)
 						case SongSection::Phase::BATTLE:
 							if (chart.getNumGuards())
 								//Encapsulate all the guard marks in the subsection
-								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.getGuard(0).getPivotAlpha() + double(chart.getPivotTime())),
-									20 + TICKS_PER_SAMPLE * ((double)chart.getGuard(chart.getNumGuards() - 1).getPivotAlpha() - chart.getGuard(0).getPivotAlpha()));
+								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.getGuard(0).getPivotAlpha() + (float)chart.getPivotTime()),
+									20 + TICKS_PER_SAMPLE * ((float)chart.getGuard(chart.getNumGuards() - 1).getPivotAlpha() - chart.getGuard(0).getPivotAlpha()));
 							break;
 						case SongSection::Phase::CHARGE:
 							if (chart.getNumPhrases())
 								//Encapsulate all the phrase bars in the subsection
-								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.getPhrase(0).getPivotAlpha() + double(chart.getPivotTime())),
-									TICKS_PER_SAMPLE * ((double)chart.getPhrase(chart.getNumPhrases() - 1).getEndAlpha() - chart.getPhrase(0).getPivotAlpha()));
+								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.getPhrase(0).getPivotAlpha() + (float)chart.getPivotTime()),
+									TICKS_PER_SAMPLE * ((float)chart.getPhrase(chart.getNumPhrases() - 1).getEndAlpha() - chart.getPhrase(0).getPivotAlpha()));
 						}
 					}
 				}
 			}
 		}
-		m_position += s_TICKS_PER_BEAT * round(double(section.getDuration()) * section.getTempo() / s_SAMPLES_PER_MIN);
+		m_position += s_TICKS_PER_BEAT * roundf(section.getDuration() * section.getTempo() / s_SAMPLES_PER_MIN);
 		if (m_modchart)
 			//							Samples per beat										Number of beats (rounded)
-			m_samepleDuration += (s_SAMPLES_PER_MIN / section.getTempo()) * round(section.getTempo() * (section.getDuration() / s_SAMPLES_PER_MIN));
+			m_samepleDuration += (s_SAMPLES_PER_MIN / section.getTempo()) * roundf(section.getDuration() * section.getTempo() / s_SAMPLES_PER_MIN);
 	}
 	return true;
 }
 
-size_t CH_Exporter::convertGuard(Chart& chart, const double TICKS_PER_SAMPLE, const size_t currentPlayer)
+size_t CH_Exporter::convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer)
 {
 	// 1 = G; 2 = R; 4 = Y; 8 = B; 16 = O
 	static const unsigned fretSets[5][4] = { { 4, 1, 2, 8 }, { 4, 1, 2, 16 }, { 8, 1, 2, 16 }, { 8, 1, 4, 16 }, { 8, 2, 4, 16 } };
 	const static long GUARD_GAP = 8000;
-	const double GUARD_OPEN_TICK_DISTANCE = GUARD_GAP * TICKS_PER_SAMPLE;
+	const float GUARD_OPEN_TICK_DISTANCE = GUARD_GAP * TICKS_PER_SAMPLE;
 	size_t grdStarIndex = m_exporter.m_modchartNotes[currentPlayer].m_allNotes.size();
 
 	struct open
 	{
-		double position = 0;
+		float position = 0;
 		bool forced = false;
 	};
 
@@ -436,7 +436,7 @@ size_t CH_Exporter::convertGuard(Chart& chart, const double TICKS_PER_SAMPLE, co
 		const Guard& guard = chart.getGuard(i);
 		unsigned modfret = fretSets[m_guardOrientation][guard.getButton()];
 		unsigned fret = fretSets[2][guard.getButton()];
-		double pos = m_position + TICKS_PER_SAMPLE * ((double)guard.getPivotAlpha() + chart.getPivotTime());
+		float pos = m_position + TICKS_PER_SAMPLE * ((float)guard.getPivotAlpha() + chart.getPivotTime());
 		if (m_modchart)
 		{
 			if (i == 0)
@@ -451,7 +451,7 @@ size_t CH_Exporter::convertGuard(Chart& chart, const double TICKS_PER_SAMPLE, co
 				{
 					if (undersized < 3)
 					{
-						double openPos = pos + (dif >> 1) * TICKS_PER_SAMPLE;
+						float openPos = pos + (dif >> 1) * TICKS_PER_SAMPLE;
 						openNotes[i].position = openPos;
 						openNotes[i].forced = (dif >> 1) * TICKS_PER_SAMPLE >= 162.5;
 						++undersized;
@@ -464,28 +464,28 @@ size_t CH_Exporter::convertGuard(Chart& chart, const double TICKS_PER_SAMPLE, co
 				}
 				else if (dif < 2 * GUARD_GAP)
 				{
-					double openPos = pos + (dif >> 1) * TICKS_PER_SAMPLE;
+					float openPos = pos + (dif >> 1) * TICKS_PER_SAMPLE;
 					openNotes[i].position = openPos;
 					openNotes[i].forced = (dif >> 1) * TICKS_PER_SAMPLE >= 162.5;
 					undersized = 0;
 				}
 				else if (dif < 240000) // five seconds
 				{
-					double openPos = pos + GUARD_OPEN_TICK_DISTANCE;
+					float openPos = pos + GUARD_OPEN_TICK_DISTANCE;
 					openNotes[i].position = openPos;
 					openNotes[i].forced = GUARD_OPEN_TICK_DISTANCE >= 162.5;
 					undersized = 0;
 				}
 				else if (dif < 480000) // ten seconds
 				{
-					double openPos = pos + (dif >> 1) * TICKS_PER_SAMPLE;
+					float openPos = pos + (dif >> 1) * TICKS_PER_SAMPLE;
 					openNotes[i].position = openPos;
 					openNotes[i].forced = true;
 					undersized = 0;
 				}
 				else
 				{
-					double openPos = pos + 240000 * TICKS_PER_SAMPLE;
+					float openPos = pos + 240000 * TICKS_PER_SAMPLE;
 					openNotes[i].position = openPos;
 					openNotes[i].forced = true;
 					undersized = 0;
@@ -512,11 +512,11 @@ size_t CH_Exporter::convertGuard(Chart& chart, const double TICKS_PER_SAMPLE, co
 	return grdStarIndex;
 }
 
-void CH_Exporter::convertTrace(Chart& chart, const double TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer)
+void CH_Exporter::convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer)
 {
 	for (size_t i = 0; i < chart.getNumTracelines(); i++)
 	{
-		double pos = TICKS_PER_SAMPLE * (chart.getTraceline(i).getPivotAlpha() + double(chart.getPivotTime()));
+		float pos = TICKS_PER_SAMPLE * (chart.getTraceline(i).getPivotAlpha() + (float)chart.getPivotTime());
 		string name;
 		if ((long)round(pos) < sectionDuration)
 			name = "Trace";
@@ -540,7 +540,7 @@ void CH_Exporter::convertTrace(Chart& chart, const double TICKS_PER_SAMPLE, cons
 	}
 }
 
-size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex, const size_t chartIndex, const double TICKS_PER_SAMPLE, const size_t currentPlayer)
+size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex, const size_t chartIndex, const float TICKS_PER_SAMPLE, const size_t currentPlayer)
 {
 	Chart& chart = section.getChart(playerIndex * section.getNumCharts() + chartIndex);
 	size_t phrIndex = m_exporter.m_modchartNotes[currentPlayer].m_allNotes.size();
@@ -569,7 +569,7 @@ size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex
 					GlobalFunctions::banner(" " + string(section.getName()) + "'s Phrase Bars Converted ");
 			}
 		}
-		double pos = m_position + TICKS_PER_SAMPLE * (chart.getPhrase(i).getPivotAlpha() + double(chart.getPivotTime()));
+		float pos = m_position + TICKS_PER_SAMPLE * (chart.getPhrase(i).getPivotAlpha() + (float)chart.getPivotTime());
 		if (m_phraseBarPromptType[currentPlayer] < 2 || fret == 256)
 		{
 			size_t maxIndex = max;
@@ -578,7 +578,7 @@ size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex
 		}
 		if (fret >= 128)
 			fret = prevFret;
-		double endTick = m_position + TICKS_PER_SAMPLE * (chart.getPhrase(i).getEndAlpha() + double(chart.getPivotTime()));
+		float endTick = m_position + TICKS_PER_SAMPLE * (chart.getPhrase(i).getEndAlpha() + (float)chart.getPivotTime());
 		unsigned long addedNotes = fret & 63, removedNotes = 0;
 		if (piece > 1)
 		{
@@ -606,7 +606,7 @@ size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex
 		}
 		if (addedNotes)
 		{
-			double duration = endTick - pos;
+			float duration = endTick - pos;
 			if (m_modchart)
 			{
 				bool hammeron = false;

@@ -79,9 +79,9 @@ struct NoteTrack
 			return m_allNotes.insert_ordered(&m_events.back());
 		}
 	}
-	size_t addModifier(double pos, CHNote::Modifier mod);
-	size_t addEvent(double pos, std::string nam);
-	size_t addStarPower(double pos, double sustain);
+	size_t addModifier(float pos, CHNote::Modifier mod);
+	size_t addEvent(float pos, std::string nam);
+	size_t addStarPower(float pos, float sustain);
 	void write(FILE* outFile, const size_t player);
 	void writeDuet(FILE* outFile, const size_t player);
 	void clear();

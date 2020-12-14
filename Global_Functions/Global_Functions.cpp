@@ -164,7 +164,7 @@ namespace GlobalFunctions
 	}
 
 	//Generates banner
-	void banner(string title, double coef)
+	void banner(string title, float coef)
 	{
 		size_t sep = title.length() + 5;
 		int space = 2 * (int)round(32 * coef);
@@ -480,8 +480,9 @@ namespace GlobalFunctions
 				if (g_global.input >= '0' && g_global.input <= '9')
 				{
 					ungetc(g_global.input, stdin);
-					double tmp;
-					scanf_s("%lf", &tmp);
+					char val[40] = { 0 };
+					scanf_s("%39[0-9. ]", val, 40);
+					double tmp = atof(val);
 					size_t value = size_t(tmp);
 					if (value < min || value >= max)
 						printf("%s%zu is not within range. Skipping value.\n%s\n", g_global.tabs.c_str(), value, g_global.tabs.c_str());
@@ -511,12 +512,12 @@ namespace GlobalFunctions
 		} while (true);
 	}
 
-	long radiansToDegrees(double angle)
+	long radiansToDegrees(float angle)
 	{
 		return (long)round((180 * (angle / M_PI)));
 	}
 
-	string angleToFraction(double angle)
+	string angleToFraction(float angle)
 	{
 		static const int factors[] = { 90, 60, 45, 36, 30, 20, 18, 15, 12, 10, 9, 6, 5, 4, 3, 2 };
 		static const char* dems[] = { "2", "3", "4", "5", "6", "9", "10", "12", "15", "18", "20", "30", "36", "45", "60", "90" };
@@ -536,15 +537,14 @@ namespace GlobalFunctions
 				degree -= 360;
 			else if (degree < -180)
 				degree += 360;
-			size_t size = sizeof(factors) / sizeof(int);
-			for (size_t factor = 0; factor < size; factor++)
+			for (size_t factor = 0; factor < 16; factor++)
 			{
 				if (!(degree % factors[factor]))
 				{
 					fraction = to_string(degree / factors[factor]) + '/' + dems[factor];
 					break;
 				}
-				else if (factor + 1 == size)
+				else if (factor + 1 == 16)
 					fraction = to_string(angle / M_PI);
 			}
 		}

@@ -16,7 +16,7 @@
 #include "CH_Item.h"
 using namespace std;
 
-SyncTrack::SyncTrack(double pos, unsigned long ts, unsigned long tempo, bool writeTimeSig, string egth) : CHItem(pos), m_bpm(tempo), m_eighth(egth)
+SyncTrack::SyncTrack(float pos, unsigned long ts, unsigned long tempo, bool writeTimeSig, string egth) : CHItem(pos), m_bpm(tempo), m_eighth(egth)
 {
 	if (writeTimeSig)
 		m_timeSig = ts;
@@ -27,7 +27,7 @@ SyncTrack::SyncTrack(double pos, unsigned long ts, unsigned long tempo, bool wri
 SyncTrack::SyncTrack(FILE* inFile) : m_timeSig(0), m_bpm(0), m_eighth("")
 {
 	char ignore[30];
-	fscanf_s(inFile, " %lf%[^BT]%c", &m_position, ignore, 30, ignore, 1);
+	fscanf_s(inFile, " %f%[^BT]%c", &m_position, ignore, 30, ignore, 1);
 	if (ignore[0] == 'T')
 	{
 		fseek(inFile, 2, SEEK_CUR);
@@ -54,7 +54,7 @@ void SyncTrack::write(FILE* outFile)
 Event::Event(FILE* inFile)
 {
 	char bagel[101] = { 0 };
-	fscanf_s(inFile, " %lf%[^\"]s", &m_position, bagel, 4);
+	fscanf_s(inFile, " %f%[^\"]s", &m_position, bagel, 4);
 	fscanf_s(inFile, " %[^\n]s", bagel, 100);
 	m_name = bagel;
 	if (m_name[0] == '\"')
@@ -70,7 +70,7 @@ CHNote::CHNote(FILE* inFile)
 {
 	char type = 0;
 	//Only the second "m_type" insertion matters; First one is '=' character removal
-	fscanf_s(inFile, " %lf %c %c", &m_position, &type, 1, &type, 1);
+	fscanf_s(inFile, " %f %c %c", &m_position, &type, 1, &type, 1);
 	if (type == 'E')
 	{
 		char bagel[101] = { 0 };
@@ -103,7 +103,7 @@ CHNote::CHNote(FILE* inFile)
 			if (m_fret.m_lane == 7)
 				m_fret.m_lane = 5;
 		}
-		fscanf_s(inFile, " %lf", &m_fret.m_sustain);
+		fscanf_s(inFile, " %f", &m_fret.m_sustain);
 	}
 };
 

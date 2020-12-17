@@ -496,8 +496,8 @@ void CH_Importer::fillSections()
 					//If Phrase Bar
 					if (note->m_fret.m_sustain)
 					{
-						addPhraseBar((long)round((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK + (*currTempo).m_position_samples),
-										(unsigned long)round(note->m_fret.m_sustain * SAMPLES_PER_TICK), 1UL << note->m_fret.m_lane, &*currChart, (long)round(SAMPLES_PER_TICK));
+						addPhraseBar((long)roundf((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK + (*currTempo).m_position_samples),
+										(unsigned long)roundf(note->m_fret.m_sustain * SAMPLES_PER_TICK), 1UL << note->m_fret.m_lane, &*currChart, (long)round(SAMPLES_PER_TICK));
 					}
 					else
 					{
@@ -505,12 +505,12 @@ void CH_Importer::fillSections()
 						{
 						case CHNote::Modifier::NORMAL: //Guard Mark
 						{
-							addGuardMark((long)round(((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK) + (*currTempo).m_position_samples),
+							addGuardMark((long)roundf(((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK) + (*currTempo).m_position_samples),
 											(unsigned long)note->m_fret.m_lane, &*currChart);
 						}
 						break;
 						case CHNote::Modifier::FORCED:
-							applyForced((long)round(((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK) + (*currTempo).m_position_samples),
+							applyForced((long)roundf(((note->m_position - (*currTempo).m_position_ticks) * SAMPLES_PER_TICK) + (*currTempo).m_position_samples),
 								&*currChart, &*currSection, playerIndex);
 						}
 					}

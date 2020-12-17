@@ -131,7 +131,7 @@ bool CH_Exporter::exportChart()
 			case GlobalFunctions::ResultType::Yes:
 				//Generate the ini file if it's a chart from the original games (stage 2 also including separate EN & JP charts)
 				m_exporter.open(filenameMod + ".ini");
-				m_exporter.writeIni(m_song->m_stage, (unsigned long)ceil((totalDuration * .0625) / 3), m_song->m_shortname.find("HE") == string::npos);
+				m_exporter.writeIni(m_song->m_stage, (unsigned long)ceilf(totalDuration * (.0625f / 3)), m_song->m_shortname.find("HE") == string::npos);
 				m_exporter.open(filenameMod + ".chart");
 				if (m_song->m_imc[0])
 					m_exporter.write(true);
@@ -362,7 +362,7 @@ bool CH_Exporter::convertSong(LinkedList::List<size_t>& sectionIndexes)
 					size_t phrIndex = 0;
 					if (chart.getNumTracelines() > 1)
 					{
-						convertTrace(chart, TICKS_PER_SAMPLE, (long)round(TICKS_PER_SAMPLE * section.getDuration()), currentPlayer);
+						convertTrace(chart, TICKS_PER_SAMPLE, (long)roundf(TICKS_PER_SAMPLE * section.getDuration()), currentPlayer);
 						try
 						{
 							phrIndex = convertPhrase(section, playerIndex, chartIndex, TICKS_PER_SAMPLE, currentPlayer);
@@ -453,7 +453,7 @@ size_t CH_Exporter::convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, con
 					{
 						float openPos = pos + (dif >> 1) * TICKS_PER_SAMPLE;
 						openNotes[i].position = openPos;
-						openNotes[i].forced = (dif >> 1) * TICKS_PER_SAMPLE >= 162.5;
+						openNotes[i].forced = (dif >> 1) * TICKS_PER_SAMPLE >= 162.5f;
 						++undersized;
 					}
 					else
@@ -466,14 +466,14 @@ size_t CH_Exporter::convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, con
 				{
 					float openPos = pos + (dif >> 1) * TICKS_PER_SAMPLE;
 					openNotes[i].position = openPos;
-					openNotes[i].forced = (dif >> 1) * TICKS_PER_SAMPLE >= 162.5;
+					openNotes[i].forced = (dif >> 1) * TICKS_PER_SAMPLE >= 162.5f;
 					undersized = 0;
 				}
 				else if (dif < 240000) // five seconds
 				{
 					float openPos = pos + GUARD_OPEN_TICK_DISTANCE;
 					openNotes[i].position = openPos;
-					openNotes[i].forced = GUARD_OPEN_TICK_DISTANCE >= 162.5;
+					openNotes[i].forced = GUARD_OPEN_TICK_DISTANCE >= 162.5f;
 					undersized = 0;
 				}
 				else if (dif < 480000) // ten seconds
@@ -621,7 +621,7 @@ size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex
 					{
 						if (m_exporter.m_modchartNotes[currentPlayer].m_allNotes[--prev]->m_type == CHNote::NoteType::NOTE)
 						{
-							hammeron = pos - m_exporter.m_modchartNotes[currentPlayer].m_allNotes[prev]->m_position < 162.5;
+							hammeron = pos - m_exporter.m_modchartNotes[currentPlayer].m_allNotes[prev]->m_position < 162.5f;
 							break;
 						}
 					}

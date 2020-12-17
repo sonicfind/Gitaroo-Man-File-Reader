@@ -1370,11 +1370,11 @@ bool TAS::buildTAS()
 				position += section.getDuration();
 				totalDuration += section.getDuration();
 			}
-			frameStart = pcsx2.insertFrames(stage, orientation, difficulty, multi, (size_t)ceil(totalDuration / SAMPLES_PER_FRAME) + PCSX2TAS::frameValues.frames[framerateIndex][0][1] - 1000);
+			frameStart = pcsx2.insertFrames(stage, orientation, difficulty, multi, (size_t)ceilf(totalDuration / SAMPLES_PER_FRAME) + PCSX2TAS::frameValues.frames[framerateIndex][0][1] - 1000);
 		}
 	}
 	else
-		frameStart = pcsx2.insertFrames(stage, orientation, difficulty, multi, (size_t)ceil(totalDuration / SAMPLES_PER_FRAME));
+		frameStart = pcsx2.insertFrames(stage, orientation, difficulty, multi, (size_t)ceilf(totalDuration / SAMPLES_PER_FRAME));
 	bool results[4];
 	auto convertToFrames = [&](const size_t playerIndex)
 	{
@@ -1456,7 +1456,7 @@ bool TAS::buildTAS()
 						break;
 					else if (dynamic_cast<Traceline*>((*test).note) != nullptr)
 					{
-						if (!(*iter).last || 10 * ((*test).position - (float)(*iter).position) <= 3.0 * song.m_speed * SAMPLES_PER_FRAME)
+						if (!(*iter).last || 10 * ((*test).position - (float)(*iter).position) <= 3.0f * song.m_speed * SAMPLES_PER_FRAME)
 						{
 							if ((*iter).last || (*test).index - 1 == (*iter).index)
 							{
@@ -1557,7 +1557,7 @@ bool TAS::buildTAS()
 							fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", (*iter).position, start.getIndex() - frameStart);
 							LinkedList::List<TAS_Frame>::Iterator phraseEnd =
 								pcsx2.m_players[playerIndex].current(frameStart
-									+ (size_t)ceil(((SAMPLES_PER_FRAME + prevPhrase->position + static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME)));
+									+ (size_t)ceilf(((SAMPLES_PER_FRAME + prevPhrase->position + static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME)));
 							
 							--start;
 							while (phraseEnd < start)
@@ -1569,7 +1569,7 @@ bool TAS::buildTAS()
 
 				if ((*++start).leftStickX != 127 || (*start).leftStickY != 127)
 				{
-					const size_t phraseEnd = frameStart + (size_t)ceil(((*iter).position + static_cast<Phrase*>((*iter).note)->getDuration()) / SAMPLES_PER_FRAME);
+					const size_t phraseEnd = frameStart + (size_t)ceilf(((*iter).position + static_cast<Phrase*>((*iter).note)->getDuration()) / SAMPLES_PER_FRAME);
 					fprintf(taslog, "Phrase Bar %03zu- Starting at sample %li | Frame #%zu\n", (*iter).index, (*iter).position, start.getIndex() - frameStart);
 					(*(start - 1)).button = 255;
 					while (start.getIndex() <= phraseEnd)

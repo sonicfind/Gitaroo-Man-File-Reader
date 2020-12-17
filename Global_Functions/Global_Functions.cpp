@@ -167,7 +167,7 @@ namespace GlobalFunctions
 	void banner(string title, float coef)
 	{
 		size_t sep = title.length() + 5;
-		int space = 2 * (int)round(32 * coef);
+		int space = 2 * (int)roundf(32 * coef);
 		printf("%s%s#BLM %s\n", string(space - (sep >> 1), '=').c_str(), title.c_str(), string(space + (sep >> 1) - sep, '=').c_str());
 	}
 
@@ -514,7 +514,7 @@ namespace GlobalFunctions
 
 	long radiansToDegrees(float angle)
 	{
-		return (long)round((180 * (angle / M_PI)));
+		return (long)roundf((180 * (angle / M_PI)));
 	}
 
 	string angleToFraction(float angle)

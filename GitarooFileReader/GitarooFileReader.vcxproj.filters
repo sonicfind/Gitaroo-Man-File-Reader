@@ -1,27 +1,109 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="GMFR">
+      <UniqueIdentifier>{89335224-9a59-4824-b3f3-0df91a79f42d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CHC">
+      <UniqueIdentifier>{e06d6fb7-2b3e-4476-928d-d73b14f09a2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CHC\Main">
+      <UniqueIdentifier>{6225b60e-9882-499f-beeb-6f90cb4a0c8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CHC\TAS">
+      <UniqueIdentifier>{e90c0a41-deb6-4089-bc13-3ee0b2188db5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CHC\Clone Hero">
+      <UniqueIdentifier>{885f8a9e-f2ba-4dc5-a837-aba01e35d8b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CHC\Editor">
+      <UniqueIdentifier>{3e880544-ee8f-4df6-8579-561c2f9bfcf2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{401c4008-0459-4568-a9bc-35f27b5048e7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GitarooFileReader.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="CHC\CHC_Main.cpp">
+      <Filter>CHC\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CHC_Editor.cpp">
+      <Filter>CHC\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\GitarooFileReader.cpp">
+      <Filter>GMFR</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CHC_TAS.cpp">
+      <Filter>CHC\TAS</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CHC.cpp">
+      <Filter>CHC</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\pch.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\Global_Functions.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CH_ChartFile.cpp">
+      <Filter>CHC\Clone Hero</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CH_Export.cpp">
+      <Filter>CHC\Clone Hero</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CH_Import.cpp">
+      <Filter>CHC\Clone Hero</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CH_Item.cpp">
+      <Filter>CHC\Clone Hero</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CH_NoteTrack.cpp">
+      <Filter>CHC\Clone Hero</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CHC_Main.h">
+      <Filter>CHC\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CHC_Editor.h">
+      <Filter>CHC\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CHC_TAS.h">
+      <Filter>CHC\TAS</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CHC.h">
+      <Filter>CHC</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\List.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\pch.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\Global_Functions.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_ChartFile.h">
+      <Filter>CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_Export.h">
+      <Filter>CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_Import.h">
+      <Filter>CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_Item.h">
+      <Filter>CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_NoteTrack.h">
+      <Filter>CHC\Clone Hero</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -36,5 +118,10 @@
     <Image Include="icon2.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Main\List.natvis">
+      <Filter>Global</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

@@ -213,4 +213,12 @@
       <Filter>GMFR</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="IMX\IMX.natvis">
+      <Filter>IMX</Filter>
+    </Natvis>
+    <Natvis Include="XG\XG.natvis">
+      <Filter>XG</Filter>
+    </Natvis>
+  </ItemGroup>
 </Project>

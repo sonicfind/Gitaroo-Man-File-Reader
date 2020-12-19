@@ -40,11 +40,6 @@ PString* SharedNode::getPString()
 	return &m_node->m_name;
 }
 
-void XGNode::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
-{
-	throw "Error: Unrecognized XGNode type [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
-}
-
 xgBgGeometry::Vertices::Vertices(const Vertices& verts)
 {
 	m_vertexFlags = verts.m_vertexFlags;
@@ -150,21 +145,21 @@ void xgBgGeometry::writeTXT(FILE* outTXT, bool fromXgm)
 	if (fromXgm)
 		tab = "\t\t\t    ";
 	const char* tabPtr = tab.c_str();
-	fprintf_s(outTXT, "\t%s                     Density: %g\n", tabPtr, m_density);
-	fprintf_s(outTXT, "\t%s                Vertex Flags: %lu\n", tabPtr, m_vertexData.m_vertexFlags);
-	fprintf_s(outTXT, "\t%s               # of Vertices: %lu\n", tabPtr, m_vertexData.m_numVerts);
+	fprintf_s(outTXT, "\t\t\t%s     Density: %g\n", tabPtr, m_density);
+	fprintf_s(outTXT, "\t\t\t%sVertex Flags: %lu\n", tabPtr, m_vertexData.m_vertexFlags);
+	fprintf_s(outTXT, "\t\t%s       # of Vertices: %lu\n", tabPtr, m_vertexData.m_numVerts);
 	for (unsigned long index = 0; index < m_vertexData.m_numVerts; ++index)
 	{
-		fprintf_s(outTXT, "\t%s                    Vertex %03lu\n", tabPtr, index);
+		fprintf_s(outTXT, "\t\t\t%s    Vertex %03lu\n", tabPtr, index);
 		float* data = m_vertexData.m_vertices[index];
 		if (m_vertexData.m_vertexFlags & 1) // Position
-			fprintf_s(outTXT, "\t%s						Position (XYZ+Unk): %g, %g, %g, %g\n", tabPtr, *(data++), *(data++), *(data++), *(data++));
+			fprintf_s(outTXT, "\t\t\t\t%s     Position (XYZ+Unk): %g, %g, %g, %g\n", tabPtr, *(data++), *(data++), *(data++), *(data++));
 		if (m_vertexData.m_vertexFlags & 2) // Normal
-			fprintf_s(outTXT, "\t%s							  Normal (XYZ): %g, %g, %g\n", tabPtr, *(data++), *(data++), *(data++));
+			fprintf_s(outTXT, "\t\t\t\t\t%s   Normal (XYZ): %g, %g, %g\n", tabPtr, *(data++), *(data++), *(data++));
 		if (m_vertexData.m_vertexFlags & 4) // Color
-			fprintf_s(outTXT, "\t%s							  Color (RGBA): %g, %g, %g, %g\n", tabPtr, *(data++), *(data++), *(data++), *(data++));
+			fprintf_s(outTXT, "\t\t\t\t\t%s   Color (RGBA): %g, %g, %g, %g\n", tabPtr, *(data++), *(data++), *(data++), *(data++));
 		if (m_vertexData.m_vertexFlags & 8) // Texture Coordinate
-			fprintf_s(outTXT, "\t%s				   Texture Coordinate (ST): %g, %g\n", tabPtr, *(data++), *(data++));
+			fprintf_s(outTXT, "\t\t\t\t%sTexture Coordinate (ST): %g, %g\n", tabPtr, *(data++), *data);
 	}
 	if (m_inputGeometryNames.size())
 	{
@@ -245,9 +240,9 @@ void xgBgMatrix::writeTXT(FILE* outTXT, bool fromXgm)
 	if (fromXgm)
 		tab = "\t\t\t    ";
 	const char* tabPtr = tab.c_str();
-	fprintf_s(outTXT, "\t%s         Grid Position (XYZ): %g, %g, %g\n", tabPtr, m_position[0], m_position[1], m_position[2]);
-	fprintf_s(outTXT, "\t%s        Grid Rotation (XYZW): %g, %g, %g, %g\n", tabPtr, m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
-	fprintf_s(outTXT, "\t%s            Grid Scale (XYZ): %g, %g, %g\n", tabPtr, m_scale[0], m_scale[1], m_scale[2]);
+	fprintf_s(outTXT, "\t\t%s Grid Position (XYZ): %g, %g, %g\n", tabPtr, m_position[0], m_position[1], m_position[2]);
+	fprintf_s(outTXT, "\t\t%sGrid Rotation (XYZW): %g, %g, %g, %g\n", tabPtr, m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
+	fprintf_s(outTXT, "\t\t%s    Grid Scale (XYZ): %g, %g, %g\n", tabPtr, m_scale[0], m_scale[1], m_scale[2]);
 	if (m_inputPosition.isValid())
 		fprintf_s(outTXT, "\t%s    Position offset from: %s\n", tabPtr, m_inputPosition.getPString()->m_pstring);
 	if (m_inputRotation.isValid())
@@ -290,10 +285,10 @@ void xgBone::writeTXT(FILE* outTXT, bool fromXgm)
 	if (fromXgm)
 		tab = "\t\t\t    ";
 	const char* tabPtr = tab.c_str();
-	fprintf_s(outTXT, "\t%s                 Rest Matrix:\n", tabPtr);
+	fprintf_s(outTXT, "\t\t\t%s Rest Matrix:\n", tabPtr);
 	for (int index = 0; index < 16; ++index)
-		fprintf_s(outTXT, "\t%s                      Value %02u: %g\n", tabPtr, index, m_restMatrix[index]);
-	fprintf_s(outTXT, "\t%s           Input Matrix from: %s\n", tabPtr, m_inputMatrix.getPString()->m_pstring);
+		fprintf_s(outTXT, "\t\t\t%s      Value %02u: %g\n", tabPtr, index, m_restMatrix[index]);
+	fprintf_s(outTXT, "\t\t%s   Input Matrix from: %s\n", tabPtr, m_inputMatrix.getPString()->m_pstring);
 }
 
 xgDagMesh::Data::Data(const Data& data)
@@ -420,7 +415,7 @@ void xgDagMesh::writeTXT(FILE* outTXT, bool fromXgm)
 	if (fromXgm)
 		tab = "\t\t\t    ";
 	const char* tabPtr = tab.c_str();
-	fprintf_s(outTXT, "\t%s                    PrimType: ", tabPtr);
+	fprintf_s(outTXT, "\t\t\t%s    PrimType: ", tabPtr);
 	if (m_primType == 4)
 		fprintf_s(outTXT, "Kick vertices separately\n");
 	else if (m_primType == 5)
@@ -429,59 +424,59 @@ void xgDagMesh::writeTXT(FILE* outTXT, bool fromXgm)
 		fprintf_s(outTXT, "Who the heck knows\n");
 	if (m_primType == 4)
 	{
-		fprintf_s(outTXT, "\t%s                # of TriFans: %lu\n", tabPtr, m_triFanCount);
+		fprintf_s(outTXT, "\t\t\t%s# of TriFans: %lu\n", tabPtr, m_triFanCount);
 		for (unsigned long index = 0, valueIndex = 0; index < m_triFanCount; ++index)
 		{
 			const unsigned long numIndexes = m_triFanData.m_arrayData[valueIndex++];
-			fprintf_s(outTXT, "\t%s                   TriFan %03lu\n", tabPtr, index);
-			fprintf_s(outTXT, "\t%s                       # of Vertex Indexes: %03lu\n", tabPtr, numIndexes);
+			fprintf_s(outTXT, "\t\t\t%s   TriFan %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t\t\t%s       # of Vertex Indexes: %03lu\n", tabPtr, numIndexes);
 			for (unsigned long vertex = 0; vertex < numIndexes; ++vertex, ++valueIndex)
-				fprintf_s(outTXT, "\t%s                               Index %03lu: %lu\n", tabPtr, vertex, m_triFanData.m_arrayData[valueIndex]);
+				fprintf_s(outTXT, "\t\t\t\t%s       Index %03lu: %lu\n", tabPtr, vertex, m_triFanData.m_arrayData[valueIndex]);
 		}
-		fprintf_s(outTXT, "\t%s              # of TriStrips: %lu\n", tabPtr, m_triFanCount);
+		fprintf_s(outTXT, "\t\t%s      # of TriStrips: %lu\n", tabPtr, m_triFanCount);
 		for (unsigned long index = 0, valueIndex = 0; index < m_triStripCount; ++index)
 		{
 			const unsigned long numIndexes = m_triStripData.m_arrayData[valueIndex++];
-			fprintf_s(outTXT, "\t%s                   TriStrip %03lu\n", tabPtr, index);
-			fprintf_s(outTXT, "\t%s                       # of Vertex Indexes: %03lu\n", tabPtr, numIndexes);
+			fprintf_s(outTXT, "\t\t\t%s   TriStrip %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t\t\t%s       # of Vertex Indexes: %03lu\n", tabPtr, numIndexes);
 			for (unsigned long vertex = 0; vertex < numIndexes; ++vertex, ++valueIndex)
-				fprintf_s(outTXT, "\t%s                               Index %03lu: %lu\n", tabPtr, vertex, m_triStripData.m_arrayData[valueIndex]);
+				fprintf_s(outTXT, "\t\t\t\t%s       Index %03lu: %lu\n", tabPtr, vertex, m_triStripData.m_arrayData[valueIndex]);
 		}
-		fprintf_s(outTXT, "\t%s               # of TriLists: %lu\n", tabPtr, m_triFanCount);
+		fprintf_s(outTXT, "\t\t%s       # of TriLists: %lu\n", tabPtr, m_triFanCount);
 		for (unsigned long index = 0, valueIndex = 0; index < m_triListCount; ++index)
 		{
 			const unsigned long numIndexes = m_triListData.m_arrayData[valueIndex++];
-			fprintf_s(outTXT, "\t%s                   TriList %03lu\n", tabPtr, index);
-			fprintf_s(outTXT, "\t%s                       # of Vertex Indexes: %03lu\n", tabPtr, numIndexes);
+			fprintf_s(outTXT, "\t\t\t%s    TriList %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t\t\t%s       # of Vertex Indexes: %03lu\n", tabPtr, numIndexes);
 			for (unsigned long vertex = 0; vertex < numIndexes; vertex++, ++valueIndex)
-				fprintf_s(outTXT, "\t%s                               Index %03lu: %lu\n", tabPtr, vertex, m_triListData.m_arrayData[valueIndex]);
+				fprintf_s(outTXT, "\t\t\t\t%s       Index %03lu: %lu\n", tabPtr, vertex, m_triListData.m_arrayData[valueIndex]);
 		}
 	}
 	else if (m_primType == 5)
 	{
-		fprintf_s(outTXT, "\t%s                 TriFanCount: %lu\n", tabPtr, m_triFanCount);
+		fprintf_s(outTXT, "\t\t\t%s TriFanCount: %lu\n", tabPtr, m_triFanCount);
 		for (unsigned long index = 0, valueIndex = 0; index < m_triFanCount; ++index)
 		{
-			fprintf_s(outTXT, "\t%s                   TriFan %03lu\n", tabPtr, index);
-			fprintf_s(outTXT, "\t%s                       Initial Vertex Index: %03lu\n", tabPtr, m_triFanData.m_arrayData[valueIndex++]);
-			fprintf_s(outTXT, "\t%s                              # of Vertices: %lu\n", tabPtr, m_triFanData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t\t\t%s   TriFan %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t\t\t%s       Initial Vertex Index: %03lu\n", tabPtr, m_triFanData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabPtr, m_triFanData.m_arrayData[valueIndex++]);
 		}
-		fprintf_s(outTXT, "\t%s               TriStripCount: %lu\n", tabPtr, m_triStripCount);
+		fprintf_s(outTXT, "\t\t%s       TriStripCount: %lu\n", tabPtr, m_triStripCount);
 		for (unsigned long index = 0, valueIndex = 0; index < m_triStripCount; ++index)
 		{
-			fprintf_s(outTXT, "\t%s                   TriStrip %03lu\n", tabPtr, index);
-			fprintf_s(outTXT, "\t%s                       Initial Vertex Index: %03lu\n", tabPtr, m_triStripData.m_arrayData[valueIndex++]);
-			fprintf_s(outTXT, "\t%s                              # of Vertices: %lu\n", tabPtr, m_triStripData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t\t\t%s   TriStrip %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t\t\t%s       Initial Vertex Index: %03lu\n", tabPtr, m_triStripData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabPtr, m_triStripData.m_arrayData[valueIndex++]);
 		}
-		fprintf_s(outTXT, "\t%s                TriListCount: %lu\n", tabPtr, m_triListCount);
+		fprintf_s(outTXT, "\t\t%s        TriListCount: %lu\n", tabPtr, m_triListCount);
 		for (unsigned long index = 0, valueIndex = 0; index < m_triListCount; ++index)
 		{
-			fprintf_s(outTXT, "\t%s                   TriList %03lu\n", tabPtr, index);
-			fprintf_s(outTXT, "\t%s                       Initial Vertex Index: %03lu\n", tabPtr, m_triListData.m_arrayData[valueIndex++]);
-			fprintf_s(outTXT, "\t%s                              # of Vertices: %lu\n", tabPtr, m_triListData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t\t\t%s    TriList %03lu\n", tabPtr, index);
+			fprintf_s(outTXT, "\t\t\t%s       Initial Vertex Index: %03lu\n", tabPtr, m_triListData.m_arrayData[valueIndex++]);
+			fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabPtr, m_triListData.m_arrayData[valueIndex++]);
 		}
 	}
-	fprintf_s(outTXT, "\t%s                    CullFunc: ", tabPtr);
+	fprintf_s(outTXT, "\t\t\t%s    CullFunc: ", tabPtr);
 	switch (m_cullFunc)
 	{
 	case 0:
@@ -501,7 +496,7 @@ void xgDagMesh::writeTXT(FILE* outTXT, bool fromXgm)
 	}
 	if (m_inputMaterial.size())
 	{
-		fprintf_s(outTXT, "\t%s        # of Input Materials: %zu\n", tabPtr, m_inputMaterial.size());
+		fprintf_s(outTXT, "\t\t%s# of Input Materials: %zu\n", tabPtr, m_inputMaterial.size());
 		for (size_t index = 0; index < m_inputMaterial.size(); ++index)
 			fprintf_s(outTXT, "\t\t\t%s   %zu. %s\n", tabPtr, index, m_inputMaterial[index].getPString()->m_pstring);
 	}
@@ -770,8 +765,9 @@ xgNormalInterpolator::Targets::~Targets()
 		delete[m_numTargets] m_targets;
 }
 xgNormalInterpolator::xgNormalInterpolator(xgNormalInterpolator& norm)
-	: XGNode(norm.m_name), m_type(norm.m_type), m_times(norm.m_times), m_numkeys(norm.m_numkeys), m_targets(norm.m_targets), m_inputTime(norm.m_inputTime)
+	: m_type(norm.m_type), m_times(norm.m_times), m_numkeys(norm.m_numkeys), m_targets(norm.m_targets), m_inputTime(norm.m_inputTime)
 {
+	m_name = norm.m_name;
 	m_keys = new Key[m_numkeys];
 	for (unsigned long k = 0; k < m_numkeys; ++k)
 		m_keys[k] = norm.m_keys[k];
@@ -942,8 +938,9 @@ xgShapeInterpolator::Key::~Key()
 	delete[m_numVerts] m_vertices;
 }
 xgShapeInterpolator::xgShapeInterpolator(xgShapeInterpolator& shape)
-	: XGNode(shape.m_name), m_type(shape.m_type), m_times(shape.m_times), m_numkeys(shape.m_numkeys), m_inputTime(shape.m_inputTime)
+	: m_type(shape.m_type), m_times(shape.m_times), m_numkeys(shape.m_numkeys), m_inputTime(shape.m_inputTime)
 {
+	m_name = shape.m_name;
 	m_keys = new Key[m_numkeys];
 	for (unsigned long k = 0; k < m_numkeys; ++k)
 		m_keys[k] = shape.m_keys[k];
@@ -1070,8 +1067,9 @@ xgTexCoordInterpolator::Targets::~Targets()
 		delete[m_numTargets] m_targets;
 }
 xgTexCoordInterpolator::xgTexCoordInterpolator(xgTexCoordInterpolator& tex)
-	: XGNode(tex.m_name), m_type(tex.m_type), m_times(tex.m_times), m_numkeys(tex.m_numkeys), m_targets(tex.m_targets), m_inputTime(tex.m_inputTime)
+	: m_type(tex.m_type), m_times(tex.m_times), m_numkeys(tex.m_numkeys), m_targets(tex.m_targets), m_inputTime(tex.m_inputTime)
 {
+	m_name = tex.m_name;
 	m_keys = new Key[m_numkeys];
 	for (unsigned long k = 0; k < m_numkeys; ++k)
 		m_keys[k] = tex.m_keys[k];
@@ -1287,8 +1285,9 @@ xgVertexInterpolator::Targets::~Targets()
 		delete[m_numTargets] m_targets;
 }
 xgVertexInterpolator::xgVertexInterpolator(xgVertexInterpolator& vert)
-	: XGNode(vert.m_name), m_type(vert.m_type), m_times(vert.m_times), m_numkeys(vert.m_numkeys), m_targets(vert.m_targets), m_inputTimes(vert.m_inputTimes)
+	: m_type(vert.m_type), m_times(vert.m_times), m_numkeys(vert.m_numkeys), m_targets(vert.m_targets), m_inputTimes(vert.m_inputTimes)
 {
+	m_name = vert.m_name;
 	m_keys = new Key[m_numkeys];
 	for (unsigned long k = 0; k < m_numkeys; ++k)
 		m_keys[k] = vert.m_keys[k];

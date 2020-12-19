@@ -153,7 +153,6 @@ XG_Data::XG_Data(FILE* inFile)
 	&XG_Data::addNode<xgTime>,
 	&XG_Data::addNode<xgVec3Interpolator>,
 	&XG_Data::addNode<xgVertexInterpolator>,
-	&XG_Data::addNode<XGNode>,
 	nullptr
 	};
 	fread(test, 1, 8, inFile);
@@ -247,7 +246,6 @@ XG_Data::XG_Data(XG_Data& xg)
 	&XG_Data::cloneNode<xgTime>,
 	&XG_Data::cloneNode<xgVec3Interpolator>,
 	&XG_Data::cloneNode<xgVertexInterpolator>,
-	&XG_Data::cloneNode<XGNode>
 	};
 
 	for (std::shared_ptr<XGNode>& node : xg.m_nodes)

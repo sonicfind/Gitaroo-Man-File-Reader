@@ -38,7 +38,7 @@ private:
 	template <typename T>
 	bool addNode(PString& type, PString& name)
 	{
-		if (strstr(T::getType(), type.m_pstring))
+		if (T::compare(type))
 		{
 			m_nodes.push_back(std::make_shared<T>(name));
 			return true;

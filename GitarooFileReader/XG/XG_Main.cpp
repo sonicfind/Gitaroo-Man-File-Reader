@@ -289,8 +289,9 @@ void XG_Main::writeTxt()
 		fprintf_s(outTXT, "# of Nodes: %zu", xg.m_data->m_nodes.size());
 		for (size_t i = 0; i < xg.m_data->m_nodes.size(); ++i)
 		{
-			fprintf_s(outSimpleTXT, "\t Node %03zu - %s\n", i + 1, xg.m_data->m_nodes[i]->m_name.m_pstring);
-			xg.m_data->m_nodes[i]->writeTXT(outTXT, false);
+			shared_ptr<XGNode>& node = xg.m_data->m_nodes[i];
+			fprintf_s(outTXT, "\t Node %03zu - %s: %s\n", i + 1, node->getType(), node->m_name.m_pstring);
+			node->writeTXT(outTXT, false);
 		}
 		fclose(outTXT);
 	}
@@ -302,8 +303,8 @@ void XG_Main::writeTxt(FILE* outTXT, FILE* outSimpleTXT)
 	fprintf_s(outSimpleTXT, "\t\t       # of Nodes: %zu\n", xg.m_data->m_nodes.size());
 	for (size_t index = 0; index < xg.m_data->m_nodes.size(); index++)
 	{
-		std::shared_ptr<XGNode> node = xg.m_data->m_nodes[index];
-		GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t     Node %03zu - %s\n", index + 1, node->m_name.m_pstring, 17);
+		std::shared_ptr<XGNode>& node = xg.m_data->m_nodes[index];
+		GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t     Node %03zu - %s: %s\n", index + 1, node->getType(), node->m_name.m_pstring, 17);
 		node->writeTXT(outTXT, true);
 		fflush(outTXT);
 	}

@@ -379,10 +379,10 @@ void XGM_Main::writeTxt()
 		{
 			fprintf_s(outTXT, "\t\t\t    Animation Entry %02zu\n", index2 + 1);
 			XG::Animation& anim = xg.m_animations[index2];
-			fprintf_s(outTXT, "\t\t\t\t      Playback Length: %f\n", anim.m_length);
-			fprintf_s(outTXT, "\t\t\t\t    Keyframe Interval: %f\n", anim.m_keyframe_interval);
-			fprintf_s(outTXT, "\t\t\t\t\t    Framerate: %f\n", anim.m_framerate);
-			fprintf_s(outTXT, "\t\t\t\t    Starting Keyframe: %f\n", anim.m_starting_keyframe);
+			fprintf_s(outTXT, "\t\t\t\t      Playback Length: %g\n", anim.m_length);
+			fprintf_s(outTXT, "\t\t\t\t    Keyframe Interval: %g\n", anim.m_keyframe_interval);
+			fprintf_s(outTXT, "\t\t\t\t\t    Framerate: %g\n", anim.m_framerate);
+			fprintf_s(outTXT, "\t\t\t\t    Starting Keyframe: %g\n", anim.m_starting_keyframe);
 			fprintf_s(outTXT, "\t\t\t\t     Not Tempo Linked: %s\n", (anim.m_non_tempo ? "TRUE" : "FALSE"));
 		}
 		//XG Data

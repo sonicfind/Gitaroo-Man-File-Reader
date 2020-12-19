@@ -182,7 +182,16 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Main\glm.natvis">
-      <Filter>GMFR</Filter>
+      <Filter>Global</Filter>
+    </Natvis>
+    <Natvis Include="Main\SharedPtr.natvis">
+      <Filter>Global</Filter>
+    </Natvis>
+    <Natvis Include="IMX\IMX.natvis">
+      <Filter>Visual-Based Types\IMX</Filter>
+    </Natvis>
+    <Natvis Include="XG\XG.natvis">
+      <Filter>Visual-Based Types\XG</Filter>
     </Natvis>
   </ItemGroup>
 </Project>

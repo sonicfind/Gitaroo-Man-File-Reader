@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="XG">
+    <DisplayString>{m_name, s}</DisplayString>
+  </Type>
+  <Type Name="XG_Data::DagBase">
+    <DisplayString>{m_base->m_name.m_pstring, s}</DisplayString>
+  </Type>
+  <Type Name="PString">
+    <DisplayString>{m_pstring, s}</DisplayString>
+  </Type>
+  <Type Name="SharedNode&lt;*&gt;">
+    <DisplayString>{m_node->m_name.m_pstring, s}</DisplayString>
+    <Expand>
+      <ExpandedItem>*m_node</ExpandedItem>
+    </Expand>
+  </Type>
+  <Type Name="SharedNode&lt;*&gt;">
+    <DisplayString>{m_node->m_name.m_pstring}</DisplayString>
+    <Expand>
+      <ExpandedItem>*m_node</ExpandedItem>
+    </Expand>
+  </Type>
+</AutoVisualizer>

@@ -235,6 +235,9 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Main\glm.natvis" />
+    <Natvis Include="IMX\IMX.natvis" />
+    <Natvis Include="Main\SharedPtr.natvis" />
+    <Natvis Include="XG\XG.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

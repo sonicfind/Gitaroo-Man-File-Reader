@@ -811,9 +811,8 @@ namespace LinkedList
 					sh_shared->m_tail->next = nullptr;
 				else
 					sh_shared->m_root = nullptr;
-				sh_shared->m_count--;
-				sh_shared->m_iterator = { sh_shared->m_tail , sh_shared->m_count - 1 };
 				--sh_shared->m_count;
+				sh_shared->m_iterator = { sh_shared->m_tail , sh_shared->m_count - 1 };
 			}
 		}
 

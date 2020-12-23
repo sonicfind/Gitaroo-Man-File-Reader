@@ -19,9 +19,7 @@
 class XG_Data
 {
 	friend class XG_Main;
-	friend class XGM_Main;
-	friend class Editor;
-	friend class XGM;
+	friend class XG_Editor;
 	friend class XG;
 public:
 	struct DagBase
@@ -66,8 +64,8 @@ class XG
 {
 	friend class XG_Main;
 	friend class XGM_Main;
-	friend class Editor;
-	friend class XGM;
+	friend class XG_Editor;
+	friend class XGM_Editor;
 public:
 	struct Animation
 	{

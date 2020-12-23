@@ -3,4 +3,10 @@
   <Type Name="XG">
     <DisplayString>{m_name}</DisplayString>
   </Type>
+  <Type Name="XG_Data::DagBase">
+    <DisplayString>{m_base->m_name.m_pstring}</DisplayString>
+  </Type>
+  <Type Name="PString">
+    <DisplayString>{m_pstring}</DisplayString>
+  </Type>
 </AutoVisualizer>

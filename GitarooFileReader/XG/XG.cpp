@@ -204,8 +204,9 @@ XG_Data::XG_Data(FILE* inFile)
 
 	type.fill(inFile);		// Grabs the .dag std::string
 	colonTest.fill(inFile); // Grabs the { character
-	xgName.fill(inFile);
+	
 	std::list<std::vector<XG_Data::DagBase>*> dagStack = { &m_dag };
+	xgName.fill(inFile);
 	while (!strchr(xgName.m_pstring, '}'))
 	{
 		if (strchr(xgName.m_pstring, '['))

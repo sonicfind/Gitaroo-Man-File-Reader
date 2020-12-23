@@ -69,7 +69,7 @@ void PString::push(const char character, FILE* outFile)
 void PString::push(const std::string& str, FILE* outFile)
 {
 	char size = (char)str.length();
-	fwrite(&size, 1, 1, outFile);
+	fputc(size, outFile);
 	fwrite(str.c_str(), 1, size, outFile);
 }
 

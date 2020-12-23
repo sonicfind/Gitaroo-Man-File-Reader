@@ -21,7 +21,7 @@ struct XGNode
 	PString m_name;
 	virtual void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList) = 0;
 	virtual void create(FILE* outFile, bool full) = 0;
-	virtual void writeTXT(FILE* outTXT, bool fromXgm) = 0;
+	virtual void writeTXT(FILE* outTXT, const char* tabs = "") = 0;
 	virtual const char* getType() = 0;
 };
 
@@ -41,21 +41,17 @@ struct SharedNode
 struct xgBgGeometry : public XGNode
 {
 	float m_density = 0;
-	struct Vertices
-	{
-		unsigned long m_vertexFlags = 0;
-		unsigned long m_numVerts = 0;
-		float** m_vertices = nullptr;
-		Vertices() = default;
-		Vertices(const Vertices& verts);
-		~Vertices();
-	} m_vertexData;
-	std::vector<SharedNode> m_inputGeometryNames;
+	unsigned long m_vertexFlags = 0;
+	unsigned long m_numVerts = 0;
+	float** m_vertices = nullptr;
+	std::vector<SharedNode> m_inputGeometries;
 	xgBgGeometry() = default;
-	xgBgGeometry(PString& name) { m_name = name; }
+	xgBgGeometry(const PString& name) { m_name = name; }
+	xgBgGeometry(const xgBgGeometry& geo);
+	~xgBgGeometry();
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgBgGeometry"; }
 	static bool compare(const PString& str) { return strcmp("xgBgGeometry", str.m_pstring) == 0; }
 };
@@ -70,10 +66,10 @@ struct xgBgMatrix : public XGNode
 	SharedNode m_inputScale;
 	SharedNode m_inputParentMatrix;
 	xgBgMatrix() = default;
-	xgBgMatrix(PString& name) { m_name = name; }
+	xgBgMatrix(const PString& name) { m_name = name; }
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	~xgBgMatrix() {}
 	const char* getType() { return "xgBgMatrix"; }
 	static bool compare(const PString& str) { return strcmp("xgBgMatrix", str.m_pstring) == 0; }
@@ -84,10 +80,10 @@ struct xgBone : public XGNode
 	float m_restMatrix[16] = { 0 };
 	SharedNode m_inputMatrix;
 	xgBone() = default;
-	xgBone(PString& name) { m_name = name; }
+	xgBone(const PString& name) { m_name = name; }
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	~xgBone() {}
 	const char* getType() { return "xgBone"; }
 	static bool compare(const PString& str) { return strcmp("xgBone", str.m_pstring) == 0; }
@@ -113,25 +109,25 @@ struct xgDagMesh : public XGNode
 	unsigned long m_triListCount = 0; //number of triLists
 	Data m_triListData; // triListsize
 	unsigned long m_cullFunc = 0;
-	std::vector<SharedNode> m_inputGeometry;
-	std::vector<SharedNode> m_inputMaterial;
+	std::vector<SharedNode> m_inputGeometries;
+	std::vector<SharedNode> m_inputMaterials;
 	xgDagMesh() = default;
-	xgDagMesh(PString& name) { m_name = name; }
+	xgDagMesh(const PString& name) { m_name = name; }
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgDagMesh"; }
 	static bool compare(const PString& str) { return strcmp("xgDagMesh", str.m_pstring) == 0; }
 };
 
 struct xgDagTransform : public XGNode
 {
-	std::vector<SharedNode> m_inputMatrix;
+	std::vector<SharedNode> m_inputMatrices;
 	xgDagTransform() = default;
-	xgDagTransform(PString& name) { m_name = name; }
+	xgDagTransform(const PString& name) { m_name = name; }
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgDagTransform"; }
 	static bool compare(const PString& str) { return strcmp("xgDagTransform", str.m_pstring) == 0; }
 };
@@ -139,29 +135,19 @@ struct xgDagTransform : public XGNode
 struct xgEnvelope : public XGNode
 {
 	unsigned long m_startVertex = 0;
-	struct Key
-	{
-		unsigned long m_numweights = 0;
-		float(*m_weights)[4] = nullptr;
-		Key() = default;
-		Key(const Key& key);
-		~Key();
-	} m_key;
-	struct Targets
-	{
-		unsigned long m_numTargets = 0;
-		long* m_vertexTargets = nullptr;
-		Targets() = default;
-		Targets(const Targets& targets);
-		~Targets();
-	} m_vertices;
-	std::vector<SharedNode> m_inputMatrix1;
-	std::vector<SharedNode> m_inputGeometry;
+	unsigned long m_numweights = 0;
+	float(*m_weights)[4] = nullptr;
+	unsigned long m_numTargets = 0;
+	long* m_vertexTargets = nullptr;
+	std::vector<SharedNode> m_inputMatrices;
+	std::vector<SharedNode> m_inputGeometries;
 	xgEnvelope() = default;
-	xgEnvelope(PString& name) { m_name = name; }
+	xgEnvelope(const PString& name) { m_name = name; }
+	xgEnvelope(const xgEnvelope& env);
+	~xgEnvelope();
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgEnvelope"; }
 	static bool compare(const PString& str) { return strcmp("xgEnvelope", str.m_pstring) == 0; }
 };
@@ -188,24 +174,24 @@ struct xgMaterial : public XGNode
 	unsigned long m_textureEnv = 0;
 	unsigned long m_uTile = 0;
 	unsigned long m_vTile = 0;
-	std::vector<SharedNode> m_inputTexture;
+	std::vector<SharedNode> m_inputTextures;
 	xgMaterial() = default;
-	xgMaterial(PString& name) { m_name = name; }
+	xgMaterial(const PString& name) { m_name = name; }
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgMaterial"; }
 	static bool compare(const PString& str) { return strcmp("xgMaterial", str.m_pstring) == 0; }
 };
 
 struct xgMultiPassMaterial : public XGNode
 {
-	std::vector<SharedNode> m_inputMaterial;
+	std::vector<SharedNode> m_inputMaterials;
 	xgMultiPassMaterial() = default;
-	xgMultiPassMaterial(PString& name) { m_name = name; }
+	xgMultiPassMaterial(const PString& name) { m_name = name; }
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgMultiPassMaterial"; }
 	static bool compare(const PString& str) { return strcmp("xgMultiPassMaterial", str.m_pstring) == 0; }
 };
@@ -213,14 +199,8 @@ struct xgMultiPassMaterial : public XGNode
 struct xgNormalInterpolator : public XGNode
 {
 	unsigned long m_type = 0;
-	struct Time
-	{
-		unsigned long m_numtimes = 0;
-		float* m_times = nullptr;
-		Time() = default;
-		Time(const Time& key);
-		~Time();
-	} m_times;
+	unsigned long m_numtimes = 0;
+	float* m_times = nullptr;
 	unsigned long m_numkeys = 0;
 	struct Key
 	{
@@ -229,22 +209,16 @@ struct xgNormalInterpolator : public XGNode
 		Key& operator=(const Key& key);
 		~Key();
 	} *m_keys = nullptr; // Array, obviously
-	struct Targets
-	{
-		unsigned long m_numTargets = 0;
-		unsigned long* m_targets = nullptr;
-		Targets() = default;
-		Targets(const Targets& targets);
-		~Targets();
-	} m_targets;
+	unsigned long m_numTargets = 0;
+	unsigned long* m_targets = nullptr;
 	SharedNode m_inputTime;
 	xgNormalInterpolator() = default;
-	xgNormalInterpolator(PString& name) { m_name = name; }
-	xgNormalInterpolator(xgNormalInterpolator& norm);
+	xgNormalInterpolator(const PString& name) { m_name = name; }
+	xgNormalInterpolator(const xgNormalInterpolator& norm);
+	~xgNormalInterpolator();
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
-	~xgNormalInterpolator();
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgNormalInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgNormalInterpolator", str.m_pstring) == 0; }
 };
@@ -252,20 +226,16 @@ struct xgNormalInterpolator : public XGNode
 struct xgQuatInterpolator : public XGNode
 {
 	unsigned long m_type = 0;
-	struct Key
-	{
-		unsigned long m_numkeys = 0;
-		float(*m_keys)[4] = nullptr;
-		Key() = default;
-		Key(const Key& keyStruct);
-		~Key();
-	} m_keyStruct;
+	unsigned long m_numkeys = 0;
+	float(*m_keys)[4] = nullptr;
 	SharedNode m_inputTime;
 	xgQuatInterpolator() = default;
-	xgQuatInterpolator(PString& name) { m_name = name; }
+	xgQuatInterpolator(const PString& name) { m_name = name; }
+	xgQuatInterpolator(const xgQuatInterpolator& quat);
+	~xgQuatInterpolator();
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgQuatInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgQuatInterpolator", str.m_pstring) == 0; }
 };
@@ -273,14 +243,8 @@ struct xgQuatInterpolator : public XGNode
 struct xgShapeInterpolator : public XGNode
 {
 	unsigned long m_type = 0;
-	struct Time
-	{
-		unsigned long m_numtimes = 0;
-		float* m_times = nullptr;
-		Time() = default;
-		Time(const Time& key);
-		~Time();
-	} m_times;
+	unsigned long m_numtimes = 0;
+	float* m_times = nullptr;
 	unsigned long m_numkeys = 0; //same as number of times?
 	struct Key
 	{
@@ -289,15 +253,15 @@ struct xgShapeInterpolator : public XGNode
 		float** m_vertices = nullptr; // [numVerts][vertSize] vertSize is gotten from vertexType
 		Key& operator=(const Key & keyStruct);
 		~Key();
-	} *m_keys = nullptr; // numKeys
+	} *m_keys = nullptr; // Array, obviously
 	SharedNode m_inputTime;
 	xgShapeInterpolator() = default;
-	xgShapeInterpolator(PString& name) { m_name = name; }
-	xgShapeInterpolator(xgShapeInterpolator& shape);
+	xgShapeInterpolator(const PString& name) { m_name = name; }
+	xgShapeInterpolator(const xgShapeInterpolator& shape);
+	~xgShapeInterpolator();
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
-	~xgShapeInterpolator();
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgShapeInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgShapeInterpolator", str.m_pstring) == 0; }
 };
@@ -305,14 +269,8 @@ struct xgShapeInterpolator : public XGNode
 struct xgTexCoordInterpolator : public XGNode
 {
 	unsigned long m_type = 0;
-	struct Time
-	{
-		unsigned long m_numtimes = 0;
-		float* m_times = nullptr;
-		Time() = default;
-		Time(const Time& key);
-		~Time();
-	} m_times;
+	unsigned long m_numtimes = 0;
+	float* m_times = nullptr;
 	unsigned long m_numkeys = 0;
 	struct Key
 	{
@@ -321,22 +279,16 @@ struct xgTexCoordInterpolator : public XGNode
 		Key& operator=(const Key&);
 		~Key();
 	} *m_keys = nullptr; // numkeys; same as numtargets, below?
-	struct Targets
-	{
-		unsigned long m_numTargets = 0;
-		unsigned long* m_targets = nullptr;
-		Targets() = default;
-		Targets(const Targets& targets);
-		~Targets();
-	} m_targets;
+	unsigned long m_numTargets = 0;
+	unsigned long* m_targets = nullptr;
 	SharedNode m_inputTime;
 	xgTexCoordInterpolator() = default;
-	xgTexCoordInterpolator(PString& name) { m_name = name; }
-	xgTexCoordInterpolator(xgTexCoordInterpolator& tex);
+	xgTexCoordInterpolator(const PString& name) { m_name = name; }
+	xgTexCoordInterpolator(const xgTexCoordInterpolator& tex);
+	~xgTexCoordInterpolator();
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
-	~xgTexCoordInterpolator();
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgTexCoordInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgTexCoordInterpolator", str.m_pstring) == 0; }
 };
@@ -346,10 +298,10 @@ struct xgTexture : public XGNode
 	PString m_imxName;
 	unsigned long m_mipmap_depth = 0;
 	xgTexture() = default;
-	xgTexture(PString& name) { m_name = name; }
+	xgTexture(const PString& name) { m_name = name; }
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	~xgTexture() {}
 	const char* getType() { return "xgTexture"; }
 	static bool compare(const PString& str) { return strcmp("xgTexture", str.m_pstring) == 0; }
@@ -360,10 +312,10 @@ struct xgTime : public XGNode
 	float m_numFrames = 0;
 	float m_time = 0;
 	xgTime() = default;
-	xgTime(PString& name) { m_name = name; }
+	xgTime(const PString& name) { m_name = name; }
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	~xgTime() {}
 	const char* getType() { return "xgTime"; }
 	static bool compare(const PString& str) { return strcmp("xgTime", str.m_pstring) == 0; }
@@ -372,20 +324,16 @@ struct xgTime : public XGNode
 struct xgVec3Interpolator : public XGNode
 {
 	unsigned long m_type = 0;
-	struct Key
-	{
-		unsigned long m_numkeys = 0;
-		float(*m_keys)[3] = nullptr;
-		Key() = default;
-		Key(const Key& keyStruct);
-		~Key();
-	} m_keyStruct;
+	unsigned long m_numkeys = 0;
+	float(*m_keys)[3] = nullptr;
 	SharedNode m_inputTime;
 	xgVec3Interpolator() = default;
-	xgVec3Interpolator(PString& name) { m_name = name; }
+	xgVec3Interpolator(const PString& name) { m_name = name; }
+	xgVec3Interpolator(const xgVec3Interpolator& vec3);
+	~xgVec3Interpolator();
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgVec3Interpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgVec3Interpolator", str.m_pstring) == 0; }
 };
@@ -393,14 +341,8 @@ struct xgVec3Interpolator : public XGNode
 struct xgVertexInterpolator : public XGNode
 {
 	unsigned long m_type = 0;
-	struct Time
-	{
-		unsigned long m_numtimes = 0;
-		float* m_times = nullptr;
-		Time() = default;
-		Time(const Time& key);
-		~Time();
-	} m_times;
+	unsigned long m_numtimes = 0;
+	float* m_times = nullptr;
 	unsigned long m_numkeys = 0;
 	struct Key
 	{
@@ -409,22 +351,16 @@ struct xgVertexInterpolator : public XGNode
 		Key& operator=(const Key&);
 		~Key();
 	} *m_keys = nullptr; // numkeys; same as numtargets, below?
-	struct Targets
-	{
-		unsigned long m_numTargets = 0;
-		unsigned long* m_targets = nullptr;
-		Targets() = default;
-		Targets(const Targets& targets);
-		~Targets();
-	} m_targets;
+	unsigned long m_numTargets = 0;
+	unsigned long* m_targets = nullptr;
 	std::vector<SharedNode> m_inputTimes;
 	xgVertexInterpolator() = default;
-	xgVertexInterpolator(PString& name) { m_name = name; }
-	xgVertexInterpolator(xgVertexInterpolator& vert);
+	xgVertexInterpolator(const PString& name) { m_name = name; }
+	xgVertexInterpolator(const xgVertexInterpolator& vert);
+	~xgVertexInterpolator();
 	void read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList);
 	void create(FILE* outFile, bool full);
-	void writeTXT(FILE* outTXT, bool fromXgm);
-	~xgVertexInterpolator();
+	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgVertexInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgVertexInterpolator", str.m_pstring) == 0; }
 };

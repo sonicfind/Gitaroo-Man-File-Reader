@@ -120,9 +120,9 @@ void IMX::create(FILE* outFile, unsigned long& sizes)
 }
 
 //Create or update a IMX file
-void IMX::create(string filename, bool useBanner)
+void IMX::create(string filename, bool trueSave)
 {
-	if (useBanner)
+	if (trueSave)
 	{
 		size_t pos = filename.find_last_of('\\');
 		GlobalFunctions::banner(" Saving " + filename.substr(pos != string::npos ? pos + 1 : 0) + ' ');
@@ -133,7 +133,9 @@ void IMX::create(string filename, bool useBanner)
 		throw "Error: " + filename + " could not be created.";
 	m_data->create(outFile);
 	fclose(outFile);
-	m_saved = 1;
+
+	if (trueSave)
+		m_saved = 1;
 }
 
 void IMX::read(string filename)
@@ -281,6 +283,7 @@ IMX_Data::IMX_Data(FILE* inFile) : m_colorData(make_shared<ColorData>())
 		throw "Error: Unknown Pixel Storage values (" + to_string(m_pixelVal1) + " | " + to_string(m_pixelVal2) + ") for texture ";
 	}
 	fread(&m_colorData->m_imageSize, 4, 1, inFile);
+	m_colorData->m_image = new unsigned char[m_colorData->m_imageSize];
 	fread(m_colorData->m_image, 1, m_colorData->m_imageSize, inFile);
 }
 IMX_Data::IMX_Data(IMX_Data& imx)

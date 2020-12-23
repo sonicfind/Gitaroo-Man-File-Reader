@@ -45,7 +45,7 @@ public:
 		unsigned long m_paletteSize = 0;
 		unsigned char(*m_palette)[4] = nullptr;
 		unsigned long m_imageSize = 0;
-		char* m_image = nullptr;
+		unsigned char* m_image = nullptr;
 		ColorData() = default;
 		ColorData(const ColorData&);
 		ColorData(const ColorData&, bool);
@@ -88,7 +88,7 @@ public:
 	IMX(const IMX&) = default;
 	IMX& operator=(IMX& imx);
 	void create(FILE* outFile, unsigned long& sizes);
-	void create(std::string filename, bool useBanner = true);
+	void create(std::string filename, bool trueSave = true);
 	void read(std::string filename);
 	bool exportPNG();
 	bool importPNG();

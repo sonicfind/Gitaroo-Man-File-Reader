@@ -232,17 +232,17 @@ void xgBgMatrix::create(FILE* outFile, bool full)
 }
 void xgBgMatrix::writeTXT(FILE* outTXT, const char* tabs)
 {
-	fprintf_s(outTXT, "\t\t%s Grid Position (XYZ): %g, %g, %g\n", tabs, m_position[0], m_position[1], m_position[2]);
-	fprintf_s(outTXT, "\t\t%sGrid Rotation (XYZW): %g, %g, %g, %g\n", tabs, m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
-	fprintf_s(outTXT, "\t\t%s    Grid Scale (XYZ): %g, %g, %g\n", tabs, m_scale[0], m_scale[1], m_scale[2]);
+	fprintf_s(outTXT, "\t\t\t%s Grid Position (XYZ): %g, %g, %g\n", tabs, m_position[0], m_position[1], m_position[2]);
+	fprintf_s(outTXT, "\t\t\t%sGrid Rotation (XYZW): %g, %g, %g, %g\n", tabs, m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
+	fprintf_s(outTXT, "\t\t\t%s    Grid Scale (XYZ): %g, %g, %g\n", tabs, m_scale[0], m_scale[1], m_scale[2]);
 	if (m_inputPosition.isValid())
-		fprintf_s(outTXT, "\t%s    Position offset from: %s\n", tabs, m_inputPosition.getPString()->m_pstring);
+		fprintf_s(outTXT, "\t\t\t%sPosition offset from: %s\n", tabs, m_inputPosition.getPString()->m_pstring);
 	if (m_inputRotation.isValid())
-		fprintf_s(outTXT, "\t%s    Rotation offset from: %s\n", tabs, m_inputRotation.getPString()->m_pstring);
+		fprintf_s(outTXT, "\t\t\t%sRotation offset from: %s\n", tabs, m_inputRotation.getPString()->m_pstring);
 	if (m_inputScale.isValid())
-		fprintf_s(outTXT, "\t%s       Scale offset from: %s\n", tabs, m_inputScale.getPString()->m_pstring);
+		fprintf_s(outTXT, "\t\t\t%s   Scale offset from: %s\n", tabs, m_inputScale.getPString()->m_pstring);
 	if (m_inputParentMatrix.isValid())
-		fprintf_s(outTXT, "\t%s     Parent Input Matrix: %s\n", tabs, m_inputParentMatrix.getPString()->m_pstring);
+		fprintf_s(outTXT, "\t\t\t%s Parent Input Matrix: %s\n", tabs, m_inputParentMatrix.getPString()->m_pstring);
 }
 
 void xgBone::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
@@ -516,7 +516,9 @@ void xgDagTransform::create(FILE* outFile, bool full)
 }
 void xgDagTransform::writeTXT(FILE* outTXT, const char* tabs)
 {
-
+	fprintf_s(outTXT, "\t%s       # of Input Matrices: %zu\n", tabs, m_inputMatrices.size());
+	for (size_t index = 0; index < m_inputMatrices.size(); ++index)
+		fprintf_s(outTXT, "\t\t\t%s %zu. %s\n", tabs, index + 1, m_inputMatrices[index].getPString()->m_pstring);
 }
 
 xgEnvelope::xgEnvelope(const xgEnvelope& env)
@@ -595,7 +597,35 @@ void xgEnvelope::create(FILE* outFile, bool full)
 }
 void xgEnvelope::writeTXT(FILE* outTXT, const char* tabs)
 {
+	fprintf_s(outTXT, "\t\t%s   Starting Vertex: %lu\n", tabs, m_startVertex);
+	fprintf_s(outTXT, "\t\t%s      # of Weights: %lu\n", tabs, m_numweights);
+	for (unsigned long index = 0; index < m_numweights; ++index)
+		fprintf_s(outTXT, "\t\t\t%s     Weight %03lu: %g, %g, %g, %g\n", tabs, index + 1,
+			m_weights[index][0], m_weights[index][1], m_weights[index][2], m_weights[index][3]);
 
+	fprintf_s(outTXT, "\t%s       # of Vertex Targets: %lu\n", tabs, m_numTargets);
+	for (unsigned long index = 0, env = 0; index < m_numTargets; ++index, ++env)
+	{
+		fprintf_s(outTXT, "\t\t\t%sVertex Envelope %03li\n", tabs, env + 1);
+		unsigned long vert = 1;
+		do
+		{
+			fprintf_s(outTXT, "\t\t\t%s   Target Mesh Vertex %lu: %li\n", tabs, vert++, m_vertexTargets[index++]);
+		} while (index < m_numTargets && m_vertexTargets[index] != -1);
+	}
+
+	if (m_inputMatrices.size())
+	{
+		fprintf_s(outTXT, "\t%s       # of Input Matrices: %zu\n", tabs, m_inputMatrices.size());
+		for (size_t index = 0; index < m_inputMatrices.size(); ++index)
+			fprintf_s(outTXT, "\t\t\t%s %zu. %s\n", tabs, index + 1, m_inputMatrices[index].getPString()->m_pstring);
+	}
+	if (m_inputGeometries.size())
+	{
+		fprintf_s(outTXT, "\t%s     # of Input Geometries: %zu\n", tabs, m_inputGeometries.size());
+		for (size_t index = 0; index < m_inputGeometries.size(); ++index)
+			fprintf_s(outTXT, "\t\t\t%s %zu. %s\n", tabs, index + 1, m_inputGeometries[index].getPString()->m_pstring);
+	}
 }
 
 void xgMaterial::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
@@ -672,7 +702,48 @@ void xgMaterial::create(FILE* outFile, bool full)
 }
 void xgMaterial::writeTXT(FILE* outTXT, const char* tabs)
 {
+	switch (m_blendType)
+	{
+	case 1:
+		fprintf_s(outTXT, "\t\t\t%s    Blend Type: Additive (+Tex Alpha)\n", tabs); break;
+	case 2:
+		fprintf_s(outTXT, "\t\t\t%s    Blend Type: Multiply (Ignore Tex Alpha)\n", tabs); break;
+	case 3:
+		fprintf_s(outTXT, "\t\t\t%s    Blend Type: Subtractive (Ignore Tex Alpha)\n", tabs); break;
+	case 4:
+		fprintf_s(outTXT, "\t\t\t%s    Blend Type: Unknown\n", tabs); break;
+	case 5:
+		fprintf_s(outTXT, "\t\t\t%s    Blend Type: Opaque (+Tex Alpha)\n", tabs); break;
+	default:
+		fprintf_s(outTXT, "\t\t\t%s    Blend Type: Opaque\n", tabs);
+	}
 
+	switch (m_shadingType)
+	{
+	case 1:
+		fprintf_s(outTXT, "\t\t\t%s  Shading Type: Shaded (No specular??)\n", tabs); break;
+	case 2:
+		fprintf_s(outTXT, "\t\t\t%s  Shading Type: Shaded\n", tabs); break;
+	case 3:
+		fprintf_s(outTXT, "\t\t\t%s  Shading Type: Unshaded, Vertex Colors\n", tabs); break;
+	case 4:
+		fprintf_s(outTXT, "\t\t\t%s  Shading Type: Shaded, Vertex Colors\n", tabs); break;
+	default:
+		fprintf_s(outTXT, "\t\t\t%s  Shading Type: Unshaded\n", tabs);
+	}
+
+	fprintf_s(outTXT, "\t\t\t%sDiffuse (RGBA): %g, %g, %g, %g\n", tabs, m_diffuse.red, m_diffuse.green, m_diffuse.blue, m_diffuse.alpha);
+	fprintf_s(outTXT, "\t\t%s     Specular (RGBExp): %g, %g, %g, %g\n", tabs, m_specular.red, m_specular.green, m_specular.blue, m_specular.exponent);
+	fprintf_s(outTXT, "\t\t\t\t%s Flags: %s (Possibly overriden by blend or shading)\n", tabs, m_flags & 1 ? "Use Alpha" : "Ignore Alpha");
+	fprintf_s(outTXT, "\t\t%s   Texture Environment: %s\n", tabs, m_textureEnv ? "UV Coordinates" : "Sphere/Environment Map");
+	fprintf_s(outTXT, "\t\t\t\t%s UTile: %lu\n", tabs, m_uTile);
+	fprintf_s(outTXT, "\t\t\t\t%s VTile: %lu\n", tabs, m_vTile);
+	if (m_inputTextures.size())
+	{
+		fprintf_s(outTXT, "\t\t\t%s # of Textures: %zu\n", tabs, m_inputTextures.size());
+		for (size_t index = 0; index < m_inputTextures.size(); ++index)
+			fprintf_s(outTXT, "\t\t\t%s     %zu. %s\n", tabs, index + 1, m_inputTextures[index].getPString()->m_pstring);
+	}
 }
 
 void xgMultiPassMaterial::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
@@ -706,7 +777,9 @@ void xgMultiPassMaterial::create(FILE* outFile, bool full)
 }
 void xgMultiPassMaterial::writeTXT(FILE* outTXT, const char* tabs)
 {
-
+	fprintf_s(outTXT, "\t%s     # of Textures: %zu\n", tabs, m_inputMaterials.size());
+	for (size_t index = 0; index < m_inputMaterials.size(); ++index)
+		fprintf_s(outTXT, "\t\t%s %zu. %s\n", tabs, index + 1, m_inputMaterials[index].getPString()->m_pstring);
 }
 
 xgNormalInterpolator::Key& xgNormalInterpolator::Key::operator=(const Key& norm)
@@ -804,7 +877,32 @@ void xgNormalInterpolator::create(FILE* outFile, bool full)
 }
 void xgNormalInterpolator::writeTXT(FILE* outTXT, const char* tabs)
 {
+	if (m_type)
+		fprintf_s(outTXT, "\t\t%s Interpolation: TRUE (%lu)\n", tabs, m_type);
+	else
+		fprintf_s(outTXT, "\t\t%s Interpolation: FALSE\n", tabs);
 
+	fprintf_s(outTXT, "\t\t%s    # of Times: %lu\n", tabs, m_numtimes);
+	for (unsigned long index = 0; index < m_numtimes; ++index)
+		fprintf_s(outTXT, "\t\t\t%s     Time %lu: %g\n", tabs, index + 1, m_times[index]);
+
+	fprintf_s(outTXT, "\t\t%s     # of Keys: %lu\n", tabs, m_numkeys);
+	for (unsigned long index = 0; index < m_numkeys; ++index)
+	{
+		fprintf_s(outTXT, "\t\t\t%s   Key %lu:\n", tabs, index + 1);
+		fprintf_s(outTXT, "\t\t\t%s       # of Normals: %lu\n", tabs, m_keys[index].m_numNormals);
+		for (unsigned long norm = 0; norm < m_keys[index].m_numNormals; ++norm)
+		{
+			fprintf_s(outTXT, "\t\t\t\t%s       Normal %lu: %g, %g, %g\n", tabs, norm + 1,
+				m_keys[index].m_normals[norm][0], m_keys[index].m_normals[norm][1], m_keys[index].m_normals[norm][2]);
+		}
+	}
+
+	fprintf_s(outTXT, "\t\t%s  # of Targets: %lu\n", tabs, m_numTargets);
+	for (unsigned long index = 0; index < m_numTargets; ++index)
+		fprintf_s(outTXT, "\t\t\t%s  Target %lu: %lu\n", tabs, index + 1, m_targets[index]);
+
+	fprintf_s(outTXT, "\t\t%s    Input Time: %s\n", tabs, m_inputTime.getPString()->m_pstring);
 }
 
 xgQuatInterpolator::xgQuatInterpolator(const xgQuatInterpolator& quat)
@@ -855,8 +953,19 @@ void xgQuatInterpolator::create(FILE* outFile, bool full)
 }
 void xgQuatInterpolator::writeTXT(FILE* outTXT, const char* tabs)
 {
+	if (m_type)
+		fprintf_s(outTXT, "\t\t%s Interpolation: TRUE (%lu)\n", tabs, m_type);
+	else
+		fprintf_s(outTXT, "\t\t%s Interpolation: FALSE\n", tabs);
 
+	fprintf_s(outTXT, "\t%s       # of Keys (XYZW): %lu\n", tabs, m_numkeys);
+	for (unsigned long index = 0; index < m_numkeys; ++index)
+	{
+		fprintf_s(outTXT, "\t\t\t%s   Key %lu: %g, %g, %g, %g\n", tabs, index + 1,
+			m_keys[index][0], m_keys[index][1], m_keys[index][2], m_keys[index][3]);
+	}
 
+	fprintf_s(outTXT, "\t\t%s    Input Time: %s\n", tabs, m_inputTime.getPString()->m_pstring);
 }
 
 xgShapeInterpolator::Key& xgShapeInterpolator::Key::operator=(const Key& m_key)
@@ -992,8 +1101,37 @@ void xgShapeInterpolator::create(FILE* outFile, bool full)
 }
 void xgShapeInterpolator::writeTXT(FILE* outTXT, const char* tabs)
 {
+	if (m_type)
+		fprintf_s(outTXT, "\t\t%s Interpolation: TRUE (%lu)\n", tabs, m_type);
+	else
+		fprintf_s(outTXT, "\t\t%s Interpolation: FALSE\n", tabs);
 
+	fprintf_s(outTXT, "\t\t%s    # of Times: %lu\n", tabs, m_numtimes);
+	for (unsigned long index = 0; index < m_numtimes; ++index)
+		fprintf_s(outTXT, "\t\t\t%s     Time %lu: %g\n", tabs, index + 1, m_times[index]);
 
+	fprintf_s(outTXT, "\t\t%s     # of Keys: %lu\n", tabs, m_numkeys);
+	for (unsigned long index = 0; index < m_numkeys; ++index)
+	{
+		fprintf_s(outTXT, "\t\t\t%s   Key %lu:\n", tabs, index + 1);
+		fprintf_s(outTXT, "\t\t\t\t%sVertex Type: %lu\n", tabs, m_keys[index].m_vertexType);
+		fprintf_s(outTXT, "\t\t\t%s      # of Vertices: %lu\n", tabs, m_keys[index].m_numVerts);
+		for (unsigned long vert = 0; vert < m_keys[index].m_numVerts; ++vert)
+		{
+				fprintf_s(outTXT, "\t\t\t\t%s       Vertex %lu:\n", tabs, vert + 1);
+			float* data = m_keys[index].m_vertices[vert];
+			if (m_keys[index].m_vertexType & 1) // Position
+				fprintf_s(outTXT, "\t\t\t\t\t\t%s   Position (XYZ+Unk): %g, %g, %g, %g\n", tabs, *(data++), *(data++), *(data++), *(data++));
+			if (m_keys[index].m_vertexType & 2) // Normal
+				fprintf_s(outTXT, "\t\t\t\t\t\t\t%s Normal (XYZ): %g, %g, %g\n", tabs, *(data++), *(data++), *(data++));
+			if (m_keys[index].m_vertexType & 4) // Color
+				fprintf_s(outTXT, "\t\t\t\t\t\t\t%s Color (RGBA): %g, %g, %g, %g\n", tabs, *(data++), *(data++), *(data++), *(data++));
+			if (m_keys[index].m_vertexType & 8) // Texture Coordinate
+				fprintf_s(outTXT, "\t\t\t\t\t%s      Texture Coordinate (ST): %g, %g\n", tabs, *(data++), *data);
+		}
+	}
+
+	fprintf_s(outTXT, "\t\t%s    Input Time: %s\n", tabs, m_inputTime.getPString()->m_pstring);
 }
 
 xgTexCoordInterpolator::Key& xgTexCoordInterpolator::Key::operator=(const Key& m_key)
@@ -1092,6 +1230,32 @@ void xgTexCoordInterpolator::create(FILE* outFile, bool full)
 void xgTexCoordInterpolator::writeTXT(FILE* outTXT, const char* tabs)
 {
 
+	if (m_type)
+		fprintf_s(outTXT, "\t\t%s Interpolation: TRUE (%lu)\n", tabs, m_type);
+	else
+		fprintf_s(outTXT, "\t\t%s Interpolation: FALSE\n", tabs);
+
+	fprintf_s(outTXT, "\t\t%s    # of Times: %lu\n", tabs, m_numtimes);
+	for (unsigned long index = 0; index < m_numtimes; ++index)
+		fprintf_s(outTXT, "\t\t\t%s     Time %lu: %g\n", tabs, index + 1, m_times[index]);
+
+	fprintf_s(outTXT, "\t\t%s     # of Keys: %lu\n", tabs, m_numkeys);
+	for (unsigned long index = 0; index < m_numkeys; ++index)
+	{
+		fprintf_s(outTXT, "\t\t\t%s   Key %lu:\n", tabs, index + 1);
+		fprintf_s(outTXT, "\t\t\t%s       # of Normals: %lu\n", tabs, m_keys[index].m_numVerts);
+		for (unsigned long vert = 0; vert < m_keys[index].m_numVerts; ++vert)
+		{
+			fprintf_s(outTXT, "\t\t\t\t%s  Vertex %lu (ST): %g, %g\n", tabs, vert + 1,
+				m_keys[index].m_texcoords[vert][0], m_keys[index].m_texcoords[vert][1]);
+		}
+	}
+
+	fprintf_s(outTXT, "\t\t%s  # of Targets: %lu\n", tabs, m_numTargets);
+	for (unsigned long index = 0; index < m_numTargets; ++index)
+		fprintf_s(outTXT, "\t\t\t%s  Target %lu: %lu\n", tabs, index + 1, m_targets[index]);
+
+	fprintf_s(outTXT, "\t\t%s    Input Time: %s\n", tabs, m_inputTime.getPString()->m_pstring);
 }
 
 void xgTexture::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
@@ -1120,7 +1284,8 @@ void xgTexture::create(FILE* outFile, bool full)
 }
 void xgTexture::writeTXT(FILE* outTXT, const char* tabs)
 {
-
+	fprintf_s(outTXT, "\t\t\t%s    Texture: %s\n", tabs, m_imxName.m_pstring);
+	fprintf_s(outTXT, "\t\t%s      Mip map depth: %lu\n", tabs, m_mipmap_depth);
 }
 
 void xgTime::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& nodeList)
@@ -1149,7 +1314,8 @@ void xgTime::create(FILE* outFile, bool full)
 }
 void xgTime::writeTXT(FILE* outTXT, const char* tabs)
 {
-
+	fprintf_s(outTXT, "\t\t%s   # of Frames: %g\n", tabs, m_numFrames);
+	fprintf_s(outTXT, "\t\t\t%s  Time: %g (Starting point??)\n", tabs, m_time);
 }
 
 xgVec3Interpolator::xgVec3Interpolator(const xgVec3Interpolator& norm)
@@ -1200,8 +1366,19 @@ void xgVec3Interpolator::create(FILE* outFile, bool full)
 }
 void xgVec3Interpolator::writeTXT(FILE* outTXT, const char* tabs)
 {
+	if (m_type)
+		fprintf_s(outTXT, "\t\t%s Interpolation: TRUE (%lu)\n", tabs, m_type);
+	else
+		fprintf_s(outTXT, "\t\t%s Interpolation: FALSE\n", tabs);
 
+	fprintf_s(outTXT, "\t\t%s     # of Keys: %lu\n", tabs, m_numkeys);
+	for (unsigned long index = 0; index < m_numkeys; ++index)
+	{
+		fprintf_s(outTXT, "\t\t\t%s   Key %lu: %g, %g, %g\n", tabs, index + 1,
+			m_keys[index][0], m_keys[index][1], m_keys[index][2]);
+	}
 
+	fprintf_s(outTXT, "\t\t%s    Input Time: %s\n", tabs, m_inputTime.getPString()->m_pstring);
 }
 
 xgVertexInterpolator::Key& xgVertexInterpolator::Key::operator=(const Key& m_key)
@@ -1306,5 +1483,35 @@ void xgVertexInterpolator::create(FILE* outFile, bool full)
 }
 void xgVertexInterpolator::writeTXT(FILE* outTXT, const char* tabs)
 {
+	if (m_type)
+		fprintf_s(outTXT, "\t\t%s Interpolation: TRUE (%lu)\n", tabs, m_type);
+	else
+		fprintf_s(outTXT, "\t\t%s Interpolation: FALSE\n", tabs);
 
+	fprintf_s(outTXT, "\t\t%s    # of Times: %lu\n", tabs, m_numtimes);
+	for (unsigned long index = 0; index < m_numtimes; ++index)
+		fprintf_s(outTXT, "\t\t\t%s     Time %lu: %g\n", tabs, index + 1, m_times[index]);
+
+	fprintf_s(outTXT, "\t\t%s     # of Keys: %lu\n", tabs, m_numkeys);
+	for (unsigned long index = 0; index < m_numkeys; ++index)
+	{
+		fprintf_s(outTXT, "\t\t\t%s   Key %lu:\n", tabs, index + 1);
+		fprintf_s(outTXT, "\t\t\t%s       # of Positions?: %lu\n", tabs, m_keys[index].m_numsize);
+		for (unsigned long pos = 0; pos < m_keys[index].m_numsize; ++pos)
+		{
+			fprintf_s(outTXT, "\t\t\t\t\t%sPosition %lu: %g, %g, %g\n", tabs, pos + 1,
+				m_keys[index].m_nums[pos][0], m_keys[index].m_nums[pos][1], m_keys[index].m_nums[pos][2]);
+		}
+	}
+
+	fprintf_s(outTXT, "\t\t%s  # of Targets: %lu\n", tabs, m_numTargets);
+	for (unsigned long index = 0; index < m_numTargets; ++index)
+		fprintf_s(outTXT, "\t\t\t%s  Target %lu: %lu\n", tabs, index + 1, m_targets[index]);
+
+	if (m_inputTimes.size())
+	{
+		fprintf_s(outTXT, "\t      %s# of Input Times: %zu\n", tabs, m_inputTimes.size());
+		for (size_t index = 0; index < m_inputTimes.size(); ++index)
+			fprintf_s(outTXT, "\t\t\t%s %zu. %s\n", tabs, index + 1, m_inputTimes[index].getPString()->m_pstring);
+	}
 }

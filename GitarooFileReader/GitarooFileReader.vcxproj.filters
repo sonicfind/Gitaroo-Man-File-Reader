@@ -52,12 +52,6 @@
     <Filter Include="IMX\Editor">
       <UniqueIdentifier>{95225374-c76f-44e0-8ad8-fb2f26640250}</UniqueIdentifier>
     </Filter>
-    <Filter Include="IMX\Image Types">
-      <UniqueIdentifier>{9ac2395a-3fdd-428e-bbd6-bb0cd76c1d5c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IMX\Image Types\PNG">
-      <UniqueIdentifier>{ea525210-048a-494c-8fa2-666cc43ee54c}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CHC\CHC_Main.cpp">
@@ -120,12 +114,6 @@
     <ClCompile Include="XG\XG_Nodes.cpp">
       <Filter>XG</Filter>
     </ClCompile>
-    <ClCompile Include="IMX\IMX_Image.cpp">
-      <Filter>IMX\Image Types</Filter>
-    </ClCompile>
-    <ClCompile Include="IMX\IMX_PNG.cpp">
-      <Filter>IMX\Image Types\PNG</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CHC\CHC_Main.h">
@@ -184,12 +172,6 @@
     </ClInclude>
     <ClInclude Include="XG\XG_Nodes.h">
       <Filter>XG</Filter>
-    </ClInclude>
-    <ClInclude Include="IMX\IMX_Image.h">
-      <Filter>IMX\Image Types</Filter>
-    </ClInclude>
-    <ClInclude Include="IMX\IMX_PNG.h">
-      <Filter>IMX\Image Types\PNG</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -15,11 +15,12 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "IMX.h"
+#include <filesystem>
 using namespace std;
 
 IMX::IMX() : m_textureIndex(0), m_fileSize(0), m_non_model(0), m_unk(0), m_saved(1), m_fromXGM(false) {}
 
-IMX::IMX(FILE* inFile, const std::string& directory) :  m_directory(directory), m_saved(2), m_fromXGM(true)
+IMX::IMX(FILE* inFile, const string& directory) :  m_directory(directory), m_saved(2), m_fromXGM(true)
 {
 	fread(m_filepath, 1, 256, inFile);
 	fread(m_name, 1, 16, inFile);
@@ -33,22 +34,22 @@ IMX::IMX(FILE* inFile, const std::string& directory) :  m_directory(directory), 
 	fread(m_junk, 1, 12, inFile);
 	try
 	{
-		m_data = std::make_shared<IMX_Data>(inFile);
+		m_data = make_shared<IMX_Data>(inFile);
 		fseek(inFile, 8, SEEK_CUR);
 	}
 	catch (const char* str)
 	{
 		fclose(inFile);
-		throw str + std::string(m_name) + " [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
+		throw str + string(m_name) + " [File offset: " + to_string(ftell(inFile) - 4) + "].";
 	}
-	catch (std::string str)
+	catch (string str)
 	{
 		fclose(inFile);
-		throw str + std::string(m_name) + " [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
+		throw str + string(m_name) + " [File offset: " + to_string(ftell(inFile) - 4) + "].";
 	}
 }
 
-IMX::IMX(std::string filename, bool useBanner) : m_textureIndex(0), m_non_model(false), m_unk(false), m_saved(2), m_fromXGM(false)
+IMX::IMX(string filename, bool useBanner) : m_textureIndex(0), m_non_model(false), m_unk(false), m_saved(2), m_fromXGM(false)
 {
 	{
 		size_t pos = filename.find_last_of('\\');
@@ -67,7 +68,7 @@ IMX::IMX(std::string filename, bool useBanner) : m_textureIndex(0), m_non_model(
 		GlobalFunctions::banner(" Loading " + m_shortname + ".IMX ");
 	try
 	{
-		m_data = std::make_shared<IMX_Data>(inFile);
+		m_data = make_shared<IMX_Data>(inFile);
 		fclose(inFile);
 		m_fileSize = m_data->m_colorData->m_imageSize + 48;
 		if ((!m_data->m_pixelVal1 && !m_data->m_pixelVal2) || (m_data->m_pixelVal1 == 1 && m_data->m_pixelVal2 == 1))
@@ -76,12 +77,12 @@ IMX::IMX(std::string filename, bool useBanner) : m_textureIndex(0), m_non_model(
 	catch (const char* str)
 	{
 		fclose(inFile);
-		throw str + m_shortname + ".IMX [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
+		throw str + m_shortname + ".IMX [File offset: " + to_string(ftell(inFile) - 4) + "].";
 	}
-	catch (std::string str)
+	catch (string str)
 	{
 		fclose(inFile);
-		throw str + m_shortname + ".IMX [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
+		throw str + m_shortname + ".IMX [File offset: " + to_string(ftell(inFile) - 4) + "].";
 	}
 }
 
@@ -90,8 +91,8 @@ IMX& IMX::operator=(IMX& imx)
 	if (m_data != imx.m_data)
 	{
 		m_shortname = imx.m_shortname;
-		std::copy(imx.m_filepath, imx.m_filepath + 256, m_filepath);
-		std::copy(imx.m_name, imx.m_name + 16, m_name);
+		copy(imx.m_filepath, imx.m_filepath + 256, m_filepath);
+		copy(imx.m_name, imx.m_name + 16, m_name);
 		m_textureIndex = imx.m_textureIndex;
 		m_fileSize = imx.m_fileSize;
 		m_non_model = imx.m_non_model;
@@ -135,14 +136,14 @@ void IMX::create(string filename, bool useBanner)
 	m_saved = 1;
 }
 
-void IMX::read(std::string filename)
+void IMX::read(string filename)
 {
 	FILE* inFile = nullptr;
 	if (fopen_s(&inFile, filename.c_str(), "rb"))
 		throw "Error: " + filename + " does not exist.";
 	try
 	{
-		m_data = std::make_shared<IMX_Data>(inFile);
+		m_data = make_shared<IMX_Data>(inFile);
 		fclose(inFile);
 		m_fileSize = m_data->m_colorData->m_imageSize + 48;
 		if ((!m_data->m_pixelVal1 && !m_data->m_pixelVal2) || (m_data->m_pixelVal1 == 1 && m_data->m_pixelVal2 == 1))
@@ -151,13 +152,105 @@ void IMX::read(std::string filename)
 	catch (const char* str)
 	{
 		fclose(inFile);
-		throw str + m_shortname + " [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
+		throw str + m_shortname + " [File offset: " + to_string(ftell(inFile) - 4) + "].";
 	}
-	catch (std::string str)
+	catch (string str)
 	{
 		fclose(inFile);
-		throw str + m_shortname + " [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
+		throw str + m_shortname + " [File offset: " + to_string(ftell(inFile) - 4) + "].";
 	}
+}
+
+bool IMX::exportPNG()
+{
+	string file = m_directory + m_name;
+
+	// If the IMX came from XGM file, we need to create a separate IMX file for gm-imx2png.exe to use.
+	//
+	// One of the places where having direct usage of the python code would make the process simpler as there would be no need
+	// to create a whole new IMX file.
+	if (m_fromXGM)
+		create(file, false);
+
+	// Additonally, direct usage of the python code would optimize these writes to the console
+	printf("%s", g_global.tabs.c_str());
+	if (m_directory.length())
+		system(("gm-imx2png -d \"" + m_directory.substr(0, m_directory.length() - 1) + "\" -v \"" + file + '\"').c_str());
+	else
+		system(("gm-imx2png -v \"" + file + '\"').c_str());
+
+	if (m_fromXGM)
+		remove(file.c_str());
+	return true;
+}
+
+bool IMX::importPNG()
+{
+	const string initialName = m_directory + m_shortname + ".PNG";
+	string pngName;
+	bool found = false;
+	for (const char* prefix : { "\\XGM_", "\\" })
+	{
+		for (const char* suffix : { "", ".i4", ".i8", ".i24", ".i32" })
+		{
+			if (filesystem::exists(m_directory + prefix + m_shortname + suffix + ".PNG"))
+			{
+				pngName = m_directory + prefix + m_shortname + suffix + ".PNG";
+				found = true;
+			}
+		}
+	}
+
+	if (!found)
+	{
+		do
+		{
+			printf("%sProvide the name of the .PNG file you wish to import (Or 'Q' to exit): ", g_global.tabs.c_str());
+			pngName.clear();
+			switch (GlobalFunctions::stringInsertion(pngName))
+			{
+			case GlobalFunctions::ResultType::Quit:
+				return false;
+			case GlobalFunctions::ResultType::Success:
+				if (pngName.find(".PNG") == string::npos && pngName.find(".png") == string::npos)
+					pngName += ".PNG";
+				if (filesystem::exists(pngName))
+					g_global.quit = true;
+				else
+				{
+					size_t pos = pngName.find_last_of('\\');
+					if (pos != string::npos)
+						printf("%s\"%s\" is not a valid file of extension \".PNG\"\n", g_global.tabs.c_str(), pngName.substr(pos + 1).c_str());
+					else
+						printf("%s\"%s\" is not a valid file of extension \".PNG\"\n", g_global.tabs.c_str(), pngName.c_str());
+				}
+			}
+		} while (!g_global.quit);
+		g_global.quit = false;
+	}
+
+	bool removePNG = initialName.compare(pngName) == 0;
+	// As to NOT overwrite an already in-use IMX file
+	//
+	// +1 to the list of reasons to integrate the python code
+	//
+	// Having to deal with file overwrites instead of being able to provide and recieve
+	// texture data directly through code is a pain.
+	if (removePNG)
+		filesystem::copy_file(initialName, pngName.insert(pngName.length() - 4, "-Buffer"));
+
+	size_t slash = pngName.find_last_of('\\');
+	printf("%s", g_global.tabs.c_str());
+	if (slash != string::npos)
+		system(("gm-png2imx -d \"" + pngName.substr(0, slash) + "\" -v \"" + pngName + '\"').c_str());
+	else
+		system(("gm-png2imx -v \"" + pngName).c_str() + '\"');
+
+	if (removePNG)
+		remove(pngName.c_str());
+	read(pngName.erase(pngName.length() - 3, 3) + "IMX");
+	remove((pngName + "IMX").c_str());
+	return true;
 }
 
 IMX_Data::IMX_Data() : m_colorData(make_shared<ColorData>()) {}
@@ -185,75 +278,16 @@ IMX_Data::IMX_Data(FILE* inFile) : m_colorData(make_shared<ColorData>())
 	else if (m_pixelVal2 != 2 || (m_pixelVal1 != 4 && m_pixelVal1 != 3))
 	{
 		fclose(inFile);
-		throw "Error: Unknown Pixel Storage values (" + std::to_string(m_pixelVal1) + " | " + std::to_string(m_pixelVal2) + ") for texture ";
+		throw "Error: Unknown Pixel Storage values (" + to_string(m_pixelVal1) + " | " + to_string(m_pixelVal2) + ") for texture ";
 	}
 	fread(&m_colorData->m_imageSize, 4, 1, inFile);
-	if (!m_pixelVal1 && !m_pixelVal2)
-	{
-		m_colorData->m_pix4 = new Pixel4[m_colorData->m_imageSize];
-		fread(m_colorData->m_pix4, sizeof(Pixel4), m_colorData->m_imageSize, inFile);
-	}
-	else if (m_pixelVal1 == 1 && m_pixelVal2 == 1)
-	{
-		m_colorData->m_pix8 = new Pixel8[m_colorData->m_imageSize];
-		fread(m_colorData->m_pix8, sizeof(Pixel8), m_colorData->m_imageSize, inFile);
-	}
-	else if (m_pixelVal1 == 3)
-	{
-		m_colorData->m_pix24 = new Pixel24[m_colorData->m_imageSize / 3];
-		fread(m_colorData->m_pix24, sizeof(Pixel24), m_colorData->m_imageSize / 3, inFile);
-	}
-	else
-	{
-		m_colorData->m_pix32 = new Pixel32[m_colorData->m_imageSize >> 2];
-		fread(m_colorData->m_pix32, sizeof(Pixel32), m_colorData->m_imageSize >> 2, inFile);
-	}
+	fread(m_colorData->m_image, 1, m_colorData->m_imageSize, inFile);
 }
-IMX_Data::IMX_Data(IMX_Data& imx) : m_colorData(make_shared<ColorData>())
+IMX_Data::IMX_Data(IMX_Data& imx)
+	: m_width(imx.m_width), m_height(imx.m_height), m_pixelVal1(m_pixelVal1), m_pixelVal2(m_pixelVal2)
 {
-	m_width = imx.m_width;
-	m_height = imx.m_height;
-	m_pixelVal1 = imx.m_pixelVal1;
-	m_pixelVal2 = imx.m_pixelVal2;
-	if ((!m_pixelVal1 && !m_pixelVal2) || (m_pixelVal1 == 1 && m_pixelVal2 == 1))
-	{
-		m_colorData->m_paletteSize = imx.m_colorData->m_paletteSize;
-		m_colorData->m_palette = new unsigned char[m_colorData->m_paletteSize >> 2][4];
-		memcpy_s(m_colorData->m_palette, m_colorData->m_paletteSize, imx.m_colorData->m_palette, m_colorData->m_paletteSize);
-	}
-	m_colorData->m_imageSize = imx.m_colorData->m_imageSize;
-	if (!m_pixelVal1 && !m_pixelVal2)
-	{
-		m_colorData->m_pix4 = new Pixel4[m_colorData->m_imageSize];
-		std::copy(imx.m_colorData->m_pix4, imx.m_colorData->m_pix4 + m_colorData->m_imageSize, m_colorData->m_pix4);
-	}
-	else if (m_pixelVal1 == 1 && m_pixelVal2 == 1)
-	{
-		m_colorData->m_pix8 = new Pixel8[m_colorData->m_imageSize];
-		std::copy(imx.m_colorData->m_pix8, imx.m_colorData->m_pix8 + m_colorData->m_imageSize, m_colorData->m_pix8);
-	}
-	else if (m_pixelVal1 == 3)
-	{
-		m_colorData->m_pix24 = new Pixel24[m_colorData->m_imageSize / 3];
-		std::copy(imx.m_colorData->m_pix24, imx.m_colorData->m_pix24 + (m_colorData->m_imageSize / 3), m_colorData->m_pix24);
-	}
-	else
-	{
-		m_colorData->m_pix32 = new Pixel32[m_colorData->m_imageSize >> 2];
-		std::copy(imx.m_colorData->m_pix32, imx.m_colorData->m_pix32 + (m_colorData->m_imageSize >> 2), m_colorData->m_pix32);
-	}
-}
-IMX_Data& IMX_Data::operator=(IMX_Data& imx)
-{
-	if (m_colorData != imx.m_colorData)
-	{
-		m_width = imx.m_width;
-		m_height = imx.m_height;
-		m_pixelVal1 = imx.m_pixelVal1;
-		m_pixelVal2 = imx.m_pixelVal2;
-		m_colorData = imx.m_colorData;
-	}
-	return *this;
+	m_colorData = make_shared<ColorData>(*imx.m_colorData,
+											m_pixelVal1 != m_pixelVal2 || (m_pixelVal1 != 0 && m_pixelVal1 != 1));
 }
 
 void IMX_Data::create(FILE* outFile)
@@ -265,32 +299,16 @@ void IMX_Data::create(FILE* outFile)
 	fwrite(&m_height, 4, 1, outFile);
 	fwrite(&m_pixelVal1, 4, 1, outFile);
 	fwrite(&m_pixelVal2, 4, 1, outFile);
-	if (!m_pixelVal1 && !m_pixelVal2)
+
+	if (m_pixelVal1 == m_pixelVal2 && (m_pixelVal1 == 0 || m_pixelVal1 == 1))
 	{
 		fwrite(&m_colorData->m_paletteSize, 4, 1, outFile);
 		fwrite(m_colorData->m_palette, 4, m_colorData->m_paletteSize >> 2, outFile);
 		fwrite(&(value = 2), 1, 4, outFile);
-		fwrite(&m_colorData->m_imageSize, 4, 1, outFile);
-		fwrite(m_colorData->m_pix4, sizeof(Pixel4), m_colorData->m_imageSize, outFile);
 	}
-	else if (m_pixelVal1 == 1 && m_pixelVal2 == 1)
-	{
-		fwrite(&m_colorData->m_paletteSize, 4, 1, outFile);
-		fwrite(m_colorData->m_palette, 4, m_colorData->m_paletteSize >> 2, outFile);
-		fwrite(&(value = 2), 1, 4, outFile);
-		fwrite(&m_colorData->m_imageSize, 4, 1, outFile);
-		fwrite(m_colorData->m_pix8, sizeof(Pixel8), m_colorData->m_imageSize, outFile);
-	}
-	else if (m_pixelVal1 == 3)
-	{
-		fwrite(&m_colorData->m_imageSize, 4, 1, outFile);
-		fwrite(m_colorData->m_pix24, sizeof(Pixel24), m_colorData->m_imageSize / 3, outFile);
-	}
-	else
-	{
-		fwrite(&m_colorData->m_imageSize, 4, 1, outFile);
-		fwrite(m_colorData->m_pix32, sizeof(Pixel32), m_colorData->m_imageSize >> 2, outFile);
-	}
+
+	fwrite(&m_colorData->m_imageSize, 4, 1, outFile);
+	fwrite(m_colorData->m_image, 1, m_colorData->m_imageSize, outFile);
 	fwrite(&(value = 3), 1, 4, outFile);
 	fwrite("\0\0\0\0", 1, 4, outFile);
 }
@@ -304,38 +322,25 @@ IMX_Data::ColorData::ColorData(const ColorData& other)
 		memcpy_s(m_palette, m_paletteSize, other.m_palette, m_paletteSize);
 	}
 	m_imageSize = other.m_imageSize;
-	if (other.m_pix4 != nullptr)
+	copy(other.m_image, other.m_image + m_imageSize, m_image);
+}
+
+IMX_Data::ColorData::ColorData(const ColorData& other, bool usePalette)
+{
+	if (usePalette && other.m_palette)
 	{
-		m_pix4 = new Pixel4[m_imageSize];
-		std::copy(other.m_pix4, other.m_pix4 + m_imageSize, m_pix4);
+		m_paletteSize = other.m_paletteSize;
+		m_palette = new unsigned char[m_paletteSize >> 2][4];
+		memcpy_s(m_palette, m_paletteSize, other.m_palette, m_paletteSize);
 	}
-	else if (other.m_pix8 != nullptr)
-	{
-		m_pix8 = new Pixel8[m_imageSize];
-		std::copy(other.m_pix8, other.m_pix8 + m_imageSize, m_pix8);
-	}
-	else if (other.m_pix24 != nullptr)
-	{
-		m_pix24 = new Pixel24[m_imageSize / 3];
-		std::copy(other.m_pix24, other.m_pix24 + (m_imageSize / 3), m_pix24);
-	}
-	else if (other.m_pix32 != nullptr)
-	{
-		m_pix32 = new Pixel32[m_imageSize >> 2];
-		std::copy(other.m_pix32, other.m_pix32 + (m_imageSize >> 2), m_pix32);
-	}
+	m_imageSize = other.m_imageSize;
+	copy(other.m_image, other.m_image + m_imageSize, m_image);
 }
 
 IMX_Data::ColorData::~ColorData()
 {
 	if (m_palette != nullptr)
 		delete[m_paletteSize >> 2] m_palette;
-	if (m_pix4 != nullptr)
-		delete[m_imageSize] m_pix4;
-	else if (m_pix8 != nullptr)
-		delete[m_imageSize] m_pix8;
-	else if (m_pix24 != nullptr)
-		delete[m_imageSize / 3] m_pix24;
-	else if (m_pix32 != nullptr)
-		delete[m_imageSize >> 2] m_pix32;
+	if (m_image != nullptr)
+		delete[m_imageSize] m_image;
 }

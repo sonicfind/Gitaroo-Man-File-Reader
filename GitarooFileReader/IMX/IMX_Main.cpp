@@ -15,7 +15,6 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "IMX_Main.h"
-#include "IMX_Image.h"
 using namespace std;
 
 bool IMXType::loadSingle(string filename)
@@ -100,10 +99,10 @@ bool IMXType::loadMulti()
 							imx.writeTxt();
 							break;
 						case 'e':
-							imx.exportImage();
+							imx.exportPNG();
 							break;
 						case 'i':
-							imx.importImage();
+							imx.importPNG();
 						}
 					}
 					catch (string str)
@@ -206,10 +205,10 @@ bool IMX_Main::menu(size_t fileCount)
 					writeTxt();
 					break;
 				case 'e':
-					exportImage();
+					exportPNG();
 					break;
 				case 'i':
-					importImage();
+					importPNG();
 				}
 				--g_global;
 			}
@@ -348,14 +347,14 @@ void IMX_Main::writeTxt(FILE* outTXT, FILE* outSimpleTXT)
 	fprintf_s(outSimpleTXT, "\t\t  Image Data Size: %lu\n", imx.m_data->m_colorData->m_imageSize);
 }
 
-bool IMX_Main::exportImage()
+bool IMX_Main::exportPNG()
 {
-	ImageConverter convert(ImageType::PNG);
-	return convert.exportImage(imx);
+	GlobalFunctions::banner(" " + imx.m_shortname + " - PNG Export ");
+	return imx.exportPNG();
 }
 
-bool IMX_Main::importImage()
+bool IMX_Main::importPNG()
 {
-	ImageConverter convert(ImageType::PNG);
-	return convert.importImage(imx);
+	GlobalFunctions::banner(" " + imx.m_shortname + " - PNG Import ");
+	return imx.importPNG();
 }

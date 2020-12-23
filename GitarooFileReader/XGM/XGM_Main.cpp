@@ -16,7 +16,6 @@
 #include "Global_Functions.h"
 #include "XGM_Main.h"
 #include "IMX/IMX_Main.h"
-#include "IMX/IMX_Image.h"
 #include "XG/XG_Main.h"
 using namespace std;
 
@@ -99,10 +98,10 @@ bool XGMType::loadMulti()
 						case 'w':
 							xgm.writeTxt();
 						case 'e':
-							xgm.exportImages();
+							xgm.exportPNGs();
 							break;
 						case 'm':
-							xgm.importImages();
+							xgm.importPNGs();
 						}
 					}
 					catch (string str)
@@ -207,10 +206,10 @@ bool XGM_Main::menu(size_t fileCount)
 					writeTxt();
 					break;
 				case 'e':
-					exportImages();
+					exportPNGs();
 					break;
 				case 'i':
-					importImages();
+					importPNGs();
 					break;
 				case 't':
 					do
@@ -395,14 +394,14 @@ void XGM_Main::writeTxt()
 	fclose(outSimpleTXT);
 }
 
-bool XGM_Main::exportImages()
+bool XGM_Main::exportPNGs()
 {
-	ImageConverter convert(ImageType::PNG);
-	return convert.exportImages(xgm);
+	GlobalFunctions::banner(" " + xgm.m_shortname + " - Multi-Texture Export ");
+	return xgm.exportPNGs();
 }
 
-bool XGM_Main::importImages()
+bool XGM_Main::importPNGs()
 {
-	ImageConverter convert(ImageType::PNG);
-	return convert.importImages(xgm);
+	GlobalFunctions::banner(" " + xgm.m_shortname + " - Multi-Texture Import ");
+	return xgm.importPNGs();
 }

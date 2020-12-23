@@ -17,9 +17,6 @@
 class IMX_Data
 {
 	friend class IMX_Main;
-	friend class XGM_Main;
-	friend class XGM_Editor;
-	friend class XGM;
 	friend class IMX;
 public:
 	struct Pixel4
@@ -48,12 +45,10 @@ public:
 		unsigned long m_paletteSize = 0;
 		unsigned char(*m_palette)[4] = nullptr;
 		unsigned long m_imageSize = 0;
-		Pixel4* m_pix4 = nullptr;
-		Pixel8* m_pix8 = nullptr;
-		Pixel24* m_pix24 = nullptr;
-		Pixel32* m_pix32 = nullptr;
+		char* m_image = nullptr;
 		ColorData() = default;
 		ColorData(const ColorData&);
+		ColorData(const ColorData&, bool);
 		~ColorData();
 	};
 private:
@@ -66,7 +61,6 @@ public:
 	IMX_Data();
 	IMX_Data(FILE* inFile);
 	IMX_Data(IMX_Data& imx);
-	IMX_Data& operator=(IMX_Data& imx);
 	void create(FILE* outFile);
 };
 
@@ -75,8 +69,6 @@ class IMX
 	friend class IMX_Main;
 	friend class XGM_Main;
 	friend class XGM_Editor;
-	friend class XGM;
-	friend struct IMX_PNG;
 	char m_filepath[257] = { 0 };
 	char m_name[17] = { 0 };
 	unsigned long m_textureIndex;
@@ -98,6 +90,8 @@ public:
 	void create(FILE* outFile, unsigned long& sizes);
 	void create(std::string filename, bool useBanner = true);
 	void read(std::string filename);
+	bool exportPNG();
+	bool importPNG();
 	//Returns name C-string (size: 16)
 	char* getName() { return m_name; }
 };

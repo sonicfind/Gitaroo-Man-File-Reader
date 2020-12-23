@@ -21,7 +21,6 @@ class XGM
 {
 	friend class XGM_Main;
 	friend class Editor;
-	friend struct IMX_PNG;
 private:
 	std::vector<IMX> m_textures;
 	std::vector<XG> m_models;
@@ -33,4 +32,6 @@ public:
 	XGM(std::string filename);
 	XGM(const XGM&) = default;
 	void create(std::string filename);
+	bool exportPNGs();
+	bool importPNGs();
 };

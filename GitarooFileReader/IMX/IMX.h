@@ -40,23 +40,23 @@ public:
 		char blue = 0;
 		char alpha = 0;
 	};
-	struct ColorData
+	struct Image
 	{
 		unsigned long m_paletteSize = 0;
 		unsigned char(*m_palette)[4] = nullptr;
 		unsigned long m_imageSize = 0;
 		unsigned char* m_image = nullptr;
-		ColorData() = default;
-		ColorData(const ColorData&);
-		ColorData(const ColorData&, bool);
-		~ColorData();
+		Image() = default;
+		Image(const Image&);
+		Image(const Image&, bool);
+		~Image();
 	};
 private:
 	unsigned long m_width = 0;
 	unsigned long m_height = 0;
 	unsigned long m_pixelVal1 = 0;
 	unsigned long m_pixelVal2 = 0;
-	std::shared_ptr<ColorData> m_colorData;
+	std::shared_ptr<Image> m_colorData;
 public:
 	IMX_Data();
 	IMX_Data(FILE* inFile);

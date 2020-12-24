@@ -255,8 +255,8 @@ bool IMX::importPNG()
 	return true;
 }
 
-IMX_Data::IMX_Data() : m_colorData(make_shared<ColorData>()) {}
-IMX_Data::IMX_Data(FILE* inFile) : m_colorData(make_shared<ColorData>())
+IMX_Data::IMX_Data() : m_colorData(make_shared<Image>()) {}
+IMX_Data::IMX_Data(FILE* inFile) : m_colorData(make_shared<Image>())
 {
 	char test[4] = { 0 };
 	fread(test, 1, 4, inFile);
@@ -289,7 +289,7 @@ IMX_Data::IMX_Data(FILE* inFile) : m_colorData(make_shared<ColorData>())
 IMX_Data::IMX_Data(IMX_Data& imx)
 	: m_width(imx.m_width), m_height(imx.m_height), m_pixelVal1(m_pixelVal1), m_pixelVal2(m_pixelVal2)
 {
-	m_colorData = make_shared<ColorData>(*imx.m_colorData,
+	m_colorData = make_shared<Image>(*imx.m_colorData,
 											m_pixelVal1 != m_pixelVal2 || (m_pixelVal1 != 0 && m_pixelVal1 != 1));
 }
 
@@ -316,7 +316,7 @@ void IMX_Data::create(FILE* outFile)
 	fwrite("\0\0\0\0", 1, 4, outFile);
 }
 
-IMX_Data::ColorData::ColorData(const ColorData& other)
+IMX_Data::Image::Image(const Image& other)
 {
 	if (other.m_palette)
 	{
@@ -328,7 +328,7 @@ IMX_Data::ColorData::ColorData(const ColorData& other)
 	copy(other.m_image, other.m_image + m_imageSize, m_image);
 }
 
-IMX_Data::ColorData::ColorData(const ColorData& other, bool usePalette)
+IMX_Data::Image::Image(const Image& other, bool usePalette)
 {
 	if (usePalette && other.m_palette)
 	{
@@ -340,7 +340,7 @@ IMX_Data::ColorData::ColorData(const ColorData& other, bool usePalette)
 	copy(other.m_image, other.m_image + m_imageSize, m_image);
 }
 
-IMX_Data::ColorData::~ColorData()
+IMX_Data::Image::~Image()
 {
 	if (m_palette != nullptr)
 		delete[m_paletteSize >> 2] m_palette;

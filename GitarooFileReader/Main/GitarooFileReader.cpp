@@ -35,7 +35,7 @@ The main function has two modes:
 int main(int argc, char** argv)
 {
 	g_filetypes = { new CHCType };
-	GlobalFunctions::banner(" Gitaroo File Reader v0.7.0.3 Beta ");
+	GlobalFunctions::banner(" Gitaroo File Reader v0.9 Beta ");
 	GlobalFunctions::banner(" 'Q' is the universal \"quit\" option | Use ';' for \"multi-step\" actions ");
 
 	if (!multi(argc, argv))

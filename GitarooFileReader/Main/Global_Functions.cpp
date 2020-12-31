@@ -309,24 +309,15 @@ namespace GlobalFunctions
 		return ResultType::Yes;
 	}
 
-	/*
-	Function for inserting a list values all in one go from the std::cin input stream
-	Return values:
-	'!' -- End of the given list of input values
-	'?' - User entered the "help"/'?' character
-	'q' -- User entered the "quit"/'Q' character
-	GlobalFunctions::ResultType::Failed - User entered an invalid character before the list ended
-	or One of the special input characters
-	*/
-	ResultType listValueInsert(LinkedList::List<size_t>& values, std::string outCharacters, size_t max, bool allowRepeats, size_t min)
+	ResultType insertIndexValues(std::vector<size_t>& values, std::string outCharacters, const size_t max, bool allowRepeats, const size_t min)
 	{
 		printf("%sInput: ", g_global.tabs.c_str());
 		auto printValues = [&](const int type = 0)
 		{
 			if (g_global.multi)
 			{
-				for (size_t valIndex = 0; valIndex < values.size(); valIndex++)
-					printf("%zu ", values[valIndex]);
+				for (size_t val : values)
+					printf("%zu ", val);
 				switch (type)
 				{
 				case 0:
@@ -343,7 +334,7 @@ namespace GlobalFunctions
 		if (g_global.multi)
 		{
 			ungetc(g_global.input, stdin);
-			std::putchar('*');
+			putchar('*');
 		}
 		scanf_s("%c", &g_global.input, 1);
 		do
@@ -378,7 +369,7 @@ namespace GlobalFunctions
 					size_t value = size_t(tmp);
 					if (value < min || value >= max)
 						printf("%s%zu is not within range. Skipping value.\n%s\n", g_global.tabs.c_str(), value, g_global.tabs.c_str());
-					else if (allowRepeats || values.search(value) == -1)
+					else if (allowRepeats || !checkForIndex(values, value))
 						values.push_back(value);
 					else
 						printf("%s%zu is already in this list.\n%s\n", g_global.tabs.c_str(), value, g_global.tabs.c_str());
@@ -395,13 +386,36 @@ namespace GlobalFunctions
 					}
 					else
 					{
-						GlobalFunctions::fillInvalid();
+						fillInvalid();
 						printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
 						return ResultType::Failed;
 					}
 				}
 			}
 		} while (true);
+	}
+
+	bool checkForIndex(std::vector<size_t>& values, const size_t value)
+	{
+		size_t max = values.size(), min = 0;
+		while (max > min)
+		{
+			if (values[min] > value || values[max - 1] < value)
+				return false;
+			else if (values[min] == value || values[max - 1] == value)
+				return true;
+			else
+			{
+				size_t index = (max + min) >> 1;
+				if (values[index] == value)
+					return true;
+				else if (values[index] > value)
+					max = index;
+				else
+					min = index + 1;
+			}
+		}
+		return false;
 	}
 
 	long radiansToDegrees(float angle)

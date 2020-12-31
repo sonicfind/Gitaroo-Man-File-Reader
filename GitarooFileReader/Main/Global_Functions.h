@@ -111,7 +111,7 @@ namespace GlobalFunctions
 	The basic universal menu system that should be used for almost everything that deals with user choice
 	@param choices - List of characters that serves as the possible menu options
 	@param indexMode - Determines whether to return the chosen character itself or the index of said character from "choices"
-	@return The character that was pulled from the stream, or GlobalFunctions::ResultType::Failed if the choice was invalid. If indexMode is true, return the index from "choices".
+	@return The character that was pulled from the stream, or ResultType::Failed if the choice was invalid. If indexMode is true, return the index from "choices".
 	*/
 	ResultType menuChoices(std::string choices, bool indexMode = false);
 
@@ -227,7 +227,7 @@ namespace GlobalFunctions
 						}
 						else
 						{
-							GlobalFunctions::fillInvalid();
+							fillInvalid();
 							return ResultType::Failed;
 						}
 					}
@@ -241,7 +241,7 @@ namespace GlobalFunctions
 						}
 						else
 						{
-							GlobalFunctions::fillInvalid();
+							fillInvalid();
 							return ResultType::Failed;
 						}
 					}
@@ -264,7 +264,7 @@ namespace GlobalFunctions
 				}
 				else
 				{
-					GlobalFunctions::fillInvalid();
+					fillInvalid();
 					return ResultType::Failed;
 				}
 			}
@@ -283,7 +283,7 @@ namespace GlobalFunctions
 				}
 				else
 				{
-					GlobalFunctions::fillInvalid();
+					fillInvalid();
 					return ResultType::Failed;
 				}
 			}
@@ -461,15 +461,18 @@ namespace GlobalFunctions
 		return valueInsert(value, allowNegatives, T(0), T(0), specials);
 	}
 
+	
+	// Function for inserting a vector of values all in one go from the standard input stream
+	ResultType insertIndexValues(std::vector<size_t>& values, std::string outCharacters, const size_t max, bool allowRepeats = true, const size_t min = 0);
+
 	template<typename T>
-	extern ResultType ListIndexSelector(LinkedList::List<T>& list, const char* type)
+	ResultType indexSelector(std::vector<T>& vect, const char* type)
 	{
 		printf("%sType the index for the %s that you wish to operate with\n", g_global.tabs.c_str(), type);
-		size_t objIndex = 0;
-		for (T& object : list)
-			printf("%s%zu - %s\n", g_global.tabs.c_str(), objIndex++, object.getName());
+		for (size_t i = 0; i < vect.size(); ++i)
+			printf("%s%zu - %s\n", g_global.tabs.c_str(), i, vect[i].getName());
 		printf("%sInput: ", g_global.tabs.c_str());
-		switch (valueInsert(g_global.answer.index, false, size_t(0), list.size() - 1))
+		switch (valueInsert(g_global.answer.index, false, size_t(0), vect.size() - 1))
 		{
 		case ResultType::Quit:
 			return ResultType::Quit;
@@ -479,7 +482,7 @@ namespace GlobalFunctions
 			printf("%sGiven index value cannot be negative.\n", g_global.tabs.c_str());
 			break;
 		case ResultType::MaxExceeded:
-			printf("%sGiven index value cannot exceed %zu\n", g_global.tabs.c_str(), list.size() - 1);
+			printf("%sGiven index value cannot exceed %zu\n", g_global.tabs.c_str(), vect.size() - 1);
 			break;
 		case ResultType::Failed:
 			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
@@ -488,16 +491,214 @@ namespace GlobalFunctions
 		return ResultType::Failed;
 	}
 
-	/*
-	Function for inserting a list values all in one go from the standard input stream
-	Return values:
-	'!' -- End of the given list of input values
-	'?' - User entered the "help"/'?' character
-	'q' -- User entered the "quit"/'Q' character
-	GlobalFunctions::ResultType::Failed - User entered an invalid character before the list ended
-	or one of the special input characters
-	*/
-	ResultType listValueInsert(LinkedList::List<size_t>& values, std::string outCharacters, size_t max, bool allowRepeats = true, size_t min = 0);
+	bool checkForIndex(std::vector<size_t>& values, const size_t value);
+
+	template<typename T, class... Args>
+	size_t emplace_ordered(std::vector<T> vect, Args&&... args)
+	{
+		T obj(args...);
+		size_t max = vect.size(), min = 0, index = 0;
+		while (max > min)
+		{
+			if (vect[min] > obj)
+			{
+				vect.insert(vect.begin() + min, obj);
+				return min;
+			}
+			else if (vect[max - 1] < obj)
+			{
+				vect.insert(vect.begin() + max, obj);
+				return max;
+			}
+			else if (vect[min] == obj)
+			{
+				vect[min] = obj;
+				return min;
+			}
+			else if (vect[max - 1] == obj)
+			{
+				vect[max - 1] = obj;
+				return max - 1;
+			}
+			else
+			{
+				index = (max + min) >> 1;
+				if (vect[index] == obj)
+				{
+					vect[index] = obj;
+					return index;
+				}
+				else if (vect[index] > obj)
+					max = index;
+				else
+					min = index + 1;
+			}
+		}
+		vect.insert(vect.begin() + index, obj);
+		return index;
+	}
+
+	template<typename T>
+	size_t insert_ordered(std::vector<T*> vect, T* ptr)
+	{
+		size_t max = vect.size(), min = 0, index = 0;
+		while (max > min)
+		{
+			if (*vect[min] > *ptr)
+			{
+				vect.insert(vect.begin() + min, ptr);
+				return min;
+			}
+			else if (*vect[max - 1] < *ptr)
+			{
+				vect.insert(vect.begin() + max, ptr);
+				return max;
+			}
+			else if (*vect[min] == *ptr)
+			{
+				*vect[min] = *ptr;
+				return min;
+			}
+			else if (*vect[max - 1] == *ptr)
+			{
+				*vect[max - 1] = *ptr;
+				return max - 1;
+			}
+			else
+			{
+				index = (max + min) >> 1;
+				if (*vect[index] == *ptr)
+				{
+					*vect[index] = *ptr;
+					return index;
+				}
+				else if (*vect[index] > *ptr)
+					max = index;
+				else
+					min = index + 1;
+			}
+		}
+		vect.insert(vect.begin() + index, ptr);
+		return index;
+	}
+
+	template<typename T, class... Args>
+	size_t emplace_ordered(std::vector<T*> vect, Args&&... args)
+	{
+		T* obj = new T(args...);
+		size_t max = vect.size(), min = 0, index = 0;
+		while (max > min)
+		{
+			if (*vect[min] > *obj)
+			{
+				vect.insert(vect.begin() + min, obj);
+				return min;
+			}
+			else if (*vect[max - 1] < *obj)
+			{
+				vect.insert(vect.begin() + max, obj);
+				return max;
+			}
+			else if (*vect[min] == *obj)
+			{
+				*vect[min] = *obj;
+				delete obj;
+				return min;
+			}
+			else if (*vect[max - 1] == *obj)
+			{
+				*vect[max - 1] = *obj;
+				delete obj;
+				return max - 1;
+			}
+			else
+			{
+				index = (max + min) >> 1;
+				if (vect[index] == *obj)
+				{
+					*vect[index] = *obj;
+					delete obj;
+					return index;
+				}
+				else if (*vect[index] > *obj)
+					max = index;
+				else
+					min = index + 1;
+			}
+		}
+		vect.insert(vect.begin() + index, obj);
+		return index;
+	}
+
+	template<typename T, class... Args>
+	size_t emplace_ordered(std::vector<std::shared_ptr<T>> vect, Args&&... args)
+	{
+		std::shared_ptr<T> obj = std::make_shared<T>(args...);
+		size_t max = vect.size(), min = 0, index = 0;
+		while (max > min)
+		{
+			if (*vect[min] > *obj)
+			{
+				vect.insert(vect.begin() + min, obj);
+				return min;
+			}
+			else if (*vect[max - 1] < *obj)
+			{
+				vect.insert(vect.begin() + max, obj);
+				return max;
+			}
+			else if (*vect[min] == *obj)
+			{
+				*vect[min] = *obj;
+				return min;
+			}
+			else if (*vect[max - 1] == *obj)
+			{
+				*vect[max - 1] = *obj;
+				return max - 1;
+			}
+			else
+			{
+				index = (max + min) >> 1;
+				if (vect[index] == *obj)
+				{
+					*vect[index] = *obj;
+					return index;
+				}
+				else if (*vect[index] > *obj)
+					max = index;
+				else
+					min = index + 1;
+			}
+		}
+		vect.insert(vect.begin() + index, obj);
+		return index;
+	}
+
+	template<typename T>
+	void moveElements(std::vector<T> vect, size_t index, size_t newPosition, size_t numElements = 1)
+	{
+		if (index + numElements > vect.size())
+			numElements = vect.size() - index;
+		else if (numElements == 0)
+			numElements = 1;
+		if (newPosition < index)
+		{
+			for (size_t i = 0; i < numElements; ++i)
+			{
+				vect.insert(vect.begin() + newPosition + i, vect[index]);
+				vect.erase(vect.begin() + index + 1);
+			}
+		}
+		else if (index + numElements < newPosition)
+		{
+			for (size_t i = 0; i < numElements; ++i)
+			{
+				vect.insert(vect.begin() + newPosition, vect[index]);
+				vect.erase(vect.begin() + index);
+			}
+		}
+	}
 
 	long radiansToDegrees(float angle);
 

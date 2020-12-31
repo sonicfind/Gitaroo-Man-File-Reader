@@ -373,6 +373,7 @@ bool CHC_Main::menu(size_t fileCount)
 			}
 		}
 	}
+	g_global.quit = false;
 	return true;
 }
 
@@ -668,7 +669,7 @@ void CHC_Main::writeTxt()
 					GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Trace Lines: %zu\n", chart.getNumTracelines());
 					for (size_t traceIndex = 0; traceIndex < chart.getNumTracelines(); traceIndex++)
 					{
-						Traceline& trace = chart.getTraceline(traceIndex);
+						Traceline& trace = chart.m_tracelines[traceIndex];
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Trace Line %03zu:\n", traceIndex + 1);
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", trace.getPivotAlpha());
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", trace.getPivotAlpha() + chart.getPivotTime());
@@ -683,9 +684,9 @@ void CHC_Main::writeTxt()
 					GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t # of Phrase Fragments: %zu\n", chart.getNumPhrases());
 					for (size_t phraseIndex = 0, traceIndex = 0, note = 0, piece = 0; phraseIndex < chart.getNumPhrases(); phraseIndex++)
 					{
-						Phrase& phrase = chart.getPhrase(phraseIndex);
+						Phrase& phrase = chart.m_phrases[phraseIndex];
 						for (; traceIndex < chart.getNumTracelines(); traceIndex++)
-							if (chart.getTraceline(traceIndex).contains(phrase.getPivotAlpha()))
+							if (chart.m_tracelines[traceIndex].contains(phrase.getPivotAlpha()))
 								break;
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     Phrase Fragment %03zu:\n", phraseIndex + 1);
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     [Note #%03zu", note + 1);
@@ -744,7 +745,7 @@ void CHC_Main::writeTxt()
 					GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t      # of Guard Marks: %zu\n", chart.getNumGuards());
 					for (size_t guardIndex = 0; guardIndex < chart.getNumGuards(); guardIndex++)
 					{
-						Guard& guard = chart.getGuard(guardIndex);
+						Guard& guard = chart.m_guards[guardIndex];
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Guard Mark %03zu:\n", guardIndex + 1);
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", guard.getPivotAlpha());
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", guard.getPivotAlpha() + chart.getPivotTime());
@@ -821,7 +822,8 @@ bool CHC_Main::applyChanges(const bool fix, const bool swap, const bool save)
 		if (fix)
 		{
 			editor.fixNotes();
-			editor.organizeAll();
+			if (m_song.m_unorganized)
+				editor.organizeAll();
 		}
 		if (swap)
 		{
@@ -944,7 +946,7 @@ bool CHC_Main::createColorTemplate()
 		g_global.quit = false;
 	}
 	bool generate = false;
-	LinkedList::List<size_t> sectionIndexes;
+	std::vector<size_t> sectionIndexes;
 	do
 	{
 		printf("%sType the number for each section that you wish to outline colors for - w/ spaces inbetween.\n", g_global.tabs.c_str());
@@ -952,12 +954,12 @@ bool CHC_Main::createColorTemplate()
 			printf("%s%zu - %s\n", g_global.tabs.c_str(), sectIndex, m_song.m_sections[sectIndex].getName());
 		if (sectionIndexes.size())
 		{
-			printf("%sCurrent LinkedList::List: ", g_global.tabs.c_str());
-			for (size_t index = 0; index < sectionIndexes.size(); index++)
-				printf("%s ", m_song.m_sections[sectionIndexes[index]].getName());
+			printf("%sCurrent list: ", g_global.tabs.c_str());
+			for (size_t index : sectionIndexes)
+				printf("%s ", m_song.m_sections[index].getName());
 			putchar('\n');
 		}
-		switch (GlobalFunctions::listValueInsert(sectionIndexes, "ac", m_song.m_sections.size(), false))
+		switch (GlobalFunctions::insertIndexValues(sectionIndexes, "ac", m_song.m_sections.size(), false))
 		{
 		case GlobalFunctions::ResultType::Quit:
 			printf("%sColor Sheet creation cancelled.\n", g_global.tabs.c_str());
@@ -1079,7 +1081,7 @@ bool CHC_Main::createColorTemplate()
 							{
 								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
 								{
-									Phrase& phr = chart.getPhrase(phrIndex);
+									Phrase& phr = chart.m_phrases[phrIndex];
 									if (writeColors && phr.getColor())
 									{
 										size_t colIndex = 0;
@@ -1126,7 +1128,7 @@ bool CHC_Main::createColorTemplate()
 							{
 								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
 								{
-									Phrase& phr = chart.getPhrase(phrIndex);
+									Phrase& phr = chart.m_phrases[phrIndex];
 									if (writeColors && phr.getColor())
 									{
 										size_t colIndex = 0;

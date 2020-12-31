@@ -15,21 +15,9 @@
  */
 #include "CHC.h"
 
-struct TAS_Frame
+class TAS
 {
-	unsigned char dpad = 255;
-	unsigned char button = 255;
-	unsigned char leftStickX = 127;
-	unsigned char leftStickY = 127;
-	unsigned char rightStickX = 127;
-	unsigned char rightStickY = 127;
-};
-
-class PCSX2TAS
-{
-	friend class TAS;
-private:
-	static struct Framefile
+	static struct FrameFile
 	{
 		std::string name = "VALUES.P2M2V";
 		bool use = false;
@@ -78,33 +66,65 @@ private:
 			{656, 650, 657, 523, 0, 0}, {256, 580, 574, 0, 0, 0},
 			{241, 280, 406, 0, 0, 0} } };
 	} frameValues;
-	char m_version = 2;
-	char m_emulator[50] = { "PCSX2-1.7.X" };
-	char m_author[256] = { 0 };
-	char m_game[256] = { "Gitaroo Man (USA).ISO" };
-	float m_framerate = 59.94f;
-	LinkedList::List<TAS_Frame> m_players[4];
-public:
-	bool loadValues(std::string file = frameValues.name);
-	size_t insertFrames(const int stage, const int orientation, const int difficulty, const bool(&multi)[2], size_t numFrames);
-	void resultScreen(const int stage, const int notes, const bool singleplayer, const bool (&multi)[2]);
-	void print(std::string filename);
-};
 
-class PPSSPPTAS
-{
-	friend class TAS;
-	LinkedList::List<TAS_Frame> players[4];
-};
+	struct TAS_Frame
+	{
+		unsigned char dpad = 255;
+		unsigned char button = 255;
+		unsigned char leftStickX = 127;
+		unsigned char leftStickY = 127;
+		unsigned char rightStickX = 127;
+		unsigned char rightStickY = 127;
+	};
 
-class TAS
-{
-private:
+	struct PCSX2TAS
+	{
+		friend class TAS;
+	private:
+		char m_version = 2;
+		char m_emulator[50] = { "PCSX2-1.7.X" };
+		char m_author[256] = { 0 };
+		char m_game[256] = { "Gitaroo Man (USA).ISO" };
+		float m_framerate = 59.94f;
+		std::vector<TAS_Frame> m_players[4];
+	public:
+		size_t insertFrames(const int stage, const int orientation, const int difficulty, const bool(&multi)[2], size_t numFrames);
+		void resultScreen(const int stage, const int notes, const bool singleplayer, const bool(&multi)[2]);
+		void print(std::string filename);
+	} m_pcsx2;
+
+	struct PPSSPPTAS
+	{
+		friend class TAS;
+		std::vector<TAS_Frame> players[4];
+	} m_ppsspp;
+
+	struct NotePoint
+	{
+		long position;
+		Note* note;
+		size_t index;
+		bool last;
+		NotePoint(long pos, Note* note = nullptr, size_t index = 0, bool last = false) : position(pos), note(note), index(index), last(last) {}
+	};
+	struct SectPoint
+	{
+		long position;
+		enum class VisualType
+		{
+			Technical,
+			Visual,
+			Mixed
+		} type;
+		long sustainLimit = 0;
+		SectPoint(long pos, size_t visuals = 0, long sus = 0) : position(pos), type(static_cast<VisualType>(visuals)), sustainLimit(sus) {}
+	};
+	std::vector<NotePoint> timeline[4];
+	std::vector<SectPoint> markers;
 	CHC* m_tutorialStageB = nullptr;
-	PCSX2TAS m_pcsx2;
-	PPSSPPTAS m_ppsspp;
 public:
 	bool build(CHC& song);
+	bool loadValues(std::string file = frameValues.name);
 	~TAS()
 	{
 		if (m_tutorialStageB)

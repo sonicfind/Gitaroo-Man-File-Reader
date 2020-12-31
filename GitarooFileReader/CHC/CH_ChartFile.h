@@ -31,14 +31,14 @@ class ChartFileExporter : public ChartFile
 {
 	friend class CH_Exporter;
 	friend class ChartFileImporter;
-	LinkedList::List<SyncTrack> m_sync;
-	LinkedList::List<Event> m_events;
+	std::vector<SyncTrack> m_sync;
+	std::vector<Event> m_events;
 	NoteTrack m_modchartNotes[2];
 	NoteTrack m_reimportNotes[2];
 public:
 	ChartFileExporter() : ChartFile() {}
 	ChartFileExporter(std::string filename) : ChartFile(filename, true) {}
-	ChartFileExporter(LinkedList::List<SyncTrack>& sync, LinkedList::List<Event>& events, NoteTrack(&notes)[2]);
+	ChartFileExporter(std::vector<SyncTrack>& sync, std::vector<Event>& events, NoteTrack(&notes)[2]);
 	bool open(std::string filename) { return ChartFile::open(filename, true); }
 	void writeHeader(const bool modchart);
 	void write(const bool modchart);

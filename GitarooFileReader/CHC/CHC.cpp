@@ -18,36 +18,7 @@
 using namespace std;
 
 //Creates a CHC object with 1 songsection
-CHC::CHC() : m_sections(1), m_filename(""), m_shortname(""), m_stage(0), m_speed(0), m_unorganized(0), m_optimized(false), m_saved(2) {}
-
-CHC::CHC(const CHC& song)
-	: m_sections(song.m_sections), m_filename(song.m_filename), m_shortname(song.m_shortname), m_stage(song.m_stage),
-		m_speed(song.m_speed), m_unorganized(song.m_unorganized), m_optimized(song.m_optimized), m_saved(song.m_saved)
-{
-	std::copy(song.m_header, song.m_header + 36, m_header);
-	std::copy(song.m_imc, song.m_imc + 256, m_imc);
-	std::copy(song.m_events, song.m_events + 4, m_events);
-	std::copy(song.m_audio, song.m_audio + 8, m_audio);
-	std::copy(song.m_energyDamageFactors[0], song.m_energyDamageFactors[0] + 20, m_energyDamageFactors[0]);
-}
-
-CHC& CHC::operator=(CHC& song)
-{
-	m_filename = song.m_filename;
-	m_shortname = song.m_shortname;
-	m_stage = song.m_stage;
-	std::copy(song.m_header, song.m_header + 36, m_header);
-	std::copy(song.m_imc, song.m_imc + 256, m_imc);
-	std::copy(song.m_events, song.m_events + 4, m_events);
-	std::copy(song.m_audio, song.m_audio + 8, m_audio);
-	m_speed = song.m_speed;
-	m_unorganized = song.m_unorganized;
-	m_optimized = song.m_optimized;
-	m_sections = song.m_sections;
-	std::copy(song.m_energyDamageFactors[0], song.m_energyDamageFactors[0] + 20, m_energyDamageFactors[0]);
-	m_saved = song.m_saved;
-	return *this;
-}
+CHC::CHC() : m_sections(1), m_stage(0), m_speed(0), m_unorganized(0), m_optimized(false), m_saved(2) {}
 
 //Creates a CHC object using values from the CHC file pointed to by the provided filename.
 //
@@ -80,7 +51,7 @@ CHC::CHC(string filename) : m_filename(filename + ".CHC"), m_saved(2)
 		fclose(inFile);
 		throw "Error: No 'SNGS' Tag at byte 0.";
 	}
-	std::copy(u.c, u.c + 4, m_header + 4);
+	std::copy(m_header + 4, m_header + 8, u.c);
 	m_optimized = u.ui == 6145;
 	fread(m_imc, 1, 256, inFile);
 	bool duet = m_imc[0] == 0;
@@ -89,8 +60,8 @@ CHC::CHC(string filename) : m_filename(filename + ".CHC"), m_saved(2)
 	fread(&m_speed, 4, 1, inFile);
 	fread(u.c, 4, 1, inFile);
 	m_unorganized = u.ui;
-	//Uses FILE* constructor to read section cue data
-	for (unsigned sectIndex = 0; sectIndex < u.ui; sectIndex++)
+	// Uses FILE* constructor to read section cue data
+	for (size_t index = 0; index <  u.ui; ++index)
 		m_sections.emplace_back(inFile);
 	fseek(inFile, 4, SEEK_CUR);
 	bool reorganized = false;
@@ -201,36 +172,44 @@ void CHC::create(string filename)
 	std::copy(u.c, u.c + 4, m_header + 4);
 	fwrite(m_header, 1, 36, outFile);
 	fwrite(m_imc, 1, 256, outFile);
+
 	fwrite(m_events, sizeof(SSQ), 4, outFile);
 	fwrite(m_audio, sizeof(AudioChannel), 8, outFile);
 	fwrite(&m_speed, 4, 1, outFile);
-	fwrite((unsigned long*)&m_sections.size(), 4, 1, outFile);
-	for (unsigned sectIndex = 0; sectIndex < m_sections.size(); sectIndex++)	//Cues
+
+	unsigned long size = (unsigned long)m_sections.size();
+	fwrite(&size, 4, 1, outFile);
+	for (SongSection& section : m_sections)	// Cues
 	{
-		fwrite(&m_sections[sectIndex].m_index, 4, 1, outFile);
-		fwrite(m_sections[sectIndex].m_name, 1, 16, outFile);
-		fwrite(m_sections[sectIndex].m_audio, 1, 16, outFile);
-		fwrite(&m_sections[sectIndex].m_frames, 4, 2, outFile);
+		fwrite(&section.m_index, 4, 1, outFile);
+		fwrite(section.m_name, 1, 16, outFile);
+		fwrite(section.m_audio, 1, 16, outFile);
+		fwrite(&section.m_frames, 4, 2, outFile);
 		fwrite("\0\0\0\0", 1, 4, outFile);
 	}
-	fwrite((unsigned long*)&m_sections.size(), 4, 1, outFile);
-	for (unsigned sectIndex = 0; sectIndex < m_sections.size(); sectIndex++) //SongSections
+
+	fwrite(&size, 4, 1, outFile);
+	for (SongSection& section : m_sections) // SongSections
 	{
-		SongSection& section = m_sections[sectIndex];
 		fputs("CHLS", outFile);
 		u.ui = 4864UL;
 		fwrite(u.c, 1, 4, outFile);
+
 		fwrite(&section.m_size, 4, 1, outFile);
 		fwrite(&section.m_organized, 4, 1, outFile);
 		fwrite(&section.m_swapped, 4, 1, outFile);
 		fwrite(section.m_junk, 1, 16, outFile);
+
 		fwrite(&section.m_battlePhase, 4, 1, outFile);
 		fwrite(&section.m_tempo, 4, 1, outFile);
 		fwrite(&section.m_duration, 4, 1, outFile);
 		fwrite("\0\0\0\0", 1, 4, outFile);
-		fwrite((unsigned long*)&section.m_conditions.size(), 4, 1, outFile);
-		for (size_t condIndex = 0; condIndex < section.m_conditions.size(); condIndex++)
-			fwrite(&section.m_conditions[condIndex], 16, 1, outFile);
+
+		size = (unsigned long)section.m_conditions.size();
+		fwrite(&size, 4, 1, outFile);
+		for (SongSection::Condition& cond : section.m_conditions)
+			fwrite(&cond, 16, 1, outFile);
+
 		fwrite(&section.m_numPlayers, 4, 1, outFile);
 		fwrite(&section.m_numCharts, 4, 1, outFile);
 		for (unsigned playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
@@ -241,42 +220,50 @@ void CHC::create(string filename)
 				fputs("CHCH", outFile);
 				u.ui = 4864UL;
 				fwrite(u.c, 1, 4, outFile);
+
 				fwrite(&chart.m_size, 4, 1, outFile);
 				fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
 				fwrite(chart.m_junk, 1, 16, outFile);
 				fwrite(&chart.m_pivotTime, 4, 1, outFile);
 				fwrite(&chart.m_endTime, 4, 1, outFile);
-				fwrite((unsigned long*)&chart.m_tracelines.size(), 4, 1, outFile);
-				for (size_t traceIndex = 0; traceIndex < chart.m_tracelines.size(); traceIndex++)
+
+				size = (unsigned long)chart.m_tracelines.size();
+				fwrite(&size, 4, 1, outFile);
+				for (Traceline& trace : chart.m_tracelines)
 				{
-					fwrite(&chart.m_tracelines[traceIndex].m_pivotAlpha, 4, 1, outFile);
-					fwrite(&chart.m_tracelines[traceIndex].m_duration, 4, 1, outFile);
-					fwrite(&chart.m_tracelines[traceIndex].m_angle, 4, 1, outFile);
-					fwrite(&chart.m_tracelines[traceIndex].m_curve, 4, 1, outFile);
+					fwrite(&trace.m_pivotAlpha, 4, 1, outFile);
+					fwrite(&trace.m_duration, 4, 1, outFile);
+					fwrite(&trace.m_angle, 4, 1, outFile);
+					fwrite(&trace.m_curve, 4, 1, outFile);
 				}
-				fwrite((unsigned long*)&chart.m_phrases.size(), 4, 1, outFile);
-				for (size_t phraseIndex = 0; phraseIndex < chart.m_phrases.size(); phraseIndex++)
+
+				size = (unsigned long)chart.m_phrases.size();
+				fwrite(&size, 4, 1, outFile);
+				for (Phrase& phrase : chart.m_phrases)
 				{
-					fwrite(&chart.m_phrases[phraseIndex].m_pivotAlpha, 4, 1, outFile);
-					fwrite(&chart.m_phrases[phraseIndex].m_duration, 4, 1, outFile);
-					fwrite(&chart.m_phrases[phraseIndex].m_start, 4, 1, outFile);
-					fwrite(&chart.m_phrases[phraseIndex].m_end, 4, 1, outFile);
-					fwrite(&chart.m_phrases[phraseIndex].m_animation, 4, 1, outFile);
-					if (chart.m_phrases[phraseIndex].m_color != -1)
+					fwrite(&phrase.m_pivotAlpha, 4, 1, outFile);
+					fwrite(&phrase.m_duration, 4, 1, outFile);
+					fwrite(&phrase.m_start, 4, 1, outFile);
+					fwrite(&phrase.m_end, 4, 1, outFile);
+					fwrite(&phrase.m_animation, 4, 1, outFile);
+					if (phrase.m_color != -1)
 					{
 						fputs("NOTECOLR", outFile);
-						fwrite(&chart.m_phrases[phraseIndex].m_color, 4, 1, outFile);
+						fwrite(&phrase.m_color, 4, 1, outFile);
 					}
 					else
-						fwrite(chart.m_phrases[phraseIndex].m_junk, 1, 12, outFile);
+						fwrite(phrase.m_junk, 1, 12, outFile);
 				}
-				fwrite((unsigned long*)&chart.m_guards.size(), 4, 1, outFile);
-				for (size_t guardIndex = 0; guardIndex < chart.m_guards.size(); guardIndex++)
+
+				size = (unsigned long)chart.m_guards.size();
+				fwrite(&size, 4, 1, outFile);
+				for (Guard& guard : chart.m_guards)
 				{
-					fwrite(&chart.m_guards[guardIndex].m_pivotAlpha, 4, 1, outFile);
-					fwrite(&chart.m_guards[guardIndex].m_button, 4, 1, outFile);
+					fwrite(&guard.m_pivotAlpha, 4, 1, outFile);
+					fwrite(&guard.m_button, 4, 1, outFile);
 					fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
 				}
+
 				fwrite("\0\0\0\0", 1, 4, outFile);
 			}
 		}
@@ -314,25 +301,6 @@ SongSection::SongSection(FILE* inFile) : m_organized(false), m_size(384), m_batt
 	fseek(inFile, 4, SEEK_CUR);
 }
 
-void SongSection::operator=(SongSection& section)
-{
-	m_index = section.m_index;
-	m_frames = section.m_frames;
-	m_organized = section.m_organized;
-	m_swapped = section.m_swapped;
-	std::copy(section.m_name, section.m_name + 16, m_name);
-	std::copy(section.m_audio, section.m_audio + 16, m_audio);
-	m_size = section.m_size;
-	std::copy(section.m_junk, section.m_junk + 16, m_junk);
-	m_battlePhase = section.m_battlePhase;
-	m_tempo = section.m_tempo;
-	m_duration = section.m_duration;
-	m_conditions = section.m_conditions;
-	m_numPlayers = section.m_numPlayers;
-	m_numCharts = section.m_numCharts;
-	m_charts = section.m_charts;
-}
-
 //Returns the condition at the provided index
 //An index >= the number of conditions will return the last condition
 SongSection::Condition& SongSection::getCondition(size_t index)
@@ -354,7 +322,7 @@ bool SongSection::removeCondition(size_t index)
 	if (m_conditions.size() != 1 && index < m_conditions.size())
 	{
 		m_size -= 16;
-		m_conditions.erase(index);
+		m_conditions.erase(m_conditions.begin() + index);
 		printf("Condition %zu removed\n", index + 1);
 		return true;
 	}
@@ -374,7 +342,7 @@ void SongSection::clearConditions()
 	if (m_conditions.size() > 1)
 	{
 		m_size -= unsigned long(16 * (m_conditions.size() - 1));
-		m_conditions.erase(0, m_conditions.size() - 1); //Leave the last condition as it will ALWAYS point to another section
+		m_conditions.assign(1, m_conditions.back());
 	}
 }
 
@@ -382,8 +350,8 @@ void SongSection::clearConditions()
 void SongSection::operator++()
 {
 	m_size += m_numPlayers * 72;
-	for (size_t player = 0; player < m_numPlayers; player++)
-		m_charts.emplace(player + (player * m_numCharts) + m_numCharts, 1);
+	for (size_t player = m_numPlayers; player > 0; --player)
+		m_charts.emplace(m_charts.begin() + player * m_numCharts);
 	m_numCharts++;
 }
 
@@ -392,10 +360,10 @@ bool SongSection::operator--()
 {
 	if (m_numCharts > 1)
 	{
-		for (size_t player = m_numPlayers; player > 0;)
+		for (size_t player = m_numPlayers; player > 0; --player)
 		{
-			m_size -= m_charts[(--player * m_numCharts) + (m_numCharts - 1)].getSize();
-			m_charts.erase((player * m_numCharts) + (m_numCharts - 1));
+			m_size -= m_charts[player * m_numCharts - 1].getSize();
+			m_charts.erase(m_charts.begin() + player * m_numCharts - 1);
 		}
 		m_numCharts--;
 		return true;
@@ -418,17 +386,6 @@ Chart::Chart(const bool tracelines) : m_size(76), m_pivotTime(0), m_endTime(0)
 
 Chart::Chart() : Chart(true) {}
 
-void Chart::operator=(const Chart& chart)
-{
-	m_size = chart.m_size;
-	std::copy(chart.m_junk, chart.m_junk + 16, m_junk);
-	m_pivotTime = chart.m_pivotTime;
-	m_endTime = chart.m_endTime;
-	m_tracelines = chart.m_tracelines;
-	m_phrases = chart.m_phrases;
-	m_guards = chart.m_guards;
-}
-
 void Chart::adjustSize(long difference)
 {
 	if ((long)m_size + difference >= 0)
@@ -442,86 +399,26 @@ void Chart::setJunk(char* newJunk, rsize_t count)
 	std::copy(newJunk, newJunk + count, m_junk);
 }
 
-Traceline& Chart::getTraceline(size_t index)
-{
-	try
-	{
-		return m_tracelines[index];
-	}
-	catch (...)
-	{
-		throw "Index out of Trace line range: " + std::to_string(m_tracelines.size()) + '.';
-	}
-}
-
-Phrase& Chart::getPhrase(size_t index)
-{
-	try
-	{
-		return m_phrases[index];
-	}
-	catch (...)
-	{
-		throw "Index out of Phrase bar range: " + std::to_string(m_phrases.size()) + '.';
-	}
-}
-
-Guard& Chart::getGuard(size_t index)
-{
-	try
-	{
-		return m_guards[index];
-	}
-	catch (...)
-	{
-		throw "Index out of Guard mark range: " + std::to_string(m_guards.size()) + '.';
-	}
-}
-
 //Add a note to its corresponding List in ascending pivotAlpha order
 size_t Chart::add(Note* note)
 {
 	if (dynamic_cast<Traceline*>(note) != nullptr)		//Checks if it's a Traceline object
 	{
 		m_size += 16;
-		return m_tracelines.emplace_ordered(*static_cast<Traceline*>(note));
+		return GlobalFunctions::emplace_ordered(m_tracelines, *static_cast<Traceline*>(note));
 	}
 	else if (dynamic_cast<Phrase*>(note) != nullptr)		//Checks if it's a Phrase Bar object
 	{
 		m_size += 32;
-		return m_phrases.emplace_ordered(*static_cast<Phrase*>(note));
+		return GlobalFunctions::emplace_ordered(m_phrases, *static_cast<Phrase*>(note));
 	}
 	else if (dynamic_cast<Guard*>(note) != nullptr)		//Checks if it's a Guard Mark object
 	{
 		m_size += 16;
-		return m_guards.emplace_ordered(*static_cast<Guard*>(note));
+		return GlobalFunctions::emplace_ordered(m_guards, *static_cast<Guard*>(note));
 	}
 	else
 		throw "Invalid note type";
-}
-
-//Quickly push a new note to the end of its corresponding list based on type
-void Chart::add_back(Note* note)
-{
-	if (dynamic_cast<Traceline*>(note) != nullptr)		//Checks if it's a Traceline object
-	{
-		m_size += 16;
-		m_tracelines.emplace_back(*static_cast<Traceline*>(note));
-	}
-	else if (dynamic_cast<Phrase*>(note) != nullptr)	//Checks if it's a Phrase Bar object
-	{
-		m_size += 32;
-		m_phrases.emplace_back(*static_cast<Phrase*>(note));
-	}
-	else if (dynamic_cast<Guard*>(note) != nullptr)		//Checks if it's a Guard Mark object
-	{
-		m_size += 16;
-		m_guards.emplace_back(*static_cast<Guard*>(note));
-	}
-	else
-	{
-		throw "Not a valid Note sub-type";
-	}
 }
 
 //Resizes the list of the chosen note type to the value provided
@@ -555,52 +452,49 @@ bool Chart::resize(long numElements, char type)
 //Otherwise, it'll print a failure and return false.
 //Type -- defaults to trace line ('t').
 //Extra - defaults to 0.
-bool Chart::remove(size_t index, char type, size_t extra)
+bool Chart::removeTraceline(size_t index)
 {
-	switch (type)
+	if ((m_phrases.size() + m_guards.size() || m_tracelines.size() > 1) && index < m_tracelines.size())
 	{
-	case 'T':
-	case 't':
-		if ((m_phrases.size() + m_guards.size() || m_tracelines.size() > 1) && index < m_tracelines.size())
-		{
-			m_size -= 16;
-			m_tracelines.erase(index);
-			return true;
-		}
-		else
-		{
-			if (m_tracelines.size() != 1)
-				printf("Index out of range - # of Trace Lines: %zu\n", m_tracelines.size());
-			return false;
-		}
-	case 'P':
-	case 'p':
-		if (index < m_phrases.size())
-		{
-			m_size -= 32;
-			m_phrases.erase(index);
-			return true;
-		}
-		else
-		{
-			printf("Index out of range - # of Phrase bars: %zu\n", m_phrases.size());
-			return false;
-		}
-	case 'G':
-	case 'g':
-		if ((m_phrases.size() + m_tracelines.size() || m_guards.size() > 1) && index < m_guards.size())
-		{
-			m_size -= 16;
-			m_guards.erase(index);
-			return true;
-		}
-		else
-		{
-			if (m_guards.size() != 1)
-				printf("Index out of range - # of Guard mark: %zu\n", m_guards.size());
-			return false;
-		}
-	default:
+		m_size -= 16;
+		m_tracelines.erase(m_tracelines.begin() + index);
+		return true;
+	}
+	else
+	{
+		if (m_tracelines.size() != 1)
+			printf("Index out of range - # of Trace Lines: %zu\n", m_tracelines.size());
+		return false;
+	}
+}
+
+bool Chart::removePhraseBar(size_t index)
+{
+	if (index < m_phrases.size())
+	{
+		m_size -= 32;
+		m_phrases.erase(m_phrases.begin() + index);
+		return true;
+	}
+	else
+	{
+		printf("Index out of range - # of Phrase bars: %zu\n", m_phrases.size());
+		return false;
+	}
+}
+
+bool Chart::removeGuardMark(size_t index)
+{
+	if ((m_phrases.size() + m_tracelines.size() || m_guards.size() > 1) && index < m_guards.size())
+	{
+		m_size -= 16;
+		m_guards.erase(m_guards.begin() + index);
+		return true;
+	}
+	else
+	{
+		if (m_guards.size() != 1)
+			printf("Index out of range - # of Guard mark: %zu\n", m_guards.size());
 		return false;
 	}
 }
@@ -611,7 +505,7 @@ void Chart::clear()
 	if (m_tracelines.size() > 1)
 	{
 		m_size -= unsigned long(16 * (m_tracelines.size() - 1));
-		m_tracelines.erase(0, m_tracelines.size() - 1);
+		m_tracelines.erase(m_tracelines.begin(), m_tracelines.begin() + m_tracelines.size() - 1);
 	}
 	m_size -= unsigned long(32 * m_phrases.size());
 	m_phrases.clear();
@@ -644,92 +538,88 @@ long Chart::insertNotes(Chart* source)
 {
 	long lastNote = 0;
 	clearPhrases();
-	for (LinkedList::List<Phrase>::Iterator phr = source->m_phrases.begin();
-		phr != source->m_phrases.end(); ++phr)
+	for (size_t phrIndex = 0; phrIndex < source->m_phrases.size(); ++phrIndex)
 	{
-		lastNote = (*phr).getPivotAlpha();
-		if (!(*phr).getEnd())
+		Phrase& phr = source->m_phrases[phrIndex];
+		lastNote = phr.getPivotAlpha();
+		if (!phr.getEnd())
 		{
-			if (phr + 1 == source->m_phrases.end())
-				(*phr).setEnd(true);
+			if (phrIndex + 1 == source->m_phrases.size())
+				phr.setEnd(true);
 			else
-				(*phr).changeEndAlpha((*(phr + 1)).getPivotAlpha());
+				phr.changeEndAlpha(source->m_phrases[phrIndex + 1].getPivotAlpha());
 		}
 		//Pivot alpha was previous set to the total displacement from the start of the section
-		m_phrases.emplace_back(*phr).adjustPivotAlpha(-m_pivotTime);
+		m_phrases.emplace_back(phr);
+		m_phrases.back().adjustPivotAlpha(-m_pivotTime);
 		m_size += 32;
 	}
 
 	clearTracelines();
-	for (LinkedList::List<Traceline>::Iterator trace = source->m_tracelines.begin();
-		trace != source->m_tracelines.end(); ++trace)
+	for (size_t trIndex = 0; trIndex < source->m_tracelines.size(); ++trIndex)
 	{
-		if ((*trace).getPivotAlpha() > lastNote)
-			lastNote = (*trace).getPivotAlpha();
-		if (trace + 1 != source->m_tracelines.end())
-			(*trace).changeEndAlpha((*(trace + 1)).getPivotAlpha());
-		m_tracelines.emplace_back(*trace).adjustPivotAlpha(-m_pivotTime);
+		Traceline& trace = source->m_tracelines[trIndex];
+		if (trace.getPivotAlpha() > lastNote)
+			lastNote = trace.getPivotAlpha();
+
+		if (trIndex + 1 != source->m_tracelines.size())
+			trace.changeEndAlpha(source->m_tracelines[trIndex + 1].getPivotAlpha());
+		m_tracelines.emplace_back(trace);
+		m_tracelines.back().adjustPivotAlpha(-m_pivotTime);
 		m_size += 16;
 	}
 	//Go through every phrase bar & trace line to find places where phrase bars
 	//should be split into two pieces
+	for (size_t trIndex = 0, phrIndex = 0; phrIndex < m_phrases.size() && trIndex < m_tracelines.size();)
 	{
-		LinkedList::List<Phrase>::Iterator phr = m_phrases.begin();
-		for (LinkedList::List<Traceline>::Iterator tr = m_tracelines.begin();
-			tr != m_tracelines.end(); ++tr)
-		{
-			Traceline& trace = *tr;
-			while (phr != m_phrases.end())
-			{
-				Phrase* phrase = &*phr;
-				if (tr == m_tracelines.begin())
-				{
-					if (trace.getPivotAlpha() > phrase->getPivotAlpha())
-						trace.changePivotAlpha(phrase->getPivotAlpha());
-					break;
-				}
-				else if (trace.getPivotAlpha() >= phrase->getEndAlpha())
-					++phr;
-				else if (trace.getPivotAlpha() > phrase->getPivotAlpha())
-				{
+		Traceline& trace = m_tracelines[trIndex];
+		Phrase& phrase = m_phrases[phrIndex];
+		if (!trIndex && trace.getPivotAlpha() > phrase.getPivotAlpha())
+			trace.changePivotAlpha(phrase.getPivotAlpha());
 
-					unsigned long dur = phrase->getEndAlpha() - trace.getPivotAlpha();
-					bool end = phrase->getEnd();
-					phrase->changeEndAlpha(trace.getPivotAlpha());
-					phrase->setEnd(false);
-					emplacePhrase(trace.getPivotAlpha(), dur, false, end, 0, phrase->getColor());
-					++phr;
-					break;
-				}
-				else if (tr.getIndex() + 1 == m_tracelines.size())
-				{
-					//If the phrase bar lands at or after the last trace line, delete
-					if (phrase->getPivotAlpha() >= trace.getPivotAlpha())
-					{
-						if (!phrase->getStart())
-							(*(phr - 1)).setEnd(true);
-						if (remove((phr--).getIndex(), 'p'))
-							printf("Phrase bar %zu removed\n", (++phr).getIndex());
-					}
-					else if (phrase->getEndAlpha() > trace.getPivotAlpha())
-					{
-						phrase->changeEndAlpha(trace.getPivotAlpha());
-						phrase->setEnd(true);
-						++phr;
-					}
-				}
-				else
-					break;
+		if (trace.getPivotAlpha() >= phrase.getEndAlpha())
+			++phrIndex;
+		else
+		{
+			if (trace.getPivotAlpha() > phrase.getPivotAlpha())
+			{
+				unsigned long dur = phrase.getEndAlpha() - trace.getPivotAlpha();
+				bool end = phrase.getEnd();
+				phrase.changeEndAlpha(trace.getPivotAlpha());
+				phrase.setEnd(false);
+				emplacePhrase(trace.getPivotAlpha(), dur, false, end, 0, phrase.getColor());
+				++phrIndex;
 			}
+
+			if (trIndex + 1 == m_tracelines.size())
+			{
+				//If the phrase bar lands at or after the last trace line, delete
+				if (trace.getEndAlpha() <= phrase.getPivotAlpha())
+				{
+					if (!phrase.getStart())
+						m_phrases[phrIndex - 1].setEnd(true);
+					if (removePhraseBar(phrIndex))
+						printf("Phrase bar %zu removed\n", phrIndex);
+				}
+				else if (phrase.getEndAlpha() > trace.getEndAlpha())
+				{
+					phrase.changeEndAlpha(trace.getEndAlpha());
+					phrase.setEnd(true);
+					++phrIndex;
+				}
+			}
+			else
+				++trIndex;
 		}
 	}
 	clearGuards();
-	for (LinkedList::List<Guard>::Iterator grd = source->m_guards.begin();
-		grd != source->m_guards.end(); ++grd)
+	for (size_t grdIndex = 0; grdIndex < source->m_guards.size(); ++grdIndex)
 	{
-		if ((*grd).getPivotAlpha() > lastNote)
-			lastNote = (*grd).getPivotAlpha();
-		m_guards.emplace_back(*grd).adjustPivotAlpha(-m_pivotTime);
+		Guard& grd = source->m_guards[grdIndex];
+		if (grd.getPivotAlpha() > lastNote)
+			lastNote = grd.getPivotAlpha();
+		m_guards.emplace_back(grd);
+		m_guards.back().adjustPivotAlpha(-m_pivotTime);
 		m_size += 16;
 	}
 	return lastNote;

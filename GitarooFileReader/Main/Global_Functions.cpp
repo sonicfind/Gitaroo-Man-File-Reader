@@ -17,7 +17,7 @@
 using namespace std;
 
 GlobalVars g_global;
-LinkedList::List<FileType*> g_filetypes;
+std::vector<FileType*> g_filetypes;
 
 namespace GlobalFunctions
 {

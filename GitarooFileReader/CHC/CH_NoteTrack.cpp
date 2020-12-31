@@ -13,26 +13,28 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "Global_Functions.h"
 #include "CH_NoteTrack.h"
 using namespace std;
 
+NoteTrack::~NoteTrack()
+{
+	for (CHNote* note : m_allNotes)
+		delete note;
+}
+
 size_t NoteTrack::addModifier(float pos, CHNote::Modifier mod)
 {
-	m_modifiers.emplace_back(pos, 5 + (mod == CHNote::Modifier::TAP), 0.0f, true, mod);
-	return m_allNotes.insert_ordered(&m_modifiers.back());
+	return GlobalFunctions::insert_ordered(m_allNotes, new CHNote(pos, 5U + (mod == CHNote::Modifier::TAP), 0.0f, true, mod));
 }
 
 size_t NoteTrack::addEvent(float pos, std::string name)
 {
-	m_events.emplace_back(pos, 0, 0.0f, true, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, name);
-	return m_allNotes.insert_ordered(&m_events.back());
+	return GlobalFunctions::insert_ordered(m_allNotes, new CHNote(pos, 0U, 0.0f, true, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, name));
 }
 
 size_t NoteTrack::addStarPower(float pos, float sustain)
 {
-	m_star.emplace_back(pos, 0, sustain, true, CHNote::Modifier::NORMAL, CHNote::NoteType::STAR);
-	return m_allNotes.insert_ordered(&m_star.back());
+	return GlobalFunctions::insert_ordered(m_allNotes, new CHNote(pos, 0U, sustain, true, CHNote::Modifier::NORMAL, CHNote::NoteType::STAR));
 }
 
 void NoteTrack::write(FILE* outFile, const size_t player)
@@ -61,9 +63,9 @@ void NoteTrack::writeDuet(FILE* outFile, const size_t player)
 
 void NoteTrack::clear()
 {
-	m_allNotes.clear();
-	for (LinkedList::List<CHNote>& track : m_colors)
+	for (std::vector<CHNote*>& track : m_colors)
 		track.clear();
-	m_modifiers.clear();
-	m_events.clear();
+	for (CHNote* note : m_allNotes)
+		delete note;
+	m_allNotes.clear();
 }

@@ -38,28 +38,25 @@ void CHC_Editor::editSong(const bool multi)
 	do
 	{
 		GlobalFunctions::banner(" " + m_song->m_shortname + ".CHC - Editor ");
-		//Holds addresses to the various functions that can be chosen in this menu prompt
-		LinkedList::List<void(CHC_Editor::*)()> functions = { &CHC_Editor::audioSettings, &CHC_Editor::winLossSettings,
-											   &CHC_Editor::adjustSpeed, &CHC_Editor::sectionMenu, &CHC_Editor::adjustFactors };
 		string choices = "vagcd";
 		if (!m_song->m_optimized)
 		{
-			choices += 'f'; functions.push_back(&CHC_Editor::fixNotes);
+			choices += 'f';
 			printf("%sF - Fix any problematic notes or trace lines\n", g_global.tabs.c_str());
 		}
 		if (m_song->m_unorganized)
 		{
-			choices += 'o'; functions.push_back(&CHC_Editor::organizeAll);
+			choices += 'o';
 			printf("%sO - Organize All Unorganized Sections\n", g_global.tabs.c_str());
 		}
 		if (strstr(m_song->m_imc, ".IMC"))
 		{
-			choices += 'i'; functions.push_back(&CHC_Editor::swapIMC);
+			choices += 'i';
 			printf("%sI - Swap IMC file (Current file: %s)\n", g_global.tabs.c_str(), m_song->m_imc + 34);
 		}
 		else
 		{
-			choices += 'p'; functions.push_back(&CHC_Editor::PSPToPS2);
+			choices += 'p';
 			printf("%sP - Convert for PS2-Version Compatibility\n", g_global.tabs.c_str());
 		}
 		printf("%sV - Volume & Pan Settings\n", g_global.tabs.c_str());
@@ -122,7 +119,35 @@ void CHC_Editor::editSong(const bool multi)
 			break;
 		default:
 			++g_global;
-			(this->*functions[g_global.answer.index])();
+			switch (g_global.answer.character)
+			{
+			case 'v':
+				audioSettings();
+				break;
+			case 'a':
+				winLossSettings();
+				break;
+			case 'g':
+				adjustSpeed();
+				break;
+			case 'c':
+				sectionMenu();
+				break;
+			case 'd':
+				adjustFactors();
+				break;
+			case 'f':
+				fixNotes();
+				break;
+			case 'o':
+				organizeAll();
+				break;
+			case 'i':
+				swapIMC();
+				break;
+			case 'p':
+				PSPToPS2();
+			}
 			--g_global;
 		}
 	} while (!g_global.quit);
@@ -175,7 +200,8 @@ void CHC_Editor::organizeAll()
 			std::thread thisThread;
 			threadControl(const size_t index) : sectIndex(index) {}
 		};
-		LinkedList::List<threadControl> threads;
+		std::vector<threadControl> threads;
+		threads.reserve(processor_count - 2);
 		std::thread resultLoop(printResult);
 		for (size_t sectIndex = 0; m_song->m_unorganized && sectIndex < m_song->m_sections.size(); ++sectIndex)
 		{
@@ -186,13 +212,14 @@ void CHC_Editor::organizeAll()
 					if (results[threads[thr].sectIndex])
 					{
 						threads[thr].thisThread.join();
-						threads.erase(thr);
+						threads.erase(threads.begin() + thr);
 					}
 					else
 						++thr;
 				}
 			}
-			threads.emplace_back(sectIndex).thisThread = std::thread(organizeSection, sectIndex);
+			threads.emplace_back(sectIndex);
+			threads.back().thisThread = std::thread(organizeSection, sectIndex);
 		}
 		for (threadControl& thr : threads)
 			thr.thisThread.join();
@@ -240,7 +267,7 @@ void CHC_Editor::fixNotes()
 	m_song->m_optimized = true;
 	try
 	{
-		LinkedList::List<string>* strings = new LinkedList::List<string>[m_song->m_sections.size()];
+		std::list<string>* strings = new std::list<string>[m_song->m_sections.size()];
 		bool* results = new bool[m_song->m_sections.size()]();
 		auto printResult = [&]()
 		{
@@ -262,99 +289,102 @@ void CHC_Editor::fixNotes()
 				results[sectIndex] = true;
 				return;
 			}
-			for (size_t playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
+			for (size_t chartIndex = 0; chartIndex < section.m_charts.size(); ++chartIndex)
 			{
-				for (size_t chartIndex = 0; chartIndex < section.m_numCharts; chartIndex++)
+				Chart& chart = section.m_charts[chartIndex];
+				size_t barsRemoved = 0, linesRemoved = 0;
+				try
 				{
-					Chart& chart = section.m_charts[playerIndex * section.m_numCharts + chartIndex];
-					size_t barsRemoved = 0, linesRemoved = 0;
-					try
+					if (chart.m_tracelines.size() > 1)
 					{
-						if (chart.m_tracelines.size() > 1)
+						for (size_t traceIndex = 0, phraseIndex = 0; traceIndex + 1 < chart.m_tracelines.size(); ++traceIndex)
 						{
-							
-							LinkedList::List<Phrase>::Iterator phrase = chart.m_phrases.begin();
-							for (LinkedList::List<Traceline>::Iterator trace = chart.m_tracelines.begin();
-								trace + 1 != chart.m_tracelines.end(); ++trace)
+							bool adjust = chart.m_tracelines[traceIndex].m_angle == chart.m_tracelines[traceIndex + 1].m_angle;
+							for (; phraseIndex < chart.m_phrases.size(); ++phraseIndex)
 							{
-								bool adjust = (*trace).m_angle == (*(trace + 1)).m_angle;
-								for (; phrase != chart.m_phrases.end(); ++phrase)
+								if (chart.m_phrases[phraseIndex].m_pivotAlpha >= chart.m_tracelines[traceIndex].getEndAlpha())
+									break;
+								if (chart.m_phrases[phraseIndex].m_start)
 								{
-									if ((*phrase).m_pivotAlpha >= (*trace).getEndAlpha())
-										break;
-									if ((*phrase).m_start)
+									if (phraseIndex)
 									{
-										if (phrase.getIndex() && (*phrase).m_pivotAlpha - (*(phrase - 1)).getEndAlpha() < SongSection::s_SAMPLE_GAP)
+										if (chart.m_phrases[phraseIndex].m_pivotAlpha - chart.m_phrases[phraseIndex - 1].getEndAlpha() < SongSection::s_SAMPLE_GAP)
 										{
-											(*(phrase - 1)).changeEndAlpha((*phrase).m_pivotAlpha - SongSection::s_SAMPLE_GAP);
-											strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-											strings[sectIndex].push_back("Phrase bar " + to_string(phrase.getIndex() + barsRemoved - 1) + " shortened\n");
+											chart.m_phrases[phraseIndex - 1].changeEndAlpha(chart.m_phrases[phraseIndex].m_pivotAlpha - SongSection::s_SAMPLE_GAP);
+											strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
+											strings[sectIndex].push_back("Phrase bar " + to_string(phraseIndex + barsRemoved - 1) + " shortened\n");
 											++phrasesShortened;
 										}
-										while (!(*phrase).m_end && ((*phrase).m_pivotAlpha >= (*trace).getEndAlpha() - 3000)
-											&& ((*phrase).m_pivotAlpha - (*trace).m_pivotAlpha > 800))
+									}
+									while (!chart.m_phrases[phraseIndex].m_end && (chart.m_phrases[phraseIndex].m_pivotAlpha >= chart.m_tracelines[traceIndex].getEndAlpha() - 3000)
+										&& (chart.m_phrases[phraseIndex].m_pivotAlpha - chart.m_tracelines[traceIndex].m_pivotAlpha > 800))
+									{
+										chart.m_phrases[phraseIndex].m_duration += chart.m_phrases[phraseIndex + 1].m_duration;
+										chart.m_phrases[phraseIndex].m_end = chart.m_phrases[phraseIndex + 1].m_end;
+										memcpy_s(chart.m_phrases[phraseIndex].m_junk, 12, chart.m_phrases[phraseIndex + 1].m_junk, 12);
+										if (!chart.m_tracelines[traceIndex].changeEndAlpha(chart.m_phrases[phraseIndex].m_pivotAlpha))
 										{
-											(*phrase).m_duration += (*(phrase + 1)).m_duration;
-											(*phrase).m_end = (*(phrase + 1)).m_end;
-											memcpy_s((*phrase).m_junk, 12, (*(phrase + 1)).m_junk, 12);
-											if (!(*trace).changeEndAlpha((*phrase).m_pivotAlpha))
-											{
-												strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-												if (chart.remove((trace--).getIndex(), 't', linesRemoved))
-													strings[sectIndex].push_back("Trace line " + to_string(trace.getIndex() + 1 + linesRemoved) + " removed\n");
-												++linesRemoved;
-											}
-											++trace;
-											(*trace).changePivotAlpha((*phrase).m_pivotAlpha);
-											adjust = trace + 1 != chart.m_tracelines.end() && (*trace).m_angle == (*(trace + 1)).m_angle;
-											strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-											if (chart.remove(phrase.getIndex() + 1, 'p', barsRemoved))
-												strings[sectIndex].push_back("Phrase bar " + to_string(phrase.getIndex() + barsRemoved + 1) + " removed\n");
-											++barsRemoved;
+											strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
+											if (chart.removeTraceline(traceIndex))
+												strings[sectIndex].push_back("Trace line " + to_string(traceIndex + linesRemoved) + " removed\n");
+											++linesRemoved;
 										}
-										if (adjust && !(*trace).m_curve && m_song->m_imc[0])
+										else
+											++traceIndex;
+										chart.m_tracelines[traceIndex].changePivotAlpha(chart.m_phrases[phraseIndex].m_pivotAlpha);
+										adjust = traceIndex + 1 != chart.m_tracelines.size() &&
+													chart.m_tracelines[traceIndex].m_angle == chart.m_tracelines[traceIndex + 1].m_angle;
+										strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
+										if (chart.removePhraseBar(phraseIndex + 1))
+											strings[sectIndex].push_back("Phrase bar " + to_string(phraseIndex + barsRemoved + 1) + " removed\n");
+										++barsRemoved;
+									}
+									if (adjust && !chart.m_tracelines[traceIndex].m_curve && m_song->m_imc[0])
+									{
+										if (chart.m_phrases[phraseIndex].m_pivotAlpha >= chart.m_tracelines[traceIndex].getEndAlpha() - 8000)
 										{
-											if ((*phrase).m_pivotAlpha >= (*trace).getEndAlpha() - 8000)
-											{
 
-												(*trace).m_curve = true;
-												strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-												strings[sectIndex].push_back("Trace line " + to_string(trace.getIndex() + linesRemoved) + " set to \"smooth\"\n");
-												++tracelinesCurved;
-												adjust = false;
-											}
+											chart.m_tracelines[traceIndex].m_curve = true;
+											strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
+											strings[sectIndex].push_back("Trace line " + to_string(traceIndex + linesRemoved) + " set to \"smooth\"\n");
+											++tracelinesCurved;
+											adjust = false;
 										}
 									}
 								}
-								if (adjust && (*trace).m_curve)
-								{
-									(*trace).m_curve = false;
-									strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-									strings[sectIndex].push_back("Trace line " + to_string(trace.getIndex() + linesRemoved) + " set to \"rigid\"\n");
-									++tracelinesStraightened;
-								}
+							}
+							if (adjust && chart.m_tracelines[traceIndex].m_curve)
+							{
+								chart.m_tracelines[traceIndex].m_curve = false;
+								strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
+								strings[sectIndex].push_back("Trace line " + to_string(traceIndex + linesRemoved) + " set to \"rigid\"\n");
+								++tracelinesStraightened;
 							}
 						}
 					}
-					catch (...)
+				}
+				catch (...)
+				{
+					strings[sectIndex].clear();
+					strings[sectIndex].push_back(g_global.tabs + "There was an error when attempting to apply phrase bar & trace line fixes to section " + to_string(sectIndex)
+													+ " (" + section.m_name + ") - Subsection " + to_string(chartIndex) + "\n");
+					m_song->m_optimized = false;
+				}
+				tracelinesDeleted += linesRemoved;
+				phrasesDeleted += barsRemoved;
+
+
+				for (size_t guardIndex = 0; guardIndex + 1 < chart.m_guards.size();)
+				{
+					if (chart.m_guards[--guardIndex].m_pivotAlpha + 1600 > chart.m_guards[guardIndex + 1].m_pivotAlpha)
 					{
-						strings[sectIndex].clear();
-						strings[sectIndex].push_back(g_global.tabs + "There was an error when attempting to apply phrase bar & trace line fixes to section " + to_string(sectIndex)
-														+ " (" + section.m_name + ") - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + "\n");
-						m_song->m_optimized = false;
+						strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
+						if (chart.removeGuardMark(guardIndex + 1))
+							strings[sectIndex].push_back("Guard Mark " + to_string(guardsDeleted) + " removed\n");
+						++guardsDeleted;
 					}
-					tracelinesDeleted += linesRemoved;
-					phrasesDeleted += barsRemoved;
-					for (size_t guardIndex = 0; guardIndex < chart.m_guards.size(); guardIndex++)
-					{
-						while (guardIndex + 1 < chart.m_guards.size() && chart.m_guards[guardIndex].m_pivotAlpha + 1600 > chart.m_guards[guardIndex + 1].m_pivotAlpha)
-						{
-							strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
-							if (chart.remove(guardIndex + 1, 'g', guardsDeleted))
-								strings[sectIndex].push_back("Guard Mark " + to_string(guardsDeleted) + " removed\n");
-							++guardsDeleted;
-						}
-					}
+					else
+						++guardIndex;
 				}
 			}
 			if (section.m_battlePhase == SongSection::Phase::END || sectIndex + 1 == m_song->m_sections.size())
@@ -366,9 +396,10 @@ void CHC_Editor::fixNotes()
 			{
 				for (size_t playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
 				{
-					for (size_t chartIndex = section.m_numCharts; chartIndex > 0;)
+					for (size_t chartIndex = 0; chartIndex < section.m_numCharts; ++chartIndex)
 					{
-						if (section.m_charts[playerIndex * section.m_numCharts + (--chartIndex)].getNumPhrases() > 0)
+						Chart& chart = section.m_charts[(playerIndex + 1) * section.m_numCharts - 1];
+						if (chart.getNumPhrases())
 						{
 							for (size_t condIndex = 0; condIndex < section.m_conditions.size(); condIndex++)
 							{
@@ -377,15 +408,14 @@ void CHC_Editor::fixNotes()
 								{
 									if (*effect >= 0)
 									{
-										Chart& chart = section.m_charts[playerIndex * section.m_numCharts + chartIndex];
-										long endTime = section.m_duration - (chart.m_phrases[chart.m_phrases.size() - 1].getEndAlpha() + chart.m_pivotTime);
+										long endTime = section.m_duration - (chart.m_phrases.back().getEndAlpha() + chart.m_pivotTime);
 										Chart& chart2 = m_song->m_sections[*effect].m_charts[playerIndex * m_song->m_sections[*effect].m_numCharts];
 										if (chart2.m_phrases.size())
 										{
-											long startTime = chart2.m_phrases[0].m_pivotAlpha + chart2.m_pivotTime;
+											long startTime = chart2.m_phrases.front().m_pivotAlpha + chart2.m_pivotTime;
 											if (startTime + endTime < section.s_SAMPLE_GAP)
 											{
-												chart.m_phrases[chart.m_phrases.size() - 1].changeEndAlpha((long)(section.m_duration - startTime - section.s_SAMPLE_GAP - chart.m_pivotTime));
+												chart.m_phrases.back().changeEndAlpha((long)(section.m_duration - startTime - section.s_SAMPLE_GAP - chart.m_pivotTime));
 												strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
 												strings[sectIndex].push_back("Phrase bar " + to_string(chart.m_phrases.size() - 1) + " shortened\n");
 												phrasesShortened++;
@@ -409,7 +439,8 @@ void CHC_Editor::fixNotes()
 						for (size_t playerIndex = section.m_numPlayers + p; !g_global.quit && playerIndex > 1;)
 						{
 							playerIndex -= 2;
-							if (section.m_charts[(playerIndex)*section.m_numCharts + chartIndex].m_phrases.size() != 0)
+							Chart& chart = section.m_charts[playerIndex * section.m_numCharts + chartIndex];
+							if (chart.getNumPhrases())
 							{
 								for (size_t condIndex = 0; condIndex < section.m_conditions.size(); condIndex++)
 								{
@@ -418,15 +449,14 @@ void CHC_Editor::fixNotes()
 									{
 										if (*effect >= 0)
 										{
-											Chart& chart = section.m_charts[playerIndex * section.m_numCharts + chartIndex];
-											long endTime = section.m_duration - (chart.m_phrases[chart.m_phrases.size() - 1].getEndAlpha() + chart.m_pivotTime);
+											long endTime = section.m_duration - (chart.m_phrases.back().getEndAlpha() + chart.m_pivotTime);
 											Chart& chart2 = m_song->m_sections[*effect].m_charts[p * m_song->m_sections[*effect].m_numCharts];
 											if (chart2.m_phrases.size())
 											{
-												long startTime = chart2.m_phrases[0].m_pivotAlpha + chart2.m_pivotTime;
+												long startTime = chart2.m_phrases.front().m_pivotAlpha + chart2.m_pivotTime;
 												if (startTime + endTime < section.s_SAMPLE_GAP)
 												{
-													chart.m_phrases[chart.m_phrases.size() - 1].changeEndAlpha(long(section.m_duration - startTime - section.s_SAMPLE_GAP - chart.m_pivotTime));
+													chart.m_phrases.back().changeEndAlpha(long(section.m_duration - startTime - section.s_SAMPLE_GAP - chart.m_pivotTime));
 													strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
 													strings[sectIndex].push_back("Phrase bar " + to_string(chart.m_phrases.size() - 1) + " shortened\n");
 													phrasesShortened++;
@@ -452,9 +482,10 @@ void CHC_Editor::fixNotes()
 				std::thread thisThread;
 				threadControl(const size_t index) : sectIndex(index) {}
 			};
-			LinkedList::List<threadControl> threads;
+			std::vector<threadControl> threads;
+			threads.reserve(processor_count - 2);
 			std::thread resultLoop(printResult);
-			for (size_t i = 0; i < m_song->m_sections.size(); ++i)
+			for (size_t sectIndex = 0; sectIndex < m_song->m_sections.size(); ++sectIndex)
 			{
 				while (threads.size() == processor_count - 2)
 				{
@@ -463,13 +494,14 @@ void CHC_Editor::fixNotes()
 						if (results[threads[thr].sectIndex])
 						{
 							threads[thr].thisThread.join();
-							threads.erase(thr);
+							threads.erase(threads.begin() + thr);
 						}
 						else
 							++thr;
 					}
 				}
-				threads.emplace_back(i).thisThread = std::thread(fixSection, i);
+				threads.emplace_back(sectIndex);
+				threads.back().thisThread = std::thread(fixSection, sectIndex);
 			}
 			for (threadControl& thr : threads)
 				thr.thisThread.join();
@@ -579,28 +611,29 @@ void CHC_Editor::PSPToPS2()
 		else
 			val = 1;
 
-		section.m_charts.erase(size_t(3) * section.m_numCharts, section.m_numCharts);
+		section.m_charts.erase(section.m_charts.begin() + 3 * section.m_numCharts, section.m_charts.begin() + 4 * section.m_numCharts);
 		if (player2 || !enemy)
-			section.m_charts.moveElements(size_t(section.m_numCharts) << 1, section.m_numCharts, section.m_numCharts);
+			GlobalFunctions::moveElements(section.m_charts, size_t(2) * section.m_numCharts, section.m_numCharts, section.m_numCharts);
+
 		if (!player2)
-			section.m_charts.erase(size_t(section.m_numCharts) << 1, section.m_numCharts);
+			section.m_charts.erase(section.m_charts.begin() + 2 * section.m_numCharts, section.m_charts.begin() + 3 * section.m_numCharts);
 		else
-			section.m_charts.erase(0, section.m_numCharts);
+			section.m_charts.erase(section.m_charts.begin(), section.m_charts.begin() + section.m_numCharts);
 
 		if (section.m_numCharts & 1)
 		{
 			section.m_charts.emplace_back();
-			section.m_charts.emplace(section.m_numCharts, 1);
+			section.m_charts.emplace(section.m_charts.begin() + section.m_numCharts);
 			section.m_numCharts++;
 		}
 
 		for (size_t c = 1; c < section.m_numCharts >> 1; c++)
 		{
-			section.m_charts.moveElements(c << 1, c);
-			section.m_charts.moveElements((c << 1) + section.m_numCharts, c + section.m_numCharts);
+			GlobalFunctions::moveElements(section.m_charts, 2 * c, c);
+			GlobalFunctions::moveElements(section.m_charts, 2 * c + section.m_numCharts, c + section.m_numCharts);
 		}
 		section.m_numCharts >>= 1;
-		section.m_charts.moveElements((size_t)section.m_numCharts << 1, section.m_numCharts, section.m_numCharts);
+		GlobalFunctions::moveElements(section.m_charts, size_t(2) * section.m_numCharts, section.m_numCharts, section.m_numCharts);
 		if (!enemy)
 			section.m_swapped = (section.m_swapped >> 1) + 4;
 		results[index] = val;
@@ -628,7 +661,8 @@ void CHC_Editor::PSPToPS2()
 			std::thread thisThread;
 			threadControl(const size_t index) : sectIndex(index) {}
 		};
-		LinkedList::List<threadControl> threads;
+		std::vector<threadControl> threads;
+		threads.reserve(processor_count - 2);
 		std::thread resultLoop(printResult);
 		for (size_t sectIndex = 0; sectIndex < m_song->m_sections.size(); ++sectIndex)
 		{
@@ -639,13 +673,14 @@ void CHC_Editor::PSPToPS2()
 					if (results[threads[thr].sectIndex])
 					{
 						threads[thr].thisThread.join();
-						threads.erase(thr);
+						threads.erase(threads.begin() + thr);
 					}
 					else
 						++thr;
 				}
 			}
-			threads.emplace_back(sectIndex).thisThread = std::thread(convertToPS2, sectIndex);
+			threads.emplace_back(sectIndex);
+			threads.back().thisThread = std::thread(convertToPS2, sectIndex);
 		}
 		for (threadControl& thr : threads)
 			thr.thisThread.join();
@@ -653,18 +688,16 @@ void CHC_Editor::PSPToPS2()
 	}
 	else
 	{
-		for (LinkedList::List<SongSection>::Iterator cur = m_song->m_sections.begin();
-			cur != m_song->m_sections.end();
-			++cur)
+		for (size_t i = 0; i < m_song->m_sections.size(); ++i)
 		{
-			convertToPS2(cur.getIndex());
-			switch (results[cur.getIndex()])
+			convertToPS2(i);
+			switch (results[i])
 			{
 			case 2:
-				printf("%s%s: [INTRO, HARMONY, END, & BRK sections are organized by default]\n", g_global.tabs.c_str(), (*cur).m_name);
+				printf("%s%s: [INTRO, HARMONY, END, & BRK sections are organized by default]\n", g_global.tabs.c_str(), m_song->m_sections[i].m_name);
 				break;
 			case 3:
-				printf("%s%s organized - # of charts per player: %lu\n", g_global.tabs.c_str(), (*cur).m_name, (*cur).m_numCharts);
+				printf("%s%s organized - # of charts per player: %lu\n", g_global.tabs.c_str(), m_song->m_sections[i].m_name, m_song->m_sections[i].m_numCharts);
 			}
 		}
 	}
@@ -1059,13 +1092,13 @@ void CHC_Editor::playerSwapAll()
 void CHC_Editor::playOrder()
 {
 	GlobalFunctions::banner(" " + m_song->m_shortname + ".CHC - Play Order ");
-	LinkedList::List<size_t> sectionIndexes;
+	std::vector<size_t> sectionIndexes;
 	do
 	{
 		printf("%sType the index for each section in the order you wish them to be played - w/ spaces in-between.\n", g_global.tabs.c_str());
 		for (size_t index = 0; index < m_song->m_sections.size(); index++)
 			printf("%s%zu - %s\n", g_global.tabs.c_str(), index, m_song->m_sections[index].m_name );
-		switch (GlobalFunctions::listValueInsert(sectionIndexes, "yn", m_song->m_sections.size(), false))
+		switch (GlobalFunctions::insertIndexValues(sectionIndexes, "yn", m_song->m_sections.size(), false))
 		{
 		case  GlobalFunctions::ResultType::Help:
 
@@ -1122,12 +1155,12 @@ void CHC_Editor::playOrder()
 	printf("%s", g_global.tabs.c_str());
 	for (size_t index = 0; index < sectionIndexes.size(); index++)
 	{
-		if (index + 1ULL < sectionIndexes.size())
+		if (index + 1 < sectionIndexes.size())
 		{
 			m_song->m_saved = false;
 			SongSection::Condition& cond = m_song->m_sections[sectionIndexes[index]].m_conditions.front();
 			cond.m_type = 0;
-			cond.m_trueEffect = (long)sectionIndexes[index + 1ULL];
+			cond.m_trueEffect = (long)sectionIndexes[index + 1];
 		}
 		else
 		{
@@ -1299,7 +1332,7 @@ void CHC_Editor::rearrange()
 				}
 			}
 		}
-		m_song->m_sections.moveElements(startIndex, position, numElements);
+		GlobalFunctions::moveElements(m_song->m_sections, startIndex, position, numElements);
 		for (size_t index = 0; index < m_song->m_sections.size(); index++)
 			printf("%s%zu - %s\n", g_global.tabs.c_str(), index, m_song->m_sections[index].m_name );
 	}
@@ -1564,7 +1597,7 @@ void CHC_Editor::sectionSubMenu()
 	while (true)
 	{
 		GlobalFunctions::banner(" " + m_song->m_shortname + ".CHC - Section Selection");
-		switch (GlobalFunctions::ListIndexSelector(m_song->m_sections, "section"))
+		switch (GlobalFunctions::indexSelector(m_song->m_sections, "section"))
 		{
 		case GlobalFunctions::ResultType::Quit:
 			return;
@@ -1684,14 +1717,14 @@ bool CHC_Editor::reorganize(SongSection& section)
 	if (section.m_battlePhase == SongSection::Phase::CHARGE || (section.m_battlePhase == SongSection::Phase::BATTLE && !strstr(section.m_name, "BRK") && !strstr(section.m_name, "BREAK")))
 	{
 		typedef pair<long, Note*> sectNote;
-		LinkedList::List<sectNote> notes[4];
-		LinkedList::List<Chart> newCharts[4];
+		std::vector<sectNote> notes[4];
+		std::vector<Chart> newCharts[4];
 		for (size_t pl = 0; pl < 4; pl++)
 		{
 			size_t currentPlayer;
 			if (m_song->m_imc[0]) currentPlayer = pl & 1;
 			else currentPlayer = pl;
-			LinkedList::List<sectNote>& player = notes[currentPlayer];
+			std::vector<sectNote>& player = notes[currentPlayer];
 			for (size_t chIndex = 0; chIndex < section.m_numCharts; chIndex++)
 			{
 				size_t playerIndex, chartIndex;
@@ -1706,92 +1739,93 @@ bool CHC_Editor::reorganize(SongSection& section)
 					chartIndex = chIndex;
 				}
 				Chart& ch = section.m_charts[(size_t)playerIndex + chartIndex];
+				player.reserve(player.size() + ch.getNumTracelines() + ch.getNumPhrases() + ch.getNumGuards());
 				size_t index = 0;
 				if (section.m_swapped >= 4 || ((!(pl & 1)) != (m_song->m_imc[0] && section.m_swapped & 1)))
 				{
-					for (size_t i = 0; i < ch.getNumGuards(); i++)
+					for (auto& guard : ch.m_guards)
 					{
 						while (index < player.size())
 						{
-							if (ch.m_guards[i].m_pivotAlpha + ch.m_pivotTime <= player[index].first)
+							if (guard.m_pivotAlpha + ch.m_pivotTime <= player[index].first)
 								break;
 							else
 								index++;
 						}
-						player.insert(index, sectNote(ch.m_guards[i].m_pivotAlpha + ch.m_pivotTime, &ch.m_guards[i]));
+						player.insert(player.begin() + index, sectNote(guard.m_pivotAlpha + ch.m_pivotTime, &guard));
 						index++;
 					}
 					index = 0;
-					for (size_t i = 0; i < ch.m_phrases.size(); i++)
+					for (auto& phrase : ch.m_phrases)
 					{
 						while (index < player.size())
 						{
-							if (ch.m_phrases[i].m_pivotAlpha + ch.m_pivotTime <= player[index].first)
+							if (phrase.m_pivotAlpha + ch.m_pivotTime <= player[index].first)
 								break;
 							else
 								index++;
 						}
-						player.insert(index, sectNote(ch.m_phrases[i].m_pivotAlpha + ch.m_pivotTime, &ch.m_phrases[i]));
+						player.insert(player.begin() + index, sectNote(phrase.m_pivotAlpha + ch.m_pivotTime, &phrase));
 						index++;
 					}
 					index = 0;
 					if (ch.m_tracelines.size() > 1)
 					{
-						for (size_t i = 0; i < ch.m_tracelines.size(); i++)
+						for (auto& trace : ch.m_tracelines)
 						{
 							while (index < player.size())
 							{
-								if (ch.m_tracelines[i].m_pivotAlpha + ch.m_pivotTime <= player[index].first)
+								if (trace.m_pivotAlpha + ch.m_pivotTime <= player[index].first)
 									break;
 								else
 									index++;
 							}
-							player.insert(index, sectNote(ch.m_tracelines[i].m_pivotAlpha + ch.m_pivotTime, &ch.m_tracelines[i]));
+							player.insert(player.begin() + index, sectNote(trace.m_pivotAlpha + ch.m_pivotTime, &trace));
 							index++;
 						}
 					}
 				}
 				else
 				{
-					for (size_t i = 0; i < ch.m_phrases.size(); i++)
+					for (auto& phrase : ch.m_phrases)
 					{
 						while (index < player.size())
 						{
-							if (ch.m_phrases[i].m_pivotAlpha + ch.m_pivotTime <= player[index].first)
+							if (phrase.m_pivotAlpha + ch.m_pivotTime <= player[index].first)
 								break;
 							else
 								index++;
 						}
-						player.insert(index, sectNote(ch.m_phrases[i].m_pivotAlpha + ch.m_pivotTime, &ch.m_phrases[i]));
+						player.insert(player.begin() + index, sectNote(phrase.m_pivotAlpha + ch.m_pivotTime, &phrase));
 						index++;
 					}
 					index = 0;
 					if (ch.m_tracelines.size() > 1)
 					{
-						for (size_t i = 0; i < ch.m_tracelines.size(); i++)
+						for (auto& trace : ch.m_tracelines)
 						{
 							while (index < player.size())
 							{
-								if (ch.m_tracelines[i].m_pivotAlpha + ch.m_pivotTime <= player[index].first)
+								if (trace.m_pivotAlpha + ch.m_pivotTime <= player[index].first)
 									break;
 								else
 									index++;
 							}
-							player.insert(index, sectNote(ch.m_tracelines[i].m_pivotAlpha + ch.m_pivotTime, &ch.m_tracelines[i]));
+							player.insert(player.begin() + index, sectNote(trace.m_pivotAlpha + ch.m_pivotTime, &trace));
 							index++;
 						}
 					}
 					index = 0;
-					for (size_t i = 0; i < ch.getNumGuards(); i++)
+					for (auto& guard : ch.m_guards)
 					{
 						while (index < player.size())
 						{
-							if (ch.m_guards[i].m_pivotAlpha + ch.m_pivotTime <= player[index].first)
+							if (guard.m_pivotAlpha + ch.m_pivotTime <= player[index].first)
 								break;
 							else
 								index++;
 						}
-						player.insert(index, sectNote(ch.m_guards[i].m_pivotAlpha + ch.m_pivotTime, &ch.m_guards[i]));
+						player.insert(player.begin() + index, sectNote(guard.m_pivotAlpha + ch.m_pivotTime, &guard));
 						index++;
 					}
 				}
@@ -1803,7 +1837,7 @@ bool CHC_Editor::reorganize(SongSection& section)
 			//Save angle value
 			angle = currentChart->m_tracelines[traceIndex].m_angle;
 			//Remove trace line
-			if (currentChart->remove(traceIndex, 't'))
+			if (currentChart->removeTraceline(traceIndex))
 				printf("%s%s: Trace line %zu removed\n", g_global.tabs.c_str(), section.m_name, traceIndex);
 			if (currentChart->m_tracelines.size())
 			{
@@ -1815,8 +1849,8 @@ bool CHC_Editor::reorganize(SongSection& section)
 					{
 						//Delete the phrase bar
 						if (!currentChart->m_phrases[phraseIndex].m_start)
-							currentChart->m_phrases[phraseIndex - 1ULL].m_end = true;
-						if (currentChart->remove(phraseIndex, 'p'))
+							currentChart->m_phrases[phraseIndex - 1].m_end = true;
+						if (currentChart->removePhraseBar(phraseIndex))
 							printf("%s%s: Phrase bar %zu removed\n", g_global.tabs.c_str(), section.m_name, phraseIndex);
 					}
 					else
@@ -1831,14 +1865,14 @@ bool CHC_Editor::reorganize(SongSection& section)
 			else
 			{
 				for (size_t phraseIndex = currentChart->m_phrases.size(); phraseIndex > 0;)
-					if (currentChart->remove(--phraseIndex, 'p'))
+					if (currentChart->removePhraseBar(--phraseIndex))
 						printf("%s%s: Phrase bar %zu removed\n", g_global.tabs.c_str(), section.m_name, phraseIndex);
 			}
 		};
 		for (size_t pl = 0; pl < (m_song->m_imc[0] ? 2U : 4U); pl++)
 		{
 			size_t currentPlayer = pl;
-			newCharts[currentPlayer].emplace_front();
+			newCharts[currentPlayer].emplace_back();
 			Chart* currentChart = &newCharts[currentPlayer][0];
 			bool isPlayer = !(pl & 1) || section.m_swapped >= 4;
 			if (notes[pl].size())
@@ -1858,25 +1892,26 @@ bool CHC_Editor::reorganize(SongSection& section)
 					else
 						//safety adjustment of the current note's pivot alpha to line up with this chart
 						notes[pl][ntIndex].second->setPivotAlpha(notes[pl][ntIndex].first - currentChart->m_pivotTime);
+
 					currentChart->add(notes[pl][ntIndex].second);
-					if (ntIndex + 1ULL != notes[pl].size())
+					if (ntIndex + 1 != notes[pl].size())
 					{
 						bool makeNewChart = false;
 						if (dynamic_cast<Traceline*>(notes[pl][ntIndex].second) != nullptr)	//If the current note is a trace line
 						{
 							Traceline* tr = static_cast<Traceline*>(notes[pl][ntIndex].second);
-							if (dynamic_cast<Traceline*>(notes[pl][ntIndex + 1ULL].second) != nullptr)	//If the next note is a trace line
+							if (dynamic_cast<Traceline*>(notes[pl][ntIndex + 1].second) != nullptr)	//If the next note is a trace line
 							{
 								//If the trace lines are disconnected
-								if (notes[pl][ntIndex].first + (long)tr->m_duration != notes[pl][ntIndex + 1ULL].first)
+								if (notes[pl][ntIndex].first + (long)tr->m_duration != notes[pl][ntIndex + 1].first)
 								{
 									currentChart->setEndTime(notes[pl][ntIndex].first + tr->m_duration);
 									makeNewChart = true;
 								}
 							}
-							else if (dynamic_cast<Guard*>(notes[pl][ntIndex + 1ULL].second) != nullptr)	//If the next note is a guard mark
+							else if (dynamic_cast<Guard*>(notes[pl][ntIndex + 1].second) != nullptr)	//If the next note is a guard mark
 							{
-								if (notes[pl][ntIndex].first + (long)tr->m_duration <= notes[pl][ntIndex + 1ULL].first)	//Outside the trace line
+								if (notes[pl][ntIndex].first + (long)tr->m_duration <= notes[pl][ntIndex + 1].first)	//Outside the trace line
 								{
 									if (isPlayer != (m_song->m_imc[0] && section.m_swapped & 1))	//It's not the enemy's original charts
 									{
@@ -1888,17 +1923,17 @@ bool CHC_Editor::reorganize(SongSection& section)
 								else	//Inside the trace line
 								{
 									//If there's another note after the guard mark
-									if (ntIndex + 2ULL != notes[pl].size())
+									if (ntIndex + 2 != notes[pl].size())
 									{
 										//If said note is a Trace line and has a duration of 1, delete it so it can be replaced
-										if (dynamic_cast<Traceline*>(notes[pl][ntIndex + 2ULL].second) != nullptr)
-											if (static_cast<Traceline*>(notes[pl][ntIndex + 2ULL].second)->m_duration == 1)
-												notes[pl].erase(ntIndex + 2ULL);
+										if (dynamic_cast<Traceline*>(notes[pl][ntIndex + 2].second) != nullptr)
+											if (static_cast<Traceline*>(notes[pl][ntIndex + 2].second)->m_duration == 1)
+												notes[pl].erase(notes[pl].begin() + ntIndex + 2);
 									}
 									//If it's the enemy's original charts or the next-next note, if it exists, is a guard mark
-									if ((isPlayer == (m_song->m_imc[0] && section.m_swapped & 1)) || (ntIndex + 2ULL != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2ULL].second) == nullptr))
+									if ((isPlayer == (m_song->m_imc[0] && section.m_swapped & 1)) || (ntIndex + 2 != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2].second) == nullptr))
 									{
-										long endAlpha = notes[pl][ntIndex + 1ULL].first - SongSection::s_SAMPLE_GAP - 1 - currentChart->m_pivotTime;
+										long endAlpha = notes[pl][ntIndex + 1].first - SongSection::s_SAMPLE_GAP - 1 - currentChart->m_pivotTime;
 										float angle = 0;
 										for (size_t t = currentChart->m_tracelines.size(); t > 0;)
 										{
@@ -1917,29 +1952,29 @@ bool CHC_Editor::reorganize(SongSection& section)
 										if (isPlayer != (m_song->m_imc[0] && section.m_swapped & 1)) //It's not the enemy's original charts
 										{
 											//Mark the end of the current chart
-											currentChart->setEndTime(notes[pl][ntIndex + 1ULL].first - SongSection::s_SAMPLE_GAP);
+											currentChart->setEndTime(notes[pl][ntIndex + 1].first - SongSection::s_SAMPLE_GAP);
 											makeNewChart = true;
 										}
 									}
 									else
-										notes[pl].erase(ntIndex + 1ULL);
+										notes[pl].erase(notes[pl].begin() + ntIndex + 1);
 								}
 							}
-							else if (notes[pl][ntIndex].first + (long)tr->m_duration <= notes[pl][ntIndex + 1ULL].first)	//If the phrase bar is outside the trace line
-								notes[pl].erase(ntIndex + 1ULL);
+							else if (notes[pl][ntIndex].first + (long)tr->m_duration <= notes[pl][ntIndex + 1].first)	//If the phrase bar is outside the trace line
+								notes[pl].erase(notes[pl].begin() + ntIndex + 1);
 						}
 						else if (dynamic_cast<Guard*>(notes[pl][ntIndex].second) != nullptr)	//If the current note is a guard mark
 						{
-							if (dynamic_cast<Guard*>(notes[pl][ntIndex + 1ULL].second) != nullptr)	//If the next note is a guard mark
+							if (dynamic_cast<Guard*>(notes[pl][ntIndex + 1].second) != nullptr)	//If the next note is a guard mark
 							{
 								//If there is enough distance between these guard marks in a duet or tutorial stage
-								if ((!m_song->m_imc[0] || m_song->m_stage == 0 || m_song->m_stage == 11 || m_song->m_stage == 12) && notes[pl][ntIndex + 1ULL].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
+								if ((!m_song->m_imc[0] || m_song->m_stage == 0 || m_song->m_stage == 11 || m_song->m_stage == 12) && notes[pl][ntIndex + 1].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
 								{
 									if (!currentChart->m_tracelines.size())
 									{
 										//Move chartPivot in between these two notes
 										//Calculate the value adjustment
-										long pivotDifference = ((notes[pl][ntIndex + 1ULL].first + notes[pl][ntIndex].first) >> 1) - currentChart->m_pivotTime;
+										long pivotDifference = ((notes[pl][ntIndex + 1].first + notes[pl][ntIndex].first) >> 1) - currentChart->m_pivotTime;
 										//Adjust the chartAlpha
 										currentChart->adjustPivotTime(pivotDifference);
 										//Adjust the pivot alphas of inserted notes
@@ -1950,34 +1985,34 @@ bool CHC_Editor::reorganize(SongSection& section)
 									makeNewChart = true;
 								}
 							}
-							else if (dynamic_cast<Traceline*>(notes[pl][ntIndex + 1ULL].second) != nullptr)	//If the next note is a trace line
+							else if (dynamic_cast<Traceline*>(notes[pl][ntIndex + 1].second) != nullptr)	//If the next note is a trace line
 							{
 								//If the next-next note is a guard mark
-								if (dynamic_cast<Guard*>(notes[pl][ntIndex + 2ULL].second) != nullptr)
+								if (dynamic_cast<Guard*>(notes[pl][ntIndex + 2].second) != nullptr)
 								{
-									Traceline* tr = static_cast<Traceline*>(notes[pl][ntIndex + 1ULL].second);
-									if (ntIndex + 3ULL != notes[pl].size())
+									Traceline* tr = static_cast<Traceline*>(notes[pl][ntIndex + 1].second);
+									if (ntIndex + 3 != notes[pl].size())
 									{
-										long newFirst = (notes[pl][ntIndex + 3ULL].first + notes[pl][ntIndex + 2ULL].first) >> 1;
-										if (tr->changePivotAlpha(tr->m_pivotAlpha + newFirst - notes[pl][ntIndex + 1ULL].first))
+										long newFirst = (notes[pl][ntIndex + 3].first + notes[pl][ntIndex + 2].first) >> 1;
+										if (tr->changePivotAlpha(tr->m_pivotAlpha + newFirst - notes[pl][ntIndex + 1].first))
 										{
-											notes[pl][ntIndex + 1ULL].first = newFirst;
-											notes[pl].moveElements(ntIndex + 1ULL, ntIndex + 3ULL);
+											notes[pl][ntIndex + 1].first = newFirst;
+											GlobalFunctions::moveElements(notes[pl], ntIndex + 1, ntIndex + 3);
 										}
 										else
-											notes[pl].erase(ntIndex + 1ULL);
+											notes[pl].erase(notes[pl].begin() + ntIndex + 1);
 									}
 									else
-										notes[pl].erase(ntIndex + 1ULL);
+										notes[pl].erase(notes[pl].begin() + ntIndex + 1);
 									//With the next note now being a confirmed guard mark...
 									//If there is enough distance between these guard marks in the tutorial or a duet stage
-									if ((!m_song->m_imc[0] || m_song->m_stage == 0 || m_song->m_stage == 11 || m_song->m_stage == 12) && notes[pl][ntIndex + 1ULL].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
+									if ((!m_song->m_imc[0] || m_song->m_stage == 0 || m_song->m_stage == 11 || m_song->m_stage == 12) && notes[pl][ntIndex + 1].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
 									{
 										if (!currentChart->m_tracelines.size())
 										{
 											//Move chartPivot in between these two notes
 											//Calculate the value adjustment
-											long pivotDifference = ((notes[pl][ntIndex + 1ULL].first + notes[pl][ntIndex].first) >> 1) - currentChart->m_pivotTime;
+											long pivotDifference = ((notes[pl][ntIndex + 1].first + notes[pl][ntIndex].first) >> 1) - currentChart->m_pivotTime;
 											//Adjust the chartAlpha
 											currentChart->adjustPivotTime(pivotDifference);
 											//Adjust the pivot alphas of inserted notes
@@ -1994,7 +2029,7 @@ bool CHC_Editor::reorganize(SongSection& section)
 									{
 										//Move chartPivot in between these two notes
 										//Calculate the value adjustment
-										long pivotDifference = ((notes[pl][ntIndex + 1ULL].first + notes[pl][ntIndex].first) >> 1) - currentChart->m_pivotTime;
+										long pivotDifference = ((notes[pl][ntIndex + 1].first + notes[pl][ntIndex].first) >> 1) - currentChart->m_pivotTime;
 										//Adjust the chartAlpha
 										currentChart->adjustPivotTime(pivotDifference);
 										//Adjust the pivot alphas of inserted notes
@@ -2003,32 +2038,32 @@ bool CHC_Editor::reorganize(SongSection& section)
 									}
 									else
 									{
-										currentChart->setEndTime((notes[pl][ntIndex + 1ULL].first + notes[pl][ntIndex].first) >> 1);
+										currentChart->setEndTime((notes[pl][ntIndex + 1].first + notes[pl][ntIndex].first) >> 1);
 										makeNewChart = true;
 									}
 								}
 							}
-							else if (dynamic_cast<Phrase*>(notes[pl][ntIndex + 1ULL].second) != nullptr)
+							else if (dynamic_cast<Phrase*>(notes[pl][ntIndex + 1].second) != nullptr)
 							{
 								//A guard mark followed by a phrase bar is an error
-								notes[pl].erase(ntIndex + 1ULL);
+								notes[pl].erase(notes[pl].begin() + ntIndex + 1);
 							}
 						}
 						else
 						{
-							if (dynamic_cast<Guard*>(notes[pl][ntIndex + 1ULL].second) != nullptr)
+							if (dynamic_cast<Guard*>(notes[pl][ntIndex + 1].second) != nullptr)
 							{
-								if (ntIndex + 2ULL != notes[pl].size())
+								if (ntIndex + 2 != notes[pl].size())
 								{
 									//If said note is a Trace line and has a duration of 1, delete it so it can be replaced
-									if (dynamic_cast<Traceline*>(notes[pl][ntIndex + 2ULL].second) != nullptr)
-										if (static_cast<Traceline*>(notes[pl][ntIndex + 2ULL].second)->m_duration == 1)
-											notes[pl].erase(ntIndex + 2ULL);
+									if (dynamic_cast<Traceline*>(notes[pl][ntIndex + 2].second) != nullptr)
+										if (static_cast<Traceline*>(notes[pl][ntIndex + 2].second)->m_duration == 1)
+											notes[pl].erase(notes[pl].begin() + ntIndex + 2);
 								}
 								//If it's the enemy's original charts or the next-next note, if it exists, is a guard mark
-								if ((isPlayer == (m_song->m_imc[0] && section.m_swapped & 1)) || (ntIndex + 2ULL != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2ULL].second) == nullptr))
+								if ((isPlayer == (m_song->m_imc[0] && section.m_swapped & 1)) || (ntIndex + 2 != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2].second) == nullptr))
 								{
-									long endAlpha = notes[pl][ntIndex + 1ULL].first - SongSection::s_SAMPLE_GAP - 1 - currentChart->m_pivotTime;
+									long endAlpha = notes[pl][ntIndex + 1].first - SongSection::s_SAMPLE_GAP - 1 - currentChart->m_pivotTime;
 									float angle = 0;
 									for (size_t t = currentChart->m_tracelines.size(); t > 0;)
 									{
@@ -2044,8 +2079,8 @@ bool CHC_Editor::reorganize(SongSection& section)
 												{
 													//Delete the phrase bar
 													if (!currentChart->m_phrases[phraseIndex].m_start)
-														currentChart->m_phrases[phraseIndex - 1ULL].m_end = true;
-													if (currentChart->remove(phraseIndex, 'p'))
+														currentChart->m_phrases[phraseIndex - 1].m_end = true;
+													if (currentChart->removePhraseBar(phraseIndex))
 														printf("%s%s: Phrase bar %zu removed\n", g_global.tabs.c_str(), section.m_name, phraseIndex);
 												}
 												else
@@ -2068,12 +2103,12 @@ bool CHC_Editor::reorganize(SongSection& section)
 									if (isPlayer != (m_song->m_imc[0] && section.m_swapped & 1)) //It's not the enemy's original charts
 									{
 										//Mark the end of the current chart
-										currentChart->setEndTime(notes[pl][ntIndex + 1ULL].first - SongSection::s_SAMPLE_GAP);
+										currentChart->setEndTime(notes[pl][ntIndex + 1].first - SongSection::s_SAMPLE_GAP);
 										makeNewChart = true;
 									}
 								}
 								else
-									notes[pl].erase(ntIndex + 1ULL);
+									notes[pl].erase(notes[pl].begin() + ntIndex + 1);
 							}
 						}
 						if (makeNewChart)
@@ -2086,7 +2121,8 @@ bool CHC_Editor::reorganize(SongSection& section)
 									currentPlayer += 2;
 							}
 							startingIndex = ntIndex + 1;
-							currentChart = &newCharts[currentPlayer].emplace_back(false);
+							newCharts[currentPlayer].emplace_back(false);
+							currentChart = &newCharts[currentPlayer].back();
 						}
 					}
 				}
@@ -2139,7 +2175,7 @@ void CHC_Editor::playerSwap(SongSection& section)
 		if (section.m_battlePhase != SongSection::Phase::HARMONY && section.m_battlePhase != SongSection::Phase::END)
 		{
 			for (long playerIndex = section.m_numPlayers - 1; playerIndex > 0; playerIndex -= 2)
-				section.m_charts.moveElements((size_t)playerIndex * section.m_numCharts, (playerIndex - 1ULL) * section.m_numCharts, section.m_numCharts);
+				GlobalFunctions::moveElements(section.m_charts, (size_t)playerIndex * section.m_numCharts, size_t(playerIndex - 1) * section.m_numCharts, section.m_numCharts);
 			if (!(section.m_swapped & 1))
 			{
 				if (section.m_swapped == 0)
@@ -2189,7 +2225,7 @@ void CHC_Editor::playerSwap(SongSection& section)
 					if (g_global.answer.character == 'a')
 					{
 						for (long playerIndex = section.m_numPlayers - 1; playerIndex > 0; playerIndex -= 2)
-							section.m_charts.moveElements((size_t)playerIndex * section.m_numCharts, (playerIndex - 1ULL) * section.m_numCharts, section.m_numCharts);
+							GlobalFunctions::moveElements(section.m_charts, (size_t)playerIndex * section.m_numCharts, size_t(playerIndex - 1) * section.m_numCharts, section.m_numCharts);
 						if (!(section.m_swapped & 1))
 						{
 							if ((section.m_swapped & 2) == 0)
@@ -2209,7 +2245,7 @@ void CHC_Editor::playerSwap(SongSection& section)
 					}
 					else
 					{
-						section.m_charts.moveElements(2ULL * section.m_numCharts, 0, 2ULL * section.m_numCharts);
+						GlobalFunctions::moveElements(section.m_charts, size_t(2) * section.m_numCharts, 0, size_t(2) * section.m_numCharts);
 						if ((section.m_swapped & 2) == 0)
 						{
 							if (!(section.m_swapped & 1))
@@ -2235,8 +2271,8 @@ void CHC_Editor::playerSwap(SongSection& section)
 	}
 	else
 	{
-		section.m_charts.moveElements(0, 2ULL * section.m_numCharts, section.m_numCharts);
-		section.m_charts.moveElements(2ULL * section.m_numCharts, 0, section.m_numCharts);
+		GlobalFunctions::moveElements(section.m_charts, 0, size_t(2) * section.m_numCharts, section.m_numCharts);
+		GlobalFunctions::moveElements(section.m_charts, size_t(2) * section.m_numCharts, 0, section.m_numCharts);
 		if (!section.m_swapped)
 		{
 			printf("%s%s: P1 -> P3\n", g_global.tabs.c_str(), section.m_name);
@@ -2582,9 +2618,9 @@ void CHC_Editor::conditionMenu(SongSection& section)
 	g_global.quit = false;
 }
 
-void CHC_Editor::conditionDelete(SongSection& section, size_t index)
+/*void CHC_Editor::conditionDelete(SongSection& section, size_t index)
 {
-	LinkedList::List<SongSection::Condition> oldcond = section.m_conditions;
+	auto oldcond = section.m_conditions;
 	for (size_t condIndex = 0; condIndex < index; condIndex++)
 	{
 		if (section.m_conditions[condIndex].m_trueEffect < 0)
@@ -2597,4 +2633,4 @@ void CHC_Editor::conditionDelete(SongSection& section, size_t index)
 				section.m_conditions[condIndex].m_trueEffect++;
 		}
 	}
-}
+}*/

@@ -16,10 +16,10 @@
 #include "Global_Functions.h"
 #include "CHC_TAS.h"
 
-PCSX2TAS::Framefile PCSX2TAS::frameValues;
+TAS::FrameFile TAS::frameValues;
 using namespace std;
 
-bool PCSX2TAS::loadValues(string filename)
+bool TAS::loadValues(string filename)
 {
 	size_t pos = filename.find_last_of("\\");
 #pragma warning(suppress : 4996)
@@ -155,7 +155,7 @@ bool PCSX2TAS::loadValues(string filename)
 	}
 }
 
-void PCSX2TAS::resultScreen(const int stage, const int notes, const bool singleplayer, const bool(&multi)[2])
+void TAS::PCSX2TAS::resultScreen(const int stage, const int notes, const bool singleplayer, const bool(&multi)[2])
 {
 	size_t toResult = 0;
 	switch (stage)
@@ -211,7 +211,7 @@ void PCSX2TAS::resultScreen(const int stage, const int notes, const bool singlep
 	}
 }
 
-void PCSX2TAS::print(string filename)
+void TAS::PCSX2TAS::print(string filename)
 {
 #pragma warning(suppress : 4996) 
 	FILE* outp2m2 = fopen((filename + ".p2m2").c_str(), "wb");
@@ -222,7 +222,8 @@ void PCSX2TAS::print(string filename)
 	fwrite(m_game, 1, 255, outp2m2);
 	fwrite("\0", 1, 1, outp2m2);
 	fwrite(multi, 1, 8, outp2m2);
-	fwrite(&m_players[0].size(), 4, 1, outp2m2);
+	const size_t size = m_players[0].size();
+	fwrite(&size, 4, 1, outp2m2);
 	fwrite("\0\0\0\0", 1, 4, outp2m2);
 	unsigned char sequence[18] = { 0 };
 	for (size_t index = 0; index < m_players[0].size(); index++)
@@ -258,7 +259,7 @@ void PCSX2TAS::print(string filename)
 	printf("%sPCSX2 TAS Completed.\n", g_global.tabs.c_str());
 }
 
-size_t PCSX2TAS::insertFrames(const int stage, const int orientation, const int difficulty, const bool(&multi)[2], size_t numFrames)
+size_t TAS::PCSX2TAS::insertFrames(const int stage, const int orientation, const int difficulty, const bool(&multi)[2], size_t numFrames)
 {
 	if (m_framerate >= 60.00f)
 	{
@@ -372,9 +373,9 @@ size_t PCSX2TAS::insertFrames(const int stage, const int orientation, const int 
 				m_players[1][index].button &= 191;					// X-button - Health Handicap Selection
 				if (multi[0]) // If Player 3
 				{
-					m_players[2].clone(m_players[1]);
+					m_players[2] = m_players[1];
 					if (multi[1])	// If Player 4
-						m_players[3].clone(m_players[1]);
+						m_players[3] = m_players[1];
 				}
 			}
 		}
@@ -519,9 +520,9 @@ size_t PCSX2TAS::insertFrames(const int stage, const int orientation, const int 
 				m_players[1][index].button &= 191;					// X-button - Health Handicap Selection
 				if (multi[0]) // If Player 3
 				{
-					m_players[2].clone(m_players[1]);
+					m_players[2] = m_players[1];
 					if (multi[1])	// If Player 4
-						m_players[3].clone(m_players[1]);
+						m_players[3] = m_players[1];
 				}
 			}
 		}
@@ -564,29 +565,29 @@ bool TAS::build(CHC& song)
 			case GlobalFunctions::ResultType::Success:
 				if (p2m2vTemp.find(".P2M2V") == string::npos)
 					p2m2vTemp += ".P2M2V";
-				if (m_pcsx2.loadValues(p2m2vTemp))
+				if (loadValues(p2m2vTemp))
 					g_global.quit = true;
 			}
 		} while (!g_global.quit);
 		g_global.quit = false;
 		return true;
 	};
-	if (!PCSX2TAS::frameValues.use)
+	if (!frameValues.use)
 	{
 		FILE* p2m2v;
-		if (!fopen_s(&p2m2v, PCSX2TAS::frameValues.name.c_str(), "r"))
+		if (!fopen_s(&p2m2v, frameValues.name.c_str(), "r"))
 		{
 			fclose(p2m2v);
-			size_t pos = PCSX2TAS::frameValues.name.find_last_of("\\");
+			size_t pos = frameValues.name.find_last_of("\\");
 			do
 			{
-				printf("%sUse \"%s\"? [Y/N]\n", g_global.tabs.c_str(), PCSX2TAS::frameValues.name.substr(pos != string::npos ? pos + 1 : 0).c_str());
+				printf("%sUse \"%s\"? [Y/N]\n", g_global.tabs.c_str(), frameValues.name.substr(pos != string::npos ? pos + 1 : 0).c_str());
 				switch (GlobalFunctions::menuChoices("yn"))
 				{
 				case GlobalFunctions::ResultType::Success:
 					if (g_global.answer.character == 'y')
 					{
-						m_pcsx2.loadValues();
+						loadValues();
 						g_global.quit = true;
 						break;
 					}
@@ -607,7 +608,7 @@ bool TAS::build(CHC& song)
 		else if (!load())
 			return false;
 	}
-	else if (!m_pcsx2.loadValues() && !load())
+	else if (!loadValues() && !load())
 		return false;
 	do
 	{
@@ -789,8 +790,8 @@ bool TAS::build(CHC& song)
 	else if (m_pcsx2.m_framerate == 50.00f)
 		framerateIndex = 1;
 	printf("%sStage %i - Diff. %i: ", g_global.tabs.c_str(), stage, difficulty);
-	printf("%lu frames | ", PCSX2TAS::frameValues.frames[framerateIndex][stage][difficulty + multi[0] + multi[1]]);
-	printf("Displacement: %li samples\n%s\n", PCSX2TAS::frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]], g_global.tabs.c_str());
+	printf("%lu frames | ", frameValues.frames[framerateIndex][stage][difficulty + multi[0] + multi[1]]);
+	printf("Displacement: %li samples\n%s\n", frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]], g_global.tabs.c_str());
 	printf("%sType the name of the author [255 character limit] (';' to notate the end of the name [for multi-step usage]) ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
 	printf("%sInput: ", g_global.tabs.c_str());
 	if (GlobalFunctions::charArrayInsertion(m_pcsx2.m_author, 255) == GlobalFunctions::ResultType::Quit)
@@ -824,14 +825,12 @@ bool TAS::build(CHC& song)
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
-	LinkedList::List<size_t> sectionIndexes;
+	std::vector<size_t> sectionIndexes;
 	do
 	{
 		printf("%sType the number for each section that you wish to TAS - in chronological order and w/ spaces in-between\n", g_global.tabs.c_str());
-		for (LinkedList::List<SongSection>::Iterator cur = song.m_sections.begin();
-			cur != song.m_sections.end();
-			++cur)
-			printf("%s%zu - %s\n", g_global.tabs.c_str(), cur.getIndex(), (*cur).getName());
+		for (size_t index = 0; index < song.m_sections.size(); ++index)
+			printf("%s%zu - %s\n", g_global.tabs.c_str(), index, song.m_sections[index].getName());
 		if (sectionIndexes.size())
 		{
 			printf("%sCurrent List: ", g_global.tabs.c_str());
@@ -839,7 +838,7 @@ bool TAS::build(CHC& song)
 				printf("%s ", song.m_sections[index].getName());
 			putchar('\n');
 		}
-		switch (GlobalFunctions::listValueInsert(sectionIndexes, "yntmv", song.m_sections.size()))
+		switch (GlobalFunctions::insertIndexValues(sectionIndexes, "yntmv", song.m_sections.size()))
 		{
 		case  GlobalFunctions::ResultType::Help:
 
@@ -898,33 +897,13 @@ bool TAS::build(CHC& song)
 		filename += "_" + to_string(int(m_pcsx2.m_framerate)) + "_" + to_string(orientation) + "_" + to_string(multi[0] + multi[1] + 2) + 'P';
 	else
 		filename += "_" + to_string(int(m_pcsx2.m_framerate)) + "_" + to_string(orientation) + "_SP";
-	struct NotePoint
-	{
-		long position;
-		Note* note;
-		size_t index;
-		bool last;
-		NotePoint(long pos, Note* note = nullptr, size_t index = 0, bool last = false) : position(pos), note(note), index(index), last(last) {}
-	};
-	struct SectPoint
-	{
-		long position;
-		enum class VisualType
-		{
-			Technical,
-			Visual,
-			Mixed
-		} type;
-		long sustainLimit = 0;
-		SectPoint(long pos, size_t visuals = 0, long sus = 0) : position(pos), type(static_cast<VisualType>(visuals)), sustainLimit(sus) {}
-	};
-	LinkedList::List<NotePoint> timeline[4];
-	LinkedList::List<SectPoint> markers;
+	
+	
 	const float SAMPLES_PER_FRAME = 48000.0f / m_pcsx2.m_framerate;
 	unsigned long totalDuration = 0;
 	bool endReached = false;
 	int notes[4] = { 0, 0, 0, 0 };
-	long position = PCSX2TAS::frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]];
+	long position = frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]];
 	// Places every single note that will appear in all chosen sections
 	// into one huge timeline.
 	for (const size_t sectIndex : sectionIndexes)
@@ -947,7 +926,7 @@ bool TAS::build(CHC& song)
 				{
 					for (size_t chartIndex = 0; chartIndex < section.getNumCharts() && !g_global.quit; chartIndex++)
 					{
-						if (section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex).getNumPhrases())
+						if (section.m_charts[playerIndex * section.getNumCharts() + chartIndex].getNumPhrases())
 						{
 							do
 							{
@@ -1016,30 +995,30 @@ bool TAS::build(CHC& song)
 			{
 				for (size_t playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); difficulty == 3 ? ++playerIndex : playerIndex += 2)
 				{
-					Chart& chart = section.getChart(playerIndex * section.getNumCharts() + chartIndex);
+					Chart& chart = section.m_charts[playerIndex * section.getNumCharts() + chartIndex];
 					currentPlayer = (multi[playerIndex & 1] ? playerIndex : playerIndex & 1);
-					LinkedList::List<NotePoint>& player = timeline[currentPlayer];
+					std::vector<NotePoint>& player = timeline[currentPlayer];
 					size_t index = startIndex[currentPlayer];
 					for (size_t i = 0; i < chart.getNumGuards(); i++)
 					{
-						long pos = chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position;
+						long pos = chart.m_guards[i].getPivotAlpha() + chart.getPivotTime() + position;
 						while (index < player.size() && pos > player[index].position)
 							index++;
-						player.emplace(index, 1, pos, &chart.getGuard(i), i, i + 1 == chart.getNumGuards());
+						player.emplace(player.begin() + index, pos, &chart.m_guards[i], i, i + 1 == chart.getNumGuards());
 						notes[currentPlayer]++;
 						index++;
 					}
 					index = startIndex[currentPlayer];
 					for (size_t i = 0; i < chart.getNumPhrases(); i++)
 					{
-						Phrase& phrase = chart.getPhrase(i);
+						Phrase& phrase = chart.m_phrases[i];
 						long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
 						while (index < player.size() && pos > player[index].position)
 							index++;
 						// Combine all pieces into one Note
 						while (i < chart.getNumPhrases())
 						{
-							if (!chart.getPhrase(i).getEnd())
+							if (!chart.m_phrases[i].getEnd())
 								i++;
 							else
 							{
@@ -1048,28 +1027,28 @@ bool TAS::build(CHC& song)
 									switch (markers.back().type)
 									{
 									case SectPoint::VisualType::Visual:
-										if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers.back().sustainLimit)
-											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
+										if (chart.m_phrases[i + 1].getPivotAlpha() - chart.m_phrases[i].getEndAlpha() < markers.back().sustainLimit)
+											phrase.changeEndAlpha(chart.m_phrases[i + 1].getPivotAlpha() - long(SAMPLES_PER_FRAME));
 										else
-											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
+											phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
 										break;
 									case SectPoint::VisualType::Mixed:
-										if (chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers.back().sustainLimit)
+										if (chart.m_phrases[i + 1].getPivotAlpha() - phrase.getPivotAlpha() < markers.back().sustainLimit)
 										{
-											phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
+											phrase.changeEndAlpha(chart.m_phrases[i + 1].getPivotAlpha() - long(SAMPLES_PER_FRAME));
 											break;
 										}
 									default:
-										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
+										phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha());
 									}
 								}
 								else if (markers.back().type != SectPoint::VisualType::Visual ||
-										!phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5 * SAMPLES_PER_FRAME)))
-									phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
+										!phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() - long(5 * SAMPLES_PER_FRAME)))
+									phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha());
 								break;
 							}
 						}
-						player.emplace(index, 1, pos, &phrase, i, i + 1 == chart.getNumPhrases());
+						player.emplace(player.begin() + index, pos, &phrase, i, i + 1 == chart.getNumPhrases());
 						notes[currentPlayer]++;
 						index++;
 					}
@@ -1078,10 +1057,10 @@ bool TAS::build(CHC& song)
 					{
 						for (size_t i = 0; i < chart.getNumTracelines(); i++)
 						{
-							long pos = chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position;
+							long pos = chart.m_tracelines[i].getPivotAlpha() + chart.getPivotTime() + position;
 							while (index < player.size() && pos > player[index].position)
 								index++;
-							player.emplace(index, 1, pos, &chart.getTraceline(i), i, i + 1 == chart.getNumTracelines());
+							player.emplace(player.begin() + index, pos, &chart.m_tracelines[i], i, i + 1 == chart.getNumTracelines());
 							index++;
 						}
 					}
@@ -1140,25 +1119,23 @@ bool TAS::build(CHC& song)
 		if (m_tutorialStageB != nullptr)
 		{
 			printf("%sStage ST00B: ", g_global.tabs.c_str());
-			printf("%lu frames during intermission |", PCSX2TAS::frameValues.frames[framerateIndex][0][1]);
-			printf(" Post-intermission Displacement: %li samples\n%s\n", PCSX2TAS::frameValues.initialDisplacements[framerateIndex][0][1], g_global.tabs.c_str());
+			printf("%lu frames during intermission |", frameValues.frames[framerateIndex][0][1]);
+			printf(" Post-intermission Displacement: %li samples\n%s\n", frameValues.initialDisplacements[framerateIndex][0][1], g_global.tabs.c_str());
 			sectionIndexes.clear();
-			position += long((PCSX2TAS::frameValues.frames[framerateIndex][0][1] - 1000) * SAMPLES_PER_FRAME) + PCSX2TAS::frameValues.initialDisplacements[framerateIndex][0][1];
+			position += long((frameValues.frames[framerateIndex][0][1] - 1000) * SAMPLES_PER_FRAME) + frameValues.initialDisplacements[framerateIndex][0][1];
 			do
 			{
 				printf("%sType the number for each section that you wish to TAS from ST00B - in chronological order and w/ spaces in-between\n", g_global.tabs.c_str());
-				for (LinkedList::List<SongSection>::Iterator cur = m_tutorialStageB->m_sections.begin();
-					cur != m_tutorialStageB->m_sections.end();
-					++cur)
-					printf("%s%zu - %s\n", g_global.tabs.c_str(), cur.getIndex(), (*cur).getName());
+				for (size_t index = 0; index < m_tutorialStageB->m_sections.size(); ++index)
+					printf("%s%zu - %s\n", g_global.tabs.c_str(), index, m_tutorialStageB->m_sections[index].getName());
 				if (sectionIndexes.size())
 				{
 					printf("%sCurrent List: ", g_global.tabs.c_str());
 					for (const size_t index : sectionIndexes)
-						printf("%s ", m_tutorialStageB->m_sections[index].getName());
+						printf("%s ", song.m_sections[index].getName());
 					putchar('\n');
 				}
-				switch (GlobalFunctions::listValueInsert(sectionIndexes, "yntmv", song.m_sections.size()))
+				switch (GlobalFunctions::insertIndexValues(sectionIndexes, "yntmv", song.m_sections.size()))
 				{
 				case GlobalFunctions::ResultType::Help:
 
@@ -1227,7 +1204,7 @@ bool TAS::build(CHC& song)
 					{
 						for (size_t chartIndex = 0; !g_global.quit && chartIndex < section.getNumCharts(); chartIndex++)
 						{
-							if (section.getChart(playerIndex * (size_t)section.getNumCharts() + chartIndex).getNumPhrases())
+							if (section.m_charts[playerIndex * (size_t)section.getNumCharts() + chartIndex].getNumPhrases())
 							{
 								do
 								{
@@ -1295,28 +1272,28 @@ bool TAS::build(CHC& song)
 				{
 					for (unsigned playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); playerIndex++)
 					{
-						Chart& chart = section.getChart(chartIndex);
+						Chart& chart = section.m_charts[chartIndex];
 						size_t index = startIndex;
 						for (size_t i = 0; i < chart.getNumGuards(); i++)
 						{
-							long pos = chart.getGuard(i).getPivotAlpha() + chart.getPivotTime() + position;
+							long pos = chart.m_guards[i].getPivotAlpha() + chart.getPivotTime() + position;
 							while (index < timeline[0].size() && pos > timeline[0][index].position)
 									index++;
-							timeline[0].emplace(index, 1, pos, &chart.getGuard(i), i, i + 1 == chart.getNumGuards());
+							timeline[0].emplace(timeline[0].begin() + index, pos, &chart.m_guards[i], i, i + 1 == chart.getNumGuards());
 							notes[currentPlayer]++;
 							index++;
 						}
 						index = startIndex;
 						for (size_t i = 0; i < chart.getNumPhrases(); i++)
 						{
-							Phrase& phrase = chart.getPhrase(i);
+							Phrase& phrase = chart.m_phrases[i];
 							long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
 							while (index < timeline[0].size() && pos > timeline[0][index].position)
 								index++;
 							// Combine all pieces into one Note
 							while (i < chart.getNumPhrases())
 							{
-								if (!chart.getPhrase(i).getEnd())
+								if (!chart.m_phrases[i].getEnd())
 									i++;
 								else
 								{
@@ -1325,28 +1302,28 @@ bool TAS::build(CHC& song)
 										switch (markers.back().type)
 										{
 										case SectPoint::VisualType::Visual:
-											if (chart.getPhrase(i + 1).getPivotAlpha() - chart.getPhrase(i).getEndAlpha() < markers.back().sustainLimit)
-												phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
+											if (chart.m_phrases[i + 1].getPivotAlpha() - chart.m_phrases[i].getEndAlpha() < markers.back().sustainLimit)
+												phrase.changeEndAlpha(chart.m_phrases[i + 1].getPivotAlpha() - long(SAMPLES_PER_FRAME));
 											else
-												phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
+												phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
 											break;
 										case SectPoint::VisualType::Mixed:
-											if (chart.getPhrase(i + 1).getPivotAlpha() - phrase.getPivotAlpha() < markers.back().sustainLimit)
+											if (chart.m_phrases[i + 1].getPivotAlpha() - phrase.getPivotAlpha() < markers.back().sustainLimit)
 											{
-												phrase.changeEndAlpha(chart.getPhrase(i + 1).getPivotAlpha() - long(SAMPLES_PER_FRAME));
+												phrase.changeEndAlpha(chart.m_phrases[i + 1].getPivotAlpha() - long(SAMPLES_PER_FRAME));
 												break;
 											}
 										default:
-											phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
+											phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha());
 										}
 									}
 									else if (markers.back().type != SectPoint::VisualType::Visual ||
-											!phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha() - long(5 * SAMPLES_PER_FRAME)))
-										phrase.changeEndAlpha(chart.getPhrase(i).getEndAlpha());
+											!phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() - long(5 * SAMPLES_PER_FRAME)))
+										phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha());
 									break;
 								}
 							}
-							timeline[0].emplace(index, 1, pos, &phrase, i, i + 1 == chart.getNumPhrases());
+							timeline[0].emplace(timeline[0].begin() + index, pos, &phrase, i, i + 1 == chart.getNumPhrases());
 							notes[currentPlayer]++;
 							index++;
 						}
@@ -1355,10 +1332,10 @@ bool TAS::build(CHC& song)
 						{
 							for (size_t i = 0; i < chart.getNumTracelines(); i++)
 							{
-								long pos = chart.getTraceline(i).getPivotAlpha() + chart.getPivotTime() + position;
+								long pos = chart.m_tracelines[i].getPivotAlpha() + chart.getPivotTime() + position;
 								while (index < timeline[0].size() && pos > timeline[0][index].position)
 									index++;
-								timeline[0].emplace(index, 1, pos, &chart.getTraceline(i), i, i + 1 == chart.getNumTracelines());
+								timeline[0].emplace(timeline[0].begin() + index, pos, &chart.m_tracelines[i], i, i + 1 == chart.getNumTracelines());
 								index++;
 							}
 						}
@@ -1367,14 +1344,14 @@ bool TAS::build(CHC& song)
 				position += section.getDuration();
 				totalDuration += section.getDuration();
 			}
-			frameStart = m_pcsx2.insertFrames(stage, orientation, difficulty, multi, (size_t)ceilf(totalDuration / SAMPLES_PER_FRAME) + PCSX2TAS::frameValues.frames[framerateIndex][0][1] - 1000);
+			frameStart = m_pcsx2.insertFrames(stage, orientation, difficulty, multi, (size_t)ceilf(totalDuration / SAMPLES_PER_FRAME) + frameValues.frames[framerateIndex][0][1] - 1000);
 		}
 		else
 			frameStart = m_pcsx2.insertFrames(stage, orientation, difficulty, multi, (size_t)ceilf(totalDuration / SAMPLES_PER_FRAME));
 	}
 	else
 		frameStart = m_pcsx2.insertFrames(stage, orientation, difficulty, multi, (size_t)ceilf(totalDuration / SAMPLES_PER_FRAME));
-	bool results[4];
+	bool results[4] = { false };
 	auto convertToFrames = [&](const size_t playerIndex)
 	{
 		FILE* taslog;
@@ -1383,200 +1360,198 @@ bool TAS::build(CHC& song)
 		else
 			fopen_s(&taslog, (filename + "_P" + to_string(playerIndex + 1) + ".txt").c_str(), "w");
 
-		fprintf(taslog, "Samples per frame: %Lf\n", SAMPLES_PER_FRAME);
-		LinkedList::List<SectPoint>::Iterator markerIterator = markers.begin();
-		fprintf(taslog, "//// Section Marker 1 at sample %li\n", (*markerIterator).position);
-
-		size_t sectIndex = 0;
+		fprintf(taslog, "Samples per frame: %g", SAMPLES_PER_FRAME);
 		NotePoint* prevPhrase = nullptr;
-		for (LinkedList::List<NotePoint>::Iterator iter = timeline[playerIndex].begin();
-			iter != timeline[playerIndex].end();
-			++iter)
+		for (size_t markIndex = 0, noteIndex = 0; markIndex < markers.size(); ++markIndex)
 		{
-			while (markerIterator + 1 != markers.end() && (*iter).position >= (*(markerIterator + 1)).position)
+			fprintf(taslog, "\n//// Section Marker %zu at sample %li\n\n", markIndex + 1, markers[markIndex].position);
+			for (; noteIndex < timeline[playerIndex].size() &&
+				(markIndex + 1 == markers.size() || timeline[playerIndex][noteIndex].position < markers[markIndex + 1].position);
+				++noteIndex)
 			{
-				++markerIterator;
-				fflush(taslog);
-				fprintf(taslog, "\n//// Section Marker %zu at sample %li\n\n", markerIterator.getIndex() + 1, (*markerIterator).position);
-			}
-			if (dynamic_cast<Guard*>((*iter).note) != nullptr)
-			{
-				size_t grdFrame = frameStart + (size_t)round((*iter).position / SAMPLES_PER_FRAME);
-				// If the next note, if it exists, is a guard mark
-				if (iter + 1 != timeline[playerIndex].end() && dynamic_cast<Guard*>((*(iter + 1)).note) != nullptr)
+				if (dynamic_cast<Guard*>(timeline[playerIndex][noteIndex].note) != nullptr)
 				{
-
-					switch (frameStart + (size_t)round((*(iter + 1)).position / SAMPLES_PER_FRAME) - grdFrame)
+					size_t grdFrame = frameStart + (size_t)round(timeline[playerIndex][noteIndex].position / SAMPLES_PER_FRAME);
+					// If the next note, if it exists, is a guard mark
+					if (noteIndex + 1 != timeline[playerIndex].size() && dynamic_cast<Guard*>(timeline[playerIndex][noteIndex + 1].note) != nullptr)
 					{
-					case 0:
-						// Push the second mark back one frame
-						(*(iter + 1)).position += long(SAMPLES_PER_FRAME);
-						// If pushing it back places it behind the note that *was* after it, fix the order
-						if (iter + 1 != timeline[playerIndex].end() && (*(iter + 1)).position >= (*(iter + 2)).position)
-							timeline[playerIndex].moveElements(iter.getIndex() + 1, iter.getIndex() + 3);
-						__fallthrough;
-					case 1:
-						// Pull the current mark forwards one frame
-						grdFrame--;
-					}
-				}
-				// Clear any buttons from the prior frame
-				m_pcsx2.m_players[playerIndex][grdFrame - 1].button = 255;
 
-				// Square - 239
-				// X/Cross  - 223
-				// Circle - 191
-				// Triangle - 127
-				static const int orientationSets[4][4] = { {239, 223, 191, 127}, {239, 223, 191, 127}, {223, 191, 127, 239}, {127, 239, 223, 191} };
-				m_pcsx2.m_players[playerIndex][grdFrame].button = orientationSets[orientation][static_cast<Guard*>((*iter).note)->getButton()];
-
-				fprintf(taslog, "Guard Mark %03zu: ", (*iter).index);
-				switch (m_pcsx2.m_players[playerIndex][grdFrame].button)
-				{
-				case 239:
-					fprintf(taslog, "[Square] - Landing at sample %li | Frame #%zu\n", (*iter).position, grdFrame - frameStart);
-					break;
-				case 223:
-					fprintf(taslog, "[X/Cross] - Landing at sample %li | Frame #%zu\n", (*iter).position, grdFrame - frameStart);
-					break;
-				case 191:
-					fprintf(taslog, "[Circle] - Landing at sample %li | Frame #%zu\n", (*iter).position, grdFrame - frameStart);
-					break;
-				case 127:
-					fprintf(taslog, "[Triangle] - Landing at sample %li | Frame #%zu\n", (*iter).position, grdFrame - frameStart);
-				}
-				
-			}
-			else if (dynamic_cast<Traceline*>((*iter).note) != nullptr)
-			{
-				for (LinkedList::List<NotePoint>::Iterator test = iter + 1; test != timeline[playerIndex].end(); ++test)
-				{
-					if (dynamic_cast<Guard*>((*test).note) != nullptr && (*iter).last)
-						break;
-					else if (dynamic_cast<Traceline*>((*test).note) != nullptr)
-					{
-						if (!(*iter).last || 10 * ((*test).position - (float)(*iter).position) <= 3.0f * song.m_speed * SAMPLES_PER_FRAME)
+						switch (frameStart + (size_t)round(timeline[playerIndex][noteIndex + 1].position / SAMPLES_PER_FRAME) - grdFrame)
 						{
-							if ((*iter).last || (*test).index - 1 == (*iter).index)
+						case 0:
+							// Push the second mark back one frame
+							timeline[playerIndex][noteIndex + 1].position += long(SAMPLES_PER_FRAME);
+							// If pushing it back places it behind the note that *was* after it, fix the order
+							if (noteIndex + 1 != timeline[playerIndex].size() && timeline[playerIndex][noteIndex + 1].position >= timeline[playerIndex][noteIndex + 2].position)
+								GlobalFunctions::moveElements(timeline[playerIndex], noteIndex + 1, noteIndex + 3);
+							__fallthrough;
+						case 1:
+							// Pull the current mark forwards one frame
+							grdFrame--;
+						}
+					}
+					// Clear any buttons from the prior frame
+					m_pcsx2.m_players[playerIndex][grdFrame - 1].button = 255;
+
+					// Square - 239
+					// X/Cross  - 223
+					// Circle - 191
+					// Triangle - 127
+					static const int orientationSets[4][4] = { {239, 223, 191, 127}, {239, 223, 191, 127}, {223, 191, 127, 239}, {127, 239, 223, 191} };
+					m_pcsx2.m_players[playerIndex][grdFrame].button = orientationSets[orientation][static_cast<Guard*>(timeline[playerIndex][noteIndex].note)->getButton()];
+
+					fprintf(taslog, "Guard Mark %03zu: ", timeline[playerIndex][noteIndex].index);
+					switch (m_pcsx2.m_players[playerIndex][grdFrame].button)
+					{
+					case 239:
+						fprintf(taslog, "[Square] - Landing at sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].position, grdFrame - frameStart);
+						break;
+					case 223:
+						fprintf(taslog, "[X/Cross] - Landing at sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].position, grdFrame - frameStart);
+						break;
+					case 191:
+						fprintf(taslog, "[Circle] - Landing at sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].position, grdFrame - frameStart);
+						break;
+					case 127:
+						fprintf(taslog, "[Triangle] - Landing at sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].position, grdFrame - frameStart);
+					}
+
+				}
+				else if (dynamic_cast<Traceline*>(timeline[playerIndex][noteIndex].note) != nullptr)
+				{
+					for (size_t testIndex = noteIndex + 1; testIndex < timeline[playerIndex].size(); ++testIndex)
+					{
+						if (dynamic_cast<Guard*>(timeline[playerIndex][testIndex].note) != nullptr && timeline[playerIndex][noteIndex].last)
+							break;
+						else if (dynamic_cast<Traceline*>(timeline[playerIndex][testIndex].note) != nullptr)
+						{
+							if (!timeline[playerIndex][noteIndex].last || 10 * (timeline[playerIndex][testIndex].position - (float)timeline[playerIndex][noteIndex].position) <= 3.0f * song.m_speed * SAMPLES_PER_FRAME)
 							{
-								size_t currentFrame = frameStart + (size_t)round((*iter).position / SAMPLES_PER_FRAME);
-								size_t endFrame = frameStart + (size_t)round((*test).position / SAMPLES_PER_FRAME);
-								if (endFrame - currentFrame > 0)
+								if (timeline[playerIndex][noteIndex].last || timeline[playerIndex][testIndex].index - 1 == timeline[playerIndex][noteIndex].index)
 								{
-									float currentAngle = static_cast<Traceline*>((*iter).note)->getAngle();
-									float angleDif = 0;
-									if (!(*iter).last)
+									size_t currentFrame = frameStart + (size_t)round(timeline[playerIndex][noteIndex].position / SAMPLES_PER_FRAME);
+									size_t endFrame = frameStart + (size_t)round(timeline[playerIndex][testIndex].position / SAMPLES_PER_FRAME);
+									if (endFrame - currentFrame > 0)
 									{
-										if (!(*test).last)
+										float currentAngle = static_cast<Traceline*>(timeline[playerIndex][noteIndex].note)->getAngle();
+										float angleDif = 0;
+										if (!timeline[playerIndex][noteIndex].last)
 										{
-											angleDif = static_cast<Traceline*>((*test).note)->getAngle() - currentAngle;
-											if (angleDif > M_PI)
-												angleDif -= 2 * M_PI;
-											else if (angleDif < -M_PI)
-												angleDif += 2 * M_PI;
+											if (!timeline[playerIndex][testIndex].last)
+											{
+												angleDif = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->getAngle() - currentAngle;
+												if (angleDif > M_PI)
+													angleDif -= 2 * M_PI;
+												else if (angleDif < -M_PI)
+													angleDif += 2 * M_PI;
+											}
 										}
-									}
-									else
-										currentAngle = static_cast<Traceline*>((*test).note)->getAngle();
+										else
+											currentAngle = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->getAngle();
 
-									if (orientation == 2)
-										currentAngle += .5 * M_PI;
-									else if (orientation == 3)
-										currentAngle -= .5 * M_PI;
+										if (orientation == 2)
+											currentAngle += .5 * M_PI;
+										else if (orientation == 3)
+											currentAngle -= .5 * M_PI;
 
-									LinkedList::List<TAS_Frame>::Iterator cur = m_pcsx2.m_players[playerIndex].current(currentFrame);
-									if (!static_cast<Traceline*>((*iter).note)->getCurve()) // If curve is false
-									{
-										// Iterate through all frames with a straight trace line, if any
-										for (size_t compare = 20 * (endFrame - cur.getIndex() - 1); compare > song.m_speed; ++cur, compare -= 20)
+										if (!static_cast<Traceline*>(timeline[playerIndex][noteIndex].note)->getCurve()) // If curve is false
+										{
+											// Iterate through all frames with a straight trace line, if any
+											for (size_t compare = 20 * (endFrame - currentFrame - 1); compare > song.m_speed; ++currentFrame, compare -= 20)
+											{
+												// Only Orientation 2 uses the right stick for trace lines
+												if (orientation == 2)
+												{
+													m_pcsx2.m_players[playerIndex][currentFrame].rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+													m_pcsx2.m_players[playerIndex][currentFrame].rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
+												}
+												else
+												{
+													m_pcsx2.m_players[playerIndex][currentFrame].leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+													m_pcsx2.m_players[playerIndex][currentFrame].leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
+												}
+											}
+										}
+										float angleIncrement = angleDif / (endFrame - currentFrame);
+										for (; currentFrame < endFrame; ++currentFrame)
 										{
 											// Only Orientation 2 uses the right stick for trace lines
 											if (orientation == 2)
 											{
-												(*cur).rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
-												(*cur).rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
+												m_pcsx2.m_players[playerIndex][currentFrame].rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+												m_pcsx2.m_players[playerIndex][currentFrame].rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
 											}
 											else
 											{
-												(*cur).leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
-												(*cur).leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
+												m_pcsx2.m_players[playerIndex][currentFrame].leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
+												m_pcsx2.m_players[playerIndex][currentFrame].leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
 											}
+											currentAngle += angleIncrement;
 										}
 									}
-									float angleIncrement = angleDif / (endFrame - cur.getIndex());
-									for (; cur.getIndex() < endFrame; ++cur)
-									{
-										// Only Orientation 2 uses the right stick for trace lines
-										if (orientation == 2)
-										{
-											(*cur).rightStickX = (unsigned)round(127 - 127 * cos(currentAngle));
-											(*cur).rightStickY = (unsigned)round(127 + 127 * sin(currentAngle));
-										}
-										else
-										{
-											(*cur).leftStickX = (unsigned)round(127 - 127 * cos(currentAngle));
-											(*cur).leftStickY = (unsigned)round(127 + 127 * sin(currentAngle));
-										}
-										currentAngle += angleIncrement;
-									}
+									break;
 								}
-								break;
+								else
+									timeline[playerIndex].erase(timeline[playerIndex].begin() + testIndex);
 							}
 							else
-								timeline[playerIndex].erase(test.getIndex());
+								break;
 						}
-						else
-							break;
 					}
 				}
-			}
-			else
-			{
-				// Square - 239
-				// X/Cross  - 223
-				// Triangle - 127
-				static const int orientationsSet[4] = { 239, 239, 223, 127 };
-				LinkedList::List<TAS_Frame>::Iterator start =
-					m_pcsx2.m_players[playerIndex].current(frameStart + (size_t)round((*iter).position / SAMPLES_PER_FRAME) - 1);
-				// If this phrase bar isn't the first one in the song but is the first in its subsection
-				// &
-				// if the current & following trace lines are close enough together without interruptions
-				if ((*start).leftStickX != 127 || (*start).leftStickY != 127)
+				else
 				{
-					if (!(*iter).index && prevPhrase != nullptr)
-					{
-						LinkedList::List<SectPoint>::Iterator prevSect = markerIterator;
-						// Check if the previous PB is close enough to justify connecting its
-						// sustain button press to the current PB
-						while (prevPhrase->position < (*prevSect).position)
-							--prevSect;
-						if (((*prevSect).type == SectPoint::VisualType::Mixed && (*iter).position - prevPhrase->position < (*prevSect).sustainLimit) ||
-							((*prevSect).type == SectPoint::VisualType::Visual && (*iter).position - prevPhrase->position < (*prevSect).sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
-						{
-							fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", (*iter).position, start.getIndex() - frameStart);
-							LinkedList::List<TAS_Frame>::Iterator phraseEnd =
-								m_pcsx2.m_players[playerIndex].current(frameStart
-									+ (size_t)ceilf(((SAMPLES_PER_FRAME + prevPhrase->position + static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME)));
-							
-							--start;
-							while (phraseEnd < start)
-								(*phraseEnd++).button = orientationsSet[orientation];
-							++start;
-						}
-					}
-				}
+					// Square - 239
+					// X/Cross  - 223
+					// Triangle - 127
+					static const int orientationsSet[4] = { 239, 239, 223, 127 };
+					size_t startIndex = frameStart + (size_t)round(timeline[playerIndex][noteIndex].position / SAMPLES_PER_FRAME) - 1;
 
-				if ((*++start).leftStickX != 127 || (*start).leftStickY != 127)
-				{
-					const size_t phraseEnd = frameStart + (size_t)ceilf(((*iter).position + static_cast<Phrase*>((*iter).note)->getDuration()) / SAMPLES_PER_FRAME);
-					fprintf(taslog, "Phrase Bar %03zu- Starting at sample %li | Frame #%zu\n", (*iter).index, (*iter).position, start.getIndex() - frameStart);
-					(*(start - 1)).button = 255;
-					while (start.getIndex() <= phraseEnd)
-						(*start++).button = orientationsSet[orientation];
-					fprintf(taslog, "\t      -   Ending at sample %li | Frame #%zu\n", (*iter).position + static_cast<Phrase*>((*iter).note)->getDuration(), phraseEnd - frameStart);
-					prevPhrase = &(*iter);
+					// If this phrase bar isn't the first one in the song but is the first in its subsection
+					// &
+					// if the current & following trace lines are close enough together without interruptions
+					if (m_pcsx2.m_players[playerIndex][startIndex].leftStickX != 127 || m_pcsx2.m_players[playerIndex][startIndex].leftStickY != 127)
+					{
+						if (!timeline[playerIndex][noteIndex].index && prevPhrase != nullptr)
+						{
+							size_t prevSect = markIndex - 1;
+							// Check if the previous PB is close enough to justify connecting its
+							// sustain button press to the current PB
+							while (prevPhrase->position < markers[prevSect].position)
+								--prevSect;
+							if ((markers[prevSect].type == SectPoint::VisualType::Mixed &&
+										timeline[playerIndex][noteIndex].position - prevPhrase->position < markers[prevSect].sustainLimit) ||
+								(markers[prevSect].type == SectPoint::VisualType::Visual &&
+										timeline[playerIndex][noteIndex].position - prevPhrase->position <
+												markers[prevSect].sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
+							{
+								fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].position, startIndex - frameStart);
+								size_t phraseEnd = frameStart + (size_t)ceilf(((SAMPLES_PER_FRAME + prevPhrase->position +
+																					static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME));
+
+								--startIndex;
+								while (phraseEnd < startIndex)
+									m_pcsx2.m_players[playerIndex][phraseEnd++].button = orientationsSet[orientation];
+								++startIndex;
+							}
+						}
+					}
+
+					++startIndex;
+					if (m_pcsx2.m_players[playerIndex][startIndex].leftStickX != 127 || m_pcsx2.m_players[playerIndex][startIndex].leftStickY != 127)
+					{
+						const size_t phraseEnd = frameStart + (size_t)ceilf((timeline[playerIndex][noteIndex].position + static_cast<Phrase*>(timeline[playerIndex][noteIndex].note)->getDuration()) / SAMPLES_PER_FRAME);
+						fprintf(taslog, "Phrase Bar %03zu- Starting at sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].index, timeline[playerIndex][noteIndex].position, startIndex - frameStart);
+						m_pcsx2.m_players[playerIndex][startIndex - 1].button = 255;
+						while (startIndex <= phraseEnd)
+							m_pcsx2.m_players[playerIndex][startIndex++].button = orientationsSet[orientation];
+						fprintf(taslog, "\t      -   Ending at sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].position + static_cast<Phrase*>(timeline[playerIndex][noteIndex].note)->getDuration(), phraseEnd - frameStart);
+						prevPhrase = &timeline[playerIndex][noteIndex];
+					}
 				}
 			}
+
+			fflush(taslog);
 		}
 		fclose(taslog);
 		results[playerIndex] = true;
@@ -1590,7 +1565,8 @@ bool TAS::build(CHC& song)
 			std::thread thisThread;
 			threadControl(const size_t index) : playerIndex(index) {}
 		};
-		LinkedList::List<threadControl> threads;
+		std::vector<threadControl> threads;
+		threads.reserve(processor_count - 2);
 		for (size_t playerIndex = 0; playerIndex < 4; playerIndex++)
 		{
 			if (timeline[playerIndex].size())
@@ -1602,13 +1578,14 @@ bool TAS::build(CHC& song)
 						if (results[threads[thr].playerIndex])
 						{
 							threads[thr].thisThread.join();
-							threads.erase(thr);
+							threads.erase(threads.begin() + thr);
 						}
 						else
 							++thr;
 					}
 				}
-				threads.emplace_back(playerIndex).thisThread = std::thread(convertToFrames, playerIndex);
+				threads.emplace_back(playerIndex);
+				threads.back().thisThread = std::thread(convertToFrames, playerIndex);
 			}
 		}
 		for (threadControl& thr : threads)

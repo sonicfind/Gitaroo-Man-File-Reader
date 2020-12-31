@@ -60,8 +60,6 @@ private:
 	unsigned m_unorganized;
 	//Saves whether all notes were readjusted for minimal glitching
 	bool m_optimized;
-	//LinkedList::List of all sections
-	LinkedList::List<SongSection> m_sections;
 	//Holds all life-value data for every player and phase type
 	struct EnergyDamage
 	{
@@ -79,10 +77,11 @@ private:
 	//2 - Saved at the currently pointed location
 	char m_saved;
 public:
+	//Vector of all sections
+	std::vector<SongSection> m_sections;
 	CHC();
-	CHC(const CHC&);
 	CHC(std::string filename);
-	CHC& operator=(CHC&);
+	CHC(const CHC&) = default;
 	void create(std::string filename);
 	size_t getNumSections() { return m_sections.size(); }
 };
@@ -136,19 +135,18 @@ private:
 		Condition(const Condition& cond) = default;
 	};
 	//LinkedList::List of all conditions
-	LinkedList::List<Condition> m_conditions;
+	std::vector<Condition> m_conditions;
 	//Number of players assigned to the section, always 4
 	unsigned long m_numPlayers = 4;
 	//Number of charts/subsections per player
 	unsigned long m_numCharts = 1;
 	//LinkedList::List of all charts/subsections
-	LinkedList::List<Chart> m_charts;
 public:
+	std::vector<Chart> m_charts;
 	static const long s_SAMPLE_GAP = 1800;
 	SongSection();
 	SongSection(FILE* inFile);
 	SongSection(const SongSection&) = default;
-	void operator=(SongSection&);
 	//Returns name C-string (size: 16)
 	char* getName() { return m_name; }
 	//Returns audio C-string (size: 16)
@@ -191,7 +189,7 @@ public:
 		if (index > m_conditions.size())
 			index = m_conditions.size();
 		m_size += 16;
-		m_conditions.emplace(index, 1, args...);
+		m_conditions.emplace(index, args...);
 		return index;
 	}
 	Condition& getCondition(size_t index);
@@ -201,18 +199,6 @@ public:
 	unsigned long getNumPlayers() const { return m_numPlayers; }
 	//Returns the total number of the charts/subsections in this section
 	unsigned long getNumCharts() const { return m_numCharts; }
-	//Returns the total number of the charts/subsections in this section
-	Chart& getChart(size_t index)
-	{
-		try
-		{
-			return m_charts[index];
-		}
-		catch (...)
-		{
-			throw "Index out of Chart range: " + std::to_string(m_numCharts) + '.';
-		}
-	}
 	void clearConditions();
 	void operator++();
 	bool operator--();
@@ -239,17 +225,17 @@ private:
 	//Optional value noting when to transition to another chart/subsection
 	//Unused in the game
 	long m_endTime = 0;
-	//Linked list of all trace lines
-	LinkedList::List<Traceline> m_tracelines;
-	//Linked list of all phrase bars
-	LinkedList::List<Phrase> m_phrases;
-	//Linked list of all guard marks
-	LinkedList::List<Guard> m_guards;
 public:
+	//Linked list of all trace lines
+	std::vector<Traceline> m_tracelines;
+	//Linked list of all phrase bars
+	std::vector<Phrase> m_phrases;
+	//Linked list of all guard marks
+	std::vector<Guard> m_guards;
+
 	Chart(const bool tracelines);
 	Chart();
 	Chart(const Chart&) = default;
-	void operator=(const Chart&);
 	//Returns the byte size of the chart/subsection
 	unsigned long getSize() const { return m_size; }
 	//Sets the byte size of the chart/subsection to the provided value
@@ -273,41 +259,36 @@ public:
 	void setEndTime(long piv) { m_endTime = piv; }
 	//Returns the number of the trace lines in the chart/subsection
 	size_t getNumTracelines() const { return m_tracelines.size(); }
-	//Returns the Trace line at the provided index
-	Traceline& getTraceline(size_t index);
 	template<class... Args>
 	size_t emplaceTraceline(Args&&... args)
 	{
 		m_size += 16;
-		return m_tracelines.emplace_ordered(args...);
+		return GlobalFunctions::emplace_ordered(m_tracelines, args...);
 	}
 
 	//Returns the number of the phrase bars in the chart/subsection
 	size_t getNumPhrases() const { return m_phrases.size(); }
-	//Returns the Phrase bar at the provided index
-	Phrase& getPhrase(size_t index);
 	template<class... Args>
 	size_t emplacePhrase(Args&&... args)
 	{
 		m_size += 32;
-		return m_phrases.emplace_ordered(args...);
+		return GlobalFunctions::emplace_ordered(m_phrases, args...);
 	}
 
 	//Returns the number of the guard marks in the chart/subsection
 	size_t getNumGuards() const { return m_guards.size(); }
-	//Returns the Guard mark at the provided index
-	Guard& getGuard(size_t index);
 	template<class... Args>
 	size_t emplaceGuard(Args&&... args)
 	{
 		m_size += 16;
-		return m_guards.emplace_ordered(args...);
+		return GlobalFunctions::emplace_ordered(m_guards, args...);
 	}
 
 	size_t add(Note*);
-	void add_back(Note*);
 	bool resize(long numElements, char type = 't');
-	bool remove(size_t, char type = 't', size_t extra = 0);
+	bool removeTraceline(size_t index);
+	bool removePhraseBar(size_t index);
+	bool removeGuardMark(size_t index);
 	void clearTracelines();
 	void clearPhrases();
 	void clearGuards();

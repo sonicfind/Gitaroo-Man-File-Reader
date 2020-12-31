@@ -20,13 +20,13 @@ const auto processor_count = std::thread::hardware_concurrency();
 //Holds all data pertaining to applicable file extensions.
 struct FileType
 {
-	LinkedList::List<std::string> m_files;
+	std::list<std::string> m_files;
 	virtual const char* getType() = 0;
 	virtual const size_t size() = 0;
 	virtual bool loadSingle(std::string filename) = 0;
 	virtual bool loadMulti() = 0;
 };
-extern LinkedList::List<FileType*> g_filetypes;
+extern std::vector<FileType*> g_filetypes;
 
 /*
 	App-wide structure that holds universal values used by many functions across the solution.

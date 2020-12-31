@@ -30,7 +30,7 @@ class CH_Exporter
 public:
 	CH_Exporter(CHC& song) : m_song(song) {}
 	bool exportChart();
-	bool convertSong(LinkedList::List<size_t>& sectionIndexes);
+	bool convertSong(std::vector<size_t>& sectionIndexes);
 
 	size_t convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer);
 	bool getOrientation(const char* sectionName, const size_t player = 0, const size_t chart = 0);

@@ -33,9 +33,9 @@ struct Section
 	//In reference to the beginning of the song, but calculated 
 	//using the previous songsection (if one exists) as a base
 	float m_position_samples = 0;
-	LinkedList::List<Tempo> m_tempos;
+	std::vector<Tempo> m_tempos;
 	//Two lists for two players
-	LinkedList::List<Chart> m_subs[2];
+	std::vector<Chart> m_subs[2];
 	Section(std::string nam, float pos_T = 0, float pos_S = 0, unsigned long bpm = 120) : m_name(nam), m_position_ticks(pos_T), m_position_samples(pos_S)
 	{
 		m_tempos.emplace_back(bpm, m_position_ticks);
@@ -57,7 +57,7 @@ class CH_Importer
 {
 	friend ChartFileImporter;
 	CHC m_song;
-	LinkedList::List<Section> m_sections;
+	std::vector<Section> m_sections;
 	NoteTrack m_notes[2];
 public:
 	constexpr static float s_SPT_CONSTANT = s_SAMPLES_PER_MIN * 1000;
@@ -65,9 +65,9 @@ public:
 	CHC& getSong() { return m_song; }
 	bool importChart();
 	void fillSections();
-	void replaceNotes(SongSection& section, LinkedList::List<Section>::Iterator currSection, const bool(&charted)[2], const bool duet);
-	void addTraceLine(float pos, std::string name, LinkedList::List<Section>::Iterator currSection, const size_t playerIndex, Chart* currChart);
+	void replaceNotes(size_t songSectIndex, const size_t sectIndex, const bool(&charted)[2], const bool duet);
+	void addTraceLine(float pos, std::string name, const size_t sectIndex, const size_t playerIndex);
 	void addPhraseBar(long pos, unsigned long sus, unsigned long lane, Chart* currChart, const long SAMPLES_PER_TICK_ROUNDED);
 	void addGuardMark(const long pos, const unsigned long fret, Chart* currChart);
-	void applyForced(const long pos, Chart* currChart, const Section* currSection, const size_t playerIndex);
+	void applyForced(const long pos, const size_t sectIndex, const size_t playerIndex);
 };

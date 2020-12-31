@@ -14,70 +14,38 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CH_Item.h"
+#include "Global_Functions.h"
 
 struct NoteTrack
 {
 	//Green-Red-Yellow-Blue-Orange-Open
-	LinkedList::List<CHNote> m_colors[6];
+	std::vector<CHNote*> m_colors[6];
 
-	LinkedList::List<CHNote> m_modifiers;
-	LinkedList::List<CHNote> m_star;
-	LinkedList::List<CHNote> m_events;
-	LinkedList::List<CHNote*> m_allNotes;
+	// Including modifiers, star power notes, and events
+	std::vector<CHNote*> m_allNotes;
+	~NoteTrack();
 	template<class... Args>
 	size_t addNote(Args&&... args)
 	{
 		CHNote note(args...);
-		switch (note.m_type)
+		size_t firstIndex = -1;
+		const unsigned origLane = note.m_fret.m_lane;
+		for (unsigned index = 0; index < 6; index++)
 		{
-		case CHNote::NoteType::NOTE:
-		{
-			size_t firstIndex = -1;
+			if (origLane & (1 << index))
 			{
-				const unsigned origLane = note.m_fret.m_lane;
-				for (unsigned index = 0; index < 6; index++)
-				{
-					if (origLane & (1 << index))
-					{
-						if (index < 5)
-							note.m_fret.m_lane = index;
-						else
-							note.m_fret.m_lane = 7;
-						m_colors[index].push_back(note);
-						if (firstIndex == -1)
-							firstIndex = m_allNotes.insert_ordered(&m_colors[index].back());
-						else
-							m_allNotes.insert_ordered(&m_colors[index].back());
-					}
-				}
-			}
-			switch (note.m_mod)
-			{
-			case CHNote::Modifier::FORCED:
-				note.m_fret.m_lane = 5;
-				m_modifiers.push_back(note);
-				if (firstIndex == -1)
-					firstIndex = m_allNotes.insert_ordered(&m_modifiers.back());
+				if (index < 5)
+					note.m_fret.m_lane = index;
 				else
-					m_allNotes.insert_ordered(&m_modifiers.back());
-			case CHNote::Modifier::TAP:
-				note.m_fret.m_lane = 6;
-				m_modifiers.push_back(note);
+					note.m_fret.m_lane = 7;
+				m_colors[index].push_back(new CHNote(note));
 				if (firstIndex == -1)
-					firstIndex = m_allNotes.insert_ordered(&m_modifiers.back());
+					firstIndex = GlobalFunctions::insert_ordered(m_allNotes, m_colors[index].back());
 				else
-					m_allNotes.insert_ordered(&m_modifiers.back());
+					GlobalFunctions::insert_ordered(m_allNotes, m_colors[index].back());
 			}
-			return firstIndex;
 		}
-		case CHNote::NoteType::STAR:
-			note.m_fret.m_lane = 0;
-			m_star.push_back(note);
-			return m_allNotes.insert_ordered(&m_star.back());
-		default:
-			m_events.push_back(note);
-			return m_allNotes.insert_ordered(&m_events.back());
-		}
+		return firstIndex;
 	}
 	size_t addModifier(float pos, CHNote::Modifier mod);
 	size_t addEvent(float pos, std::string nam);

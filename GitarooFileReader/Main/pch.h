@@ -25,4 +25,6 @@
 #include <string>
 #include <windows.h>
 #include <thread>
+#include <vector>
+#include <list>
 #endif //PCH_H

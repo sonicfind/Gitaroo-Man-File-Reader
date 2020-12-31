@@ -13,7 +13,6 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "Global_Functions.h"
 #include "CH_ChartFile.h"
 using namespace std;
 

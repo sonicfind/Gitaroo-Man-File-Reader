@@ -81,9 +81,6 @@
     <ClInclude Include="CHC\CHC.h">
       <Filter>CHC</Filter>
     </ClInclude>
-    <ClInclude Include="Main\List.h">
-      <Filter>Global</Filter>
-    </ClInclude>
     <ClInclude Include="Main\pch.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
@@ -118,10 +115,5 @@
     <Image Include="icon2.ico">
       <Filter>Resource Files</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <Natvis Include="Main\List.natvis">
-      <Filter>Global</Filter>
-    </Natvis>
   </ItemGroup>
 </Project>

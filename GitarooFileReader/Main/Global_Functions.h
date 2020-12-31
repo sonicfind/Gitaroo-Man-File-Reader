@@ -13,7 +13,6 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "List.h"
 
 constexpr float M_PI = 3.141592741f;
 const auto processor_count = std::thread::hardware_concurrency();

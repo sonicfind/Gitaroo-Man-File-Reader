@@ -200,7 +200,6 @@
     <ClInclude Include="CHC\CH_Item.h" />
     <ClInclude Include="CHC\CH_NoteTrack.h" />
     <ClInclude Include="Main\Global_Functions.h" />
-    <ClInclude Include="Main\List.h" />
     <ClInclude Include="Main\pch.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
@@ -210,9 +209,6 @@
   <ItemGroup>
     <Image Include="icon1.ico" />
     <Image Include="icon2.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Natvis Include="Main\List.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

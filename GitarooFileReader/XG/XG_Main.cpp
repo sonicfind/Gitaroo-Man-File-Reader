@@ -168,6 +168,7 @@ bool XG_Main::menu(size_t fileCount)
 						if (!xg.m_saved)
 							break;
 					}
+					__fallthrough;
 				case GlobalFunctions::ResultType::Quit:
 					g_global.quit = true;
 				}
@@ -254,6 +255,7 @@ void XG_Main::saveFile(bool onExit)
 										xg.m_shortname += ext;
 										xg.m_saved = 2;
 									}
+									__fallthrough;
 								case GlobalFunctions::ResultType::Quit:
 									g_global.quit = true;
 								}

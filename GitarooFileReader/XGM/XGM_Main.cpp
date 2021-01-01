@@ -97,6 +97,7 @@ bool XGMType::loadMulti()
 							break;
 						case 'w':
 							xgm.writeTxt();
+							break;
 						case 'e':
 							xgm.exportPNGs();
 							break;
@@ -181,6 +182,7 @@ bool XGM_Main::menu(size_t fileCount)
 						if (!xgm.m_saved)
 							break;
 					}
+					__fallthrough;
 				case GlobalFunctions::ResultType::Quit:
 					g_global.quit = true;
 				}
@@ -250,6 +252,7 @@ bool XGM_Main::menu(size_t fileCount)
 							model.menu();
 							--g_global;
 						}
+							__fallthrough;
 						case GlobalFunctions::ResultType::Quit:
 							g_global.quit = true;
 							break;
@@ -323,6 +326,7 @@ void XGM_Main::saveFile(bool onExit)
 										xgm.m_shortname += m_ext;
 										xgm.m_saved = 2;
 									}
+									__fallthrough;
 								case GlobalFunctions::ResultType::Quit:
 									g_global.quit = true;
 								}

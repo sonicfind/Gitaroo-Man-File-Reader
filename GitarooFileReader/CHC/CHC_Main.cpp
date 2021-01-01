@@ -1084,13 +1084,8 @@ bool CHC_Main::createColorTemplate()
 									if (writeColors && phr.getColor())
 									{
 										size_t colIndex = 0;
-										while (colIndex < 5)
-										{
-											if (phr.getColor() & (1 << colIndex))
-												break;
-											else
-												colIndex++;
-										}
+										while (colIndex < 5 && !(phr.getColor() & (1 << colIndex)))
+											colIndex++;
 										if (phr.getColor() & 64)
 											colIndex += 6;
 										if (!phrIndex)
@@ -1131,13 +1126,8 @@ bool CHC_Main::createColorTemplate()
 									if (writeColors && phr.getColor())
 									{
 										size_t colIndex = 0;
-										while (colIndex < 5)
-										{
-											if (phr.getColor() & (1 << colIndex))
-												break;
-											else
-												colIndex++;
-										}
+										while (colIndex < 5 && !(phr.getColor() & (1 << colIndex)))
+											colIndex++;
 										if (phr.getColor() & 64)
 											colIndex += 6;
 										if (!phrIndex)

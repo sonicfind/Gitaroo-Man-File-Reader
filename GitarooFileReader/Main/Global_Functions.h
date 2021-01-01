@@ -301,12 +301,12 @@ namespace GlobalFunctions
 	Failed - User entered an invalid character
 	*/
 	template<typename T>
-	extern ResultType valueInsertFromFile(FILE* in, T& value, bool allowNegatives = false, T min = 0, T max = 0)
+	extern ResultType insertFromStream(std::strstream& str, T& value, bool allowNegatives = false, T min = 0, T max = 0)
 	{
 		auto rangeTest = [&]()
 		{
 			double tmp;
-			fscanf_s(in, " %lg", &tmp);
+			str >> tmp;
 			if (!min)
 			{
 				if (!max)
@@ -349,8 +349,20 @@ namespace GlobalFunctions
 					return ResultType::MinExceeded;
 			}
 		};
-		fscanf_s(in, " %c", &g_global.input, 1);
-		switch (g_global.input)
+
+		char input;
+		str >> input;
+
+		auto failed = [&]()
+		{
+			g_global.invalid = "";
+			while (input != '\n')
+			{
+				g_global.invalid += input;
+				str.get(input);
+			}
+		};
+		switch (input)
 		{
 		case 'q':
 		case 'Q':
@@ -358,89 +370,68 @@ namespace GlobalFunctions
 		case '-':
 			if (allowNegatives)
 			{
-				char backup = fgetc(in);
+				char backup = str.get();
 				if (backup == '.')
 				{
-					char backup_2 = fgetc(in);
-					ungetc(backup_2, in);
-					ungetc(backup, in);
+					char backup_2 = str.get();
+					str.putback(backup_2);
+					str.putback(backup);
 					if (backup_2 >= '0' && backup_2 <= '9')
 					{
-						ungetc(g_global.input, in);
+						str.putback(input);
 						return rangeTest();
 					}
 					else
 					{
-						g_global.invalid = "";
-						while (g_global.input != '\n')
-						{
-							g_global.invalid += g_global.input;
-							g_global.input = fgetc(in);
-						}
+						failed();
 						return ResultType::Failed;
 					}
 				}
 				else
 				{
-					ungetc(backup, in);
+					str.putback(backup);
 					if (backup >= '0' && backup <= '9')
 					{
-						ungetc(g_global.input, in);
+						str.putback(input);
 						return rangeTest();
 					}
 					else
 					{
-						g_global.invalid = "";
-						while (g_global.input != '\n')
-						{
-							g_global.invalid += g_global.input;
-							g_global.input = fgetc(in);
-						}
+						failed();
 						return ResultType::Failed;
 					}
 				}
 			}
 			else
 			{
-				ungetc(g_global.input, in);
+				str.putback(input);
 				double tmp;
-				fscanf_s(in, " %lg", &tmp);
+				str >> tmp;
 				return ResultType::InvalidNegative;
 			}
 		case '.':
 		{
-			char peek = fgetc(in);
-			ungetc(peek, in);
+			char peek = str.peek();
 			if (peek >= '0' && peek <= '9')
 			{
-				ungetc(g_global.input, in);
+				str.putback(input);
 				return rangeTest();
 			}
 			else
 			{
-				g_global.invalid = "";
-				while (g_global.input != '\n')
-				{
-					g_global.invalid += g_global.input;
-					g_global.input = fgetc(in);
-				}
+				failed();
 				return ResultType::Failed;
 			}
 		}
 		default:
-			if (g_global.input >= '0' && g_global.input <= '9')
+			if (input >= '0' && input <= '9')
 			{
-				ungetc(g_global.input, in);
+				str.putback(input);
 				return rangeTest();
 			}
 			else
 			{
-				g_global.invalid = "";
-				while (g_global.input != '\n')
-				{
-					g_global.invalid += g_global.input;
-					g_global.input = fgetc(in);
-				}
+				failed();
 				return ResultType::Failed;
 			}
 		}

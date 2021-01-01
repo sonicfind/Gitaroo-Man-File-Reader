@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "CHC_TAS.h"
+#include <fstream>
 
 TAS::FrameFile TAS::frameValues;
 using namespace std;
@@ -23,34 +24,40 @@ bool TAS::loadValues(string filename)
 {
 	size_t pos = filename.find_last_of("\\");
 #pragma warning(suppress : 4996)
-	FILE* p2m2v = fopen(filename.c_str(), "r");
-	if (p2m2v != nullptr)
+	std::ifstream p2m2v(filename.c_str());
+	if (p2m2v.is_open())
 	{
 		frameValues.name = filename;
-		char ignore[300];
 		bool error = false, failed = true;
-		for (int framerate = 0; !g_global.quit && framerate < 3; framerate++)
+		for (int framerate = 0; framerate < 2; framerate++)
 		{
-			if (!feof(p2m2v))
+			if (!p2m2v.eof())
 			{
-				fscanf_s(p2m2v, " %[^;]s", ignore, 300);
-				fseek(p2m2v, 1, SEEK_CUR);
-				for (int stage = 0; !g_global.quit && stage < 13; stage++)
+				p2m2v.ignore(500, ';');
+				while (!p2m2v.eof())
 				{
-					for (int difficulty = 0; !g_global.quit && difficulty < 6; difficulty++)
+					char line[128];
+					p2m2v.getline(line, 128);
+					if (strchr(line, ';'))
+						break;
+					std::strstream str;
+					str << line;
+					unsigned int stage;
+					str >> stage;
+					if (stage <= 12)
 					{
-						if (!feof(p2m2v))
+						str.ignore(1);
+						for (int difficulty = 0; !str.eof() && difficulty < 6; difficulty++)
 						{
-							switch (GlobalFunctions::valueInsertFromFile(p2m2v, frameValues.initialDisplacements[framerate][stage][difficulty], true))
+							switch (GlobalFunctions::insertFromStream(str, frameValues.samples[framerate][stage][difficulty], true))
 							{
 							case GlobalFunctions::ResultType::Success:
 								failed = false;
 								break;
 							case GlobalFunctions::ResultType::Failed:
 								printf("%sError: Invalid input (%s)\n", g_global.tabs.c_str(), g_global.invalid.c_str());
-							case GlobalFunctions::ResultType::Quit:
-								printf("%sRead stopped at (& not including): %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-								printf("FPS [Initial Displacements] - Stage %u", stage + 1);
+								printf("%sAt %s", g_global.tabs.c_str(), framerate == 0 ? "59.94 " : "50.00 ");
+								printf("FPS [Sample Offsets] - Stage %u", stage);
 								switch (difficulty)
 								{
 								case 0: printf(" (Hard) [1]\n%s\n", g_global.tabs.c_str()); break;
@@ -58,51 +65,47 @@ bool TAS::loadValues(string filename)
 								case 2: printf(" (Easy) [3]\n%s\n", g_global.tabs.c_str()); break;
 								default: printf(" (Multiplayer) [%u]\n%s\n", difficulty + 1, g_global.tabs.c_str());
 								}
-								fclose(p2m2v);
-								g_global.quit = true;
+								printf("%sRead ended early\n", g_global.tabs.c_str());
+							case GlobalFunctions::ResultType::Quit:
+								goto Finish_Read;
 							}
 						}
-						else
-						{
-							printf("%sRead stopped at (& not including): %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-							printf("FPS [Initial Displacements] - Stage %u", stage + 1);
-							switch (difficulty)
-							{
-							case 0: printf(" (Hard) [1]\n%s\n", g_global.tabs.c_str()); break;
-							case 1: printf(" (Normal) [2]\n%s\n", g_global.tabs.c_str()); break;
-							case 2: printf(" (Easy) [3]\n%s\n", g_global.tabs.c_str()); break;
-							default: printf(" (Multiplayer) [%u]\n%s\n", difficulty + 1, g_global.tabs.c_str());
-							}
-							g_global.quit = true;
-						}
+
+						if (!str.eof() && strchr(line, 'q') || strchr(line, 'Q'))
+							goto Finish_Read;
 					}
 				}
-				if (g_global.quit)
-					break;
-				fscanf_s(p2m2v, " %[^;]s", ignore, 300);
-				fseek(p2m2v, 1, SEEK_CUR);
-				for (int stage = 0; !g_global.quit && stage < 13; stage++)
+
+				if (p2m2v.eof())
 				{
-					for (int difficulty = 0; !g_global.quit && difficulty < 6; difficulty++)
+					printf("%sRead stopped before %s FPS's frame offsets\n", g_global.tabs.c_str(), framerate == 0 ? "59.94 " : "50.00 ");
+					goto Finish_Read;
+				}
+
+				while (!p2m2v.eof())
+				{
+					char line[128];
+					p2m2v.getline(line, 128);
+					if (strchr(line, ';'))
+						break;
+					std::strstream str;
+					str << line;
+					unsigned stage;
+					str >> stage;
+					if (stage <= 12)
 					{
-						if (!feof(p2m2v))
+						str.ignore(1);
+						for (int difficulty = 0; !str.eof() && difficulty < 6; difficulty++)
 						{
-							switch (GlobalFunctions::valueInsertFromFile(p2m2v, frameValues.frames[framerate][stage][difficulty]))
+							switch (GlobalFunctions::insertFromStream(str, frameValues.frames[framerate][stage][difficulty], true))
 							{
 							case GlobalFunctions::ResultType::Success:
-
-								break;
-							case GlobalFunctions::ResultType::InvalidNegative:
-								printf("%sError: No Negative values\n", g_global.tabs.c_str());
-								printf("%sSkipping %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-								printf("FPS: Stage %u - Value %u\n%s\n", stage + 1, difficulty + 1, g_global.tabs.c_str());
-								error = true;
+								failed = false;
 								break;
 							case GlobalFunctions::ResultType::Failed:
 								printf("%sError: Invalid input (%s)\n", g_global.tabs.c_str(), g_global.invalid.c_str());
-							case GlobalFunctions::ResultType::Quit:
-								printf("%sRead stopped at (& not including): %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-								printf("FPS [Frame Displacements] - Stage %u", stage + 1);
+								printf("%sAt %s", g_global.tabs.c_str(), framerate == 0 ? "59.94 " : "50.00 ");
+								printf("FPS [Frame Offsets] - Stage %u", stage);
 								switch (difficulty)
 								{
 								case 0: printf(" (Hard) [1]\n%s\n", g_global.tabs.c_str()); break;
@@ -110,32 +113,26 @@ bool TAS::loadValues(string filename)
 								case 2: printf(" (Easy) [3]\n%s\n", g_global.tabs.c_str()); break;
 								default: printf(" (Multiplayer) [%u]\n%s\n", difficulty + 1, g_global.tabs.c_str());
 								}
-								g_global.quit = true;
+								printf("%sRead ended early\n", g_global.tabs.c_str());
+							case GlobalFunctions::ResultType::Quit:
+								goto Finish_Read;
 							}
 						}
-						else
-						{
-							printf("%sRead stopped at (& not including): %s", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
-							printf("FPS [Frame Displacements] - Stage %u", stage + 1);
-							switch (difficulty)
-							{
-							case 0: printf(" (Hard) [1]\n%s\n", g_global.tabs.c_str()); break;
-							case 1: printf(" (Normal) [2]\n%s\n", g_global.tabs.c_str()); break;
-							case 2: printf(" (Easy) [3]\n%s\n", g_global.tabs.c_str()); break;
-							default: printf(" (Multiplayer) [%u]\n%s\n", difficulty + 1, g_global.tabs.c_str());
-							}
-							g_global.quit = true;
-						}
+
+						if (!str.eof() && strchr(line, 'q') || strchr(line, 'Q'))
+							goto Finish_Read;
 					}
 				}
 			}
 			else
 			{
-				printf("%sRead stopped before FPS %s\n", g_global.tabs.c_str(), !framerate ? "59.94 " : (framerate & 1 ? "50.00 " : "Custom "));
+				printf("%sRead stopped before FPS %s\n", g_global.tabs.c_str(), framerate == 0 ? "59.94 " : "50.00 ");
 				break;
 			}
 		}
-		fclose(p2m2v);
+
+	Finish_Read:
+		p2m2v.close();
 		if (!failed)
 		{
 			printf("%s%s loaded%s\n", g_global.tabs.c_str(), filename.substr(pos != string::npos ? pos + 1 : 0).c_str(), error ? " with error(s)" : "");

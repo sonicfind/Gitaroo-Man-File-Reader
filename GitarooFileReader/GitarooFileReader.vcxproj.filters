@@ -57,6 +57,9 @@
     <ClCompile Include="CHC\CH_NoteTrack.cpp">
       <Filter>CHC\Clone Hero</Filter>
     </ClCompile>
+    <ClCompile Include="Main\pch.cpp">
+      <Filter>GMFR</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CHC\CHC_Main.h">

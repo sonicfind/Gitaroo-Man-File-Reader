@@ -494,7 +494,7 @@ namespace GlobalFunctions
 	bool checkForIndex(std::vector<size_t>& values, const size_t value);
 
 	template<typename T, class... Args>
-	size_t emplace_ordered(std::vector<T> vect, Args&&... args)
+	size_t emplace_ordered(std::vector<T>& vect, Args&&... args)
 	{
 		T obj(args...);
 		size_t max = vect.size(), min = 0, index = 0;
@@ -539,7 +539,7 @@ namespace GlobalFunctions
 	}
 
 	template<typename T>
-	size_t insert_ordered(std::vector<T*> vect, T* ptr)
+	size_t insert_ordered(std::vector<T*>& vect, T* ptr)
 	{
 		size_t max = vect.size(), min = 0, index = 0;
 		while (max > min)
@@ -583,7 +583,7 @@ namespace GlobalFunctions
 	}
 
 	template<typename T, class... Args>
-	size_t emplace_ordered(std::vector<T*> vect, Args&&... args)
+	size_t emplace_ordered(std::vector<T*>& vect, Args&&... args)
 	{
 		T* obj = new T(args...);
 		size_t max = vect.size(), min = 0, index = 0;
@@ -631,7 +631,7 @@ namespace GlobalFunctions
 	}
 
 	template<typename T, class... Args>
-	size_t emplace_ordered(std::vector<std::shared_ptr<T>> vect, Args&&... args)
+	size_t emplace_ordered(std::vector<std::shared_ptr<T>>& vect, Args&&... args)
 	{
 		std::shared_ptr<T> obj = std::make_shared<T>(args...);
 		size_t max = vect.size(), min = 0, index = 0;
@@ -676,7 +676,7 @@ namespace GlobalFunctions
 	}
 
 	template<typename T>
-	void moveElements(std::vector<T> vect, size_t index, size_t newPosition, size_t numElements = 1)
+	void moveElements(std::vector<T>& vect, size_t index, size_t newPosition, size_t numElements = 1)
 	{
 		if (index + numElements > vect.size())
 			numElements = vect.size() - index;

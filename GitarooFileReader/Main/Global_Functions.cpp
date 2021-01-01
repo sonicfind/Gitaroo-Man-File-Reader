@@ -91,7 +91,12 @@ namespace GlobalFunctions
 				{
 				case 'q':
 				case 'Q':
-					scanf_s("%c", &g_global.input, 1);
+					if (g_global.multi)
+					{
+						printf("Q\n");
+						g_global.multi = false;
+					} 
+					testForMulti();
 					return ResultType::Quit;
 				default:
 					if (specials.find(tolower(g_global.input)) != string::npos)
@@ -164,6 +169,12 @@ namespace GlobalFunctions
 				{
 				case 'q':
 				case 'Q':
+					if (g_global.multi)
+					{
+						printf("Q\n");
+						g_global.multi = false;
+					}
+					scanf_s("%c", &g_global.input, 1);
 					return ResultType::Quit;
 				default:
 					if (specials.find(tolower(g_global.input)) != string::npos)
@@ -331,6 +342,7 @@ namespace GlobalFunctions
 				}
 			}
 		};
+
 		if (g_global.multi)
 		{
 			ungetc(g_global.input, stdin);
@@ -354,6 +366,7 @@ namespace GlobalFunctions
 				return ResultType::Quit;
 			case '\n':
 				printValues(0);
+				g_global.multi = false;
 				return ResultType::Success;
 			case ';':
 				printValues(0);
@@ -364,7 +377,7 @@ namespace GlobalFunctions
 				{
 					ungetc(g_global.input, stdin);
 					char val[40] = { 0 };
-					scanf_s("%39[0-9. ]", val, 40);
+					scanf_s("%39[0-9.]", val, 40);
 					double tmp = atof(val);
 					size_t value = size_t(tmp);
 					if (value < min || value >= max)

@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="GMFR">
       <UniqueIdentifier>{89335224-9a59-4824-b3f3-0df91a79f42d}</UniqueIdentifier>
     </Filter>
@@ -43,9 +39,6 @@
     <ClCompile Include="CHC\CHC.cpp">
       <Filter>CHC</Filter>
     </ClCompile>
-    <ClCompile Include="Main\pch.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
     <ClCompile Include="Main\Global_Functions.cpp">
       <Filter>Global</Filter>
     </ClCompile>
@@ -66,9 +59,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h">
-      <Filter>Resource Files</Filter>
-    </ClInclude>
     <ClInclude Include="CHC\CHC_Main.h">
       <Filter>CHC\Main</Filter>
     </ClInclude>
@@ -80,9 +70,6 @@
     </ClInclude>
     <ClInclude Include="CHC\CHC.h">
       <Filter>CHC</Filter>
-    </ClInclude>
-    <ClInclude Include="Main\pch.h">
-      <Filter>Resource Files</Filter>
     </ClInclude>
     <ClInclude Include="Main\Global_Functions.h">
       <Filter>Global</Filter>
@@ -104,16 +91,24 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="GitarooFileReader.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
+    <ClInclude Include="Main\pch.h">
+      <Filter>GMFR</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>GMFR</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon1.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>GMFR</Filter>
     </Image>
     <Image Include="icon2.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>GMFR</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GitarooFileReader.rc">
+      <Filter>GMFR</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

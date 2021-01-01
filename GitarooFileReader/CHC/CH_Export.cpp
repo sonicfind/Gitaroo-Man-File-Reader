@@ -398,14 +398,14 @@ bool CH_Exporter::convertSong(std::vector<size_t>& sectionIndexes)
 						case SongSection::Phase::BATTLE:
 							if (chart.getNumGuards())
 								//Encapsulate all the guard marks in the subsection
-								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.m_guards[0].getPivotAlpha() + (float)chart.getPivotTime()),
-									20 + TICKS_PER_SAMPLE * ((float)chart.m_guards[chart.getNumGuards() - 1].getPivotAlpha() - chart.m_guards[0].getPivotAlpha()));
+								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.m_guards[0].m_pivotAlpha + (float)chart.getPivotTime()),
+									20 + TICKS_PER_SAMPLE * ((float)chart.m_guards[chart.getNumGuards() - 1].m_pivotAlpha - chart.m_guards[0].m_pivotAlpha));
 							break;
 						case SongSection::Phase::CHARGE:
 							if (chart.getNumPhrases())
 								//Encapsulate all the phrase bars in the subsection
-								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.m_phrases[0].getPivotAlpha() + (float)chart.getPivotTime()),
-									TICKS_PER_SAMPLE * ((float)chart.m_phrases[chart.getNumPhrases() - 1].getEndAlpha() - chart.m_phrases[0].getPivotAlpha()));
+								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.m_phrases[0].m_pivotAlpha + (float)chart.getPivotTime()),
+									TICKS_PER_SAMPLE * ((float)chart.m_phrases[chart.getNumPhrases() - 1].getEndAlpha() - chart.m_phrases[0].m_pivotAlpha));
 						}
 					}
 				}
@@ -438,9 +438,9 @@ size_t CH_Exporter::convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, con
 	for (size_t i = 0, undersized = 0; i < chart.getNumGuards(); i++)
 	{
 		const Guard& guard = chart.m_guards[i];
-		unsigned modfret = fretSets[m_guardOrientation][guard.getButton()];
-		unsigned fret = fretSets[2][guard.getButton()];
-		float pos = m_position + TICKS_PER_SAMPLE * ((float)guard.getPivotAlpha() + chart.getPivotTime());
+		unsigned modfret = fretSets[m_guardOrientation][guard.m_button];
+		unsigned fret = fretSets[2][guard.m_button];
+		float pos = m_position + TICKS_PER_SAMPLE * ((float)guard.m_pivotAlpha + chart.getPivotTime());
 		if (m_modchart)
 		{
 			if (i == 0)
@@ -450,7 +450,7 @@ size_t CH_Exporter::convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, con
 			m_exporter.m_modchartNotes[currentPlayer].addModifier(pos, CHNote::Modifier::TAP);
 			if (openNotes && i < arraySize)
 			{
-				const long dif = chart.m_guards[i + 1].getPivotAlpha() - guard.getPivotAlpha();
+				const long dif = chart.m_guards[i + 1].m_pivotAlpha - guard.m_pivotAlpha;
 				if (dif < 5200)
 				{
 					if (undersized < 3)
@@ -520,7 +520,7 @@ void CH_Exporter::convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const
 {
 	for (size_t i = 0; i < chart.getNumTracelines(); i++)
 	{
-		float pos = TICKS_PER_SAMPLE * (chart.m_tracelines[i].getPivotAlpha() + (float)chart.getPivotTime());
+		float pos = TICKS_PER_SAMPLE * (chart.m_tracelines[i].m_pivotAlpha + (float)chart.getPivotTime());
 		string name;
 		if ((long)round(pos) < sectionDuration)
 			name = "Trace";
@@ -532,11 +532,11 @@ void CH_Exporter::convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const
 			pos += m_position;
 		if (i + 1 != chart.getNumTracelines())
 		{
-			if (chart.m_tracelines[i].getAngle() == 0)
+			if (chart.m_tracelines[i].m_angle == 0)
 				m_exporter.m_reimportNotes[currentPlayer].addEvent(pos, name);
 			else
-				m_exporter.m_reimportNotes[currentPlayer].addEvent(pos, name + '_' + to_string(GlobalFunctions::radiansToDegrees(chart.m_tracelines[i].getAngle())));
-			if (chart.m_tracelines[i].getCurve())
+				m_exporter.m_reimportNotes[currentPlayer].addEvent(pos, name + '_' + to_string(GlobalFunctions::radiansToDegrees(chart.m_tracelines[i].m_angle)));
+			if (chart.m_tracelines[i].m_curve)
 				m_exporter.m_reimportNotes[currentPlayer].addEvent(pos, "Trace_curve");
 		}
 		else
@@ -573,11 +573,11 @@ size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex
 					GlobalFunctions::banner(" " + string(section.getName()) + "'s Phrase Bars Converted ");
 			}
 		}
-		float pos = m_position + TICKS_PER_SAMPLE * (chart.m_phrases[i].getPivotAlpha() + (float)chart.getPivotTime());
+		float pos = m_position + TICKS_PER_SAMPLE * (chart.m_phrases[i].m_pivotAlpha + (float)chart.getPivotTime());
 		if (m_phraseBarPromptType[currentPlayer] < 2 || fret == 256)
 		{
 			size_t maxIndex = max;
-			while (i < maxIndex && !chart.m_phrases[i].getEnd() && i + 1 != maxIndex)
+			while (i < maxIndex && !chart.m_phrases[i].m_end && i + 1 != maxIndex)
 				i++;
 		}
 		if (fret >= 128)
@@ -680,7 +680,7 @@ size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex
 			}
 		}
 		prevFret = fret & ~64;
-		if (chart.m_phrases[i].getEnd())
+		if (chart.m_phrases[i].m_end)
 		{
 			note++;
 			piece = 1;

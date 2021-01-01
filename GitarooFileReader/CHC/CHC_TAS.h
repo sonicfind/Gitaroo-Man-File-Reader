@@ -109,7 +109,7 @@ class TAS
 	std::vector<SectPoint> markers;
 	CHC* m_tutorialStageB = nullptr;
 public:
-	bool build(CHC& song);
+	bool build(CHC song);
 	bool loadValues(std::string file = frameValues.name);
 	~TAS()
 	{

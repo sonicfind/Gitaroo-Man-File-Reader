@@ -183,7 +183,7 @@ void CHC_Editor::organizeAll()
 					size_t totals[2] = { 0, 0 };
 					for (size_t pl = 0; pl < 4; ++pl)
 						for (size_t ch = 0, index = pl * section.m_numCharts; ch < section.m_numCharts; ++index, ++ch)
-							if (section.m_charts[index].m_guards.size() || section.m_charts[index].m_phrases.size() || section.m_charts[index].m_tracelines.size() <= 1)
+							if (section.m_charts[index].m_guards.size() || section.m_charts[index].m_phrases.size() || section.m_charts[index].m_tracelines.size() > 1)
 								++totals[pl & 1];
 					printf(" (Pair total: %zu)\n", totals[0] >= totals[1] ? totals[0] : totals[1]);
 				}
@@ -376,7 +376,7 @@ void CHC_Editor::fixNotes()
 
 				for (size_t guardIndex = 0; guardIndex + 1 < chart.m_guards.size();)
 				{
-					if (chart.m_guards[--guardIndex].m_pivotAlpha + 1600 > chart.m_guards[guardIndex + 1].m_pivotAlpha)
+					if (chart.m_guards[guardIndex].m_pivotAlpha + 1600 > chart.m_guards[guardIndex + 1].m_pivotAlpha)
 					{
 						strings[sectIndex].push_back(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
 						if (chart.removeGuardMark(guardIndex + 1))
@@ -1887,12 +1887,11 @@ bool CHC_Editor::reorganize(SongSection& section)
 							currentChart->setPivotTime((long)roundf(notes[pl][startingIndex].first - SAMPLES_PER_BEAT));
 						else
 							currentChart->setPivotTime(notes[pl][startingIndex].first >> 1);
-						notes[pl][startingIndex].second->setPivotAlpha(notes[pl][startingIndex].first - currentChart->m_pivotTime);
+						notes[pl][startingIndex].second->m_pivotAlpha = notes[pl][startingIndex].first - currentChart->m_pivotTime;
 					}
 					else
 						//safety adjustment of the current note's pivot alpha to line up with this chart
-						notes[pl][ntIndex].second->setPivotAlpha(notes[pl][ntIndex].first - currentChart->m_pivotTime);
-
+						notes[pl][ntIndex].second->m_pivotAlpha = notes[pl][ntIndex].first - currentChart->m_pivotTime;
 					currentChart->add(notes[pl][ntIndex].second);
 					if (ntIndex + 1 != notes[pl].size())
 					{

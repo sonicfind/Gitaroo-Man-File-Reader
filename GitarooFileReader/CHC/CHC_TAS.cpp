@@ -538,7 +538,7 @@ size_t TAS::PCSX2TAS::insertFrames(const int stage, const int orientation, const
 	return m_players[0].size() - numFrames;
 }
 
-bool TAS::build(CHC& song)
+bool TAS::build(CHC song)
 {
 	if (song.m_imc[0] == 0)
 	{
@@ -788,7 +788,7 @@ bool TAS::build(CHC& song)
 		framerateIndex = 1;
 	printf("%sStage %i - Diff. %i: ", g_global.tabs.c_str(), stage, difficulty);
 	printf("%lu frames | ", frameValues.frames[framerateIndex][stage][difficulty + multi[0] + multi[1]]);
-	printf("Displacement: %li samples\n%s\n", frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]], g_global.tabs.c_str());
+	printf("Displacement: %li samples\n%s\n", frameValues.samples[framerateIndex][stage][difficulty + multi[0] + multi[1]], g_global.tabs.c_str());
 	printf("%sType the name of the author [255 character limit] (';' to notate the end of the name [for multi-step usage]) ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
 	printf("%sInput: ", g_global.tabs.c_str());
 	if (GlobalFunctions::charArrayInsertion(m_pcsx2.m_author, 255) == GlobalFunctions::ResultType::Quit)
@@ -797,7 +797,7 @@ bool TAS::build(CHC& song)
 		return false;
 	}
 	
-	int orientation;
+	int orientation = 0;
 	do
 	{
 		printf("%sWhich orientation for all guard phrases? ('Q' to back out to Main Menu)\n", g_global.tabs.c_str());
@@ -900,7 +900,7 @@ bool TAS::build(CHC& song)
 	unsigned long totalDuration = 0;
 	bool endReached = false;
 	int notes[4] = { 0, 0, 0, 0 };
-	long position = frameValues.initialDisplacements[framerateIndex][stage][difficulty + multi[0] + multi[1]];
+	long position = frameValues.samples[framerateIndex][stage][difficulty + multi[0] + multi[1]];
 	// Places every single note that will appear in all chosen sections
 	// into one huge timeline.
 	for (const size_t sectIndex : sectionIndexes)
@@ -998,7 +998,7 @@ bool TAS::build(CHC& song)
 					size_t index = startIndex[currentPlayer];
 					for (size_t i = 0; i < chart.getNumGuards(); i++)
 					{
-						long pos = chart.m_guards[i].getPivotAlpha() + chart.getPivotTime() + position;
+						long pos = chart.m_guards[i].m_pivotAlpha + chart.getPivotTime() + position;
 						while (index < player.size() && pos > player[index].position)
 							index++;
 						player.emplace(player.begin() + index, pos, &chart.m_guards[i], i, i + 1 == chart.getNumGuards());
@@ -1009,13 +1009,13 @@ bool TAS::build(CHC& song)
 					for (size_t i = 0; i < chart.getNumPhrases(); i++)
 					{
 						Phrase& phrase = chart.m_phrases[i];
-						long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
+						long pos = phrase.m_pivotAlpha + chart.getPivotTime() + position;
 						while (index < player.size() && pos > player[index].position)
 							index++;
 						// Combine all pieces into one Note
 						while (i < chart.getNumPhrases())
 						{
-							if (!chart.m_phrases[i].getEnd())
+							if (!chart.m_phrases[i].m_end)
 								i++;
 							else
 							{
@@ -1024,15 +1024,15 @@ bool TAS::build(CHC& song)
 									switch (markers.back().type)
 									{
 									case SectPoint::VisualType::Visual:
-										if (chart.m_phrases[i + 1].getPivotAlpha() - chart.m_phrases[i].getEndAlpha() < markers.back().sustainLimit)
-											phrase.changeEndAlpha(chart.m_phrases[i + 1].getPivotAlpha() - long(SAMPLES_PER_FRAME));
+										if (chart.m_phrases[i + 1].m_pivotAlpha - chart.m_phrases[i].getEndAlpha() < markers.back().sustainLimit)
+											phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - long(SAMPLES_PER_FRAME));
 										else
 											phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
 										break;
 									case SectPoint::VisualType::Mixed:
-										if (chart.m_phrases[i + 1].getPivotAlpha() - phrase.getPivotAlpha() < markers.back().sustainLimit)
+										if (chart.m_phrases[i + 1].m_pivotAlpha - phrase.m_pivotAlpha < markers.back().sustainLimit)
 										{
-											phrase.changeEndAlpha(chart.m_phrases[i + 1].getPivotAlpha() - long(SAMPLES_PER_FRAME));
+											phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - long(SAMPLES_PER_FRAME));
 											break;
 										}
 									default:
@@ -1054,7 +1054,7 @@ bool TAS::build(CHC& song)
 					{
 						for (size_t i = 0; i < chart.getNumTracelines(); i++)
 						{
-							long pos = chart.m_tracelines[i].getPivotAlpha() + chart.getPivotTime() + position;
+							long pos = chart.m_tracelines[i].m_pivotAlpha + chart.getPivotTime() + position;
 							while (index < player.size() && pos > player[index].position)
 								index++;
 							player.emplace(player.begin() + index, pos, &chart.m_tracelines[i], i, i + 1 == chart.getNumTracelines());
@@ -1117,9 +1117,9 @@ bool TAS::build(CHC& song)
 		{
 			printf("%sStage ST00B: ", g_global.tabs.c_str());
 			printf("%lu frames during intermission |", frameValues.frames[framerateIndex][0][1]);
-			printf(" Post-intermission Displacement: %li samples\n%s\n", frameValues.initialDisplacements[framerateIndex][0][1], g_global.tabs.c_str());
+			printf(" Post-intermission Displacement: %li samples\n%s\n", frameValues.samples[framerateIndex][0][1], g_global.tabs.c_str());
 			sectionIndexes.clear();
-			position += long((frameValues.frames[framerateIndex][0][1] - 1000) * SAMPLES_PER_FRAME) + frameValues.initialDisplacements[framerateIndex][0][1];
+			position += long((frameValues.frames[framerateIndex][0][1] - 1000) * SAMPLES_PER_FRAME) + frameValues.samples[framerateIndex][0][1];
 			do
 			{
 				printf("%sType the number for each section that you wish to TAS from ST00B - in chronological order and w/ spaces in-between\n", g_global.tabs.c_str());
@@ -1273,7 +1273,7 @@ bool TAS::build(CHC& song)
 						size_t index = startIndex;
 						for (size_t i = 0; i < chart.getNumGuards(); i++)
 						{
-							long pos = chart.m_guards[i].getPivotAlpha() + chart.getPivotTime() + position;
+							long pos = chart.m_guards[i].m_pivotAlpha + chart.getPivotTime() + position;
 							while (index < timeline[0].size() && pos > timeline[0][index].position)
 									index++;
 							timeline[0].emplace(timeline[0].begin() + index, pos, &chart.m_guards[i], i, i + 1 == chart.getNumGuards());
@@ -1284,13 +1284,13 @@ bool TAS::build(CHC& song)
 						for (size_t i = 0; i < chart.getNumPhrases(); i++)
 						{
 							Phrase& phrase = chart.m_phrases[i];
-							long pos = phrase.getPivotAlpha() + chart.getPivotTime() + position;
+							long pos = phrase.m_pivotAlpha + chart.getPivotTime() + position;
 							while (index < timeline[0].size() && pos > timeline[0][index].position)
 								index++;
 							// Combine all pieces into one Note
 							while (i < chart.getNumPhrases())
 							{
-								if (!chart.m_phrases[i].getEnd())
+								if (!chart.m_phrases[i].m_end)
 									i++;
 								else
 								{
@@ -1299,15 +1299,15 @@ bool TAS::build(CHC& song)
 										switch (markers.back().type)
 										{
 										case SectPoint::VisualType::Visual:
-											if (chart.m_phrases[i + 1].getPivotAlpha() - chart.m_phrases[i].getEndAlpha() < markers.back().sustainLimit)
-												phrase.changeEndAlpha(chart.m_phrases[i + 1].getPivotAlpha() - long(SAMPLES_PER_FRAME));
+											if (chart.m_phrases[i + 1].m_pivotAlpha - chart.m_phrases[i].getEndAlpha() < markers.back().sustainLimit)
+												phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - long(SAMPLES_PER_FRAME));
 											else
 												phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() + long(2 * SAMPLES_PER_FRAME));
 											break;
 										case SectPoint::VisualType::Mixed:
-											if (chart.m_phrases[i + 1].getPivotAlpha() - phrase.getPivotAlpha() < markers.back().sustainLimit)
+											if (chart.m_phrases[i + 1].m_pivotAlpha - phrase.m_pivotAlpha < markers.back().sustainLimit)
 											{
-												phrase.changeEndAlpha(chart.m_phrases[i + 1].getPivotAlpha() - long(SAMPLES_PER_FRAME));
+												phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - long(SAMPLES_PER_FRAME));
 												break;
 											}
 										default:
@@ -1329,7 +1329,7 @@ bool TAS::build(CHC& song)
 						{
 							for (size_t i = 0; i < chart.getNumTracelines(); i++)
 							{
-								long pos = chart.m_tracelines[i].getPivotAlpha() + chart.getPivotTime() + position;
+								long pos = chart.m_tracelines[i].m_pivotAlpha + chart.getPivotTime() + position;
 								while (index < timeline[0].size() && pos > timeline[0][index].position)
 									index++;
 								timeline[0].emplace(timeline[0].begin() + index, pos, &chart.m_tracelines[i], i, i + 1 == chart.getNumTracelines());
@@ -1395,7 +1395,7 @@ bool TAS::build(CHC& song)
 					// Circle - 191
 					// Triangle - 127
 					static const int orientationSets[4][4] = { {239, 223, 191, 127}, {239, 223, 191, 127}, {223, 191, 127, 239}, {127, 239, 223, 191} };
-					m_pcsx2.m_players[playerIndex][grdFrame].button = orientationSets[orientation][static_cast<Guard*>(timeline[playerIndex][noteIndex].note)->getButton()];
+					m_pcsx2.m_players[playerIndex][grdFrame].button = orientationSets[orientation][static_cast<Guard*>(timeline[playerIndex][noteIndex].note)->m_button];
 
 					fprintf(taslog, "Guard Mark %03zu: ", timeline[playerIndex][noteIndex].index);
 					switch (m_pcsx2.m_players[playerIndex][grdFrame].button)
@@ -1430,13 +1430,13 @@ bool TAS::build(CHC& song)
 									size_t endFrame = frameStart + (size_t)round(timeline[playerIndex][testIndex].position / SAMPLES_PER_FRAME);
 									if (endFrame - currentFrame > 0)
 									{
-										float currentAngle = static_cast<Traceline*>(timeline[playerIndex][noteIndex].note)->getAngle();
+										float currentAngle = static_cast<Traceline*>(timeline[playerIndex][noteIndex].note)->m_angle;
 										float angleDif = 0;
 										if (!timeline[playerIndex][noteIndex].last)
 										{
 											if (!timeline[playerIndex][testIndex].last)
 											{
-												angleDif = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->getAngle() - currentAngle;
+												angleDif = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->m_angle - currentAngle;
 												if (angleDif > M_PI)
 													angleDif -= 2 * M_PI;
 												else if (angleDif < -M_PI)
@@ -1444,14 +1444,14 @@ bool TAS::build(CHC& song)
 											}
 										}
 										else
-											currentAngle = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->getAngle();
+											currentAngle = static_cast<Traceline*>(timeline[playerIndex][testIndex].note)->m_angle;
 
 										if (orientation == 2)
 											currentAngle += .5 * M_PI;
 										else if (orientation == 3)
 											currentAngle -= .5 * M_PI;
 
-										if (!static_cast<Traceline*>(timeline[playerIndex][noteIndex].note)->getCurve()) // If curve is false
+										if (!static_cast<Traceline*>(timeline[playerIndex][noteIndex].note)->m_curve)
 										{
 											// Iterate through all frames with a straight trace line, if any
 											for (size_t compare = 20 * (endFrame - currentFrame - 1); compare > song.m_speed; ++currentFrame, compare -= 20)
@@ -1520,11 +1520,11 @@ bool TAS::build(CHC& song)
 										timeline[playerIndex][noteIndex].position - prevPhrase->position < markers[prevSect].sustainLimit) ||
 								(markers[prevSect].type == SectPoint::VisualType::Visual &&
 										timeline[playerIndex][noteIndex].position - prevPhrase->position <
-												markers[prevSect].sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->getDuration())))
+												markers[prevSect].sustainLimit + long(static_cast<Phrase*>(prevPhrase->note)->m_duration)))
 							{
 								fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].position, startIndex - frameStart);
 								size_t phraseEnd = frameStart + (size_t)ceilf(((SAMPLES_PER_FRAME + prevPhrase->position +
-																					static_cast<Phrase*>(prevPhrase->note)->getDuration()) / SAMPLES_PER_FRAME));
+																					static_cast<Phrase*>(prevPhrase->note)->m_duration) / SAMPLES_PER_FRAME));
 
 								--startIndex;
 								while (phraseEnd < startIndex)
@@ -1537,12 +1537,12 @@ bool TAS::build(CHC& song)
 					++startIndex;
 					if (m_pcsx2.m_players[playerIndex][startIndex].leftStickX != 127 || m_pcsx2.m_players[playerIndex][startIndex].leftStickY != 127)
 					{
-						const size_t phraseEnd = frameStart + (size_t)ceilf((timeline[playerIndex][noteIndex].position + static_cast<Phrase*>(timeline[playerIndex][noteIndex].note)->getDuration()) / SAMPLES_PER_FRAME);
+						const size_t phraseEnd = frameStart + (size_t)ceilf((timeline[playerIndex][noteIndex].position + static_cast<Phrase*>(timeline[playerIndex][noteIndex].note)->m_duration) / SAMPLES_PER_FRAME);
 						fprintf(taslog, "Phrase Bar %03zu- Starting at sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].index, timeline[playerIndex][noteIndex].position, startIndex - frameStart);
 						m_pcsx2.m_players[playerIndex][startIndex - 1].button = 255;
 						while (startIndex <= phraseEnd)
 							m_pcsx2.m_players[playerIndex][startIndex++].button = orientationsSet[orientation];
-						fprintf(taslog, "\t      -   Ending at sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].position + static_cast<Phrase*>(timeline[playerIndex][noteIndex].note)->getDuration(), phraseEnd - frameStart);
+						fprintf(taslog, "\t      -   Ending at sample %li | Frame #%zu\n", timeline[playerIndex][noteIndex].position + static_cast<Phrase*>(timeline[playerIndex][noteIndex].note)->m_duration, phraseEnd - frameStart);
 						prevPhrase = &timeline[playerIndex][noteIndex];
 					}
 				}

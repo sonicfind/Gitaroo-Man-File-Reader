@@ -39,6 +39,6 @@ bool ChartFile::open(string filename, const bool write)
 	{
 #pragma warning(suppress : 4996)
 		m_chart = fopen(m_file.c_str(), "r");
-		return true;
+		return m_chart != nullptr;
 	}
 }

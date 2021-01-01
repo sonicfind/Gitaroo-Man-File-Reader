@@ -671,11 +671,11 @@ void CHC_Main::writeTxt()
 					{
 						Traceline& trace = chart.m_tracelines[traceIndex];
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Trace Line %03zu:\n", traceIndex + 1);
-						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", trace.getPivotAlpha());
-						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", trace.getPivotAlpha() + chart.getPivotTime());
-						fprintf(outTXT, "\t\t\t\t\t\t\t    Duration: %lu samples\n", trace.getDuration());
-						fprintf(outTXT, "\t\t\t\t\t\t\t       Angle: %s*PI radians | %li degrees\n", GlobalFunctions::angleToFraction(trace.getAngle()).c_str(), GlobalFunctions::radiansToDegrees(trace.getAngle()));
-						trace.getCurve() ? fputs("\t\t\t\t\t\t\t       Curve: True\n", outTXT)
+						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", trace.m_pivotAlpha);
+						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", trace.m_pivotAlpha + chart.getPivotTime());
+						fprintf(outTXT, "\t\t\t\t\t\t\t    Duration: %lu samples\n", trace.m_duration);
+						fprintf(outTXT, "\t\t\t\t\t\t\t       Angle: %s*PI radians | %li degrees\n", GlobalFunctions::angleToFraction(trace.m_angle).c_str(), GlobalFunctions::radiansToDegrees(trace.m_angle));
+						trace.m_curve ? fputs("\t\t\t\t\t\t\t       Curve: True\n", outTXT)
 							: fputs("\t\t\t\t\t\t\t       Curve: False\n", outTXT);
 						fprintf(outTXT, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", trace.getEndAlpha() + chart.getPivotTime());
 						if (traceIndex + 1 == chart.getNumTracelines())
@@ -685,22 +685,21 @@ void CHC_Main::writeTxt()
 					for (size_t phraseIndex = 0, traceIndex = 0, note = 0, piece = 0; phraseIndex < chart.getNumPhrases(); phraseIndex++)
 					{
 						Phrase& phrase = chart.m_phrases[phraseIndex];
-						for (; traceIndex < chart.getNumTracelines(); traceIndex++)
-							if (chart.m_tracelines[traceIndex].contains(phrase.getPivotAlpha()))
-								break;
+						while (traceIndex < chart.getNumTracelines() && !chart.m_tracelines[traceIndex].contains(phrase.m_pivotAlpha))
+							traceIndex++;
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     Phrase Fragment %03zu:\n", phraseIndex + 1);
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t     [Note #%03zu", note + 1);
 						if (piece)
 							GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, " - Piece ##%02zu", piece + 1);
 						fprintf(outTXT, "| Trace Line #%03zu]:\n", traceIndex + 1);
 						fputs("]:\n", outSimpleTXT);
-						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", phrase.getPivotAlpha());
-						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", phrase.getPivotAlpha() + chart.getPivotTime());
-						fprintf(outTXT, "\t\t\t\t\t\t\t    Duration: %lu samples\n", phrase.getDuration());
+						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", phrase.m_pivotAlpha);
+						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", phrase.m_pivotAlpha + chart.getPivotTime());
+						fprintf(outTXT, "\t\t\t\t\t\t\t    Duration: %lu samples\n", phrase.m_duration);
 
-						phrase.getStart() ? fputs("\t\t\t\t\t\t\t       Start: True\n", outTXT)
+						phrase.m_start ? fputs("\t\t\t\t\t\t\t       Start: True\n", outTXT)
 							: fputs("\t\t\t\t\t\t\t       Start: False\n", outTXT);
-						if (phrase.getEnd())
+						if (phrase.m_end)
 						{
 							fputs("\t\t\t\t\t\t\t         End: True\n", outTXT);
 							note++;
@@ -711,8 +710,8 @@ void CHC_Main::writeTxt()
 							fputs("\t\t\t\t\t\t\t         End: False\n", outTXT);
 							piece++;
 						}
-						fprintf(outTXT, "\t\t\t\t\t\t\t   Animation: %lu\n", phrase.getAnimation());
-						if (phrase.getEnd())
+						fprintf(outTXT, "\t\t\t\t\t\t\t   Animation: %lu\n", phrase.m_animation);
+						if (phrase.m_end)
 							GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", phrase.getEndAlpha() + chart.getPivotTime());
 						else
 							fprintf(outTXT, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", phrase.getEndAlpha() + chart.getPivotTime());
@@ -747,10 +746,10 @@ void CHC_Main::writeTxt()
 					{
 						Guard& guard = chart.m_guards[guardIndex];
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t  Guard Mark %03zu:\n", guardIndex + 1);
-						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", guard.getPivotAlpha());
-						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", guard.getPivotAlpha() + chart.getPivotTime());
+						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", guard.m_pivotAlpha);
+						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", guard.m_pivotAlpha + chart.getPivotTime());
 						GlobalFunctions::dualvfprintf_s(outTXT, outSimpleTXT, "\t\t\t\t\t\t\t      Button: ");
-						switch (guard.getButton())
+						switch (guard.m_button)
 						{
 						case 0: fputs("Left\n", outTXT); fputs("Square\n", outSimpleTXT); break;
 						case 1: fputs("Down\n", outTXT); fputs("X/Cross\n", outSimpleTXT); break;
@@ -1099,7 +1098,7 @@ bool CHC_Main::createColorTemplate()
 											fprintf(outSheet, "%c", colors[colIndex]);
 											fprintf(outSheet2, "!%c", colors[colIndex]);
 										}
-										else if (phr.getStart()) //Start
+										else if (phr.m_start) //Start
 										{
 											fprintf(outSheet, " %c", colors[colIndex]);
 											fprintf(outSheet2, " !%c", colors[colIndex]);
@@ -1114,7 +1113,7 @@ bool CHC_Main::createColorTemplate()
 											fputc('_', outSheet);
 											fputs("!_", outSheet2);
 										}
-										else if (phr.getStart()) //Start
+										else if (phr.m_start) //Start
 										{
 											fputs(" _", outSheet);
 											fputs(" !_", outSheet2);
@@ -1146,7 +1145,7 @@ bool CHC_Main::createColorTemplate()
 											fprintf(outSheet, "%c", colors[colIndex]);
 											fprintf(outSheet2, "!%c", colors[colIndex]);
 										}
-										else if (phr.getStart()) //Start
+										else if (phr.m_start) //Start
 										{
 											fprintf(outSheet, " %c", colors[colIndex]);
 											fprintf(outSheet2, " !%c", colors[colIndex]);
@@ -1161,7 +1160,7 @@ bool CHC_Main::createColorTemplate()
 											fputc('N', outSheet);
 											fputs("!N", outSheet2);
 										}
-										else if (phr.getStart()) //Start
+										else if (phr.m_start) //Start
 										{
 											fputs(" N", outSheet);
 											fputs(" !N", outSheet2);

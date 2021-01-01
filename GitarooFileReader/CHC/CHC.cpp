@@ -402,49 +402,31 @@ void Chart::setJunk(char* newJunk, rsize_t count)
 //Add a note to its corresponding List in ascending pivotAlpha order
 size_t Chart::add(Note* note)
 {
-	if (dynamic_cast<Traceline*>(note) != nullptr)		//Checks if it's a Traceline object
-	{
-		m_size += 16;
-		return GlobalFunctions::emplace_ordered(m_tracelines, *static_cast<Traceline*>(note));
-	}
-	else if (dynamic_cast<Phrase*>(note) != nullptr)		//Checks if it's a Phrase Bar object
-	{
-		m_size += 32;
-		return GlobalFunctions::emplace_ordered(m_phrases, *static_cast<Phrase*>(note));
-	}
-	else if (dynamic_cast<Guard*>(note) != nullptr)		//Checks if it's a Guard Mark object
-	{
-		m_size += 16;
-		return GlobalFunctions::emplace_ordered(m_guards, *static_cast<Guard*>(note));
-	}
+	if (dynamic_cast<Traceline*>(note) != nullptr)
+		return add(static_cast<Traceline*>(note));
+	else if (dynamic_cast<Phrase*>(note) != nullptr)
+		return add(static_cast<Phrase*>(note));
 	else
-		throw "Invalid note type";
+		return add(static_cast<Guard*>(note));
 }
 
-//Resizes the list of the chosen note type to the value provided
-//Type - Defaults to trace line ('t').
-bool Chart::resize(long numElements, char type)
+//Add a note to its corresponding List in ascending pivotAlpha order
+size_t Chart::add(Traceline* note)
 {
-	switch (type)
-	{
-	case 'T':
-	case 't':
-		m_size += 16 * (numElements - (long)m_tracelines.size());
-		m_tracelines.resize(numElements);
-		return true;
-	case 'P':
-	case 'p':
-		m_size += 32 * (numElements - (long)m_phrases.size());
-		m_phrases.resize(numElements);
-		return true;
-	case 'G':
-	case 'g':
-		m_size += 16 * (numElements - (long)m_guards.size());
-		m_guards.resize(numElements);
-		return true;
-	default:
-		return false;
-	}
+	m_size += 16;
+	return GlobalFunctions::emplace_ordered(m_tracelines, *note);
+}
+
+size_t Chart::add(Phrase* note)
+{
+	m_size += 32;
+	return GlobalFunctions::emplace_ordered(m_phrases, *note);
+}
+
+size_t Chart::add(Guard* note)
+{
+	m_size += 16;
+	return GlobalFunctions::emplace_ordered(m_guards, *note);
 }
 
 //Removes the element at the given index out of the chosen list.
@@ -541,13 +523,13 @@ long Chart::insertNotes(Chart* source)
 	for (size_t phrIndex = 0; phrIndex < source->m_phrases.size(); ++phrIndex)
 	{
 		Phrase& phr = source->m_phrases[phrIndex];
-		lastNote = phr.getPivotAlpha();
-		if (!phr.getEnd())
+		lastNote = phr.m_pivotAlpha;
+		if (!phr.m_end)
 		{
 			if (phrIndex + 1 == source->m_phrases.size())
-				phr.setEnd(true);
+				phr.m_end = true;
 			else
-				phr.changeEndAlpha(source->m_phrases[phrIndex + 1].getPivotAlpha());
+				phr.changeEndAlpha(source->m_phrases[phrIndex + 1].m_pivotAlpha);
 		}
 		//Pivot alpha was previous set to the total displacement from the start of the section
 		m_phrases.emplace_back(phr);
@@ -559,11 +541,11 @@ long Chart::insertNotes(Chart* source)
 	for (size_t trIndex = 0; trIndex < source->m_tracelines.size(); ++trIndex)
 	{
 		Traceline& trace = source->m_tracelines[trIndex];
-		if (trace.getPivotAlpha() > lastNote)
-			lastNote = trace.getPivotAlpha();
+		if (trace.m_pivotAlpha > lastNote)
+			lastNote = trace.m_pivotAlpha;
 
 		if (trIndex + 1 != source->m_tracelines.size())
-			trace.changeEndAlpha(source->m_tracelines[trIndex + 1].getPivotAlpha());
+			trace.changeEndAlpha(source->m_tracelines[trIndex + 1].m_pivotAlpha);
 		m_tracelines.emplace_back(trace);
 		m_tracelines.back().adjustPivotAlpha(-m_pivotTime);
 		m_size += 16;
@@ -574,37 +556,40 @@ long Chart::insertNotes(Chart* source)
 	{
 		Traceline& trace = m_tracelines[trIndex];
 		Phrase& phrase = m_phrases[phrIndex];
-		if (!trIndex && trace.getPivotAlpha() > phrase.getPivotAlpha())
-			trace.changePivotAlpha(phrase.getPivotAlpha());
+		if (!trIndex && trace.m_pivotAlpha > phrase.m_pivotAlpha)
+			trace.changePivotAlpha(phrase.m_pivotAlpha);
 
-		if (trace.getPivotAlpha() >= phrase.getEndAlpha())
+		if (trace.m_pivotAlpha >= phrase.getEndAlpha())
 			++phrIndex;
 		else
 		{
-			if (trace.getPivotAlpha() > phrase.getPivotAlpha())
+			if (trace.m_pivotAlpha > phrase.m_pivotAlpha)
 			{
-				unsigned long dur = phrase.getEndAlpha() - trace.getPivotAlpha();
-				bool end = phrase.getEnd();
-				phrase.changeEndAlpha(trace.getPivotAlpha());
-				phrase.setEnd(false);
-				emplacePhrase(trace.getPivotAlpha(), dur, false, end, 0, phrase.getColor());
+				unsigned long dur = phrase.getEndAlpha() - trace.m_pivotAlpha;
+				bool end = phrase.m_end;
+				phrase.changeEndAlpha(trace.m_pivotAlpha);
+				phrase.m_end = false;
+				emplacePhrase(trace.m_pivotAlpha, dur, false, end, 0, phrase.getColor());
 				++phrIndex;
 			}
 
 			if (trIndex + 1 == m_tracelines.size())
 			{
 				//If the phrase bar lands at or after the last trace line, delete
-				if (trace.getEndAlpha() <= phrase.getPivotAlpha())
+				if (trace.getEndAlpha() <= phrase.m_pivotAlpha)
 				{
-					if (!phrase.getStart())
-						m_phrases[phrIndex - 1].setEnd(true);
+					if (!phrase.m_start)
+						m_phrases[phrIndex - 1].m_end = true;
 					if (removePhraseBar(phrIndex))
 						printf("Phrase bar %zu removed\n", phrIndex);
 				}
-				else if (phrase.getEndAlpha() > trace.getEndAlpha())
+				else
 				{
-					phrase.changeEndAlpha(trace.getEndAlpha());
-					phrase.setEnd(true);
+					if (phrase.getEndAlpha() > trace.getEndAlpha())
+					{
+						phrase.changeEndAlpha(trace.getEndAlpha());
+						phrase.m_end = true;
+					}
 					++phrIndex;
 				}
 			}
@@ -616,8 +601,8 @@ long Chart::insertNotes(Chart* source)
 	for (size_t grdIndex = 0; grdIndex < source->m_guards.size(); ++grdIndex)
 	{
 		Guard& grd = source->m_guards[grdIndex];
-		if (grd.getPivotAlpha() > lastNote)
-			lastNote = grd.getPivotAlpha();
+		if (grd.m_pivotAlpha > lastNote)
+			lastNote = grd.m_pivotAlpha;
 		m_guards.emplace_back(grd);
 		m_guards.back().adjustPivotAlpha(-m_pivotTime);
 		m_size += 16;

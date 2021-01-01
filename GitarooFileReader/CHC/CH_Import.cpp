@@ -333,7 +333,6 @@ void ChartFileImporter::read(CH_Importer& importer)
 			}
 
 			importer.m_sections.emplace_back(ev.m_name, ev.m_position, pos_samples, tempo->m_bpm);
-
 			importer.m_sections.back().m_subs[0].emplace_back(false);
 			importer.m_sections.back().m_subs[1].emplace_back(false);
 		}
@@ -482,24 +481,24 @@ void CH_Importer::fillSections()
 						{
 							// Set previous Trace line's curve set to true
 							if (note->m_name.find("curve") != string::npos)
-								chart->m_tracelines.back().setCurve(true);
+								chart->m_tracelines.back().m_curve = true;
 							else
 							{
 								try
 								{
 									addTraceLine(((note->m_position - tempo->m_position_ticks) * SAMPLES_PER_TICK) + tempo->m_position_samples, note->m_name,
-													sectIndex, playerIndex);
+										sectIndex, playerIndex);
 								}
 								catch (...)
 								{
 									printf("%sTrace line event at tick position %lu had extraneous data that could not be pulled.\n", g_global.tabs.c_str(),
-																															(unsigned long)note->m_position);
+										(unsigned long)note->m_position);
 									printf("%sRemember: trace events *must* be formatted as \"Trace(P)\", \"Trace(P)_[float angle value]\", \"Trace(P)_end\", or \"Trace_curve\"\n", g_global.tabs.c_str());
 								}
 							}
 						}
 						else if (note->m_name.find("Anim") != string::npos)
-							chart->m_phrases.back().setAnimation(stoi(note->m_name.substr(5)));
+							chart->m_phrases.back().m_animation = note->m_name[5] - 48;
 						break;
 					case CHNote::NoteType::NOTE:
 						//If Phrase Bar
@@ -574,12 +573,12 @@ void CH_Importer::replaceNotes(size_t songSectIndex, const size_t sectIndex, con
 								if (ins->m_guards.size() && ins->m_tracelines.size() > 1)
 								{
 									//Determining which comes first
-									if (ins->m_guards.front().getPivotAlpha() < ins->m_tracelines.front().getPivotAlpha())
+									if (ins->m_guards.front().m_pivotAlpha < ins->m_tracelines.front().m_pivotAlpha)
 									{
 										if ((playerIndex & 1))
 											swapped[1] = true;
 									}
-									else if (ins->m_tracelines.front().getPivotAlpha() < ins->m_guards.front().getPivotAlpha())
+									else if (ins->m_tracelines.front().m_pivotAlpha < ins->m_guards.front().m_pivotAlpha)
 									{
 										if (!(playerIndex & 1))
 											swapped[0] = true;
@@ -592,8 +591,8 @@ void CH_Importer::replaceNotes(size_t songSectIndex, const size_t sectIndex, con
 					{
 						//Checks if the data in any unchanged subsections needs to be deleted as to not interfere with inserted m_notes
 						Chart& skipped = section.m_charts[playerIndex * section.getNumCharts() + chartIndex];
-						if ((skipped.m_guards.size() && skipped.m_guards.front().getPivotAlpha() < lastNotes[playerIndex & 1]) ||
-							(skipped.m_tracelines.size() > 1 && skipped.m_tracelines.front().getPivotAlpha() < lastNotes[playerIndex & 1]))
+						if ((skipped.m_guards.size() && skipped.m_guards.front().m_pivotAlpha < lastNotes[playerIndex & 1]) ||
+							(skipped.m_tracelines.size() > 1 && skipped.m_tracelines.front().m_pivotAlpha < lastNotes[playerIndex & 1]))
 						{
 							skipped.clear();
 						}
@@ -627,8 +626,8 @@ void CH_Importer::replaceNotes(size_t songSectIndex, const size_t sectIndex, con
 					{
 						//Checks if the data in any unchanged subsections needs to be deleted as to not interfere with inserted m_notes
 						Chart& skipped = section.m_charts[2 * playerIndex * section.getNumCharts() + chartIndex];
-						if ((skipped.m_guards.size() && skipped.m_guards.front().getPivotAlpha() < lastNotes[playerIndex & 1]) ||
-							(skipped.m_tracelines.size() > 1 && skipped.m_tracelines.front().getPivotAlpha() < lastNotes[playerIndex & 1]))
+						if ((skipped.m_guards.size() && skipped.m_guards.front().m_pivotAlpha < lastNotes[playerIndex & 1]) ||
+							(skipped.m_tracelines.size() > 1 && skipped.m_tracelines.front().m_pivotAlpha < lastNotes[playerIndex & 1]))
 						{
 							skipped.clear();
 						}
@@ -652,8 +651,8 @@ void CH_Importer::addTraceLine(float pos, string name, const size_t sectIndex, c
 			pos--;
 		else if (currChart->m_tracelines.size() > 0)
 		{
-			if (currChart->m_tracelines.front().getPivotAlpha() <= pos)
-				pos = float(currChart->m_tracelines.front().getPivotAlpha()) - 1;
+			if (currChart->m_tracelines.front().m_pivotAlpha <= pos)
+				pos = float(currChart->m_tracelines.front().m_pivotAlpha) - 1;
 		}
 
 		pos += (m_sections[sectIndex].m_position_ticks - prevtempo.m_position_ticks) * (s_SPT_CONSTANT / (s_TICKS_PER_BEAT * prevtempo.m_bpm)) + prevtempo.m_position_samples;
@@ -685,13 +684,13 @@ void CH_Importer::addPhraseBar(long pos, unsigned long sus, unsigned long lane, 
 		for (size_t index = currChart->m_phrases.size(); index > 0 && sus > 0;)
 		{
 			Phrase* previous = &currChart->m_phrases[--index];
-			if (previous->getPivotAlpha() <= pos - SAMPLES_PER_TICK_ROUNDED)
+			if (previous->m_pivotAlpha <= pos - SAMPLES_PER_TICK_ROUNDED)
 			{
 				if (previous->getEndAlpha() >= pos + SAMPLES_PER_TICK_ROUNDED)
 				{
-					currChart->emplacePhrase(pos, unsigned long(previous->getEndAlpha() - pos), false, previous->getEnd(), 0, previous->getColor());
+					currChart->emplacePhrase(pos, unsigned long(previous->getEndAlpha() - pos), false, previous->m_end, 0, previous->getColor());
 					previous->changeEndAlpha(pos);
-					previous->setEnd(false);
+					previous->m_end = false;
 					index += 2;
 				}
 				else
@@ -700,41 +699,41 @@ void CH_Importer::addPhraseBar(long pos, unsigned long sus, unsigned long lane, 
 					break;
 				}
 			}
-			else if (previous->getPivotAlpha() < pos + SAMPLES_PER_TICK_ROUNDED)
+			else if (previous->m_pivotAlpha < pos + SAMPLES_PER_TICK_ROUNDED)
 			{
-				long dif = previous->getPivotAlpha() - pos;
+				long dif = previous->m_pivotAlpha - pos;
 				pos += dif;
 				sus -= dif;
 				for (; index < currChart->m_phrases.size(); index++)
 				{
 					previous = &currChart->m_phrases[index];
-					if (previous->getDuration() <= sus - SAMPLES_PER_TICK_ROUNDED)
+					if (previous->m_duration <= sus - SAMPLES_PER_TICK_ROUNDED)
 					{
 						previous->addColor(lane);
-						pos += previous->getDuration();
-						sus -= previous->getDuration();
+						pos += previous->m_duration;
+						sus -= previous->m_duration;
 						if (index + 1 == currChart->m_phrases.size())
 						{
-							previous->setEnd(false);
+							previous->m_end = false;
 							currChart->emplacePhrase(pos, sus, false, true, 0, lane);
 							break;
 						}
 					}
 					else
 					{
-						if (previous->getDuration() >= sus + SAMPLES_PER_TICK_ROUNDED)
+						if (previous->m_duration >= sus + SAMPLES_PER_TICK_ROUNDED)
 						{
 							pos += sus;
-							previous->setEnd(false);
+							previous->m_end = false;
 							if (index + 1 == currChart->m_phrases.size())
 							{
-								previous->setEnd(false);
-								currChart->emplacePhrase(pos, previous->getDuration() - sus, false, true, 0, previous->getColor());
+								previous->m_end = false;
+								currChart->emplacePhrase(pos, previous->m_duration - sus, false, true, 0, previous->getColor());
 							}
 							previous->changeEndAlpha(pos);
 						}
 						else
-							previous->setDuration(sus);
+							previous->m_duration = sus;
 						previous->addColor(lane);
 						break;
 					}
@@ -750,7 +749,7 @@ void CH_Importer::addPhraseBar(long pos, unsigned long sus, unsigned long lane, 
 void CH_Importer::addGuardMark(const long pos, const unsigned long fret, Chart* currChart)
 {
 	static const int buttons[5] = { 1, 2, -1, 0, 3 };
-	if (currChart->m_guards.size() == 0 || currChart->m_guards.back().getPivotAlpha() < pos)
+	if (currChart->m_guards.size() == 0 || currChart->m_guards.back().m_pivotAlpha < pos)
 		currChart->emplaceGuard(pos, buttons[fret]);
 }
 
@@ -761,16 +760,16 @@ void CH_Importer::applyForced(const long pos, const size_t sectIndex, const size
 	while (index > 0)
 	{
 		Phrase& base = currChart->m_phrases[--index];
-		if (base.getPivotAlpha() == pos)
+		if (base.m_pivotAlpha == pos)
 		{
 			if (index == 0)
 				base.addColor(64);
-			else if (base.getStart())
+			else if (base.m_start)
 			{
 				Phrase& previous = currChart->m_phrases[index - 1];
-				base.setStart(false);
-				previous.setEnd(false);
-				previous.changeEndAlpha(base.getPivotAlpha());
+				base.m_start = false;
+				previous.m_end = false;
+				previous.changeEndAlpha(base.m_pivotAlpha);
 			}
 			else
 			{
@@ -788,13 +787,13 @@ void CH_Importer::applyForced(const long pos, const size_t sectIndex, const size
 																		playerIndex + 1, m_sections[sectIndex].m_subs[playerIndex].size() - 1);
 								currChart->removePhraseBar(index + 1);
 							}
-							previous.setEnd(false);
-							previous.changeEndAlpha(base.getPivotAlpha());
+							previous.m_end = false;
+							previous.changeEndAlpha(base.m_pivotAlpha);
 							g_global.quit = true;
 							break;
 						}
 					}
-					if (!(g_global.quit || remove || previous.getStart()))
+					if (!(g_global.quit || remove || previous.m_start))
 						remove = true;
 					else
 						break;

@@ -149,13 +149,22 @@ void xgBgGeometry::writeTXT(FILE* outTXT, const char* tabs)
 		fprintf_s(outTXT, "\t\t\t%s    Vertex %03lu\n", tabs, index + 1);
 		float* data = m_vertices[index];
 		if (m_vertexFlags & 1) // Position
-			fprintf_s(outTXT, "\t\t\t\t%s     Position (XYZ+Unk): %g, %g, %g, %g\n", tabs, *(data++), *(data++), *(data++), *(data++));
+		{
+			fprintf_s(outTXT, "\t\t\t\t\t%sPosition (XYZW): %g, %g, %g, %g\n", tabs, *data, *(data + 1), *(data + 2), *(data + 3));
+			data += 4;
+		}
 		if (m_vertexFlags & 2) // Normal
-			fprintf_s(outTXT, "\t\t\t\t\t%s   Normal (XYZ): %g, %g, %g\n", tabs, *(data++), *(data++), *(data++));
+		{
+			fprintf_s(outTXT, "\t\t\t\t\t%s   Normal (XYZ): %g, %g, %g\n", tabs, *data, *(data + 1), *(data + 2));
+			data += 3;
+		}
 		if (m_vertexFlags & 4) // Color
-			fprintf_s(outTXT, "\t\t\t\t\t%s   Color (RGBA): %g, %g, %g, %g\n", tabs, *(data++), *(data++), *(data++), *(data++));
+		{
+			fprintf_s(outTXT, "\t\t\t\t\t%s   Color (RGBA): %g, %g, %g, %g\n", tabs, *data, *(data + 1), *(data + 2), *(data + 3));
+			data += 4;
+		}
 		if (m_vertexFlags & 8) // Texture Coordinate
-			fprintf_s(outTXT, "\t\t\t\t%sTexture Coordinate (ST): %g, %g\n", tabs, *(data++), *data);
+			fprintf_s(outTXT, "\t\t\t\t%sTexture Coordinate (ST): %g, %g\n", tabs, *data, *(data + 1));
 	}
 	if (m_inputGeometries.size())
 	{
@@ -1120,14 +1129,23 @@ void xgShapeInterpolator::writeTXT(FILE* outTXT, const char* tabs)
 		{
 				fprintf_s(outTXT, "\t\t\t\t%s       Vertex %lu:\n", tabs, vert + 1);
 			float* data = m_keys[index].m_vertices[vert];
-			if (m_keys[index].m_vertexType & 1) // Position
-				fprintf_s(outTXT, "\t\t\t\t\t\t%s   Position (XYZ+Unk): %g, %g, %g, %g\n", tabs, *(data++), *(data++), *(data++), *(data++));
-			if (m_keys[index].m_vertexType & 2) // Normal
-				fprintf_s(outTXT, "\t\t\t\t\t\t\t%s Normal (XYZ): %g, %g, %g\n", tabs, *(data++), *(data++), *(data++));
-			if (m_keys[index].m_vertexType & 4) // Color
-				fprintf_s(outTXT, "\t\t\t\t\t\t\t%s Color (RGBA): %g, %g, %g, %g\n", tabs, *(data++), *(data++), *(data++), *(data++));
-			if (m_keys[index].m_vertexType & 8) // Texture Coordinate
-				fprintf_s(outTXT, "\t\t\t\t\t%s      Texture Coordinate (ST): %g, %g\n", tabs, *(data++), *data);
+			if (m_type & 1) // Position
+			{
+				fprintf_s(outTXT, "\t\t\t\t\t\t%s      Position (XYZW): %g, %g, %g, %g\n", tabs, *data, *(data + 1), *(data + 2), *(data + 3));
+				data += 4;
+			}
+			if (m_type & 2) // Normal
+			{
+				fprintf_s(outTXT, "\t\t\t\t\t\t\t%s Normal (XYZ): %g, %g, %g\n", tabs, *data, *(data + 1), *(data + 2));
+				data += 3;
+			}
+			if (m_type & 4) // Color
+			{
+				fprintf_s(outTXT, "\t\t\t\t\t\t\t%s Color (RGBA): %g, %g, %g, %g\n", tabs, *data, *(data + 1), *(data + 2), *(data + 3));
+				data += 4;
+			}
+			if (m_type & 8) // Texture Coordinate
+				fprintf_s(outTXT, "\t\t\t\t\t%s      Texture Coordinate (ST): %g, %g\n", tabs, *data, *(data + 1));
 		}
 	}
 

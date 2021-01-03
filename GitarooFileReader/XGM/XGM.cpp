@@ -249,6 +249,33 @@ bool XGM::importPNGs()
 	return false;
 }
 
+bool XGM::exportOBJs()
+{
+	banner(" " + m_filename + ".XGM - Multi-Model Export ");
+	const std::string folder = m_directory + m_filename;
+
+	// Creates a new directory with the name of the XGM as the base (if one doesn't already exist)
+	// All the PNGs will be placed in this directory
+	std::filesystem::create_directory(folder);
+	for (XG& model : m_models)
+	{
+		if (model.exportOBJ(folder + '\\'))
+		{
+			std::string obj = model.getName();
+			obj.erase(obj.length() - 2, 2);
+			obj += "OBJ";
+			printf("%sExported %-16s to %s\\%s\n", g_global.tabs.c_str(), model.getName(), m_filename.c_str(), obj.c_str());
+		}
+	}
+	return true;
+}
+
+bool XGM::importOBJs()
+{
+	banner(" " + m_filename + ".XGM - Multi-Model Import ");
+	return false;
+}
+
 bool XGM::selectTexture()
 {
 	while (true)

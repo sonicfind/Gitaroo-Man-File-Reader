@@ -30,6 +30,8 @@ public:
 	bool write_to_txt();
 	bool exportPNGs();
 	bool importPNGs();
+	bool exportOBJs();
+	bool importOBJs();
 	bool selectTexture();
 	bool selectModel();
 

@@ -15,17 +15,19 @@
 #include "pch.h"
 #include "XG/XG.h"
 using namespace GlobalFunctions;
-const std::string XG::multiChoiceString = "ew";
+const std::string XG::multiChoiceString = "ewo";
 
 bool XG::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 {
-	const std::string choices = nextFile ? "swn" : "sw";
+	const std::string choices = nextFile ? "swon" : "swo";
 	while (true)
 	{
 		banner(" " + m_filename + ".XG - Mode Selection ");
 		std::string choices = "swo";
 		printf_tab("S - Save\n");
 		printf_tab("W - Write %s_XG.txt\n", m_filename.c_str());
+		printf_tab("O - Export to a .obj file\n");
+		//printf_tab("I - Import from a .obj file\n");
 		if (nextFile)
 		{
 			printf_tab("N - Next .XG file\n");
@@ -83,6 +85,8 @@ void XG::displayMultiChoices()
 {
 	printf_tab("E - Evaluate each XG individually\n");
 	printf_tab("W - Write all XGs included to readable .txts\n");
+	printf_tab("O - Export models to .obj files\n");
+	//printf_tab("I - Import models from .obj files\n");
 }
 
 void XG::displayMultiHelp()

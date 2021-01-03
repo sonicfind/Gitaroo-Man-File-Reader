@@ -16,11 +16,11 @@
 #include "FileMain.h"
 #include "XGM/XGM.h"
 using namespace GlobalFunctions;
-const std::string XGM::multiChoiceString = "ewpi";
+const std::string XGM::multiChoiceString = "ewpio";
 
 bool XGM::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 {
-	const std::string choices = nextFile ? "swpitmn" : "swpitm";
+	const std::string choices = nextFile ? "swpiotmn" : "swpiotm";
 	while (true)
 	{
 		banner(" " + m_filename + ".XGM - Mode Selection ");
@@ -28,6 +28,8 @@ bool XGM::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 		printf_tab("W - Write %s_XGM.txt\n", m_filename.c_str());
 		printf_tab("P - Export textures to image files [Gitarootools install required]\n");
 		printf_tab("I - Import textures from image files [Gitarootools install required]\n");
+		printf_tab("O - Export models to .obj files\n");
+		//printf_tab("F - Import models from .obj files\n");
 		printf_tab("T - Select a texture [Count: %zu]\n", m_textures.size());
 		printf_tab("M - Select a model   [Count: %zu]\n", m_models.size());
 
@@ -79,6 +81,10 @@ bool XGM::functionSelection(const char choice, bool isMulti)
 		return exportPNGs();
 	case 'i':
 		return importPNGs();
+	case 'o':
+		return exportOBJs();
+	//case 'f':
+	//	return importOBJs();
 	case 't':
 		return selectTexture();
 	case 'm':
@@ -94,6 +100,8 @@ void XGM::displayMultiChoices()
 	printf_tab("W - Write all XGMs included to readable .txts\n");
 	printf_tab("P - Export all textures from every XGM to image files [Gitarootools install required]\n");
 	printf_tab("I - Import textures from image files into all XGMs [Gitarootools install required]\n");
+	printf_tab("O - Export all models from every XGM to .obj files\n");
+	//printf_tab("F - Import models from .obj files into all XGMs\n");
 }
 
 void XGM::displayMultiHelp()

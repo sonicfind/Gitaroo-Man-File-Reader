@@ -61,6 +61,8 @@ public:
 	bool create(std::string filename, bool trueSave = true);
 
 	bool write_to_txt();
+	bool exportOBJ(std::string newDirectory = "");
+	bool importOBJ();
 	//Returns name C-string (size: 16)
 	char* getName() { return m_name; }
 

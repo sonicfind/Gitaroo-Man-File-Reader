@@ -195,9 +195,9 @@ bool IMX::importPNG()
 	{
 		for (const char* suffix : { "", ".i4", ".i8", ".i24", ".i32" })
 		{
-			if (filesystem::exists(m_directory + prefix + m_shortname + suffix + ".PNG"))
+			if (filesystem::exists(m_directory + '\\' + m_shortname + suffix + ".PNG"))
 			{
-				pngName = m_directory + prefix + m_shortname + suffix + ".PNG";
+				pngName = m_directory + '\\' + m_shortname + suffix + ".PNG";
 				found = true;
 			}
 		}

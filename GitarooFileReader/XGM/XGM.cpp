@@ -86,7 +86,7 @@ bool XGM::exportPNGs()
 	std::string cmd = "gm-imx2png -d \"" + dir + "\" ";
 	for (IMX& texture : m_textures)
 	{
-		std::string file = dir + "\\XGM_" + texture.getName();
+		std::string file = dir + '\\' + texture.getName();
 		texture.create(file, false);
 		cmd += '\"' + file + "\" ";
 	}
@@ -94,12 +94,11 @@ bool XGM::exportPNGs()
 
 	for (IMX& texture : m_textures)
 	{
-		std::string png = "XGM_";
-		png += texture.getName();
+		std::string png = texture.getName();
 		png.erase(png.length() - 3, 3);
 		png += "PNG";
 		printf("%sExported %-16s to %s\\%s\n", g_global.tabs.c_str(), texture.getName(), m_shortname.c_str(), png.c_str());
-		std::remove((dir + "\\XGM_" + texture.getName()).c_str());
+		std::remove((dir + '\\' + texture.getName()).c_str());
 	}
 	return true;
 }

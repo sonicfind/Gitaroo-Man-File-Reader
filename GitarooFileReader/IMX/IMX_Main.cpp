@@ -44,13 +44,13 @@ bool IMXType::loadMulti()
 	do
 	{
 		GlobalFunctions::ResultType result = GlobalFunctions::ResultType::Success;
-		string choices = "twei";
+		string choices = "ewpi";
 		if (m_files.size() > 1)
 		{
 			GlobalFunctions::banner(" IMX Mode Selection ");
-			printf("%sT - Evaluate each texture individually\n", g_global.tabs.c_str());
+			printf("%sE - Evaluate each texture individually\n", g_global.tabs.c_str());
 			printf("%sW - Write out all textures included to readable .txts\n", g_global.tabs.c_str());
-			printf("%sE - Export textures to image files [Gitarootools install required]\n", g_global.tabs.c_str());
+			printf("%sP - Export textures to image files [Gitarootools install required]\n", g_global.tabs.c_str());
 			printf("%sI - Import textures from image files [Gitarootools install required]\n", g_global.tabs.c_str());
 			for (size_t i = 3; i < g_filetypes.size(); ++i)
 			{
@@ -88,7 +88,7 @@ bool IMXType::loadMulti()
 						IMX_Main imx(m_files.front());
 						switch (choice)
 						{
-						case 't':
+						case 'e':
 							if (imx.menu(m_files.size()))
 							{
 								--g_global;
@@ -98,7 +98,7 @@ bool IMXType::loadMulti()
 						case 'w':
 							imx.writeTxt();
 							break;
-						case 'e':
+						case 'p':
 							imx.exportPNG();
 							break;
 						case 'i':
@@ -132,10 +132,10 @@ bool IMX_Main::menu(size_t fileCount)
 	do
 	{
 		GlobalFunctions::banner(" " + imx.m_shortname + ".IMX - Mode Selection ");
-		string choices = "swei";
+		string choices = "swpi";
 		printf("%sS - Save\n", g_global.tabs.c_str());
 		printf("%sW - Write %s.txt\n", g_global.tabs.c_str(), imx.m_shortname.c_str());
-		printf("%sE - Export to an image file [Gitarootools install required]\n", g_global.tabs.c_str());
+		printf("%sP - Export to an image file [Gitarootools install required]\n", g_global.tabs.c_str());
 		printf("%sI - Import from an image file [Gitarootools install required]\n", g_global.tabs.c_str());
 		if (fileCount > 1)
 		{
@@ -204,7 +204,7 @@ bool IMX_Main::menu(size_t fileCount)
 				case 'w':
 					writeTxt();
 					break;
-				case 'e':
+				case 'p':
 					exportPNG();
 					break;
 				case 'i':

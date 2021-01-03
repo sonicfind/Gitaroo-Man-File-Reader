@@ -4,85 +4,52 @@
     <Filter Include="GMFR">
       <UniqueIdentifier>{89335224-9a59-4824-b3f3-0df91a79f42d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CHC">
-      <UniqueIdentifier>{e06d6fb7-2b3e-4476-928d-d73b14f09a2b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CHC\TAS">
-      <UniqueIdentifier>{e90c0a41-deb6-4089-bc13-3ee0b2188db5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CHC\Clone Hero">
-      <UniqueIdentifier>{885f8a9e-f2ba-4dc5-a837-aba01e35d8b5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CHC\Editor">
-      <UniqueIdentifier>{3e880544-ee8f-4df6-8579-561c2f9bfcf2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Global">
       <UniqueIdentifier>{401c4008-0459-4568-a9bc-35f27b5048e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="XGM">
-      <UniqueIdentifier>{d1bf77bf-3161-40dd-adeb-7cee3d09f228}</UniqueIdentifier>
+    <Filter Include="Chart-Based Types">
+      <UniqueIdentifier>{757f6d0d-f70b-4866-afab-b08d89712168}</UniqueIdentifier>
     </Filter>
-    <Filter Include="XG">
-      <UniqueIdentifier>{7b546305-8cc6-414b-b650-80a74a7de3d5}</UniqueIdentifier>
+    <Filter Include="Chart-Based Types\CHC">
+      <UniqueIdentifier>{e06d6fb7-2b3e-4476-928d-d73b14f09a2b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="IMX">
-      <UniqueIdentifier>{082920c2-9597-4ed0-b7d1-8346ccb9d28d}</UniqueIdentifier>
+    <Filter Include="Chart-Based Types\CHC\TAS">
+      <UniqueIdentifier>{e90c0a41-deb6-4089-bc13-3ee0b2188db5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PString">
+    <Filter Include="Chart-Based Types\CHC\Clone Hero">
+      <UniqueIdentifier>{885f8a9e-f2ba-4dc5-a837-aba01e35d8b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Chart-Based Types\CHC\Editor">
+      <UniqueIdentifier>{3e880544-ee8f-4df6-8579-561c2f9bfcf2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types">
+      <UniqueIdentifier>{d2258a19-fe77-43ca-9631-ee3fbdfedd53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\PString">
       <UniqueIdentifier>{85ea0625-7758-4e04-95f9-d307a8f5d83a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="XG\Editor">
-      <UniqueIdentifier>{61d5cb45-d56e-4ef2-81d8-5bb0f45a75e7}</UniqueIdentifier>
+    <Filter Include="Visual-Based Types\IMX">
+      <UniqueIdentifier>{082920c2-9597-4ed0-b7d1-8346ccb9d28d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="IMX\Editor">
-      <UniqueIdentifier>{95225374-c76f-44e0-8ad8-fb2f26640250}</UniqueIdentifier>
+    <Filter Include="Visual-Based Types\XG">
+      <UniqueIdentifier>{7b546305-8cc6-414b-b650-80a74a7de3d5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="XG\XGNodes">
+    <Filter Include="Visual-Based Types\XG\XGNodes">
       <UniqueIdentifier>{de74c1c7-0fa3-4614-be08-85c7d92a5e13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\XGM">
+      <UniqueIdentifier>{d1bf77bf-3161-40dd-adeb-7cee3d09f228}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\XGM\Editor">
+      <UniqueIdentifier>{acb0c942-a78a-4219-9565-106b7118c6a3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CHC\CHC_Editor.cpp">
-      <Filter>CHC\Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Main\GitarooFileReader.cpp">
-      <Filter>GMFR</Filter>
-    </ClCompile>
-    <ClCompile Include="CHC\CHC_TAS.cpp">
-      <Filter>CHC\TAS</Filter>
-    </ClCompile>
-    <ClCompile Include="CHC\CHC.cpp">
-      <Filter>CHC</Filter>
-    </ClCompile>
-    <ClCompile Include="Main\Global_Functions.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
-    <ClCompile Include="CHC\CH_ChartFile.cpp">
-      <Filter>CHC\Clone Hero</Filter>
-    </ClCompile>
-    <ClCompile Include="CHC\CH_Export.cpp">
-      <Filter>CHC\Clone Hero</Filter>
-    </ClCompile>
-    <ClCompile Include="CHC\CH_Import.cpp">
-      <Filter>CHC\Clone Hero</Filter>
-    </ClCompile>
-    <ClCompile Include="CHC\CH_NoteTrack.cpp">
-      <Filter>CHC\Clone Hero</Filter>
-    </ClCompile>
     <ClCompile Include="Main\pch.cpp">
       <Filter>GMFR</Filter>
     </ClCompile>
-    <ClCompile Include="PString\PString.cpp">
-      <Filter>PString</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XG.cpp">
-      <Filter>XG</Filter>
-    </ClCompile>
-    <ClCompile Include="XGM\XGM.cpp">
-      <Filter>XGM</Filter>
-    </ClCompile>
-    <ClCompile Include="IMX\IMX.cpp">
-      <Filter>IMX</Filter>
+    <ClCompile Include="Main\Global_Functions.cpp">
+      <Filter>Global</Filter>
     </ClCompile>
     <ClCompile Include="Main\FileType.cpp">
       <Filter>Global</Filter>
@@ -90,46 +57,64 @@
     <ClCompile Include="Main\FileMain.cpp">
       <Filter>Global</Filter>
     </ClCompile>
-    <ClCompile Include="CHC\CHC_Main.cpp">
-      <Filter>CHC</Filter>
+    <ClCompile Include="CHC\CHC.cpp">
+      <Filter>Chart-Based Types\CHC</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CHC_Editor.cpp">
+      <Filter>Chart-Based Types\CHC\Editor</Filter>
     </ClCompile>
     <ClCompile Include="CHC\CH_Object.cpp">
-      <Filter>CHC\Clone Hero</Filter>
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
     </ClCompile>
-    <ClCompile Include="XG\XG_Main.cpp">
-      <Filter>XG</Filter>
+    <ClCompile Include="CHC\CH_NoteTrack.cpp">
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
     </ClCompile>
-    <ClCompile Include="XGM\XGM_Main.cpp">
-      <Filter>XGM</Filter>
+    <ClCompile Include="CHC\CH_ChartFile.cpp">
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CH_Export.cpp">
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CH_Import.cpp">
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CHC_TAS.cpp">
+      <Filter>Chart-Based Types\CHC\TAS</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CHC_Main.cpp">
+      <Filter>Chart-Based Types\CHC</Filter>
+    </ClCompile>
+    <ClCompile Include="PString\PString.cpp">
+      <Filter>Visual-Based Types\PString</Filter>
+    </ClCompile>
+    <ClCompile Include="IMX\IMX.cpp">
+      <Filter>Visual-Based Types\IMX</Filter>
     </ClCompile>
     <ClCompile Include="IMX\IMX_Main.cpp">
-      <Filter>IMX</Filter>
+      <Filter>Visual-Based Types\IMX</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XG.cpp">
+      <Filter>Visual-Based Types\XG</Filter>
     </ClCompile>
     <ClCompile Include="XG\XG_Nodes.cpp">
-      <Filter>XG\XGNodes</Filter>
+      <Filter>Visual-Based Types\XG\XGNodes</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XG_Main.cpp">
+      <Filter>Visual-Based Types\XG</Filter>
+    </ClCompile>
+    <ClCompile Include="XGM\XGM.cpp">
+      <Filter>Visual-Based Types\XGM</Filter>
+    </ClCompile>
+    <ClCompile Include="XGM\XGM_Main.cpp">
+      <Filter>Visual-Based Types\XGM</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\GitarooFileReader.cpp">
+      <Filter>GMFR</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CHC\CHC_TAS.h">
-      <Filter>CHC\TAS</Filter>
-    </ClInclude>
-    <ClInclude Include="CHC\CHC.h">
-      <Filter>CHC</Filter>
-    </ClInclude>
     <ClInclude Include="Main\Global_Functions.h">
       <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="CHC\CH_ChartFile.h">
-      <Filter>CHC\Clone Hero</Filter>
-    </ClInclude>
-    <ClInclude Include="CHC\CH_Export.h">
-      <Filter>CHC\Clone Hero</Filter>
-    </ClInclude>
-    <ClInclude Include="CHC\CH_Import.h">
-      <Filter>CHC\Clone Hero</Filter>
-    </ClInclude>
-    <ClInclude Include="CHC\CH_NoteTrack.h">
-      <Filter>CHC\Clone Hero</Filter>
     </ClInclude>
     <ClInclude Include="Main\FileType.h">
       <Filter>Global</Filter>
@@ -137,23 +122,41 @@
     <ClInclude Include="Main\FileMain.h">
       <Filter>Global</Filter>
     </ClInclude>
+    <ClInclude Include="CHC\CHC.h">
+      <Filter>Chart-Based Types\CHC</Filter>
+    </ClInclude>
     <ClInclude Include="CHC\CH_Object.h">
-      <Filter>CHC\Clone Hero</Filter>
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_NoteTrack.h">
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_ChartFile.h">
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_Export.h">
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_Import.h">
+      <Filter>Chart-Based Types\CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CHC_TAS.h">
+      <Filter>Chart-Based Types\CHC\TAS</Filter>
     </ClInclude>
     <ClInclude Include="PString\PString.h">
-      <Filter>PString</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XG.h">
-      <Filter>XG</Filter>
-    </ClInclude>
-    <ClInclude Include="XGM\XGM.h">
-      <Filter>XGM</Filter>
+      <Filter>Visual-Based Types\PString</Filter>
     </ClInclude>
     <ClInclude Include="IMX\IMX.h">
-      <Filter>IMX</Filter>
+      <Filter>Visual-Based Types\IMX</Filter>
     </ClInclude>
     <ClInclude Include="XG\XG_Nodes.h">
-      <Filter>XG\XGNodes</Filter>
+      <Filter>Visual-Based Types\XG</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XG.h">
+      <Filter>Visual-Based Types\XG</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\XGM.h">
+      <Filter>Visual-Based Types\XGM</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

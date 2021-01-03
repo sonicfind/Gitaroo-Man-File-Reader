@@ -77,7 +77,7 @@ struct xgBgMatrix : public XGNode
 
 struct xgBone : public XGNode
 {
-	float m_restMatrix[16] = { 0 };
+	float m_restMatrix[4][4] = { 0 };
 	SharedNode m_inputMatrix;
 	xgBone() = default;
 	xgBone(const PString& name) { m_name = name; }

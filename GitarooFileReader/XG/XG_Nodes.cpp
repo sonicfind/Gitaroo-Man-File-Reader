@@ -283,9 +283,10 @@ void xgBone::create(FILE* outFile, bool full)
 void xgBone::writeTXT(FILE* outTXT, const char* tabs)
 {
 	fprintf_s(outTXT, "\t\t\t%s Rest Matrix:\n", tabs);
-	for (int index = 0; index < 16; ++index)
-		fprintf_s(outTXT, "\t\t\t%s      Value %02u: %g\n", tabs, index + 1, m_restMatrix[index]);
-	fprintf_s(outTXT, "\t\t%s   Input Matrix from: %s\n", tabs, m_inputMatrix.getPString()->m_pstring);
+	for (int row = 0; row < 4; ++row)
+		fprintf_s(outTXT, "\t\t\t%s      Row %u: %g, %g, %g, %g\n", tabs, row + 1,
+												m_restMatrix[row][0], m_restMatrix[row][1], m_restMatrix[row][2], m_restMatrix[row][3]);
+	fprintf_s(outTXT, "\t\t\t%sInput Matrix: %s\n", tabs, m_inputMatrix.getPString()->m_pstring);
 }
 
 xgDagMesh::Data::Data(const Data& data)
@@ -447,34 +448,43 @@ void xgDagMesh::writeTXT(FILE* outTXT, const char* tabs)
 	}
 	else if (m_primType == 5)
 	{
-		unsigned long valueIndex = 0;
 		fprintf_s(outTXT, "\t\t\t%s TriFanCount: %lu\n", tabs, m_triFanCount);
-		unsigned long initialVertex = m_triFanData.m_arrayData[valueIndex++];
-		fprintf_s(outTXT, "\t\t%s   Base TriFan Index: %03lu\n", tabs, initialVertex);
-		for (unsigned long index = 0; valueIndex < m_triFanData.m_arraySize; ++index)
+		if (m_triFanCount)
 		{
-			fprintf_s(outTXT, "\t\t\t%s TriFan Group %03lu\n", tabs, index + 1);
-			fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabs, m_triFanData.m_arrayData[valueIndex++]);
+			unsigned long valueIndex = 0;
+			unsigned long initialVertex = m_triFanData.m_arrayData[valueIndex++];
+			fprintf_s(outTXT, "\t\t%s   Base TriFan Index: %03lu\n", tabs, initialVertex);
+			for (unsigned long index = 0; valueIndex < m_triFanData.m_arraySize; ++index)
+			{
+				fprintf_s(outTXT, "\t\t\t%s TriFan Group %03lu\n", tabs, index + 1);
+				fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabs, m_triFanData.m_arrayData[valueIndex++]);
+			}
 		}
 
-		valueIndex = 0;
 		fprintf_s(outTXT, "\t\t%s       TriStripCount: %lu\n", tabs, m_triStripCount);
-		initialVertex = m_triStripData.m_arrayData[valueIndex++];
-		fprintf_s(outTXT, "\t\t%s Base TriStrip Index: %03lu\n", tabs, initialVertex);
-		for (unsigned long index = 0; valueIndex < m_triStripData.m_arraySize; ++index)
+		if (m_triStripCount)
 		{
-			fprintf_s(outTXT, "\t\t\t%s TriStrip Group %03lu\n", tabs, index + 1);
-			fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabs, m_triStripData.m_arrayData[valueIndex++]);
+			unsigned long valueIndex = 0;
+			unsigned long initialVertex = m_triStripData.m_arrayData[valueIndex++];
+			fprintf_s(outTXT, "\t\t%s Base TriStrip Index: %03lu\n", tabs, initialVertex);
+			for (unsigned long index = 0; valueIndex < m_triStripData.m_arraySize; ++index)
+			{
+				fprintf_s(outTXT, "\t\t\t%s TriStrip Group %03lu\n", tabs, index + 1);
+				fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabs, m_triStripData.m_arrayData[valueIndex++]);
+			}
 		}
 
-		valueIndex = 0;
-		fprintf_s(outTXT, "\t\t\t%sTriListCount: %lu\n", tabs, m_triListCount);
-		initialVertex = m_triListData.m_arrayData[valueIndex++];
-		fprintf_s(outTXT, "\t\t%s  Base TriList Index: %03lu\n", tabs, initialVertex);
-		for (unsigned long index = 0; valueIndex < m_triListData.m_arraySize; ++index)
+		if (m_triListCount)
 		{
-			fprintf_s(outTXT, "\t\t\t%s  TriList Group %03lu\n", tabs, index + 1);
-			fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabs, m_triListData.m_arrayData[valueIndex++]);
+			unsigned long valueIndex = 0;
+			fprintf_s(outTXT, "\t\t\t%sTriListCount: %lu\n", tabs, m_triListCount);
+			unsigned long initialVertex = m_triListData.m_arrayData[valueIndex++];
+			fprintf_s(outTXT, "\t\t%s  Base TriList Index: %03lu\n", tabs, initialVertex);
+			for (unsigned long index = 0; valueIndex < m_triListData.m_arraySize; ++index)
+			{
+				fprintf_s(outTXT, "\t\t\t%s  TriList Group %03lu\n", tabs, index + 1);
+				fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabs, m_triListData.m_arrayData[valueIndex++]);
+			}
 		}
 	}
 	fprintf_s(outTXT, "\t\t\t%s    CullFunc: ", tabs);

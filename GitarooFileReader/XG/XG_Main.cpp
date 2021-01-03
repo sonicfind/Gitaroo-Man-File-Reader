@@ -277,7 +277,7 @@ void XG_Main::writeTxt()
 		printf("%s%s Could not be created.\n", g_global.tabs.c_str(), (xg.m_directory + xg.m_shortname + "_XG_SIMPLIFIED.txt").c_str());
 	else
 	{
-		fprintf_s(outSimpleTXT, "# of Nodes: %zu", xg.m_data->m_nodes.size());
+		fprintf_s(outSimpleTXT, "# of Nodes: %zu\n", xg.m_data->m_nodes.size());
 		for (size_t i = 0; i < xg.m_data->m_nodes.size(); ++i)
 			fprintf_s(outSimpleTXT, "\t Node %03zu - %s\n", i + 1, xg.m_data->m_nodes[i]->m_name.m_pstring);
 		fclose(outSimpleTXT);
@@ -288,7 +288,7 @@ void XG_Main::writeTxt()
 		printf("%s%s Could not be created.\n", g_global.tabs.c_str(), (xg.m_directory + xg.m_shortname + "_XG.txt").c_str());
 	else
 	{
-		fprintf_s(outTXT, "# of Nodes: %zu", xg.m_data->m_nodes.size());
+		fprintf_s(outTXT, "# of Nodes: %zu\n", xg.m_data->m_nodes.size());
 		for (size_t i = 0; i < xg.m_data->m_nodes.size(); ++i)
 		{
 			shared_ptr<XGNode>& node = xg.m_data->m_nodes[i];

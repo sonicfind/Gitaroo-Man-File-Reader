@@ -23,7 +23,7 @@ XG::XG(FILE* inFile, const std::string& directory) : m_directory(directory), m_s
 	fread(m_filepath, 1, 256, inFile);
 	fread(m_name, 1, 16, inFile);
 	m_shortname = m_name;
-	m_shortname.erase(m_shortname.length() - 4, 4);
+	m_shortname.erase(m_shortname.length() - 3, 3);
 	fread(&m_modelIndex, 4, 1, inFile);
 	fread(&m_fileSize, 4, 1, inFile);
 	unsigned long numAnims;

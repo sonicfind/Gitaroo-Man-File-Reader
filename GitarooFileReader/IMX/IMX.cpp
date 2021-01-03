@@ -20,7 +20,7 @@ using namespace std;
 
 IMX::IMX() : m_textureIndex(0), m_fileSize(0), m_non_model(0), m_unk(0), m_saved(1), m_fromXGM(false) {}
 
-IMX::IMX(FILE* inFile, const string& directory) :  m_directory(directory), m_saved(2), m_fromXGM(true)
+IMX::IMX(FILE* inFile, const string& directory) : m_directory(directory), m_saved(2), m_fromXGM(true)
 {
 	fread(m_filepath, 1, 256, inFile);
 	fread(m_name, 1, 16, inFile);

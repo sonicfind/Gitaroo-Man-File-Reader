@@ -250,9 +250,12 @@ bool XGM_Main::menu(size_t fileCount)
 							size_t index = g_global.answer.index;
 							XG_Main model(xgm.m_models[index]);
 							model.menu();
+							if (model.xg.m_saved != xgm.m_models[index].m_saved)
+								xgm.m_saved = 0;
+							xgm.m_models[index] = model.xg;
 							--g_global;
+							break;
 						}
-							__fallthrough;
 						case GlobalFunctions::ResultType::Quit:
 							g_global.quit = true;
 							break;

@@ -33,7 +33,7 @@ public:
 	XG_Main(XG& other)
 	{
 		xg = other;
-		xg.m_directory = xg.m_directory;
+		xg.m_directory = other.m_directory;
 		xg.m_fromXGM = true;
 	}
 	bool menu(size_t fileCount = 0);

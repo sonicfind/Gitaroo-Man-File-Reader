@@ -447,25 +447,33 @@ void xgDagMesh::writeTXT(FILE* outTXT, const char* tabs)
 	}
 	else if (m_primType == 5)
 	{
+		unsigned long valueIndex = 0;
 		fprintf_s(outTXT, "\t\t\t%s TriFanCount: %lu\n", tabs, m_triFanCount);
-		for (unsigned long index = 0, valueIndex = 0; valueIndex < m_triFanCount; ++index)
+		unsigned long initialVertex = m_triFanData.m_arrayData[valueIndex++];
+		fprintf_s(outTXT, "\t\t%s   Base TriFan Index: %03lu\n", tabs, initialVertex);
+		for (unsigned long index = 0; valueIndex < m_triFanData.m_arraySize; ++index)
 		{
 			fprintf_s(outTXT, "\t\t\t%s TriFan Group %03lu\n", tabs, index + 1);
-			fprintf_s(outTXT, "\t\t\t%s       Initial Vertex Index: %03lu\n", tabs, m_triFanData.m_arrayData[valueIndex++]);
 			fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabs, m_triFanData.m_arrayData[valueIndex++]);
 		}
+
+		valueIndex = 0;
 		fprintf_s(outTXT, "\t\t%s       TriStripCount: %lu\n", tabs, m_triStripCount);
-		for (unsigned long index = 0, valueIndex = 0; valueIndex < m_triStripCount; ++index)
+		initialVertex = m_triStripData.m_arrayData[valueIndex++];
+		fprintf_s(outTXT, "\t\t%s Base TriStrip Index: %03lu\n", tabs, initialVertex);
+		for (unsigned long index = 0; valueIndex < m_triStripData.m_arraySize; ++index)
 		{
 			fprintf_s(outTXT, "\t\t\t%s TriStrip Group %03lu\n", tabs, index + 1);
-			fprintf_s(outTXT, "\t\t\t%s       Initial Vertex Index: %03lu\n", tabs, m_triStripData.m_arrayData[valueIndex++]);
 			fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabs, m_triStripData.m_arrayData[valueIndex++]);
 		}
+
+		valueIndex = 0;
 		fprintf_s(outTXT, "\t\t\t%sTriListCount: %lu\n", tabs, m_triListCount);
-		for (unsigned long index = 0, valueIndex = 0; valueIndex < m_triListCount; ++index)
+		initialVertex = m_triListData.m_arrayData[valueIndex++];
+		fprintf_s(outTXT, "\t\t%s  Base TriList Index: %03lu\n", tabs, initialVertex);
+		for (unsigned long index = 0; valueIndex < m_triListData.m_arraySize; ++index)
 		{
 			fprintf_s(outTXT, "\t\t\t%s  TriList Group %03lu\n", tabs, index + 1);
-			fprintf_s(outTXT, "\t\t\t%s       Initial Vertex Index: %03lu\n", tabs, m_triListData.m_arrayData[valueIndex++]);
 			fprintf_s(outTXT, "\t\t\t\t%s      # of Vertices: %lu\n", tabs, m_triListData.m_arrayData[valueIndex++]);
 		}
 	}

@@ -34,4 +34,6 @@ public:
 	void writeTxt();
 	bool importPNGs();
 	bool exportPNGs();
+	bool importOBJs();
+	bool exportOBJs();
 };

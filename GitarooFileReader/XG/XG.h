@@ -99,6 +99,8 @@ public:
 	XG& operator=(const XG& xg);
 	void create(FILE* outFile);
 	void create(std::string filename);
+	bool exportOBJ(std::string newDirectory = "");
+	bool importOBJ();
 	//Returns name C-string (size: 16)
 	char* getName() { return m_name; }
 };

@@ -44,12 +44,14 @@ bool XGType::loadMulti()
 	do
 	{
 		GlobalFunctions::ResultType result = GlobalFunctions::ResultType::Success;
-		string choices = "iw";
+		string choices = "ewo";
 		if (m_files.size() > 1)
 		{
 			GlobalFunctions::banner(" XG Mode Selection ");
-			printf("%sI - Evaluate each XG individually\n", g_global.tabs.c_str());
+			printf("%sE - Evaluate each XG individually\n", g_global.tabs.c_str());
 			printf("%sW - Write all XGs included to readable .txts\n", g_global.tabs.c_str());
+			printf("%sO - Export models to .obj files [Gitarootools install required]\n", g_global.tabs.c_str());
+			//printf("%sX - Import models from .obj files [Gitarootools install required]\n", g_global.tabs.c_str());
 			for (size_t i = 4; i < g_filetypes.size(); ++i)
 			{
 				if (g_filetypes[i]->m_files.size() > 0)
@@ -84,7 +86,7 @@ bool XGType::loadMulti()
 						XG_Main xg(m_files.front());
 						switch (choice)
 						{
-						case 'i':
+						case 'e':
 							if (xg.menu(m_files.size()))
 							{
 								--g_global;
@@ -93,6 +95,12 @@ bool XGType::loadMulti()
 							break;
 						case 'w':
 							xg.writeTxt();
+							break;
+						case 'o':
+							xg.exportOBJ();
+							break;
+						case 'x':
+							xg.importOBJ();
 						}
 					}
 					catch (string str)
@@ -122,9 +130,11 @@ bool XG_Main::menu(size_t fileCount)
 	do
 	{
 		GlobalFunctions::banner(" " + xg.m_shortname + ".XG - Mode Selection ");
-		string choices = "sw";
+		string choices = "swo";
 		printf("%sS - Save\n", g_global.tabs.c_str());
 		printf("%sW - Write %s.txt\n", g_global.tabs.c_str(), xg.m_shortname.c_str());
+		printf("%sO - Export to a .obj file [Gitarootools install required]\n", g_global.tabs.c_str());
+		//printf("%sX - Import from a .obj file [Gitarootools install required]\n", g_global.tabs.c_str());
 		if (fileCount > 1)
 		{
 			printf("%sN - Next XG file\n", g_global.tabs.c_str());
@@ -192,6 +202,12 @@ bool XG_Main::menu(size_t fileCount)
 					break;
 				case 'w':
 					writeTxt();
+					break;
+				case 'o':
+					exportOBJ();
+					break;
+				case 'x':
+					importOBJ();
 				}
 				--g_global;
 			}
@@ -279,7 +295,7 @@ void XG_Main::writeTxt()
 	{
 		fprintf_s(outSimpleTXT, "# of Nodes: %zu\n", xg.m_data->m_nodes.size());
 		for (size_t i = 0; i < xg.m_data->m_nodes.size(); ++i)
-			fprintf_s(outSimpleTXT, "\t Node %03zu - %s\n", i + 1, xg.m_data->m_nodes[i]->m_name.m_pstring);
+			fprintf_s(outSimpleTXT, "\t Node %03zu - %s: %s\n", i + 1, xg.m_data->m_nodes[i]->getType(), xg.m_data->m_nodes[i]->m_name.m_pstring);
 		fclose(outSimpleTXT);
 	}
 
@@ -310,4 +326,22 @@ void XG_Main::writeTxt(FILE* outTXT, FILE* outSimpleTXT)
 		node->writeTXT(outTXT, "\t\t\t    ");
 		fflush(outTXT);
 	}
+}
+
+bool XG_Main::exportOBJ()
+{
+	GlobalFunctions::banner(" " + xg.m_shortname + " - Model Export ");
+	if (xg.exportOBJ())
+	{
+		printf("%sExported to %s%s.OBJ\n", g_global.tabs.c_str(), xg.m_directory.c_str(), xg.m_shortname.c_str());
+		return true;
+	}
+	else
+		return false;
+}
+
+bool XG_Main::importOBJ()
+{
+	GlobalFunctions::banner(" " + xg.m_shortname + " - Model Import ");
+	return xg.importOBJ();
 }

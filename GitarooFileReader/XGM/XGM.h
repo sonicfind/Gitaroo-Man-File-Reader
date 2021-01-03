@@ -34,4 +34,6 @@ public:
 	void create(std::string filename);
 	bool exportPNGs();
 	bool importPNGs();
+	bool exportOBJs();
+	bool importOBJs();
 };

@@ -213,3 +213,28 @@ bool XGM::importPNGs()
 	}
 	return false;
 }
+
+bool XGM::exportOBJs()
+{
+	std::string dir = m_name.substr(0, m_name.length() - 4);
+
+	// Creates a new directory with the name of the XGM as the base (if one doesn't already exist)
+	// All the PNGs will be placed in this directory
+	std::filesystem::create_directory(dir);
+	for (XG& model : m_models)
+	{
+		if (model.exportOBJ(dir + '\\'))
+		{
+			std::string obj = model.getName();
+			obj.erase(obj.length() - 2, 2);
+			obj += "OBJ";
+			printf("%sExported %-16s to %s\\%s\n", g_global.tabs.c_str(), model.getName(), m_shortname.c_str(), obj.c_str());
+		}
+	}
+	return true;
+}
+
+bool XGM::importOBJs()
+{
+	return false;
+}

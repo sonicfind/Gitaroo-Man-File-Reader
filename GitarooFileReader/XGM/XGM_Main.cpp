@@ -46,14 +46,16 @@ bool XGMType::loadMulti()
 	do
 	{
 		GlobalFunctions::ResultType result = GlobalFunctions::ResultType::Success;
-		string choices = "iwem";
+		string choices = "ewpio";
 		if (m_files.size() > 1)
 		{
 			GlobalFunctions::banner(" XGM Mode Selection ");
-			printf("%sI - Evaluate each XGM individually\n", g_global.tabs.c_str());
+			printf("%sE - Evaluate each XGM individually\n", g_global.tabs.c_str());
 			printf("%sW - Write all XGMs included to readable .txts\n", g_global.tabs.c_str());
-			printf("%sE - Export all textures from every XGM to image files [Gitarootools install required]\n", g_global.tabs.c_str());
-			printf("%sM - Import textures from image files into all XGMs [Gitarootools install required]\n", g_global.tabs.c_str());
+			printf("%sP - Export all textures from every XGM to image files [Gitarootools install required]\n", g_global.tabs.c_str());
+			printf("%sI - Import textures from image files into all XGMs [Gitarootools install required]\n", g_global.tabs.c_str());
+			printf("%sO - Export all textures from every XGM to image files [Gitarootools install required]\n", g_global.tabs.c_str());
+			//printf("%sX - Import textures from image files into all XGMs [Gitarootools install required]\n", g_global.tabs.c_str());
 			for (size_t i = 2; i < g_filetypes.size(); ++i)
 			{
 				if (g_filetypes[i]->m_files.size() > 0)
@@ -88,7 +90,7 @@ bool XGMType::loadMulti()
 						XGM_Main xgm(m_files.front());
 						switch (choice)
 						{
-						case 'i':
+						case 'e':
 							if (xgm.menu(m_files.size()))
 							{
 								--g_global;
@@ -98,11 +100,17 @@ bool XGMType::loadMulti()
 						case 'w':
 							xgm.writeTxt();
 							break;
-						case 'e':
+						case 'p':
 							xgm.exportPNGs();
 							break;
-						case 'm':
+						case 'i':
 							xgm.importPNGs();
+							break;
+						case 'o':
+							xgm.exportOBJs();
+							break;
+						case 'x':
+							xgm.importOBJs();
 						}
 					}
 					catch (string str)
@@ -132,11 +140,13 @@ bool XGM_Main::menu(size_t fileCount)
 	do
 	{
 		GlobalFunctions::banner(" " + xgm.m_shortname + ".XGM - Mode Selection ");
-		string choices = "sweitm";
+		string choices = "swpiotm";
 		printf("%sS - Save\n", g_global.tabs.c_str());
 		printf("%sW - Write %s.txt\n", g_global.tabs.c_str(), xgm.m_shortname.c_str());
-		printf("%sE - Export textures to image files [Gitarootools install required]\n", g_global.tabs.c_str());
+		printf("%sP - Export textures to image files [Gitarootools install required]\n", g_global.tabs.c_str());
 		printf("%sI - Import textures from image files [Gitarootools install required]\n", g_global.tabs.c_str());
+		printf("%sO - Export models to .obj files [Gitarootools install required]\n", g_global.tabs.c_str());
+		//printf("%sX - Import models from .obj files [Gitarootools install required]\n", g_global.tabs.c_str());
 		printf("%sT - Select a texture [Count: %zu]\n", g_global.tabs.c_str(), xgm.m_textures.size());
 		printf("%sM - Select a model   [Count: %zu]\n", g_global.tabs.c_str(), xgm.m_models.size());
 		if (fileCount > 1)
@@ -207,11 +217,17 @@ bool XGM_Main::menu(size_t fileCount)
 				case 'w':
 					writeTxt();
 					break;
-				case 'e':
+				case 'p':
 					exportPNGs();
 					break;
 				case 'i':
 					importPNGs();
+					break;
+				case 'o':
+					exportOBJs();
+					break;
+				case 'x':
+					importOBJs();
 					break;
 				case 't':
 					do
@@ -411,4 +427,16 @@ bool XGM_Main::importPNGs()
 {
 	GlobalFunctions::banner(" " + xgm.m_shortname + " - Multi-Texture Import ");
 	return xgm.importPNGs();
+}
+
+bool XGM_Main::exportOBJs()
+{
+	GlobalFunctions::banner(" " + xgm.m_shortname + " - Multi-Model Export ");
+	return xgm.exportOBJs();
+}
+
+bool XGM_Main::importOBJs()
+{
+	GlobalFunctions::banner(" " + xgm.m_shortname + " - Multi-Model Import ");
+	return xgm.importOBJs();
 }

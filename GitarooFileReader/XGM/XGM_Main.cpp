@@ -41,6 +41,7 @@ bool XGM::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 			printf_tab("Q - Proceed to the next filetype (%s)\n", nextExtension.second);
 		else
 			printf_tab("Q - Quit\n");
+
 		switch (menuChoices(choices))
 		{
 		case ResultType::Quit:

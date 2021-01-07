@@ -33,7 +33,7 @@ The main function has two modes:
 \---------------------------------------------------------------------*/
 int main(int argc, char** argv)
 {
-	GlobalFunctions::banner(" Gitaroo File Reader v1.1.0 ");
+	GlobalFunctions::banner(" Gitaroo File Reader v1.2.0 ");
 	GlobalFunctions::banner(" 'Q' is the universal \"quit\" option | Use ';' for \"multi-step\" actions ");
 
 	if (!multi(argc, argv))

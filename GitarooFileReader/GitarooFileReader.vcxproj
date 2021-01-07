@@ -250,6 +250,8 @@
     </ClCompile>
     <ClCompile Include="XGM\Viewer\Shaders.cpp" />
     <ClCompile Include="XGM\Viewer\Viewer.cpp" />
+    <ClCompile Include="SSQ\SSQ.cpp" />
+    <ClCompile Include="SSQ\SSQ_Main.cpp" />
     <ClCompile Include="Main\GitarooFileReader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -304,6 +306,7 @@
     <ClInclude Include="XGM\Viewer\InputHandler.h" />
     <ClInclude Include="XGM\Viewer\Shaders.h" />
     <ClInclude Include="XGM\Viewer\Viewer.h" />
+    <ClInclude Include="SSQ\SSQ.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GitarooFileReader.rc" />
@@ -317,6 +320,7 @@
     <Natvis Include="IMX\IMX.natvis" />
     <Natvis Include="Main\SharedPtr.natvis" />
     <Natvis Include="XG\XG.natvis" />
+    <Natvis Include="SSQ\SSQ.natvis" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base.vert" />

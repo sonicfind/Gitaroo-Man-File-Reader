@@ -85,6 +85,9 @@
     <Filter Include="Visual-Based Types\XG\XGNodes\Materials">
       <UniqueIdentifier>{f1313f1d-4531-402b-8c8a-00b6f97ad972}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Visual-Based Types\SSQ">
+      <UniqueIdentifier>{7f99acf0-c594-4f87-918a-cd90adb1005f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main\pch.cpp">
@@ -243,6 +246,12 @@
     <ClCompile Include="XG\Vertex Types\Vertex.cpp">
       <Filter>Visual-Based Types\XG\Vertex Types</Filter>
     </ClCompile>
+    <ClCompile Include="SSQ\SSQ.cpp">
+      <Filter>Visual-Based Types\SSQ</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\SSQ_Main.cpp">
+      <Filter>Visual-Based Types\SSQ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\Global_Functions.h">
@@ -392,6 +401,9 @@
     <ClInclude Include="XG\Vertex Types\Vertex.h">
       <Filter>Visual-Based Types\XG\Vertex Types</Filter>
     </ClInclude>
+    <ClInclude Include="SSQ\SSQ.h">
+      <Filter>Visual-Based Types\SSQ</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\pch.h">
@@ -426,6 +438,9 @@
     </Natvis>
     <Natvis Include="XG\XG.natvis">
       <Filter>Visual-Based Types\XG</Filter>
+    </Natvis>
+    <Natvis Include="SSQ\SSQ.natvis">
+      <Filter>Visual-Based Types\SSQ</Filter>
     </Natvis>
     <Natvis Include="Main\SharedPtr.natvis">
       <Filter>Global</Filter>

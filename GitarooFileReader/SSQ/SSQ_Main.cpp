@@ -13,23 +13,21 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "XG/XG.h"
+#include "SSQ.h"
 using namespace GlobalFunctions;
-const std::string XG::multiChoiceString = "ewo";
+const std::string SSQ::multiChoiceString = "ew";
 
-bool XG::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
+bool SSQ::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 {
-	const std::string choices = nextFile ? "swon" : "swo";
+	const std::string choices = nextFile ? "swn" : "sw";
 	while (true)
 	{
-		banner(" " + m_filename + ".XG - Mode Selection ");
+		banner(" " + m_filename + m_extension + " - Mode Selection ");
 		printf_tab("S - Save\n");
-		printf_tab("W - Write %s_XG.txt\n", m_filename.c_str());
-		printf_tab("O - Export to a .obj file\n");
+		printf_tab("W - Write %s_SSQ.txt\n", m_filename.c_str());
 		//printf_tab("I - Import from a .obj file\n");
-
 		if (nextFile)
-			printf_tab("N - Next .XG file\n");
+			printf_tab("N - Next .SSQ file\n");
 
 		if (nextExtension.first)
 			printf_tab("Q - Proceed to the next filetype (%s)\n", nextExtension.second);
@@ -67,28 +65,25 @@ bool XG::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 	}
 }
 
-bool XG::functionSelection(const char choice, bool isMulti)
+bool SSQ::functionSelection(const char choice, bool isMulti)
 {
 	switch (choice)
 	{
 	case 'w':
 		return write_to_txt();
-	case 'o':
-		return write_to_obj();
 	default:
 		return false;
 	}
 }
 
-void XG::displayMultiChoices()
+void SSQ::displayMultiChoices()
 {
-	printf_tab("E - Evaluate each XG individually\n");
-	printf_tab("W - Write all XGs included to readable .txts\n");
-	printf_tab("O - Export models to .obj files\n");
-	//printf_tab("I - Import models from .obj files\n");
+	printf_tab("E - Evaluate each SSQ individually\n");
+	printf_tab("W - Write all SSQs included to readable .txts\n");
 }
 
-void XG::displayMultiHelp()
+void SSQ::displayMultiHelp()
 {
 
 }
+

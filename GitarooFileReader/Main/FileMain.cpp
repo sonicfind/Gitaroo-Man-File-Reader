@@ -15,7 +15,7 @@
 #include "pch.h"
 #include "FileMain.h"
 #include "CHC/CHC.h"
-#include "XGM/XGM.h"
+#include "SSQ/SSQ.h"
 
 bool AbstractMain::doesContainFiles() { return m_filenames.size() > 0; }
 
@@ -25,6 +25,7 @@ FileMainList::FileMainList()
 	m_mains[1] = new FileMain<IMX>;
 	m_mains[2] = new FileMain<XG>;
 	m_mains[3] = new FileMain<XGM>;
+	m_mains[4] = new FileMain<SSQ>;
 }
 
 FileMainList::~FileMainList()

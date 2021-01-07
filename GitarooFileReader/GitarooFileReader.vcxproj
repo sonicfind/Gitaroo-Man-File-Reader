@@ -195,6 +195,8 @@
     <ClCompile Include="Main\Global_Functions.cpp" />
     <ClCompile Include="Main\pch.cpp" />
     <ClCompile Include="PString\PString.cpp" />
+    <ClCompile Include="SSQ\SSQ.cpp" />
+    <ClCompile Include="SSQ\SSQ_Main.cpp" />
     <ClCompile Include="XGM\XGM.cpp" />
     <ClCompile Include="XGM\XGM_Main.cpp" />
     <ClCompile Include="XG\XG.cpp" />
@@ -217,6 +219,8 @@
     <ClInclude Include="Main\pch.h" />
     <ClInclude Include="PString\PString.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SSQ\SSQ.h" />
+    <ClInclude Include="SSQ\SSQ_Main.h" />
     <ClInclude Include="XGM\XGM.h" />
     <ClInclude Include="XGM\XGM_Editor.h" />
     <ClInclude Include="XGM\XGM_Main.h" />
@@ -233,6 +237,7 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="IMX\IMX.natvis" />
+    <Natvis Include="SSQ\SSQ.natvis" />
     <Natvis Include="XG\XG.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

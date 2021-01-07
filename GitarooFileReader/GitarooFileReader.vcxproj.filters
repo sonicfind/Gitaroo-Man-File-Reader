@@ -58,6 +58,15 @@
     <Filter Include="Visual-Based Types\IMX\Editor">
       <UniqueIdentifier>{95225374-c76f-44e0-8ad8-fb2f26640250}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Visual-Based Types\SSQ">
+      <UniqueIdentifier>{7f99acf0-c594-4f87-918a-cd90adb1005f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\SSQ\Main">
+      <UniqueIdentifier>{42c726f6-e919-4e49-a3d2-0c492c8f2b94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\SSQ\Editor">
+      <UniqueIdentifier>{a575aae0-1c8a-45c0-b8a5-60c8c7542db3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CHC\CHC_Main.cpp">
@@ -120,6 +129,12 @@
     <ClCompile Include="XG\XG_Nodes.cpp">
       <Filter>Visual-Based Types\XG</Filter>
     </ClCompile>
+    <ClCompile Include="SSQ\SSQ.cpp">
+      <Filter>Visual-Based Types\SSQ</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\SSQ_Main.cpp">
+      <Filter>Visual-Based Types\SSQ\Main</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CHC\CHC_Main.h">
@@ -179,6 +194,12 @@
     <ClInclude Include="XG\XG_Nodes.h">
       <Filter>Visual-Based Types\XG</Filter>
     </ClInclude>
+    <ClInclude Include="SSQ\SSQ.h">
+      <Filter>Visual-Based Types\SSQ</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\SSQ_Main.h">
+      <Filter>Visual-Based Types\SSQ\Main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\pch.h">
@@ -207,6 +228,9 @@
     </Natvis>
     <Natvis Include="XG\XG.natvis">
       <Filter>Visual-Based Types\XG</Filter>
+    </Natvis>
+    <Natvis Include="SSQ\SSQ.natvis">
+      <Filter>Visual-Based Types\SSQ</Filter>
     </Natvis>
   </ItemGroup>
 </Project>

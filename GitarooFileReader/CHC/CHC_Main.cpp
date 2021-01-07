@@ -215,7 +215,7 @@ bool CHC_Main::menu(size_t fileCount)
 		GlobalFunctions::banner(" " + m_song.m_shortname + ".CHC - Mode Selection ");
 		string choices = "swpdtei";
 		printf("%sS - Save\n", g_global.tabs.c_str());
-		printf("%sW - Write %s.txt\n", g_global.tabs.c_str(), m_song.m_shortname.c_str());
+		printf("%sW - Write %s_CHC.txt\n", g_global.tabs.c_str(), m_song.m_shortname.c_str());
 		printf("%sP - Swap players\n", g_global.tabs.c_str());
 		if (m_song.m_unorganized || !m_song.m_optimized)
 		{
@@ -412,35 +412,30 @@ void CHC_Main::saveFile(bool onExit)
 					{
 					case GlobalFunctions::ResultType::Quit:
 						return;
-					case GlobalFunctions::ResultType::Success:
-						if (g_global.answer.character == 'n')
+					case GlobalFunctions::ResultType::No:
+						printf("%s\n", g_global.tabs.c_str());
+						ext += "_T";
+						break;
+					default:
+						m_song.create(filename + ext + ".CHC");
+						if (!onExit)
 						{
-							printf("%s\n", g_global.tabs.c_str());
-							ext += "_T";
-							break;
-						}
-						else
-						{
-							m_song.create(filename + ext + ".CHC");
-							if (!onExit)
+							do
 							{
-								do
+								printf("%sSwap loaded file to %s.CHC? [Y/N]\n", g_global.tabs.c_str(), (filename + ext).c_str());
+								switch (GlobalFunctions::menuChoices("yn"))
 								{
-									printf("%sSwap loaded file to %s.CHC? [Y/N]\n", g_global.tabs.c_str(), (filename + ext).c_str());
-									switch (GlobalFunctions::menuChoices("yn"))
+								case GlobalFunctions::ResultType::Success:
+									if (g_global.answer.character == 'y')
 									{
-									case GlobalFunctions::ResultType::Success:
-										if (g_global.answer.character == 'y')
-										{
-											m_song.m_filename = filename + ext + ".CHC";
-											m_song.m_shortname += ext;
-											m_song.m_saved = 2;
-										}
-									case GlobalFunctions::ResultType::Quit:
-										g_global.quit = true;
+										m_song.m_filename = filename + ext + ".CHC";
+										m_song.m_shortname += ext;
+										m_song.m_saved = 2;
 									}
-								} while (!g_global.quit);
-							}
+								case GlobalFunctions::ResultType::Quit:
+									g_global.quit = true;
+								}
+							} while (!g_global.quit);
 						}
 					}
 				} while (!g_global.quit);

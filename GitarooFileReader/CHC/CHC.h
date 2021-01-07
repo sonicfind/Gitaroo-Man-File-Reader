@@ -16,7 +16,7 @@
 #include "Global_Functions.h"
 constexpr float s_SAMPLES_PER_MIN = 2880000.0f;
 
-struct SSQ
+struct SSQRange
 {
 	float first = 0;
 	float last = 0;
@@ -45,7 +45,7 @@ private:
 	char m_imc[256] = { 0 };
 
 	//Win-Loss Animations
-	SSQ m_events[4];
+	SSQRange m_events[4];
 
 	//Hold data for all 8 audio channels
 	struct AudioChannel
@@ -107,7 +107,7 @@ private:
 	char m_audio[17] = { 0 };
 
 	//SSQ frame range
-	SSQ m_frames;
+	SSQRange m_frames;
 	//Saves whether the subsections are correctly ordered
 	unsigned long m_organized = false;
 	//Value that holds how the section is swapped

@@ -55,7 +55,7 @@ CHC::CHC(string filename) : m_filename(filename + ".CHC"), m_saved(2)
 	m_optimized = u.ui == 6145;
 	fread(m_imc, 1, 256, inFile);
 	bool duet = m_imc[0] == 0;
-	fread(&m_events, sizeof(SSQ), 4, inFile);
+	fread(&m_events, sizeof(SSQRange), 4, inFile);
 	fread(&m_audio, sizeof(AudioChannel), 8, inFile);
 	fread(&m_speed, 4, 1, inFile);
 	fread(u.c, 4, 1, inFile);
@@ -173,7 +173,7 @@ void CHC::create(string filename)
 	fwrite(m_header, 1, 36, outFile);
 	fwrite(m_imc, 1, 256, outFile);
 
-	fwrite(m_events, sizeof(SSQ), 4, outFile);
+	fwrite(m_events, sizeof(SSQRange), 4, outFile);
 	fwrite(m_audio, sizeof(AudioChannel), 8, outFile);
 	fwrite(&m_speed, 4, 1, outFile);
 
@@ -297,7 +297,7 @@ SongSection::SongSection(FILE* inFile) : m_organized(false), m_size(384), m_batt
 	fread(&m_index, 4, 1, inFile);
 	fread(&m_name, 1, 16, inFile);
 	fread(&m_audio, 1, 16, inFile);
-	fread(&m_frames, sizeof(SSQ), 1, inFile);
+	fread(&m_frames, sizeof(SSQRange), 1, inFile);
 	fseek(inFile, 4, SEEK_CUR);
 }
 

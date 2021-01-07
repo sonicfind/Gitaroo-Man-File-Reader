@@ -142,7 +142,7 @@ bool XGM_Main::menu(size_t fileCount)
 		GlobalFunctions::banner(" " + xgm.m_shortname + ".XGM - Mode Selection ");
 		string choices = "swpiotm";
 		printf("%sS - Save\n", g_global.tabs.c_str());
-		printf("%sW - Write %s.txt\n", g_global.tabs.c_str(), xgm.m_shortname.c_str());
+		printf("%sW - Write %s_XGM.txt\n", g_global.tabs.c_str(), xgm.m_shortname.c_str());
 		printf("%sP - Export textures to image files [Gitarootools install required]\n", g_global.tabs.c_str());
 		printf("%sI - Import textures from image files [Gitarootools install required]\n", g_global.tabs.c_str());
 		printf("%sO - Export models to .obj files [Gitarootools install required]\n", g_global.tabs.c_str());

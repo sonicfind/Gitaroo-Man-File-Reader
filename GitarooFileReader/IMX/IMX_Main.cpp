@@ -134,7 +134,7 @@ bool IMX_Main::menu(size_t fileCount)
 		GlobalFunctions::banner(" " + imx.m_shortname + ".IMX - Mode Selection ");
 		string choices = "swpi";
 		printf("%sS - Save\n", g_global.tabs.c_str());
-		printf("%sW - Write %s.txt\n", g_global.tabs.c_str(), imx.m_shortname.c_str());
+		printf("%sW - Write %s_IMX.txt\n", g_global.tabs.c_str(), imx.m_shortname.c_str());
 		printf("%sP - Export to an image file [Gitarootools install required]\n", g_global.tabs.c_str());
 		printf("%sI - Import from an image file [Gitarootools install required]\n", g_global.tabs.c_str());
 		if (fileCount > 1)

@@ -132,7 +132,7 @@ bool XG_Main::menu(size_t fileCount)
 		GlobalFunctions::banner(" " + xg.m_shortname + ".XG - Mode Selection ");
 		string choices = "swo";
 		printf("%sS - Save\n", g_global.tabs.c_str());
-		printf("%sW - Write %s.txt\n", g_global.tabs.c_str(), xg.m_shortname.c_str());
+		printf("%sW - Write %s_XG.txt\n", g_global.tabs.c_str(), xg.m_shortname.c_str());
 		printf("%sO - Export to a .obj file [Gitarootools install required]\n", g_global.tabs.c_str());
 		//printf("%sX - Import from a .obj file [Gitarootools install required]\n", g_global.tabs.c_str());
 		if (fileCount > 1)

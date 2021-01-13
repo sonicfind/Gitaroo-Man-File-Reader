@@ -394,7 +394,7 @@ namespace GlobalFunctions
 					{
 						g_global.answer.character = tolower(g_global.input);
 						printValues(0);
-						g_global.multi = true;
+						testForMulti();
 						return ResultType::SpecialCase;
 					}
 					else

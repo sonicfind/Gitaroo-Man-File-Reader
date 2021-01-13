@@ -13,7 +13,6 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "Global_Functions.h"
 #include "IMX\IMX.h"
 #include "XG\XG.h"
 
@@ -22,10 +21,10 @@ class XGM
 	friend class XGM_Main;
 	friend class Editor;
 private:
-	std::vector<IMX> m_textures;
-	std::vector<XG> m_models;
 	char m_saved;
 public:
+	std::vector<IMX> m_textures;
+	std::vector<XG> m_models;
 	std::string m_name;
 	std::string m_shortname;
 	XGM();

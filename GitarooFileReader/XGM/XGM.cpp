@@ -13,6 +13,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
+#include "Global_Functions.h"
 #include "XGM.h"
 #include <filesystem>
 

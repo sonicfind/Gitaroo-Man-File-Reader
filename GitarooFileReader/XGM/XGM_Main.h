@@ -27,6 +27,7 @@ class XGM_Main
 {
 private:
 	XGM xgm;
+	static bool showNormals;
 public:
 	XGM_Main(std::string filename) : xgm(filename) {}
 	bool menu(size_t fileCount = 0);
@@ -36,4 +37,5 @@ public:
 	bool exportPNGs();
 	bool importOBJs();
 	bool exportOBJs();
+	void viewModel();
 };

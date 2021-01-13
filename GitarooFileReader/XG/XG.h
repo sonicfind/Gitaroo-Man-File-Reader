@@ -31,8 +31,6 @@ public:
 		void create(FILE* outFile, bool braces = false);
 	};
 private:
-	std::vector<std::shared_ptr<XGNode>> m_nodes;
-	std::vector<DagBase> m_dag;
 	template <typename T>
 	bool addNode(PString& type, PString& name)
 	{
@@ -54,6 +52,8 @@ private:
 		return false;
 	}
 public:
+	std::vector<std::shared_ptr<XGNode>> m_nodes;
+	std::vector<DagBase> m_dag;
 	XG_Data() = default;
 	XG_Data(FILE* inFile);
 	XG_Data(XG_Data& xg);
@@ -85,11 +85,11 @@ private:
 	unsigned long m_modelIndex;
 	unsigned long m_fileSize;
 	unsigned long m_unk;
-	std::vector<Animation> m_animations;
-	std::shared_ptr<XG_Data> m_data;
 	char m_saved;
 public:
 	bool m_fromXGM;
+	std::vector<Animation> m_animations;
+	std::shared_ptr<XG_Data> m_data;
 	std::string m_directory;
 	std::string m_shortname;
 	XG();

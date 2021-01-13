@@ -14,32 +14,18 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class IMX_Data
+struct IMX_Data
 {
-	friend class IMX_Main;
-	friend class IMX;
-public:
 	struct Pixel4
 	{
-		char pixel1 : 4, pixel2 : 4;
+		unsigned char pixel1 : 4, pixel2 : 4;
 	};
-	struct Pixel8
-	{
-		char pixel = 0;
-	};
-	struct Pixel24
-	{
-		char red = 0;
-		char green = 0;
-		char blue = 0;
-	};
-	struct Pixel32
-	{
-		char red = 0;
-		char green = 0;
-		char blue = 0;
-		char alpha = 0;
-	};
+
+	unsigned long m_width = 0;
+	unsigned long m_height = 0;
+	unsigned long m_pixelVal1 = 0;
+	unsigned long m_pixelVal2 = 0;
+
 	struct Image
 	{
 		unsigned long m_paletteSize = 0;
@@ -51,13 +37,7 @@ public:
 		Image(const Image&, bool);
 		~Image();
 	};
-private:
-	unsigned long m_width = 0;
-	unsigned long m_height = 0;
-	unsigned long m_pixelVal1 = 0;
-	unsigned long m_pixelVal2 = 0;
 	std::shared_ptr<Image> m_colorData;
-public:
 	IMX_Data();
 	IMX_Data(FILE* inFile);
 	IMX_Data(IMX_Data& imx);
@@ -76,10 +56,10 @@ class IMX
 	unsigned long m_non_model;
 	unsigned long m_unk;
 	char m_junk[12] = { 0 };
-	std::shared_ptr<IMX_Data> m_data;
 	char m_saved;
 public:
 	bool m_fromXGM;
+	std::shared_ptr<IMX_Data> m_data;
 	std::string m_directory;
 	std::string m_shortname;
 	IMX();

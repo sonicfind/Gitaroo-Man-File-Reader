@@ -58,6 +58,12 @@
     <Filter Include="Visual-Based Types\IMX\Editor">
       <UniqueIdentifier>{95225374-c76f-44e0-8ad8-fb2f26640250}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Visual-Based Types\XGM\Viewer">
+      <UniqueIdentifier>{5d8cf73e-d70b-40b4-8de7-fec0ca45a6d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\XG\XGNodes">
+      <UniqueIdentifier>{fe990c9d-ee4f-4b3d-a31e-8a7c0987f8d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CHC\CHC_Main.cpp">
@@ -120,6 +126,12 @@
     <ClCompile Include="XG\XG_Nodes.cpp">
       <Filter>Visual-Based Types\XG</Filter>
     </ClCompile>
+    <ClCompile Include="XGM\XGM_Viewer.cpp">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\glad\glad.c">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+	</ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CHC\CHC_Main.h">
@@ -178,6 +190,15 @@
     </ClInclude>
     <ClInclude Include="XG\XG_Nodes.h">
       <Filter>Visual-Based Types\XG</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\XGM_Viewer.h">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\Viewer\Camera.h">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\Viewer\Shaders.h">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

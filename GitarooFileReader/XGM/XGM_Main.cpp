@@ -17,6 +17,7 @@
 #include "XGM_Main.h"
 #include "IMX/IMX_Main.h"
 #include "XG/XG_Main.h"
+#include "XGM_Viewer.h"
 using namespace std;
 
 bool XGMType::loadSingle(string filename)
@@ -46,7 +47,7 @@ bool XGMType::loadMulti()
 	do
 	{
 		GlobalFunctions::ResultType result = GlobalFunctions::ResultType::Success;
-		string choices = "ewpio";
+		string choices = "ewpiov";
 		if (m_files.size() > 1)
 		{
 			GlobalFunctions::banner(" XGM Mode Selection ");
@@ -56,6 +57,7 @@ bool XGMType::loadMulti()
 			printf("%sI - Import textures from image files into all XGMs [Gitarootools install required]\n", g_global.tabs.c_str());
 			printf("%sO - Export all textures from every XGM to image files [Gitarootools install required]\n", g_global.tabs.c_str());
 			//printf("%sX - Import textures from image files into all XGMs [Gitarootools install required]\n", g_global.tabs.c_str());
+			printf("%sV - View all XGMs through the Model Viewer\n", g_global.tabs.c_str());
 			for (size_t i = 2; i < g_filetypes.size(); ++i)
 			{
 				if (g_filetypes[i]->m_files.size() > 0)
@@ -111,6 +113,8 @@ bool XGMType::loadMulti()
 							break;
 						case 'x':
 							xgm.importOBJs();
+						case 'v':
+							xgm.viewModel();
 						}
 					}
 					catch (string str)
@@ -135,18 +139,21 @@ bool XGMType::loadMulti()
 	return false;
 }
 
+bool XGM_Main::showNormals = false;
+
 bool XGM_Main::menu(size_t fileCount)
 {
 	do
 	{
 		GlobalFunctions::banner(" " + xgm.m_shortname + ".XGM - Mode Selection ");
-		string choices = "swpiotm";
+		string choices = "swpiotmv";
 		printf("%sS - Save\n", g_global.tabs.c_str());
 		printf("%sW - Write %s_XGM.txt\n", g_global.tabs.c_str(), xgm.m_shortname.c_str());
 		printf("%sP - Export textures to image files [Gitarootools install required]\n", g_global.tabs.c_str());
 		printf("%sI - Import textures from image files [Gitarootools install required]\n", g_global.tabs.c_str());
 		printf("%sO - Export models to .obj files [Gitarootools install required]\n", g_global.tabs.c_str());
 		//printf("%sX - Import models from .obj files [Gitarootools install required]\n", g_global.tabs.c_str());
+		printf("%sV - Open model viewer\n", g_global.tabs.c_str());
 		printf("%sT - Select a texture [Count: %zu]\n", g_global.tabs.c_str(), xgm.m_textures.size());
 		printf("%sM - Select a model   [Count: %zu]\n", g_global.tabs.c_str(), xgm.m_models.size());
 		if (fileCount > 1)
@@ -279,8 +286,8 @@ bool XGM_Main::menu(size_t fileCount)
 					} while (!g_global.quit);
 					g_global.quit = false;
 					break;
-				case 'n':
-					return false;
+				case 'v':
+					viewModel();
 				}
 				--g_global;
 			}
@@ -419,24 +426,88 @@ void XGM_Main::writeTxt()
 
 bool XGM_Main::exportPNGs()
 {
-	GlobalFunctions::banner(" " + xgm.m_shortname + " - Multi-Texture Export ");
+	GlobalFunctions::banner(" " + xgm.m_shortname + ".XGM - Multi-Texture Export ");
 	return xgm.exportPNGs();
 }
 
 bool XGM_Main::importPNGs()
 {
-	GlobalFunctions::banner(" " + xgm.m_shortname + " - Multi-Texture Import ");
+	GlobalFunctions::banner(" " + xgm.m_shortname + ".XGM - Multi-Texture Import ");
 	return xgm.importPNGs();
 }
 
 bool XGM_Main::exportOBJs()
 {
-	GlobalFunctions::banner(" " + xgm.m_shortname + " - Multi-Model Export ");
+	GlobalFunctions::banner(" " + xgm.m_shortname + ".XGM - Multi-Model Export ");
 	return xgm.exportOBJs();
 }
 
 bool XGM_Main::importOBJs()
 {
-	GlobalFunctions::banner(" " + xgm.m_shortname + " - Multi-Model Import ");
+	GlobalFunctions::banner(" " + xgm.m_shortname + ".XGM - Multi-Model Import ");
 	return xgm.importOBJs();
+}
+
+void XGM_Main::viewModel()
+{
+	while (true)
+	{
+		std::vector<size_t> sectionIndexes;
+		do
+		{
+			GlobalFunctions::banner(" " + xgm.m_shortname + ".XGM - Model Viewer ");
+			printf("%sType the number for each model that you wish to look at w/ spaces in-between\n", g_global.tabs.c_str());
+			for (size_t index = 0; index < xgm.m_models.size(); ++index)
+				printf("%s%zu - %s\n", g_global.tabs.c_str(), index, xgm.m_models[index].getName());
+			if (sectionIndexes.size())
+			{
+				printf("%sCurrent List: ", g_global.tabs.c_str());
+				for (const size_t index : sectionIndexes)
+					printf("%s ", xgm.m_models[index].getName());
+				putchar('\n');
+			}
+			printf("%sShow Normals: %s [Enter 'S' to toggle this value]\n", g_global.tabs.c_str(), showNormals ? "TRUE" : "FALSE");
+			printf("%s? - Help\n", g_global.tabs.c_str());
+			switch (GlobalFunctions::insertIndexValues(sectionIndexes, "yns", xgm.m_models.size()))
+			{
+			case GlobalFunctions::ResultType::Help:
+				printf("%s\n%sMove with WASD\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+				printf("%sSpace to ascend | Left Shift to descend\n", g_global.tabs.c_str());
+				printf("%sUP/DOWN keys to increase or decrease speed respectively\n", g_global.tabs.c_str());
+				printf("%sScroll Wheel to increase or decrease zoom\n", g_global.tabs.c_str());
+				printf("%sESC to exit\n", g_global.tabs.c_str());
+				printf("%sPress 'Enter' when you're done reading", g_global.tabs.c_str());
+				GlobalFunctions::clearIn();
+				g_global.input = getchar();
+				putchar('\n');
+				ungetc(g_global.input, stdin);
+				GlobalFunctions::testForMulti();
+				break;
+			case GlobalFunctions::ResultType::Quit:
+				return;
+			case GlobalFunctions::ResultType::SpecialCase:
+				if (g_global.answer.character == 's')
+					showNormals = !showNormals;
+				else if (g_global.answer.character != 'n' && sectionIndexes.size())
+				{
+					g_global.quit = true;
+					break;
+				}
+				else if (g_global.answer.character == 'n')
+				{
+					printf("%s\n", g_global.tabs.c_str());
+					printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", g_global.tabs.c_str());
+					printf("%s\n", g_global.tabs.c_str());
+					break;
+				}
+				__fallthrough;
+			case GlobalFunctions::ResultType::Success:
+				if (sectionIndexes.size())
+					g_global.quit = true;
+			}
+		} while (!g_global.quit);
+		g_global.quit = false;
+		XGM_Viewer viewer;
+		viewer.viewXG(&xgm, sectionIndexes, showNormals);
+	};
 }

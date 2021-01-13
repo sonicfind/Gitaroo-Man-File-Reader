@@ -170,6 +170,16 @@ bool XG::exportOBJ(std::string newDirectory)
 					if (input.m_node == node2.get())
 					{
 						xgBgGeometry* geo = (xgBgGeometry*)node2.get();
+						unsigned long vertexSize = 0;
+						if (geo->m_vertexFlags & 1) // Position
+							vertexSize += 4;
+						if (geo->m_vertexFlags & 2) // Normal
+							vertexSize += 3;
+						if (geo->m_vertexFlags & 4) // Color
+							vertexSize += 4;
+						if (geo->m_vertexFlags & 8) // Texture Coordinate
+							vertexSize += 2;
+
 						if (mesh->m_primType == 4)
 						{
 							if (mesh->m_triFanCount)
@@ -180,71 +190,74 @@ bool XG::exportOBJ(std::string newDirectory)
 									const unsigned long normIndex = (unsigned long)vertNormals.size();
 									const unsigned long coordIndex = (unsigned long)texCoords.size();
 									const unsigned long numIndexes = mesh->m_triFanData.m_arrayData[valueIndex++];
-									int arraypos = 0;
 									{
-										const unsigned long initialIndex = mesh->m_triFanData.m_arrayData[valueIndex++];
-										const unsigned long secondIndex = mesh->m_triFanData.m_arrayData[valueIndex++];
+										unsigned long firstIndex = mesh->m_triFanData.m_arrayData[valueIndex++] * vertexSize;
+										unsigned long secondIndex = mesh->m_triFanData.m_arrayData[valueIndex++] * vertexSize;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[initialIndex][0],
-																geo->m_vertices[initialIndex][1],
-																geo->m_vertices[initialIndex][2] });
-											vertices.push_back({ geo->m_vertices[secondIndex][0],
-																geo->m_vertices[secondIndex][1],
-																geo->m_vertices[secondIndex][2] });
-											arraypos += 4;
+											vertices.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1],
+																geo->m_vertices[firstIndex + 2] });
+											vertices.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1],
+																geo->m_vertices[secondIndex + 2] });
+											firstIndex += 4;
+											secondIndex += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[initialIndex][arraypos],
-																geo->m_vertices[initialIndex][arraypos + 1],
-																geo->m_vertices[initialIndex][arraypos + 2] });
-											vertNormals.push_back({ geo->m_vertices[secondIndex][arraypos],
-																geo->m_vertices[secondIndex][arraypos + 1],
-																geo->m_vertices[secondIndex][arraypos + 2] });
-											arraypos += 3;
+											vertNormals.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1],
+																geo->m_vertices[firstIndex + 2] });
+											vertNormals.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1],
+																geo->m_vertices[secondIndex + 2] });
+											firstIndex += 3;
+											secondIndex += 3;
 										}
 										if (geo->m_vertexFlags & 4) // Color
-											arraypos += 4;
+										{
+											firstIndex += 4;
+											secondIndex += 4;
+										}
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[initialIndex][arraypos],
-																geo->m_vertices[initialIndex][arraypos + 1] });
-											texCoords.push_back({ geo->m_vertices[secondIndex][arraypos],
-																geo->m_vertices[secondIndex][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1] });
+											texCoords.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1] });
 										}
 									}
 									for (unsigned long vertex = 2; vertex < numIndexes; ++vertex)
 									{
-										const unsigned long index = mesh->m_triFanData.m_arrayData[valueIndex++];
+										unsigned long index = mesh->m_triFanData.m_arrayData[valueIndex++] * vertexSize;
 										Face face;
-										arraypos = 0;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[index][0],
-																geo->m_vertices[index][1],
-																geo->m_vertices[index][2] });
+											vertices.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1],
+																geo->m_vertices[index + 2] });
 											face.pos[0] = vertIndex;
 											face.pos[1] = vertIndex + vertex - 1;
 											face.pos[2] = vertIndex + vertex;
-											arraypos += 4;
+											index += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[index][arraypos],
-																geo->m_vertices[index][arraypos + 1],
-																geo->m_vertices[index][arraypos + 2] });
+											vertNormals.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1],
+																geo->m_vertices[index + 2] });
 											face.nor[0] = normIndex;
 											face.nor[1] = normIndex + vertex - 1;
 											face.nor[2] = normIndex + vertex;
-											arraypos += 3;
+											index += 3;
 										}
 										if (geo->m_vertexFlags & 4)
-											arraypos += 4;
+											index += 4;
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[index][arraypos],
-																geo->m_vertices[index][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1] });
 											face.tex[0] = coordIndex;
 											face.tex[1] = coordIndex + vertex - 1;
 											face.tex[2] = coordIndex + vertex;
@@ -262,50 +275,53 @@ bool XG::exportOBJ(std::string newDirectory)
 									const unsigned long normIndex = (unsigned long)vertNormals.size();
 									const unsigned long coordIndex = (unsigned long)texCoords.size();
 									const unsigned long numIndexes = mesh->m_triStripData.m_arrayData[valueIndex++];
-									int arraypos = 0;
 									{
-										const unsigned long firstIndex = mesh->m_triStripData.m_arrayData[valueIndex++];
-										const unsigned long secondIndex = mesh->m_triStripData.m_arrayData[valueIndex++];
+										unsigned long firstIndex = mesh->m_triFanData.m_arrayData[valueIndex++] * vertexSize;
+										unsigned long secondIndex = mesh->m_triFanData.m_arrayData[valueIndex++] * vertexSize;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[firstIndex][0],
-																geo->m_vertices[firstIndex][1],
-																geo->m_vertices[firstIndex][2] });
-											vertices.push_back({ geo->m_vertices[secondIndex][0],
-																geo->m_vertices[secondIndex][1],
-																geo->m_vertices[secondIndex][2] });
-											arraypos += 4;
+											vertices.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1],
+																geo->m_vertices[firstIndex + 2] });
+											vertices.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1],
+																geo->m_vertices[secondIndex + 2] });
+											firstIndex += 4;
+											secondIndex += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[firstIndex][arraypos],
-																geo->m_vertices[firstIndex][arraypos + 1],
-																geo->m_vertices[firstIndex][arraypos + 2] });
-											vertNormals.push_back({ geo->m_vertices[secondIndex][arraypos],
-																geo->m_vertices[secondIndex][arraypos + 1],
-																geo->m_vertices[secondIndex][arraypos + 2] });
-											arraypos += 3;
+											vertNormals.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1],
+																geo->m_vertices[firstIndex + 2] });
+											vertNormals.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1],
+																geo->m_vertices[secondIndex + 2] });
+											firstIndex += 3;
+											secondIndex += 3;
 										}
 										if (geo->m_vertexFlags & 4) // Color
-											arraypos += 4;
+										{
+											firstIndex += 4;
+											secondIndex += 4;
+										}
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[firstIndex][arraypos],
-																geo->m_vertices[firstIndex][arraypos + 1] });
-											texCoords.push_back({ geo->m_vertices[secondIndex][arraypos],
-																geo->m_vertices[secondIndex][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1] });
+											texCoords.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1] });
 										}
 									}
 									for (unsigned long vertex = 2; vertex < numIndexes; ++vertex)
 									{
-										const unsigned long index = mesh->m_triStripData.m_arrayData[valueIndex++];
+										unsigned long index = mesh->m_triStripData.m_arrayData[valueIndex++] * vertexSize;
 										Face face;
-										arraypos = 0;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[index][0],
-																geo->m_vertices[index][1],
-																geo->m_vertices[index][2] });
+											vertices.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1],
+																geo->m_vertices[index + 2] });
 											face.pos[0] = vertIndex + vertex - 2;
 											if (vertex & 1)
 											{
@@ -317,13 +333,13 @@ bool XG::exportOBJ(std::string newDirectory)
 												face.pos[1] = vertIndex + vertex - 1;
 												face.pos[2] = vertIndex + vertex;
 											}
-											arraypos += 4;
+											index += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[index][arraypos],
-																geo->m_vertices[index][arraypos + 1],
-																geo->m_vertices[index][arraypos + 2] });
+											vertNormals.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1],
+																geo->m_vertices[index + 2] });
 											face.nor[0] = normIndex + vertex - 2;
 											if (vertex & 1)
 											{
@@ -335,14 +351,14 @@ bool XG::exportOBJ(std::string newDirectory)
 												face.nor[1] = normIndex + vertex - 1;
 												face.nor[2] = normIndex + vertex;
 											}
-											arraypos += 3;
+											index += 3;
 										}
 										if (geo->m_vertexFlags & 4)
-											arraypos += 4;
+											index += 4;
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[index][arraypos],
-																geo->m_vertices[index][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1] });
 											face.tex[0] = coordIndex + vertex - 2;
 											if (vertex & 1)
 											{
@@ -367,63 +383,68 @@ bool XG::exportOBJ(std::string newDirectory)
 									const unsigned long numIndexes = mesh->m_triListData.m_arrayData[valueIndex++];
 									for (unsigned long vertex = 0; vertex < numIndexes; vertex += 3)
 									{
-										const unsigned long index1 = mesh->m_triListData.m_arrayData[valueIndex++];
-										const unsigned long index2 = mesh->m_triListData.m_arrayData[valueIndex++];
-										const unsigned long index3 = mesh->m_triListData.m_arrayData[valueIndex++];
+										unsigned long index1 = mesh->m_triListData.m_arrayData[valueIndex++] * vertexSize;
+										unsigned long index2 = mesh->m_triListData.m_arrayData[valueIndex++] * vertexSize;
+										unsigned long index3 = mesh->m_triListData.m_arrayData[valueIndex++] * vertexSize;
 										Face face;
-										int arraypos = 0;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[index1][0],
-																geo->m_vertices[index1][1],
-																geo->m_vertices[index1][2] });
+											vertices.push_back({ geo->m_vertices[index1],
+																geo->m_vertices[index1 + 1],
+																geo->m_vertices[index1 + 2] });
 											face.pos[0] = (unsigned long)vertices.size() - 1;
 
-											vertices.push_back({ geo->m_vertices[index2][0],
-																geo->m_vertices[index2][1],
-																geo->m_vertices[index2][2] });
+											vertices.push_back({ geo->m_vertices[index2],
+																geo->m_vertices[index2 + 1],
+																geo->m_vertices[index2 + 2] });
 											face.pos[1] = (unsigned long)vertices.size() - 1;
 
-											vertices.push_back({ geo->m_vertices[index3][0],
-																geo->m_vertices[index3][1],
-																geo->m_vertices[index3][2] });
+											vertices.push_back({ geo->m_vertices[index3],
+																geo->m_vertices[index3 + 1],
+																geo->m_vertices[index3 + 2] });
 											face.pos[2] = (unsigned long)vertices.size() - 1;
-
-											arraypos += 4;
+											index1 += 4;
+											index2 += 4;
+											index3 += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[index1][arraypos],
-																geo->m_vertices[index1][arraypos + 1],
-																geo->m_vertices[index1][arraypos + 2] });
+											vertNormals.push_back({ geo->m_vertices[index1],
+																geo->m_vertices[index1 + 1],
+																geo->m_vertices[index1 + 2] });
 											face.nor[0] = (unsigned long)vertNormals.size() - 1;
 
-											vertNormals.push_back({ geo->m_vertices[index2][arraypos],
-																geo->m_vertices[index2][arraypos + 1],
-																geo->m_vertices[index2][arraypos + 2] });
+											vertNormals.push_back({ geo->m_vertices[index2],
+																geo->m_vertices[index2 + 1],
+																geo->m_vertices[index2 + 2] });
 											face.nor[1] = (unsigned long)vertNormals.size() - 1;
 
-											vertNormals.push_back({ geo->m_vertices[index3][arraypos],
-																geo->m_vertices[index3][arraypos + 1],
-																geo->m_vertices[index3][arraypos + 2] });
+											vertNormals.push_back({ geo->m_vertices[index3],
+																geo->m_vertices[index3 + 1],
+																geo->m_vertices[index3 + 2] });
 											face.nor[2] = (unsigned long)vertNormals.size() - 1;
-
-											arraypos += 3;
+											index1 += 3;
+											index2 += 3;
+											index3 += 3;
 										}
 										if (geo->m_vertexFlags & 4)
-											arraypos += 4;
+										{
+											index1 += 4;
+											index2 += 4;
+											index3 += 4;
+										}
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[index1][arraypos],
-																geo->m_vertices[index1][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[index1],
+																geo->m_vertices[index1 + 1] });
 											face.tex[0] = (unsigned long)texCoords.size() - 1;
 
-											texCoords.push_back({ geo->m_vertices[index2][arraypos],
-																geo->m_vertices[index2][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[index2],
+																geo->m_vertices[index2 + 1] });
 											face.tex[1] = (unsigned long)texCoords.size() - 1;
 
-											texCoords.push_back({ geo->m_vertices[index3][arraypos],
-																geo->m_vertices[index3][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[index3],
+																geo->m_vertices[index3 + 1] });
 											face.tex[2] = (unsigned long)texCoords.size() - 1;
 										}
 										faces.push_back(face);
@@ -436,82 +457,89 @@ bool XG::exportOBJ(std::string newDirectory)
 							if (mesh->m_triFanCount)
 							{
 								unsigned long valueIndex = 0;
-								for (unsigned long startIndex = mesh->m_triFanData.m_arrayData[valueIndex++]; valueIndex < mesh->m_triFanData.m_arraySize;)
+								for (unsigned long startIndex = mesh->m_triFanData.m_arrayData[valueIndex++] * vertexSize;
+									valueIndex < mesh->m_triFanData.m_arraySize;)
 								{
 									const unsigned long vertIndex = (unsigned long)vertices.size();
 									const unsigned long normIndex = (unsigned long)vertNormals.size();
 									const unsigned long coordIndex = (unsigned long)texCoords.size();
 									const unsigned long numVerts = mesh->m_triFanData.m_arrayData[valueIndex++];
-									int arraypos = 0;
 									{
+										unsigned long firstIndex = startIndex;
+										unsigned long secondIndex = firstIndex + vertexSize;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[startIndex][0],
-																geo->m_vertices[startIndex][1],
-																geo->m_vertices[startIndex][2] });
-											vertices.push_back({ geo->m_vertices[startIndex + 1][0],
-																geo->m_vertices[startIndex + 1][1],
-																geo->m_vertices[startIndex + 1][2] });
-											arraypos += 4;
+											vertices.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1],
+																geo->m_vertices[firstIndex + 2] });
+											vertices.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1],
+																geo->m_vertices[secondIndex + 2] });
+											firstIndex += 4;
+											secondIndex += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[startIndex][arraypos],
-																geo->m_vertices[startIndex][arraypos + 1],
-																geo->m_vertices[startIndex][arraypos + 2] });
-											vertNormals.push_back({ geo->m_vertices[startIndex + 1][arraypos],
-																geo->m_vertices[startIndex + 1][arraypos + 1],
-																geo->m_vertices[startIndex + 1][arraypos + 2] });
-											arraypos += 3;
+											vertNormals.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1],
+																geo->m_vertices[firstIndex + 2] });
+											vertNormals.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1],
+																geo->m_vertices[secondIndex + 2] });
+											firstIndex += 3;
+											secondIndex += 3;
 										}
 										if (geo->m_vertexFlags & 4) // Color
-											arraypos += 4;
+										{
+											firstIndex += 4;
+											secondIndex += 4;
+										}
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[startIndex][arraypos],
-																geo->m_vertices[startIndex][arraypos + 1] });
-											texCoords.push_back({ geo->m_vertices[startIndex + 1][arraypos],
-																geo->m_vertices[startIndex + 1][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1] });
+											texCoords.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1] });
 										}
 									}
 
 									for (unsigned long vertex = 2; vertex < numVerts; ++vertex)
 									{
+										unsigned long index = startIndex + vertex * vertexSize;
 										Face face;
-										arraypos = 0;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[startIndex + vertex][0],
-																geo->m_vertices[startIndex + vertex][1],
-																geo->m_vertices[startIndex + vertex][2] });
+											vertices.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1],
+																geo->m_vertices[index + 2] });
 											face.pos[0] = vertIndex;
 											face.pos[1] = vertIndex + vertex - 1;
 											face.pos[2] = vertIndex + vertex;
-											arraypos += 4;
+											index += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[startIndex + vertex][arraypos],
-																geo->m_vertices[startIndex + vertex][arraypos + 1],
-																geo->m_vertices[startIndex + vertex][arraypos + 2] });
+											vertNormals.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1],
+																geo->m_vertices[index + 2] });
 											face.nor[0] = normIndex;
 											face.nor[1] = normIndex + vertex - 1;
 											face.nor[2] = normIndex + vertex;
-											arraypos += 3;
+											index += 3;
 										}
-										if (geo->m_vertexFlags & 4) // Color
-											arraypos += 4;
+										if (geo->m_vertexFlags & 4)
+											index += 4;
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[startIndex + vertex][arraypos],
-																geo->m_vertices[startIndex + vertex][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1] });
 											face.tex[0] = coordIndex;
 											face.tex[1] = coordIndex + vertex - 1;
 											face.tex[2] = coordIndex + vertex;
 										}
 										faces.push_back(face);
 									}
-									startIndex += numVerts;
+									startIndex += numVerts * vertexSize;
 								}
 							}
 
@@ -524,48 +552,53 @@ bool XG::exportOBJ(std::string newDirectory)
 									const unsigned long normIndex = (unsigned long)vertNormals.size();
 									const unsigned long coordIndex = (unsigned long)texCoords.size();
 									const unsigned long numVerts = mesh->m_triStripData.m_arrayData[valueIndex++];
-									int arraypos = 0;
 									{
+										unsigned long firstIndex = startIndex;
+										unsigned long secondIndex = firstIndex + vertexSize;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[startIndex][0],
-																geo->m_vertices[startIndex][1],
-																geo->m_vertices[startIndex][2] });
-											vertices.push_back({ geo->m_vertices[startIndex + 1][0],
-																geo->m_vertices[startIndex + 1][1],
-																geo->m_vertices[startIndex + 1][2] });
-											arraypos += 4;
+											vertices.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1],
+																geo->m_vertices[firstIndex + 2] });
+											vertices.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1],
+																geo->m_vertices[secondIndex + 2] });
+											firstIndex += 4;
+											secondIndex += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[startIndex][arraypos],
-																geo->m_vertices[startIndex][arraypos + 1],
-																geo->m_vertices[startIndex][arraypos + 2] });
-											vertNormals.push_back({ geo->m_vertices[startIndex + 1][arraypos],
-																geo->m_vertices[startIndex + 1][arraypos + 1],
-																geo->m_vertices[startIndex + 1][arraypos + 2] });
-											arraypos += 3;
+											vertNormals.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1],
+																geo->m_vertices[firstIndex + 2] });
+											vertNormals.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1],
+																geo->m_vertices[secondIndex + 2] });
+											firstIndex += 3;
+											secondIndex += 3;
 										}
 										if (geo->m_vertexFlags & 4) // Color
-											arraypos += 4;
+										{
+											firstIndex += 4;
+											secondIndex += 4;
+										}
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[startIndex][arraypos],
-																geo->m_vertices[startIndex][arraypos + 1] });
-											texCoords.push_back({ geo->m_vertices[startIndex + 1][arraypos],
-																geo->m_vertices[startIndex + 1][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[firstIndex],
+																geo->m_vertices[firstIndex + 1] });
+											texCoords.push_back({ geo->m_vertices[secondIndex],
+																geo->m_vertices[secondIndex + 1] });
 										}
 									}
 									for (unsigned long vertex = 2; vertex < numVerts; ++vertex)
 									{
 										Face face;
-										arraypos = 0;
-										const unsigned long index = startIndex + vertex;
+										unsigned long index = startIndex + vertex * vertexSize;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[index][0],
-																geo->m_vertices[index][1],
-																geo->m_vertices[index][2] });
+											vertices.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1],
+																geo->m_vertices[index + 2] });
 											face.pos[0] = vertIndex + vertex - 2;
 											if (vertex & 1)
 											{
@@ -577,42 +610,42 @@ bool XG::exportOBJ(std::string newDirectory)
 												face.pos[1] = vertIndex + vertex - 1;
 												face.pos[2] = vertIndex + vertex;
 											}
-											arraypos += 4;
+											index += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[index][arraypos],
-																geo->m_vertices[index][arraypos + 1],
-																geo->m_vertices[index][arraypos + 2] });
-											face.nor[0] = vertIndex + vertex - 2;
+											vertNormals.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1],
+																geo->m_vertices[index + 2] });
+											face.nor[0] = normIndex + vertex - 2;
 											if (vertex & 1)
 											{
-												face.nor[1] = vertIndex + vertex;
-												face.nor[2] = vertIndex + vertex - 1;
+												face.nor[1] = normIndex + vertex;
+												face.nor[2] = normIndex + vertex - 1;
 											}
 											else
 											{
-												face.nor[1] = vertIndex + vertex - 1;
-												face.nor[2] = vertIndex + vertex;
+												face.nor[1] = normIndex + vertex - 1;
+												face.nor[2] = normIndex + vertex;
 											}
-											arraypos += 3;
+											index += 3;
 										}
-										if (geo->m_vertexFlags & 4) // Color
-											arraypos += 4;
+										if (geo->m_vertexFlags & 4)
+											index += 4;
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[index][arraypos],
-																geo->m_vertices[index][arraypos + 1] });
-											face.tex[0] = vertIndex + vertex - 2;
+											texCoords.push_back({ geo->m_vertices[index],
+																geo->m_vertices[index + 1] });
+											face.tex[0] = coordIndex + vertex - 2;
 											if (vertex & 1)
 											{
-												face.tex[1] = vertIndex + vertex;
-												face.tex[2] = vertIndex + vertex - 1;
+												face.tex[1] = coordIndex + vertex;
+												face.tex[2] = coordIndex + vertex - 1;
 											}
 											else
 											{
-												face.tex[1] = vertIndex + vertex - 1;
-												face.tex[2] = vertIndex + vertex;
+												face.tex[1] = coordIndex + vertex - 1;
+												face.tex[2] = coordIndex + vertex;
 											}
 										}
 										faces.push_back(face);
@@ -624,68 +657,74 @@ bool XG::exportOBJ(std::string newDirectory)
 							if (mesh->m_triListCount)
 							{
 								unsigned long valueIndex = 0;
-								for (unsigned long startIndex = mesh->m_triListData.m_arrayData[valueIndex++]; valueIndex < mesh->m_triListData.m_arraySize;)
+								for (unsigned long startIndex = mesh->m_triListData.m_arrayData[valueIndex++] * vertexSize;
+									valueIndex < mesh->m_triListData.m_arraySize;)
 								{
 									const unsigned long numVerts = mesh->m_triListData.m_arrayData[valueIndex++];
 									for (unsigned long vertex = 0; vertex < numVerts; vertex += 3)
 									{
-										const unsigned long index1 = startIndex + vertex;
-										const unsigned long index2 = startIndex + vertex + 1;
-										const unsigned long index3 = startIndex + vertex + 2;
+										unsigned long index1 = startIndex + vertex * vertexSize;
+										unsigned long index2 = index1 + vertexSize;
+										unsigned long index3 = index2 + vertexSize;
 										Face face;
-										int arraypos = 0;
 										if (geo->m_vertexFlags & 1) // Position
 										{
-											vertices.push_back({ geo->m_vertices[index1][0],
-																geo->m_vertices[index1][1],
-																geo->m_vertices[index1][2] });
+											vertices.push_back({ geo->m_vertices[index1],
+																geo->m_vertices[index1 + 1],
+																geo->m_vertices[index1 + 2] });
 											face.pos[0] = (unsigned long)vertices.size() - 1;
 
-											vertices.push_back({ geo->m_vertices[index2][0],
-																geo->m_vertices[index2][1],
-																geo->m_vertices[index2][2] });
+											vertices.push_back({ geo->m_vertices[index2],
+																geo->m_vertices[index2 + 1],
+																geo->m_vertices[index2 + 2] });
 											face.pos[1] = (unsigned long)vertices.size() - 1;
 
-											vertices.push_back({ geo->m_vertices[index3][0],
-																geo->m_vertices[index3][1],
-																geo->m_vertices[index3][2] });
+											vertices.push_back({ geo->m_vertices[index3],
+																geo->m_vertices[index3 + 1],
+																geo->m_vertices[index3 + 2] });
 											face.pos[2] = (unsigned long)vertices.size() - 1;
-
-											arraypos += 4;
+											index1 += 4;
+											index2 += 4;
+											index3 += 4;
 										}
 										if (geo->m_vertexFlags & 2) // Normal
 										{
-											vertNormals.push_back({ geo->m_vertices[index1][arraypos],
-																geo->m_vertices[index1][arraypos + 1],
-																geo->m_vertices[index1][arraypos + 2] });
+											vertNormals.push_back({ geo->m_vertices[index1],
+																geo->m_vertices[index1 + 1],
+																geo->m_vertices[index1 + 2] });
 											face.nor[0] = (unsigned long)vertNormals.size() - 1;
 
-											vertNormals.push_back({ geo->m_vertices[index2][arraypos],
-																geo->m_vertices[index2][arraypos + 1],
-																geo->m_vertices[index2][arraypos + 2] });
+											vertNormals.push_back({ geo->m_vertices[index2],
+																geo->m_vertices[index2 + 1],
+																geo->m_vertices[index2 + 2] });
 											face.nor[1] = (unsigned long)vertNormals.size() - 1;
 
-											vertNormals.push_back({ geo->m_vertices[index3][arraypos],
-																geo->m_vertices[index3][arraypos + 1],
-																geo->m_vertices[index3][arraypos + 2] });
+											vertNormals.push_back({ geo->m_vertices[index3],
+																geo->m_vertices[index3 + 1],
+																geo->m_vertices[index3 + 2] });
 											face.nor[2] = (unsigned long)vertNormals.size() - 1;
-
-											arraypos += 3;
+											index1 += 3;
+											index2 += 3;
+											index3 += 3;
 										}
 										if (geo->m_vertexFlags & 4)
-											arraypos += 4;
+										{
+											index1 += 4;
+											index2 += 4;
+											index3 += 4;
+										}
 										if (geo->m_vertexFlags & 8) // Texture Coordinate
 										{
-											texCoords.push_back({ geo->m_vertices[index1][arraypos],
-																geo->m_vertices[index1][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[index1],
+																geo->m_vertices[index1 + 1] });
 											face.tex[0] = (unsigned long)texCoords.size() - 1;
 
-											texCoords.push_back({ geo->m_vertices[index2][arraypos],
-																geo->m_vertices[index2][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[index2],
+																geo->m_vertices[index2 + 1] });
 											face.tex[1] = (unsigned long)texCoords.size() - 1;
 
-											texCoords.push_back({ geo->m_vertices[index3][arraypos],
-																geo->m_vertices[index3][arraypos + 1] });
+											texCoords.push_back({ geo->m_vertices[index3],
+																geo->m_vertices[index3 + 1] });
 											face.tex[2] = (unsigned long)texCoords.size() - 1;
 										}
 										faces.push_back(face);

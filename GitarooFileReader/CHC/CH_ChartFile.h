@@ -38,7 +38,7 @@ class ChartFileExporter : public ChartFile
 public:
 	ChartFileExporter() : ChartFile() {}
 	ChartFileExporter(std::string filename) : ChartFile(filename, true) {}
-	ChartFileExporter(std::vector<SyncTrack>& sync, std::vector<Event>& events, NoteTrack(&notes)[2]);
+	ChartFileExporter(std::vector<SyncTrack>& sync, std::vector<Event>& events, NoteTrack notes[2]);
 	bool open(std::string filename) { return ChartFile::open(filename, true); }
 	void writeHeader(const bool modchart);
 	void write(const bool modchart);

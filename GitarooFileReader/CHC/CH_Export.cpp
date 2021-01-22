@@ -1014,7 +1014,7 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 	return true;
 }
 
-ChartFileExporter::ChartFileExporter(std::vector<SyncTrack>& sync, std::vector<Event>& events, NoteTrack(&notes)[2]) : ChartFile()
+ChartFileExporter::ChartFileExporter(std::vector<SyncTrack>& sync, std::vector<Event>& events, NoteTrack notes[2]) : ChartFile()
 {
 	m_sync = sync;
 	m_events = events;

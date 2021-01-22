@@ -302,11 +302,8 @@ void ChartFileImporter::read(CH_Importer& importer)
 	{
 		fseek(m_chart, -1, SEEK_CUR);
 		Event ev(m_chart);
-		// For example, if the section name is "BATTLE - something",
-		// only use "something" / disregard "BATTLE - ".
 		if (ev.m_name.find("section") != string::npos)
 		{
-			ev.m_name = ev.m_name.substr(ev.m_name.find_last_of(' ') + 1);
 
 			//Add all tempos between the current section event and the previous section
 			//to the previous section
@@ -340,6 +337,7 @@ void ChartFileImporter::read(CH_Importer& importer)
 			chartVersion = 2;
 		fscanf_s(m_chart, " %c", &test, 1);
 	}
+
 	if (!chartVersion)
 	{
 		do
@@ -408,7 +406,10 @@ void ChartFileImporter::read(CH_Importer& importer)
 					}
 				}
 				else if (note.m_mod == CHNote::Modifier::FORCED)
+				{
 					track->addModifier(note.m_position, CHNote::Modifier::FORCED);
+					track->addModifier(note.m_position, CHNote::Modifier::TAP);
+				}
 			}
 			fscanf_s(m_chart, " %c", &test, 1);
 		}
@@ -440,6 +441,12 @@ void ChartFileImporter::read(CH_Importer& importer)
 		converter.write(false);
 		converter.close();
 	}
+
+	// For example, if the section name is "BATTLE - something",
+	// only use "something" / disregard "BATTLE - ".
+	// Otherwise, just gets rid of "section"
+	for (auto& sect : importer.m_sections)
+		sect.m_name = sect.m_name.substr(sect.m_name.find_last_of(' ') + 1);
 }
 
 void CH_Importer::fillSections()
@@ -750,7 +757,17 @@ void CH_Importer::addGuardMark(const long pos, const unsigned long fret, Chart* 
 {
 	static const int buttons[5] = { 1, 2, -1, 0, 3 };
 	if (currChart->m_guards.size() == 0 || currChart->m_guards.back().m_pivotAlpha < pos)
-		currChart->emplaceGuard(pos, buttons[fret]);
+	{
+		try
+		{
+			currChart->emplaceGuard(pos, buttons[fret]);
+		}
+		catch (...)
+		{
+			printf("%sGreen, Red, Blue, Orange are the only legal frets for guard marks\n", g_global.tabs.c_str());
+		}
+	}
+		
 }
 
 void CH_Importer::applyForced(const long pos, const size_t sectIndex, const size_t playerIndex)

@@ -1832,13 +1832,13 @@ bool CHC_Editor::reorganize(SongSection& section)
 			}
 		}
 		const float SAMPLES_PER_BEAT = s_SAMPLES_PER_MIN / section.m_tempo;
-		auto adjustPhrases = [&](Chart* currentChart, const size_t traceIndex, const long& endAlpha, float& angle)
+		auto adjustPhrases = [&](Chart* currentChart, size_t traceIndex, const long& endAlpha, float& angle)
 		{
 			//Save angle value
 			angle = currentChart->m_tracelines[traceIndex].m_angle;
 			//Remove trace line
 			if (currentChart->removeTraceline(traceIndex))
-				printf("%s%s: Trace line %zu removed\n", g_global.tabs.c_str(), section.m_name, traceIndex);
+				printf("%s%s: Trace line %zu removed\n", g_global.tabs.c_str(), section.m_name, traceIndex--);
 			if (currentChart->m_tracelines.size())
 			{
 				//Same idea for phrase bars
@@ -1930,18 +1930,16 @@ bool CHC_Editor::reorganize(SongSection& section)
 												notes[pl].erase(notes[pl].begin() + ntIndex + 2);
 									}
 									//If it's the enemy's original charts or the next-next note, if it exists, is a guard mark
-									if ((isPlayer == (m_song->m_imc[0] && section.m_swapped & 1)) || (ntIndex + 2 != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2].second) == nullptr))
+									if ((isPlayer == (m_song->m_imc[0] && section.m_swapped & 1)) ||
+										(ntIndex + 2 != notes[pl].size() &&dynamic_cast<Path*>(notes[pl][ntIndex + 2].second) == nullptr))
 									{
 										long endAlpha = notes[pl][ntIndex + 1].first - SongSection::s_SAMPLE_GAP - 1 - currentChart->m_pivotTime;
 										float angle = 0;
-										for (size_t t = currentChart->m_tracelines.size(); t > 0;)
-										{
+
+										for (size_t t = currentChart->m_tracelines.size(); t-- > 0 && !currentChart->m_tracelines[t].changeEndAlpha(endAlpha);)
 											//If the new end point is less than or equal to the last trace line's pivot
-											if (!currentChart->m_tracelines[--t].changeEndAlpha(endAlpha))
-												adjustPhrases(currentChart, t, endAlpha, angle);
-											else
-												break;
-										}
+											adjustPhrases(currentChart, t, endAlpha, angle);
+
 										if (currentChart->m_tracelines.size())
 										{
 											Traceline* tr2 = new Traceline(endAlpha, 1, angle);
@@ -1967,7 +1965,8 @@ bool CHC_Editor::reorganize(SongSection& section)
 							if (dynamic_cast<Guard*>(notes[pl][ntIndex + 1].second) != nullptr)	//If the next note is a guard mark
 							{
 								//If there is enough distance between these guard marks in a duet or tutorial stage
-								if ((!m_song->m_imc[0] || m_song->m_stage == 0 || m_song->m_stage == 11 || m_song->m_stage == 12) && notes[pl][ntIndex + 1].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
+								if ((!m_song->m_imc[0] || m_song->m_stage == 0 || m_song->m_stage == 11 || m_song->m_stage == 12) &&
+									notes[pl][ntIndex + 1].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
 								{
 									if (!currentChart->m_tracelines.size())
 									{
@@ -2005,7 +2004,8 @@ bool CHC_Editor::reorganize(SongSection& section)
 										notes[pl].erase(notes[pl].begin() + ntIndex + 1);
 									//With the next note now being a confirmed guard mark...
 									//If there is enough distance between these guard marks in the tutorial or a duet stage
-									if ((!m_song->m_imc[0] || m_song->m_stage == 0 || m_song->m_stage == 11 || m_song->m_stage == 12) && notes[pl][ntIndex + 1].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
+									if ((!m_song->m_imc[0] || m_song->m_stage == 0 || m_song->m_stage == 11 || m_song->m_stage == 12) &&
+										notes[pl][ntIndex + 1].first - notes[pl][ntIndex].first >= long(5.5 * SAMPLES_PER_BEAT))
 									{
 										if (!currentChart->m_tracelines.size())
 										{
@@ -2060,14 +2060,15 @@ bool CHC_Editor::reorganize(SongSection& section)
 											notes[pl].erase(notes[pl].begin() + ntIndex + 2);
 								}
 								//If it's the enemy's original charts or the next-next note, if it exists, is a guard mark
-								if ((isPlayer == (m_song->m_imc[0] && section.m_swapped & 1)) || (ntIndex + 2 != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2].second) == nullptr))
+								if ((isPlayer == (m_song->m_imc[0] && section.m_swapped & 1)) ||
+									(ntIndex + 2 != notes[pl].size() && dynamic_cast<Path*>(notes[pl][ntIndex + 2].second) == nullptr))
 								{
 									long endAlpha = notes[pl][ntIndex + 1].first - SongSection::s_SAMPLE_GAP - 1 - currentChart->m_pivotTime;
 									float angle = 0;
-									for (size_t t = currentChart->m_tracelines.size(); t > 0;)
+									for (size_t t = currentChart->m_tracelines.size(); t-- > 0;)
 									{
 										//If the new end point is less than or equal to the last trace line's pivot
-										if (!currentChart->m_tracelines[--t].changeEndAlpha(endAlpha))
+										if (!currentChart->m_tracelines[t].changeEndAlpha(endAlpha))
 											adjustPhrases(currentChart, t, endAlpha, angle);
 										else
 										{

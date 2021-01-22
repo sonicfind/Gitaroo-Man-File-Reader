@@ -16,6 +16,11 @@
 #include "Global_Functions.h"
 #include "XGM/XGM.h"
 
+struct Quaternion
+{
+	float x, y, z, w;
+};
+
 class IMXEntry
 {
 	friend class SSQ;
@@ -112,21 +117,18 @@ class CameraSetup
 		unsigned long ulong_c;
 	};
 
-	std::vector<CamPosition> m_32Pair_1;
+	std::vector<CamPosition> m_positions;
 
 	struct CamRotation
 	{
 		float m_frame;
 		float m_distance;
-		float m_pitch;
-		float m_yaw;
-		float m_roll;
-		float m_perspective;
+		Quaternion m_quaternion;
 		unsigned long m_isMoving;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 	};
-	std::vector<CamRotation> m_32Pair_2;
+	std::vector<CamRotation> m_rotations;
 
 	struct Struct32_6f
 	{
@@ -142,18 +144,20 @@ class CameraSetup
 
 	std::vector<Struct32_6f> m_32bytes_1;
 
-	struct Struct32_5f
+	struct ShadeColor
 	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		unsigned long ulong_a;
-		unsigned long ulong_b;
+		float m_frame;
+		float m_distance;
+		float m_red;
+		float m_blue;
+		float m_green;
+		unsigned long m_isMoving;
+		// Essentially m_frame * 160
+		unsigned long m_otherPos;
+		// Seems to match m_otherPos
 		unsigned long ulong_c;
 	};
-	std::vector<Struct32_5f> m_32bytes_2;
+	std::vector<ShadeColor> m_shadeColors;
 
 	std::vector<LightSetup> m_lights;
 
@@ -288,18 +292,18 @@ class FixedSpriteSetup
 
 	struct Struct80_7f
 	{
-		unsigned long ulong_a;
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		float float_g;
-		float float_h;
-		float float_i;
-		float float_j;
-		float float_k;
+		unsigned long m_IMXindex;
+		float m_initial_BottmLeft_X;
+		float m_initial_BottmLeft_Y;
+		float m_boxSize_X;
+		float m_boxSize_Y;
+		float m_worldPosition_X;
+		float m_worldPosition_Y;
+		float m_worldPosition_Z;
+		float m_worldScale_X;
+		float m_worldScale_Y;
+		float m_worldScale_Z_maybe;
+		float m_worldScale_W_maybe;
 		float float_l;
 		unsigned long ulong_b;
 		float float_m;
@@ -351,18 +355,19 @@ class FixedSprite
 
 	struct Struct48_8f
 	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		float float_g;
+		float m_frame;
+		float m_distance;
+		float m_worldPosition_X;
+		float m_worldPosition_Y;
+		float m_worldPosition_Z;
+		float m_worldScale_X;
+		float m_worldScale_Y;
 		unsigned long ulong_a;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
 		unsigned long ulong_d;
-		unsigned long ulong_e;
+		// Essentially m_frame * 160
+		unsigned long m_otherPos;
 	};
 
 	std::vector<Struct48_8f> m_48bytes;
@@ -381,7 +386,20 @@ class FixedSprite
 
 	std::vector<Struct32_6f> m_32Pair_1;
 
-	std::vector<Struct32_6f> m_32Pair_2;
+	struct SpriteFrame
+	{
+		float m_frame;
+		float m_duration;
+		float m_initial_BottmLeft_X;
+		float m_initial_BottmLeft_Y;
+		float m_boxSize_X;
+		float m_boxSize_Y;
+		unsigned long ulong_a;
+		// Essentially m_frame * 160
+		unsigned long m_otherPos;
+	};
+
+	std::vector<SpriteFrame> m_spriteFrames;
 
 public:
 	FixedSprite(FILE* inFile);
@@ -484,62 +502,6 @@ public:
 
 class ModelSetup
 {
-	struct Struct32_5f
-	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		unsigned long ulong_a;
-		unsigned long ulong_b;
-		unsigned long ulong_c;
-	};
-	struct Struct32_6f
-	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		unsigned long ulong_a;
-		unsigned long ulong_b;
-	};
-	struct Struct48_2f
-	{
-		float float_a;
-		float float_b;
-		unsigned long ulong_a;
-		unsigned long ulong_b;
-		unsigned long ulong_c;
-		unsigned long ulong_d;
-		unsigned long ulong_e;
-		unsigned long ulong_f;
-		unsigned long ulong_g;
-		unsigned long ulong_h;
-		unsigned long ulong_i;
-		unsigned long ulong_j;
-	};
-	struct Struct64_9f
-	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		float float_g;
-		unsigned long ulong_a;
-		unsigned long ulong_b;
-		unsigned long ulong_c;
-		unsigned long ulong_d;
-		unsigned long ulong_e;
-		unsigned long ulong_f;
-		float float_h;
-		float float_i;
-		unsigned long ulong_g;
-	};
 protected:
 	char* m_name;
 
@@ -555,37 +517,80 @@ protected:
 	{
 		float m_frame;
 		float m_distance;
-		float m_xCoord;
-		float m_yCoord;
-		float m_zCoord;
+		float m_coord_X;
+		float m_coord_Y;
+		float m_coord_Z;
 		unsigned long m_isMoving;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 		unsigned long ulong_c;
 	};
 
-	std::vector<ModelPosition> m_32Pair_1;
+	std::vector<ModelPosition> m_positions;
 
 	struct ModelRotation
 	{
 		float m_frame;
 		float m_distance;
-		float m_pitch;
-		float m_yaw;
-		float m_roll;
-		float m_perspective;
+		Quaternion m_quaternion;
 		unsigned long m_isMoving;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 	};
 
-	std::vector<ModelRotation> m_32Pair_2;
+	std::vector<ModelRotation> m_rotations;
 
-	std::vector<Struct48_2f> m_48bytes;
+	struct ModelAnim
+	{
+		float float_a;
+		float float_b;
+		unsigned long ulong_a;
+		unsigned long ulong_b;
+		unsigned long ulong_c;
+		unsigned long ulong_d;
+		unsigned long ulong_e;
+		unsigned long ulong_f;
+		unsigned long ulong_g;
+		unsigned long ulong_h;
+		unsigned long ulong_i;
+		unsigned long ulong_j;
+	};
 
-	std::vector<Struct32_5f> m_32bytes_Opt;
+	std::vector<ModelAnim> m_animations;
 
-	Struct64_9f m_64bytes_Opt;
+	struct ModelScaling
+	{
+		float m_frame;
+		float m_distance;
+		float m_scale_X;
+		float m_scale_Y;
+		float m_scale_Z;
+		unsigned long m_isMoving;
+		// Essentially m_frame * 160
+		// May not get used
+		unsigned long m_otherPos;
+		unsigned long ulong_c;
+	};
+
+	std::vector<ModelScaling> m_scaling;
+
+	struct BaseValues
+	{
+		float m_baseCoord_X;
+		float m_baseCoord_Y;
+		float m_baseCoord_Z;
+		Quaternion m_baseQuaternion;
+		unsigned long ulong_a;
+		unsigned long ulong_b;
+		unsigned long ulong_c;
+		unsigned long ulong_d;
+		unsigned long ulong_e;
+		unsigned long ulong_f;
+		float float_h;
+		float float_i;
+		unsigned long ulong_g;
+	};
+	BaseValues m_64bytes_Opt;
 
 public:
 	ModelSetup(FILE* inFile, char (&name)[16]);
@@ -614,7 +619,7 @@ class PlayerModelSetup : public ModelSetup
 
 	struct Read4Entry
 	{
-		unsigned long m_size;
+		unsigned long m_size = 0;
 		std::vector<unsigned long> m_vals;
 	};
 
@@ -678,25 +683,25 @@ class TexAnim
 
 	char m_texture[24] = { 0 };
 
-	struct Struct16_4f
+	struct CutOut
 	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
+		float m_topLeft_X;
+		float m_topLeft_Y;
+		float m_bottomRight_X;
+		float m_bottomRight_Y;
 	};
 
-	std::vector<Struct16_4f> m_16Pair_1;
+	std::vector<CutOut> m_cutOuts;
 
-	struct Struct16_2f
+	struct TexFrame
 	{
-		float float_a;
-		float float_b;
-		unsigned long ulong_a;
-		unsigned long ulong_b;
+		float m_frame;
+		float m_distance;
+		unsigned long m_cutOutIndex;
+		unsigned long m_unknown;
 	};
 
-	std::vector<Struct16_2f> m_16Pair_2;
+	std::vector<TexFrame> m_textureFrames;
 
 public:
 	TexAnim(FILE* inFile);

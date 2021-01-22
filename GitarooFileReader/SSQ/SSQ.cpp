@@ -207,22 +207,22 @@ ModelSetup::ModelSetup(FILE* inFile, char(&name)[16]): m_name(name)
 	fread(&m_size, 4, 1, inFile);
 	fread(m_unk, 1, 8, inFile);
 	fread(m_junk, 1, 16, inFile);
-	unsigned long pair1, pair2;
-	fread(&pair1, 4, 1, inFile);
-	fread(&pair2, 4, 1, inFile);
+	unsigned long numpositions, numrotations;
+	fread(&numpositions, 4, 1, inFile);
+	fread(&numrotations, 4, 1, inFile);
 
-	m_32Pair_1.resize(pair1);
-	fread(&m_32Pair_1.front(), sizeof(Struct32_5f), pair1, inFile);
+	m_positions.resize(numpositions);
+	fread(&m_positions.front(), sizeof(ModelPosition), numpositions, inFile);
 
-	m_32Pair_2.resize(pair2);
-	fread(&m_32Pair_2.front(), sizeof(Struct32_6f), pair2, inFile);
+	m_rotations.resize(numrotations);
+	fread(&m_rotations.front(), sizeof(ModelRotation), numrotations, inFile);
 
 	unsigned long num48;
 	fread(&num48, 4, 1, inFile);
 	if (num48 > 1)
 	{
-		m_48bytes.resize(num48);
-		fread(&m_48bytes.front(), sizeof(Struct48_2f), num48, inFile);
+		m_animations.resize(num48);
+		fread(&m_animations.front(), sizeof(ModelAnim), num48, inFile);
 	}
 
 	if (m_headerVersion >= 0x1100)
@@ -231,10 +231,10 @@ ModelSetup::ModelSetup(FILE* inFile, char(&name)[16]): m_name(name)
 		fread(&num32, 4, 1, inFile);
 		if (num32 > 1)
 		{
-			m_32bytes_Opt.resize(num32);
-			fread(&m_32bytes_Opt.front(), sizeof(Struct32_5f), num32, inFile);
+			m_scaling.resize(num32);
+			fread(&m_scaling.front(), sizeof(ModelScaling), num32, inFile);
 		}
-		fread(&m_64bytes_Opt, sizeof(Struct64_9f), 1, inFile);
+		fread(&m_64bytes_Opt, sizeof(BaseValues), 1, inFile);
 	}
 }
 
@@ -246,31 +246,31 @@ void ModelSetup::create(FILE* outFile)
 	fwrite(m_unk, 1, 8, outFile);
 	fwrite(m_junk, 1, 16, outFile);
 
-	unsigned long pair1 = (unsigned long)m_32Pair_1.size(), pair2 = (unsigned long)m_32Pair_2.size();
+	unsigned long numpositions = (unsigned long)m_positions.size(), numrotations = (unsigned long)m_rotations.size();
 	
-	fwrite(&pair1, 4, 1, outFile);
-	fwrite(&pair2, 4, 1, outFile);
-	fwrite(&m_32Pair_1.front(), sizeof(Struct32_5f), pair1, outFile);
-	fwrite(&m_32Pair_2.front(), sizeof(Struct32_6f), pair2, outFile);
+	fwrite(&numpositions, 4, 1, outFile);
+	fwrite(&numrotations, 4, 1, outFile);
+	fwrite(&m_positions.front(), sizeof(ModelPosition), numpositions, outFile);
+	fwrite(&m_rotations.front(), sizeof(ModelRotation), numrotations, outFile);
 
-	unsigned long size = (unsigned long)m_48bytes.size();
+	unsigned long size = (unsigned long)m_animations.size();
 	if (!size)
 		size = 1;
 	fwrite(&size, 4, 1, outFile);
 	
 	if (size > 1)
-		fwrite(&m_48bytes.front(), sizeof(Struct48_2f), size, outFile);
+		fwrite(&m_animations.front(), sizeof(ModelAnim), size, outFile);
 
 	if (m_headerVersion >= 0x1100)
 	{
-		size = (unsigned long)m_32bytes_Opt.size();
+		size = (unsigned long)m_scaling.size();
 		if (!size)
 			size = 1;
 		fwrite(&size, 4, 1, outFile);
 
 		if (size > 1)
-			fwrite(&m_32bytes_Opt.front(), sizeof(Struct32_5f), size, outFile);
-		fwrite(&m_64bytes_Opt, sizeof(Struct64_9f), 1, outFile);
+			fwrite(&m_scaling.front(), sizeof(ModelScaling), size, outFile);
+		fwrite(&m_64bytes_Opt, sizeof(BaseValues), 1, outFile);
 	}
 }
 
@@ -359,15 +359,15 @@ void CameraSetup::read(FILE* inFile)
 	fread(m_junk, 1, 16, inFile);
 	fread(&m_64bytes, sizeof(Struct64_9f), 1, inFile);
 
-	unsigned long pair1, pair2;
-	fread(&pair1, 4, 1, inFile);
-	fread(&pair2, 4, 1, inFile);
+	unsigned long numpositions, numrotations;
+	fread(&numpositions, 4, 1, inFile);
+	fread(&numrotations, 4, 1, inFile);
 
-	m_32Pair_1.resize(pair1);
-	fread(&m_32Pair_1.front(), sizeof(CamPosition), pair1, inFile);
+	m_positions.resize(numpositions);
+	fread(&m_positions.front(), sizeof(CamPosition), numpositions, inFile);
 
-	m_32Pair_2.resize(pair2);
-	fread(&m_32Pair_2.front(), sizeof(CamRotation), pair2, inFile);
+	m_rotations.resize(numrotations);
+	fread(&m_rotations.front(), sizeof(CamRotation), numrotations, inFile);
 
 	unsigned long unk1;
 	fread(&unk1, 4, 1, inFile);
@@ -377,12 +377,12 @@ void CameraSetup::read(FILE* inFile)
 		fread(&m_32bytes_1.front(), sizeof(Struct32_6f), unk1, inFile);
 	}
 
-	unsigned long unk2;
-	fread(&unk2, 4, 1, inFile);
-	if (unk2 > 1)
+	unsigned long numShadeColors;
+	fread(&numShadeColors, 4, 1, inFile);
+	if (numShadeColors > 1)
 	{
-		m_32bytes_2.resize(unk2);
-		fread(&m_32bytes_2.front(), sizeof(Struct32_5f), unk2, inFile);
+		m_shadeColors.resize(numShadeColors);
+		fread(&m_shadeColors.front(), sizeof(ShadeColor), numShadeColors, inFile);
 	}
 
 	unsigned long numlights;
@@ -412,12 +412,12 @@ void CameraSetup::create(FILE* outFile)
 	fwrite(m_junk, 1, 16, outFile);
 	fwrite(&m_64bytes, sizeof(Struct64_9f), 1, outFile);
 
-	unsigned long pair1 = (unsigned long)m_32Pair_1.size(), pair2 = (unsigned long)m_32Pair_2.size();
+	unsigned long numpositions = (unsigned long)m_positions.size(), numrotations = (unsigned long)m_rotations.size();
 	
-	fwrite(&pair1, 4, 1, outFile);
-	fwrite(&pair2, 4, 1, outFile);
-	fwrite(&m_32Pair_1.front(), sizeof(CamPosition), pair1, outFile);
-	fwrite(&m_32Pair_2.front(), sizeof(CamRotation), pair2, outFile);
+	fwrite(&numpositions, 4, 1, outFile);
+	fwrite(&numrotations, 4, 1, outFile);
+	fwrite(&m_positions.front(), sizeof(CamPosition), numpositions, outFile);
+	fwrite(&m_rotations.front(), sizeof(CamRotation), numrotations, outFile);
 
 	unsigned long size = (unsigned long)m_32bytes_1.size();
 	if (!size)
@@ -426,12 +426,12 @@ void CameraSetup::create(FILE* outFile)
 	if (size > 1)
 		fwrite(&m_32bytes_1.front(), sizeof(Struct32_6f), size, outFile);
 
-	size = (unsigned long)m_32bytes_2.size();
+	size = (unsigned long)m_shadeColors.size();
 	if (!size)
 		size = 1;
 	fwrite(&size, 4, 1, outFile);
 	if (size > 1)
-		fwrite(&m_32bytes_2.front(), sizeof(Struct32_5f), size, outFile);
+		fwrite(&m_shadeColors.front(), sizeof(ShadeColor), size, outFile);
 
 	size = (unsigned long)m_lights.size();
 	fwrite(&size, 4, 1, outFile);
@@ -646,10 +646,10 @@ FixedSprite::FixedSprite(FILE* inFile)
 	fread(m_junk, 1, 16, inFile);
 	fread(&m_64bytes, sizeof(Struct64_7f), 1, inFile);
 
-	unsigned long num48, pair1, pair2;
+	unsigned long num48, pair1, numFrames;
 	fread(&num48, 4, 1, inFile);
 	fread(&pair1, 4, 1, inFile);
-	fread(&pair2, 4, 1, inFile);
+	fread(&numFrames, 4, 1, inFile);
 
 	if (num48 > 1)
 	{
@@ -663,10 +663,10 @@ FixedSprite::FixedSprite(FILE* inFile)
 		fread(&m_32Pair_1.front(), sizeof(Struct32_6f), pair1, inFile);
 	}
 
-	if (pair2 > 1)
+	if (numFrames > 1)
 	{
-		m_32Pair_2.resize(pair2);
-		fread(&m_32Pair_2.front(), sizeof(Struct32_6f), pair2, inFile);
+		m_spriteFrames.resize(numFrames);
+		fread(&m_spriteFrames.front(), sizeof(SpriteFrame), numFrames, inFile);
 	}
 }
 
@@ -679,19 +679,19 @@ void FixedSprite::create(FILE* outFile)
 	fwrite(m_junk, 1, 16, outFile);
 	fwrite(&m_64bytes, sizeof(Struct64_7f), 1, outFile);
 
-	unsigned long num48 = (unsigned long)m_48bytes.size(), pair1 = (unsigned long)m_32Pair_1.size(), pair2 = (unsigned long)m_32Pair_2.size();
+	unsigned long num48 = (unsigned long)m_48bytes.size(), pair1 = (unsigned long)m_32Pair_1.size(), numFrames = (unsigned long)m_spriteFrames.size();
 	if (!num48)
 		num48 = 1;
 
 	if (!pair1)
 		pair1 = 1;
 
-	if (!pair2)
-		pair2 = 1;
+	if (!numFrames)
+		numFrames = 1;
 
 	fwrite(&num48, 4, 1, outFile);
 	fwrite(&pair1, 4, 1, outFile);
-	fwrite(&pair2, 4, 1, outFile);
+	fwrite(&numFrames, 4, 1, outFile);
 
 	if (num48 > 1)
 		fwrite(&m_48bytes.front(), sizeof(Struct48_8f), num48, outFile);
@@ -699,8 +699,8 @@ void FixedSprite::create(FILE* outFile)
 	if (pair1 > 1)
 		fwrite(&m_32Pair_1.front(), sizeof(Struct32_6f), pair1, outFile);
 
-	if (pair2 > 1)
-		fwrite(&m_32Pair_2.front(), sizeof(Struct32_6f), pair2, outFile);
+	if (numFrames > 1)
+		fwrite(&m_spriteFrames.front(), sizeof(SpriteFrame), numFrames, outFile);
 }
 
 TexAnim::TexAnim(FILE* inFile)
@@ -721,14 +721,14 @@ TexAnim::TexAnim(FILE* inFile)
 	fread(&m_unk3, 4, 1, inFile);
 	fread(m_texture, 1, 24, inFile);
 
-	unsigned long pair1, pair2;
-	fread(&pair1, 4, 1, inFile);
-	m_16Pair_1.resize(pair1);
-	fread(&m_16Pair_1.front(), sizeof(Struct16_4f), pair1, inFile);
+	unsigned long numCutOuts, numTexFrames;
+	fread(&numCutOuts, 4, 1, inFile);
+	m_cutOuts.resize(numCutOuts);
+	fread(&m_cutOuts.front(), sizeof(CutOut), numCutOuts, inFile);
 
-	fread(&pair2, 4, 1, inFile);
-	m_16Pair_2.resize(pair2);
-	fread(&m_16Pair_2.front(), sizeof(Struct16_2f), pair2, inFile);
+	fread(&numTexFrames, 4, 1, inFile);
+	m_textureFrames.resize(numTexFrames);
+	fread(&m_textureFrames.front(), sizeof(TexFrame), numTexFrames, inFile);
 }
 
 void TexAnim::create(FILE* outFile)
@@ -742,12 +742,12 @@ void TexAnim::create(FILE* outFile)
 	fwrite(&m_unk3, 4, 1, outFile);
 	fwrite(m_texture, 1, 24, outFile);
 
-	unsigned long pair1 = (unsigned long)m_16Pair_1.size(), pair2 = (unsigned long)m_16Pair_2.size();
-	fwrite(&pair1, 4, 1, outFile);
-	fwrite(&m_16Pair_1.front(), sizeof(Struct16_4f), pair1, outFile);
+	unsigned long numCutOuts = (unsigned long)m_cutOuts.size(), numTexFrames = (unsigned long)m_textureFrames.size();
+	fwrite(&numCutOuts, 4, 1, outFile);
+	fwrite(&m_cutOuts.front(), sizeof(CutOut), numCutOuts, outFile);
 
-	fwrite(&pair2, 4, 1, outFile);
-	fwrite(&m_16Pair_2.front(), sizeof(Struct16_2f), pair2, outFile);
+	fwrite(&numTexFrames, 4, 1, outFile);
+	fwrite(&m_textureFrames.front(), sizeof(TexFrame), numTexFrames, outFile);
 }
 
 void PSetup::read(FILE* inFile)

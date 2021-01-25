@@ -35,77 +35,62 @@ uniform int useTexAlpha;
     uniform vec3 viewPos;
 
 
-void blendTexture(vec4 baseColor);
-void blendColor();
+void blend(vec4 baseColor);
 void applyShading();
 vec3 applySpecular(vec3 lightDir, float attenuation);
 
 void main()
 {
+    
     if (shadingType < 3)
     {
-	blendTexture(material.color);
-	if (shadingType != 0)
+	vec4 texColor = texture(material.diffuse, texCoord);
+	blend(texColor);
+	if (false) //(shadingType != 0)
 	    applyShading();
+	if (useTexAlpha == 1)
+	    FragColor.a = texColor.a;
     }
     else if (shadingType < 5)
     {
-	blendColor();
-	if (shadingType == 4)
+	blend(ourColor);
+	if (false) //(shadingType == 4)
 	    applyShading();
     }
     else
     {
-	blendTexture(ourColor);
-	if (shadingType == 6)
+	vec4 texColor = texture(material.diffuse, texCoord);
+	blend(texColor * ourColor);
+	if (false) //(shadingType == 6)
 	    applyShading();
+	if (useTexAlpha == 1)
+	    FragColor.a = texColor.a;
     }
 };
 
-void blendTexture(vec4 baseColor)
+void blend(vec4 baseColor)
 {
-    vec4 texColor = texture(material.diffuse, texCoord);
-    vec4 comboColor = texColor * baseColor;
+    vec4 combo = baseColor * material.color;
     switch (blendingType)
     {
     case 0:
-    case 4:
-	FragColor = vec4(comboColor.rgb, 1.0);
+	FragColor = vec4(baseColor.rgb, 1);
 	break;
     case 1:
-	FragColor = comboColor;
+	FragColor = vec4(baseColor.rgb, (combo.r + combo.g + combo.b) / 3);
 	break;
     case 2:
-	FragColor = vec4((texColor.rgb * comboColor.a) * (baseColor.rgb * (1 - comboColor.a)), 1.0);
+	FragColor = vec4(baseColor.rgb, (combo.r * combo.g * combo.b));
 	break;
     case 3:
-	FragColor = vec4(texColor.rgb / baseColor.rgb, 1.0);
+	FragColor = vec4(baseColor.rgb, (combo.r * combo.g * combo.b));
+	break;
+    case 4:
+	FragColor = combo;
 	break;
     case 5:
-	FragColor = vec4(comboColor.rgb, baseColor.a);
+	FragColor = combo;
     }
-
-    if (useTexAlpha == 1)
-	FragColor.a *= texColor.a;
-
-    if (FragColor.a == 0)
-	discard;
-};
-
-void blendColor()
-{
-    switch (blendingType)
-    {
-    case 0:
-    case 4:
-	FragColor = vec4(ourColor.rgb, 1.0);
-	break;
-    default:
-	FragColor = ourColor;
-    }
-
-    if (FragColor.a < 0.1)
-	discard;
 };
 
 vec3 applySpecular(vec3 lightDir, float attenuation)

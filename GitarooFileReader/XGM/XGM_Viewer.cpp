@@ -1,31 +1,38 @@
-// dllmain.cpp : Defines the entry point for the DLL application.
+/*  Gitaroo Man File Reader
+ *  Copyright (C) 2020 Gitaroo Pals
+ *
+ *  Gitaroo Man File Reader is free software: you can redistribute it and/or modify it under
+ *  the terms of the GNU Lesser General Public License as published by the Free Software Found-
+ *  ation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  Gitaroo Man File Reader is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *  PURPOSE.  See the GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
+ *  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "pch.h"
-#include <map>
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include "Viewer/Shaders.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "Viewer/InputHandler.h"
+#include "Viewer/Camera.h"
 #include "XGM_Viewer.h"
 #include <algorithm>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-
-Camera camera;
 Shader* lightingShader;
 Shader* geoShader;
-float currentTime, startTime;
 glm::mat4 view, projection;
 glm::vec3 lightPos(0, 30, 20);
+float g_previousTime;
 glm::vec3 lightAmbient(.5, .5, .5);
 glm::vec3 lightDiffuse(.5, .5, .5);
 glm::vec3 lightSpecular(.2, .2, .2);
 
 int XGM_Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices, const bool showNormals)
 {
-	camera.reset(glm::vec3(0.0f, 0.0f, 20.0f));
+	g_camera.reset(glm::vec3(0.0f, 40.0f, 200.0f));
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -47,10 +54,9 @@ int XGM_Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices, con
 	}
 
 	glViewport(0, 0, s_SCR_WIDTH, s_SCR_HEIGHT);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
 	lightingShader = new Shader;
 	geoShader = new Shader("GeoShader.vs", "GeoShader.gs", "GeoShader.fs");
+	glfwSetFramebufferSizeCallback(window, InputHandling::framebuffer_size_callback);
 	
 	m_models.resize(xgIndices.size());
 	for (size_t modelIndex = 0; modelIndex < xgIndices.size(); ++modelIndex)
@@ -58,30 +64,38 @@ int XGM_Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices, con
 
 	glEnable(GL_DEPTH_TEST);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetCursorPosCallback(window, InputHandling::mouse_callback);
+	glfwSetScrollCallback(window, InputHandling::scroll_callback);
 
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	currentTime = 0;
-	startTime = (float)glfwGetTime();
+	g_previousTime = (float)glfwGetTime();
 	while (!glfwWindowShouldClose(window))
 	{
-		currentTime = (float)glfwGetTime();
-		processInput(window);
+		float currentTime = (float)glfwGetTime();
+		InputHandling::processInputs(window, currentTime);
+
+		if (InputHandling::g_input_keyboard.KEY_ESCAPE.isPressed())
+			break;
+
+		g_camera.moveCamera(window, currentTime - g_previousTime);
+
+		if (InputHandling::g_input_keyboard.KEY_N.isPressed())
+			showNormals = !showNormals;
+
 		glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		view = camera.getViewMatrix();
 		projection = glm::perspective(glm::radians(camera.m_fov), float(s_SCR_WIDTH) / s_SCR_HEIGHT, 0.1f, 4000.0f);
-		glm::mat4 base = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, -0.1f));
-		const float time = float(20 * (currentTime - startTime));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		for (auto& model : m_models)
-			model.draw(time, base, showNormals);
+			model.draw(currentTime, glm::scale(glm::vec3(1, 1, -1)), showNormals);
 		glBindVertexArray(0);
 
 		// Check calls
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		g_previousTime = currentTime;
 	}
 		
 	GitarooViewer::DagMesh::s_allMeshes.clear();
@@ -592,35 +606,4 @@ void GitarooViewer::DagMesh::draw(const float time, glm::mat4 model, const bool 
 			}
 		}
 	}
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
-
-void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-		return;
-	}
-
-	float deltaTime = 0.0f; // Time between current frame and last frame
-	static float lastFrame = 0.0f;
-
-	if (camera.moveCamera(window, currentTime - lastFrame))
-		startTime = currentTime;
-	lastFrame = currentTime;
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-	camera.turnCamera(window, xpos, ypos);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	camera.zoom(window, xoffset, yoffset);
 }

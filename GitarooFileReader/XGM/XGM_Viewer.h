@@ -13,7 +13,6 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "Viewer/Camera.h"
 #include "XGM/XGM.h"
 
 namespace GitarooViewer

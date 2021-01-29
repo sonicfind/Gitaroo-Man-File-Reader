@@ -467,15 +467,17 @@ void XGM_Main::viewModel()
 				putchar('\n');
 			}
 			printf("%sShow Normals: %s [Enter 'S' to toggle this value]\n", g_global.tabs.c_str(), showNormals ? "TRUE" : "FALSE");
-			printf("%s? - Help\n", g_global.tabs.c_str());
 			switch (GlobalFunctions::insertIndexValues(sectionIndexes, "yns", xgm.m_models.size()))
+			printf("%s? - Show list of controls\n", g_global.tabs.c_str());
 			{
 			case GlobalFunctions::ResultType::Help:
-				printf("%s\n%sMove with WASD\n", g_global.tabs.c_str(), g_global.tabs.c_str());
-				printf("%sSpace to ascend | Left Shift to descend\n", g_global.tabs.c_str());
-				printf("%sUP/DOWN keys to increase or decrease speed respectively\n", g_global.tabs.c_str());
-				printf("%sScroll Wheel to increase or decrease zoom\n", g_global.tabs.c_str());
-				printf("%sESC to exit\n", g_global.tabs.c_str());
+				printf("%s\n%sWASD - Move\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+				printf("%sSpace/Left Shift - Ascend/Descend\n", g_global.tabs.c_str());
+				printf("%sUp/Down - Increase/Decrease movement speed\n", g_global.tabs.c_str());
+				printf("%sMouse - Camera Aiming\n", g_global.tabs.c_str());
+				printf("%sMouse Scroll - Increase/Decrease zoom\n", g_global.tabs.c_str());
+				printf("%sESC - exit\n", g_global.tabs.c_str());
+				printf("%s'N' - Toggle displaying vertex normal vectors\n", g_global.tabs.c_str());
 				printf("%sPress 'Enter' when you're done reading", g_global.tabs.c_str());
 				GlobalFunctions::clearIn();
 				g_global.input = getchar();

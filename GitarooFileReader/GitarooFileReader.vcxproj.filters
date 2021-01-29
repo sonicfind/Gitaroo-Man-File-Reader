@@ -46,10 +46,14 @@
     <Filter Include="Visual-Based Types\XGM\Viewer">
       <UniqueIdentifier>{5d8cf73e-d70b-40b4-8de7-fec0ca45a6d7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Visual-Based Types\XG\XGNodes">
-      <UniqueIdentifier>{fe990c9d-ee4f-4b3d-a31e-8a7c0987f8d3}</UniqueIdentifier>
+    <Filter Include="Visual-Based Types\XGM\Viewer\Animation">
+      <UniqueIdentifier>{6de13a1f-9ae3-4f44-aef8-fca82c84508f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Visual-Based Types\XGM\Viewer\Input Control">
       <UniqueIdentifier>{08bde79d-4a4e-411d-9c5a-59a0044c13cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\XGM\Viewer\Shaders">
+      <UniqueIdentifier>{a95afc20-22bf-4202-8ab2-99a98d26d1d7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Visual-Based Types\XGM\Viewer\3rd Party">
       <UniqueIdentifier>{902d7889-f0c3-4981-8d3d-40bd6648daaf}</UniqueIdentifier>
@@ -119,11 +123,20 @@
     <ClCompile Include="XGM\XGM_Main.cpp">
       <Filter>Visual-Based Types\XGM</Filter>
     </ClCompile>
+    <ClCompile Include="XGM\Viewer\Animator.cpp">
+      <Filter>Visual-Based Types\XGM\Viewer\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="XGM\Viewer\Timeline.cpp">
+      <Filter>Visual-Based Types\XGM\Viewer\Animation</Filter>
+    </ClCompile>
     <ClCompile Include="XGM\Viewer\InputHandler.cpp">
       <Filter>Visual-Based Types\XGM\Viewer\Input Control</Filter>
     </ClCompile>
     <ClCompile Include="XGM\Viewer\Camera.cpp">
       <Filter>Visual-Based Types\XGM\Viewer\Input Control</Filter>
+    </ClCompile>
+    <ClCompile Include="XGM\Viewer\Shaders.cpp">
+      <Filter>Visual-Based Types\XGM\Viewer\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="XGM\Viewer\Viewer.cpp">
       <Filter>Visual-Based Types\XGM\Viewer</Filter>
@@ -184,6 +197,12 @@
     <ClInclude Include="XGM\Viewer\Viewer.h">
       <Filter>Visual-Based Types\XGM\Viewer</Filter>
     </ClInclude>
+    <ClInclude Include="XGM\Viewer\Animator.h">
+      <Filter>Visual-Based Types\XGM\Viewer\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\Viewer\Timeline.h">
+      <Filter>Visual-Based Types\XGM\Viewer\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="XGM\Viewer\InputHandler.h">
       <Filter>Visual-Based Types\XGM\Viewer\Input Control</Filter>
     </ClInclude>
@@ -191,7 +210,7 @@
       <Filter>Visual-Based Types\XGM\Viewer\Input Control</Filter>
     </ClInclude>
     <ClInclude Include="XGM\Viewer\Shaders.h">
-      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+      <Filter>Visual-Based Types\XGM\Viewer\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

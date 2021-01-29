@@ -297,9 +297,10 @@ bool XGM::viewModel()
 				putchar('\n');
 			}
 			
-			printf("%sShow Normals: %s [Enter 'S' to toggle this value]\n", g_global.tabs.c_str(), Viewer::s_showNormals ? "TRUE" : "FALSE");
-			printf("%s? - Show list of controls\n", g_global.tabs.c_str());
-			switch (insertIndexValues(sectionIndexes, "s", m_models.size()))
+			printf_tab("N - Toggle Normal Vectors: %s\n", Viewer::s_showNormals ? "TRUE" : "FALSE");
+			printf_tab("B - BPM for tempo-base animations: %g\n", Animator::getBPM());
+			printf_tab("? - Show list of controls\n");
+			switch (insertIndexValues(sectionIndexes, "nb", m_models.size()))
 			{
 			case ResultType::Help:
 				printf_tab("\n");
@@ -310,6 +311,15 @@ bool XGM::viewModel()
 				printf_tab("Mouse Scroll - Increase/Decrease zoom\n");
 				printf_tab("ESC - exit\n");
 				printf_tab("'N' - Toggle displaying vertex normal vectors\n");
+				printf_tab("'O' - Switch between Animation & Pose modes\n");
+				printf_tab("'L' - Toggle animation looping\n");
+				printf_tab("With Animation mode active:\n");
+				printf_tab("\tP - Pause/Play\n");
+				printf_tab("\tR (Press) - Reset current animation to frame 0\n");
+				printf_tab("\tR (Hold) - Reset to first animation\n");
+				printf_tab("\tRight/Left - Switch between adjacent animations\n");
+				printf_tab("\tWhile an animation is paused:\n");
+				printf_tab("\t\t'.'/',' - Increment/decrement keyframe index\n");
 				printf_tab("Press 'Enter' when you're done reading");
 				clearIn();
 				g_global.input = getchar();
@@ -320,7 +330,35 @@ bool XGM::viewModel()
 			case ResultType::Quit:
 				return true;
 			case ResultType::SpecialCase:
-				Viewer::s_showNormals = !Viewer::s_showNormals;
+				if (g_global.answer.character == 'b')
+				{
+					float bpm = Animator::getBPM();
+					do
+					{
+						printf("%sCurrent BPM: %g\n", g_global.tabs.c_str(), Animator::getBPM());
+						printf("%sInput: ", g_global.tabs.c_str());
+						switch (valueInsert(bpm, false, "b"))
+						{
+						case ResultType::Quit:
+							return true;
+						case ResultType::SpecialCase:
+						case ResultType::Success:
+							Animator::setBPM(bpm);
+							g_global.quit = true;
+							break;
+						case ResultType::InvalidNegative:
+							printf("%sValue must be positive.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+							clearIn();
+							break;
+						case ResultType::Failed:
+							printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
+							clearIn();
+						}
+					} while (!g_global.quit);
+					g_global.quit = false;
+				}
+				else
+					Viewer::s_showNormals = !Viewer::s_showNormals;
 				__fallthrough;
 			case ResultType::Success:
 				if (sectionIndexes.size())

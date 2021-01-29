@@ -14,21 +14,32 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "XGM/XGM.h"
+#include "Animator.h"
+#include "Shaders.h"
 
 namespace GitarooViewer
 {
 	struct DagMesh
 	{
 		xgDagMesh* m_mesh = nullptr;
-		std::shared_ptr<float[]> m_vertices;
-		unsigned int m_size = 0;
+		size_t m_dagTransformIndex = 0;
+
+		unsigned int m_numVerts = 0;
+		std::shared_ptr<Vertex[]> m_vertices;
+		std::shared_ptr<BoneVertex[]> m_boneVertices;
+		std::shared_ptr<ShapeVertex[]> m_shapeVertices;
+
 		unsigned int m_VBO = 0;
 		unsigned int m_VAO = 0;
-		unsigned int m_vertexSize = 0;
+		unsigned int m_transformVBO = 0;
+		unsigned int m_transformVAO = 0;
+
+		Shader m_transformShader;
+		Shader m_transformGeoShader;
+
 		unsigned int m_fanEBO = 0;
 		unsigned int m_stripEBO = 0;
 		unsigned int m_listEBO = 0;
-		unsigned long m_flags = 0;
 
 		struct Material
 		{
@@ -48,38 +59,17 @@ namespace GitarooViewer
 		static std::list<DagMesh*> s_allMeshes;
 
 		~DagMesh();
-		bool load(XGM* xgm, xgDagMesh* mesh);
+		bool load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, size_t transformIndex);
 		void bindTexture(const IMX& image, unsigned int& ID);
-		void draw(const float time, glm::mat4 base, const bool showNormals);
-	};
-
-	struct Dag;
-
-	struct DagTransform
-	{
-		xgDagTransform* m_transform = nullptr;
-		std::list<Dag*> m_dags;
-		bool m_transparency = false;
-		~DagTransform();
-		bool load(XGM* xgm, XG_Data::DagBase& dagBase);
-		void draw(const float time, glm::mat4 base, const bool showNormals);
-	};
-
-	struct Dag
-	{
-		DagMesh* m_mesh = nullptr;
-		DagTransform* m_transform = nullptr;
-		bool m_transparency = false;
-		~Dag();
-		bool load(XGM* xgm, XG_Data::DagBase& dagBase);
-		void draw(const float time, glm::mat4 base, const bool showNormals);
 	};
 
 	struct Model
 	{
-		std::list<GitarooViewer::Dag*> m_dags;
+		std::list<DagMesh*> m_meshes;
+		Animator m_animator;
+		Model(XGM* xgm, XG& xg);
 		~Model();
-		void load(XGM* xgm, XG& xg);
+		void loadTransform(XGM* xgm, XG_Data::DagBase& dagBase);
 		void draw(const float time, glm::mat4 base, const bool showNormals);
 	};
 }
@@ -87,13 +77,10 @@ namespace GitarooViewer
 class Viewer
 {
 	// settings
-	const unsigned int s_SCR_WIDTH = 800;
-	const unsigned int s_SCR_HEIGHT = 600;
-	std::vector<GitarooViewer::Model> m_models;
+	const unsigned int s_SCR_WIDTH = 960;
+	const unsigned int s_SCR_HEIGHT = 720;
+	std::list<GitarooViewer::Model> m_models;
 public:
 	static bool s_showNormals;
 	int viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices);
 };
-
-
-

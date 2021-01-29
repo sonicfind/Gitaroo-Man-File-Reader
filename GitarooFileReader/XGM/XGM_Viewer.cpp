@@ -194,8 +194,6 @@ int XGM_Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices, con
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		// Used to test animations at a reasonable speed
-		// Temporary style - until I move to the keyframe format
 		for (auto& model : m_models)
 		{
 			if (first)

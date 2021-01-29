@@ -298,16 +298,19 @@ bool XGM::viewModel()
 			}
 			
 			printf("%sShow Normals: %s [Enter 'S' to toggle this value]\n", g_global.tabs.c_str(), Viewer::s_showNormals ? "TRUE" : "FALSE");
-			printf("%s? - Help\n", g_global.tabs.c_str());
+			printf("%s? - Show list of controls\n", g_global.tabs.c_str());
 			switch (insertIndexValues(sectionIndexes, "s", m_models.size()))
 			{
 			case ResultType::Help:
-				printf("%s\n%sMove with WASD\n", g_global.tabs.c_str(), g_global.tabs.c_str());
-				printf("%sSpace to ascend | Left Shift to descend\n", g_global.tabs.c_str());
-				printf("%sUP/DOWN keys to increase or decrease speed respectively\n", g_global.tabs.c_str());
-				printf("%sScroll Wheel to increase or decrease zoom\n", g_global.tabs.c_str());
-				printf("%sESC to exit\n", g_global.tabs.c_str());
-				printf("%sPress 'Enter' when you're done reading", g_global.tabs.c_str());
+				printf_tab("\n");
+				printf_tab("WASD - Move\n");
+				printf_tab("Space/Left Shift - Ascend/Descend\n");
+				printf_tab("Up/Down - Increase/Decrease movement speed\n");
+				printf_tab("Mouse - Camera Aiming\n");
+				printf_tab("Mouse Scroll - Increase/Decrease zoom\n");
+				printf_tab("ESC - exit\n");
+				printf_tab("'N' - Toggle displaying vertex normal vectors\n");
+				printf_tab("Press 'Enter' when you're done reading");
 				clearIn();
 				g_global.input = getchar();
 				putchar('\n');

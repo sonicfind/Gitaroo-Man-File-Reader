@@ -13,25 +13,19 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include <map>
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include "Shaders.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "InputHandler.h"
+#include "Camera.h"
 #include "Viewer.h"
 #include <algorithm>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-
-Camera camera;
 Shader* lightingShader;
 Shader* geoShader;
-float currentTime, startTime;
 glm::mat4 view, projection;
 glm::vec3 lightPos(0, 30, 20);
+float g_previousTime;
 glm::vec3 lightAmbient(.5, .5, .5);
 glm::vec3 lightDiffuse(.5, .5, .5);
 glm::vec3 lightSpecular(.2, .2, .2);
@@ -40,7 +34,7 @@ bool Viewer::s_showNormals = false;
 
 int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 {
-	camera.reset(glm::vec3(0.0f, 0.0f, 20.0f));
+	g_camera.reset(glm::vec3(0.0f, 40.0f, 200.0f));
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -62,10 +56,9 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 	}
 
 	glViewport(0, 0, s_SCR_WIDTH, s_SCR_HEIGHT);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
 	lightingShader = new Shader;
 	geoShader = new Shader("GeoShader.vs", "GeoShader.gs", "GeoShader.fs");
+	glfwSetFramebufferSizeCallback(window, InputHandling::framebuffer_size_callback);
 	
 	m_models.resize(xgIndices.size());
 	for (size_t modelIndex = 0; modelIndex < xgIndices.size(); ++modelIndex)
@@ -73,30 +66,38 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 
 	glEnable(GL_DEPTH_TEST);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetCursorPosCallback(window, InputHandling::mouse_callback);
+	glfwSetScrollCallback(window, InputHandling::scroll_callback);
 
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	currentTime = 0;
-	startTime = (float)glfwGetTime();
+	g_previousTime = (float)glfwGetTime();
 	while (!glfwWindowShouldClose(window))
 	{
-		currentTime = (float)glfwGetTime();
-		processInput(window);
+		float currentTime = (float)glfwGetTime();
+		InputHandling::processInputs(window, currentTime);
+
+		if (InputHandling::g_input_keyboard.KEY_ESCAPE.isPressed())
+			break;
+
+		g_camera.moveCamera(currentTime - g_previousTime);
+
+		if (InputHandling::g_input_keyboard.KEY_N.isPressed())
+			showNormals = !showNormals;
+
 		glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		view = camera.getViewMatrix();
-		projection = glm::perspective(glm::radians(camera.m_fov), float(s_SCR_WIDTH) / s_SCR_HEIGHT, 0.1f, 4000.0f);
-		glm::mat4 base = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, -0.1f));
-		const float time = float(20 * (currentTime - startTime));
+		view = g_camera.getViewMatrix();
+		projection = glm::perspective(glm::radians(g_camera.m_fov), float(s_SCR_WIDTH) / s_SCR_HEIGHT, 0.1f, 4000.0f);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		for (auto& model : m_models)
-			model.draw(time, base, s_showNormals);
+			model.draw(currentTime, glm::scale(glm::vec3(1, 1, -1)), showNormals);
 		glBindVertexArray(0);
 
 		// Check calls
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		g_previousTime = currentTime;
 	}
 		
 	GitarooViewer::DagMesh::s_allMeshes.clear();
@@ -430,7 +431,7 @@ void GitarooViewer::DagMesh::draw(const float time, glm::mat4 model, const bool 
 		for (unsigned long index = 0, max = m_vertexSize * group_1.numVerts;
 			index < max; index += m_vertexSize)
 		{
-			float distance = glm::length(camera.m_position -
+			float distance = glm::length(g_camera.m_position -
 				glm::vec3(m_vertices[group_1.index + index],
 					m_vertices[group_1.index + index + 1],
 					-m_vertices[group_1.index + index + 2]));
@@ -441,7 +442,7 @@ void GitarooViewer::DagMesh::draw(const float time, glm::mat4 model, const bool 
 		for (unsigned long index = 0, max = m_vertexSize * group_2.numVerts;
 			index < max; index += m_vertexSize)
 		{
-			float distance = glm::length(camera.m_position -
+			float distance = glm::length(g_camera.m_position -
 				glm::vec3(m_vertices[group_2.index + index],
 					m_vertices[group_2.index + index + 1],
 					-m_vertices[group_2.index + index + 2]));
@@ -477,7 +478,7 @@ void GitarooViewer::DagMesh::draw(const float time, glm::mat4 model, const bool 
 		lightingShader->setFloat("light.constant", 1.0f);
 		lightingShader->setFloat("light.linear", 0.007f);
 		lightingShader->setFloat("light.quadratic", 0.0002f);
-		lightingShader->setVec3("viewPos", glm::value_ptr(camera.m_position));
+		lightingShader->setVec3("viewPos", glm::value_ptr(g_camera.m_position));
 		lightingShader->setInt("blendingType", mat.mat->m_blendType);
 		lightingShader->setMat4("view", glm::value_ptr(view));
 		lightingShader->setMat4("projection", glm::value_ptr(projection));
@@ -601,35 +602,4 @@ void GitarooViewer::DagMesh::draw(const float time, glm::mat4 model, const bool 
 			}
 		}
 	}
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
-
-void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-		return;
-	}
-
-	float deltaTime = 0.0f; // Time between current frame and last frame
-	static float lastFrame = 0.0f;
-
-	if (camera.moveCamera(window, currentTime - lastFrame))
-		startTime = currentTime;
-	lastFrame = currentTime;
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-	camera.turnCamera(window, xpos, ypos);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	camera.zoom(window, xoffset, yoffset);
 }

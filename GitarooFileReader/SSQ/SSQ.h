@@ -16,11 +16,6 @@
 #include "Global_Functions.h"
 #include "XGM/XGM.h"
 
-struct Quaternion
-{
-	float x, y, z, w;
-};
-
 class IMXEntry
 {
 	friend class SSQ;
@@ -123,7 +118,7 @@ class CameraSetup
 	{
 		float m_frame;
 		float m_distance;
-		Quaternion m_quaternion;
+		float m_rotation[4];
 		unsigned long m_isMoving;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
@@ -532,7 +527,7 @@ protected:
 	{
 		float m_frame;
 		float m_distance;
-		Quaternion m_quaternion;
+		float m_rotation[4];
 		unsigned long m_isMoving;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
@@ -579,7 +574,7 @@ protected:
 		float m_baseCoord_X;
 		float m_baseCoord_Y;
 		float m_baseCoord_Z;
-		Quaternion m_baseQuaternion;
+		float m_baseRotation[4];
 		unsigned long ulong_a;
 		unsigned long ulong_b;
 		unsigned long ulong_c;

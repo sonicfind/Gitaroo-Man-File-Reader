@@ -50,12 +50,12 @@ struct SharedNode
 	}
 
 	// Warning: Does NOT perform a nullptr check
-	void push(FILE* outFile)
+	void push(FILE* outFile) const
 	{
 		m_node->m_name.push(outFile);
 	}
 
-	bool isValid()
+	bool isValid() const
 	{
 		return m_node != nullptr;
 	}
@@ -66,7 +66,7 @@ struct SharedNode
 		return &m_node->m_name;
 	}
 
-	T* operator->()
+	T* operator->() const
 	{
 		return m_node;
 	}

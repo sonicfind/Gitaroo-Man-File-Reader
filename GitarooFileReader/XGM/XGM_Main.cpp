@@ -113,6 +113,7 @@ bool XGMType::loadMulti()
 							break;
 						case 'x':
 							xgm.importOBJs();
+							break;
 						case 'v':
 							xgm.viewModel();
 						}
@@ -139,7 +140,7 @@ bool XGMType::loadMulti()
 	return false;
 }
 
-bool XGM_Main::showNormals = false;
+float XGM_Main::s_BPM = 120.0f;
 
 bool XGM_Main::menu(size_t fileCount)
 {
@@ -466,9 +467,9 @@ void XGM_Main::viewModel()
 					printf("%s ", xgm.m_models[index].getName());
 				putchar('\n');
 			}
-			printf("%sShow Normals: %s [Enter 'S' to toggle this value]\n", g_global.tabs.c_str(), showNormals ? "TRUE" : "FALSE");
-			switch (GlobalFunctions::insertIndexValues(sectionIndexes, "yns", xgm.m_models.size()))
+			printf("%sBPM for tempo-base animations: %g [Enter 'B' to change this value]\n", g_global.tabs.c_str(), s_BPM);
 			printf("%s? - Show list of controls\n", g_global.tabs.c_str());
+			switch (GlobalFunctions::insertIndexValues(sectionIndexes, "b", xgm.m_models.size()))
 			{
 			case GlobalFunctions::ResultType::Help:
 				printf("%s\n%sWASD - Move\n", g_global.tabs.c_str(), g_global.tabs.c_str());
@@ -478,6 +479,15 @@ void XGM_Main::viewModel()
 				printf("%sMouse Scroll - Increase/Decrease zoom\n", g_global.tabs.c_str());
 				printf("%sESC - exit\n", g_global.tabs.c_str());
 				printf("%s'N' - Toggle displaying vertex normal vectors\n", g_global.tabs.c_str());
+				printf("%s'O' - Switch between Animation & Pose modes\n", g_global.tabs.c_str());
+				printf("%s'L' - Toggle animation looping\n", g_global.tabs.c_str());
+				printf("%sWith Animation mode active:\n", g_global.tabs.c_str());
+				printf("%s\tP - Pause/Play\n", g_global.tabs.c_str());
+				printf("%s\tR (Press) - Reset current animation to frame 0\n", g_global.tabs.c_str());
+				printf("%s\tR (Hold) - Reset to first animation\n", g_global.tabs.c_str());
+				printf("%s\tRight/Left - Switch between adjacent animations\n", g_global.tabs.c_str());
+				printf("%s\tWhile an animation is paused:\n", g_global.tabs.c_str());
+				printf("%s\t\t'.'/',' - Increment/decrement keyframe index\n", g_global.tabs.c_str());
 				printf("%sPress 'Enter' when you're done reading", g_global.tabs.c_str());
 				GlobalFunctions::clearIn();
 				g_global.input = getchar();
@@ -488,21 +498,33 @@ void XGM_Main::viewModel()
 			case GlobalFunctions::ResultType::Quit:
 				return;
 			case GlobalFunctions::ResultType::SpecialCase:
-				if (g_global.answer.character == 's')
-					showNormals = !showNormals;
-				else if (g_global.answer.character != 'n' && sectionIndexes.size())
+				switch (g_global.answer.character)
 				{
-					g_global.quit = true;
-					break;
+				case 'b':
+					do
+					{
+						printf("%sCurrent BPM: %g\n", g_global.tabs.c_str(), s_BPM);
+						printf("%sInput: ", g_global.tabs.c_str());
+						switch (GlobalFunctions::valueInsert(s_BPM, false, "b"))
+						{
+						case GlobalFunctions::ResultType::Quit:
+							return;
+						case GlobalFunctions::ResultType::SpecialCase:
+						case GlobalFunctions::ResultType::Success:
+							g_global.quit = true;
+							break;
+						case GlobalFunctions::ResultType::InvalidNegative:
+							printf("%sValue must be positive.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+							GlobalFunctions::clearIn();
+							break;
+						case GlobalFunctions::ResultType::Failed:
+							printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
+							GlobalFunctions::clearIn();
+						}
+					} while (!g_global.quit);
+					g_global.quit = false;
 				}
-				else if (g_global.answer.character == 'n')
-				{
-					printf("%s\n", g_global.tabs.c_str());
-					printf("%sOk... If you're not quitting this process, there's no need to say 'N' ya' silly goose.\n", g_global.tabs.c_str());
-					printf("%s\n", g_global.tabs.c_str());
-					break;
-				}
-				__fallthrough;
+				break;
 			case GlobalFunctions::ResultType::Success:
 				if (sectionIndexes.size())
 					g_global.quit = true;
@@ -510,6 +532,6 @@ void XGM_Main::viewModel()
 		} while (!g_global.quit);
 		g_global.quit = false;
 		XGM_Viewer viewer;
-		viewer.viewXG(&xgm, sectionIndexes, showNormals);
+		viewer.viewXG(&xgm, sectionIndexes, s_BPM);
 	};
 }

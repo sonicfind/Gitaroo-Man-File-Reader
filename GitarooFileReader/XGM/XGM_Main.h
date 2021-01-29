@@ -27,7 +27,7 @@ class XGM_Main
 {
 private:
 	XGM xgm;
-	static bool showNormals;
+	static float s_BPM;
 public:
 	XGM_Main(std::string filename) : xgm(filename) {}
 	bool menu(size_t fileCount = 0);

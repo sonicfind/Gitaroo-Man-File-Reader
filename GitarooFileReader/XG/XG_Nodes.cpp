@@ -264,11 +264,11 @@ void xgBgMatrix::writeTXT(FILE* outTXT, const char* tabs)
 	fprintf_s(outTXT, "\t\t\t%sGrid Rotation (XYZW): %g, %g, %g, %g\n", tabs, m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
 	fprintf_s(outTXT, "\t\t\t%s    Grid Scale (XYZ): %g, %g, %g\n", tabs, m_scale[0], m_scale[1], m_scale[2]);
 	if (m_inputPosition.isValid())
-		fprintf_s(outTXT, "\t\t\t%sPosition offset from: %s\n", tabs, m_inputPosition.getPString()->m_pstring);
+		fprintf_s(outTXT, "\t\t%s     Position overwritten by: %s\n", tabs, m_inputPosition.getPString()->m_pstring);
 	if (m_inputRotation.isValid())
-		fprintf_s(outTXT, "\t\t\t%sRotation offset from: %s\n", tabs, m_inputRotation.getPString()->m_pstring);
+		fprintf_s(outTXT, "\t\t%s     Rotation overwritten by: %s\n", tabs, m_inputRotation.getPString()->m_pstring);
 	if (m_inputScale.isValid())
-		fprintf_s(outTXT, "\t\t\t%s   Scale offset from: %s\n", tabs, m_inputScale.getPString()->m_pstring);
+		fprintf_s(outTXT, "\t\t\t%sScale overwritten by: %s\n", tabs, m_inputScale.getPString()->m_pstring);
 	if (m_inputParentMatrix.isValid())
 		fprintf_s(outTXT, "\t\t\t%s Parent Input Matrix: %s\n", tabs, m_inputParentMatrix.getPString()->m_pstring);
 }
@@ -568,7 +568,8 @@ void xgDagTransform::writeTXT(FILE* outTXT, const char* tabs)
 }
 
 xgEnvelope::xgEnvelope(const xgEnvelope& env)
-	: m_startVertex(env.m_startVertex), m_numweights(env.m_numweights), m_numTargets(env.m_numTargets), m_inputMatrices(env.m_inputMatrices), m_inputGeometries(env.m_inputGeometries)
+	: m_startVertex(env.m_startVertex), m_numweights(env.m_numweights), m_numTargets(env.m_numTargets),
+		m_inputMatrices(env.m_inputMatrices), m_inputGeometries(env.m_inputGeometries)
 {
 	m_weights = new float[m_numweights][4];
 	memcpy_s(m_weights, 16ULL * m_numweights, env.m_weights, 16ULL * m_numweights);
@@ -598,10 +599,11 @@ void xgEnvelope::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& 
 	m_vertexTargets = new long[m_numTargets];
 	if (fread(m_vertexTargets, 4, m_numTargets, inFile) != m_numTargets)
 		throw;
+
 	PString test(inFile);
 	while (!strchr(test.m_pstring, '}'))
 	{
-		if (strstr(test.m_pstring, "inputMatrix1"))
+		if (strstr(test.m_pstring, "inputMatrix"))
 			m_inputMatrices.emplace_back(inFile, nodeList);
 		else
 			m_inputGeometries.emplace_back(inFile, nodeList);
@@ -624,10 +626,10 @@ void xgEnvelope::create(FILE* outFile, bool full)
 		PString::push("vertexTargets", outFile);
 		fwrite(&m_numTargets, 4, 1, outFile);
 		fwrite(m_vertexTargets, 4, m_numTargets, outFile);
-		for (auto& node : m_inputMatrices)
+		for (size_t index = 0; index < m_inputMatrices.size(); ++index)
 		{
-			PString::push("inputMatrix1", outFile);
-			node.push(outFile);
+			PString::push("inputMatrix" + std::to_string(index + 1), outFile);
+			m_inputMatrices[index].push(outFile);
 			PString::push("envelopeMatrix", outFile);
 		}
 		for (auto& node : m_inputGeometries)

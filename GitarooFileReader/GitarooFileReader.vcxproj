@@ -205,6 +205,7 @@
     <ClCompile Include="Main\Global_Functions.cpp" />
     <ClCompile Include="Main\pch.cpp" />
     <ClCompile Include="PString\PString.cpp" />
+    <ClCompile Include="XGM\Viewer\Animator.cpp" />
     <ClCompile Include="XGM\Viewer\Camera.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -217,6 +218,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="XGM\Viewer\Shaders.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="XGM\Viewer\Timeline.cpp" />
     <ClCompile Include="XGM\XGM.cpp" />
     <ClCompile Include="XGM\XGM_Main.cpp" />
     <ClCompile Include="XGM\XGM_Viewer.cpp" />
@@ -240,8 +248,11 @@
     <ClInclude Include="Main\pch.h" />
     <ClInclude Include="PString\PString.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="XGM\Viewer\Animator.h" />
     <ClInclude Include="XGM\Viewer\Camera.h" />
+    <ClInclude Include="XGM\Viewer\InputHandler.h" />
     <ClInclude Include="XGM\Viewer\Shaders.h" />
+    <ClInclude Include="XGM\Viewer\Timeline.h" />
     <ClInclude Include="XGM\XGM.h" />
     <ClInclude Include="XGM\XGM_Editor.h" />
     <ClInclude Include="XGM\XGM_Main.h" />

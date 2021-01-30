@@ -481,7 +481,7 @@ private:
 
 public:
 	SSQ();
-	SSQ(std::string filename);
+	SSQ(std::string filename, bool loadXGM = true);
 	SSQ(const SSQ&) = default;
 	void create(std::string filename);
 };

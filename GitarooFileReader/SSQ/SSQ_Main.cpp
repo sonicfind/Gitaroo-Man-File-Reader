@@ -82,7 +82,7 @@ bool SSQType::loadMulti()
 				{
 					try
 					{
-						SSQ_Main ssq(m_files.front());
+						SSQ_Main ssq(m_files.front(), choice == 'e');
 						switch (choice)
 						{
 						case 'e':
@@ -257,6 +257,7 @@ void SSQ_Main::saveFile(bool onExit)
 										m_ssq.m_shortname += ext;
 										m_ssq.m_saved = 2;
 									}
+									__fallthrough;
 								case GlobalFunctions::ResultType::Quit:
 									g_global.quit = true;
 								}

@@ -20,7 +20,7 @@
 
 SSQ::SSQ() {}
 
-SSQ::SSQ(std::string filename) : m_filename(filename + ".SSQ"), m_saved(2)
+SSQ::SSQ(std::string filename, bool loadXGM) : m_filename(filename + ".SSQ"), m_saved(2)
 {
 	{
 		size_t pos = filename.find_last_of('\\');
@@ -99,7 +99,7 @@ SSQ::SSQ(std::string filename) : m_filename(filename + ".SSQ"), m_saved(2)
 	m_pSetup.read(inFile);
 	fclose(inFile);
 
-	if (std::filesystem::exists(filename + ".XGM"))
+	if (loadXGM && std::filesystem::exists(filename + ".XGM"))
 	{
 		do
 		{

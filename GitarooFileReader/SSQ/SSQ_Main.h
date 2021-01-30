@@ -28,7 +28,7 @@ class SSQ_Main
 private:
 	SSQ m_ssq;
 public:
-	SSQ_Main(std::string filename) : m_ssq(filename) {}
+	SSQ_Main(std::string filename, bool loadXGM = true) : m_ssq(filename, loadXGM) {}
 	bool menu(size_t fileCount = 0);
 	void saveFile(bool onExit = false);
 	void writeTxt() {}

@@ -531,7 +531,15 @@ void XGM_Main::viewModel()
 			}
 		} while (!g_global.quit);
 		g_global.quit = false;
-		XGM_Viewer viewer;
-		viewer.viewXG(&xgm, sectionIndexes, s_BPM);
+
+		try
+		{
+			XGM_Viewer viewer;
+			viewer.viewXG(&xgm, sectionIndexes, s_BPM);
+		}
+		catch (char* str)
+		{
+			printf("%s", str);
+		}
 	};
 }

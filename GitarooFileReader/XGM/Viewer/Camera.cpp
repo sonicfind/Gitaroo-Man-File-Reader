@@ -19,25 +19,9 @@ using namespace InputHandling;
 
 Camera g_camera;
 
-Camera::Camera() : Camera(glm::vec3(0.0f, 0.0f, 200.0f)) {}
-
-Camera::Camera(const glm::vec3 position)
+void Camera::reset()
 {
-	m_position = position;
-	m_front = glm::vec3(0.0f, 0.0f, -1.0f);
-	m_up = glm::vec3(0.0f, 1.0f, 0.0f);
-	m_yaw = -90.0f;
-	m_pitch = 0.0f;
-	m_fov = 45.0f;
-	m_sens = 500.0f;
-	m_firstMouse = true;
-	m_lastX = 400;
-	m_lastY = 300;
-}
-
-void Camera::reset(const glm::vec3 position)
-{
-	m_position = position;
+	m_position = glm::vec3(0.0f, 40.0f, 200.0f);
 	m_front = glm::vec3(0.0f, 0.0f, -1.0f);
 	m_up = glm::vec3(0.0f, 1.0f, 0.0f);
 	m_yaw = -90.0f;

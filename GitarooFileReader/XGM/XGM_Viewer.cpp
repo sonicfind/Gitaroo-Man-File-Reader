@@ -254,12 +254,12 @@ GitarooViewer::Model::Model(XGM* xgm, XG& xg)
 
 	for (int dagIndex = 0; dagIndex < xg.m_data->m_dag.size(); ++dagIndex)
 	{
-		if (std::dynamic_pointer_cast<xgDagTransform>(xg.m_data->m_dag[dagIndex].m_base))
+		if (dynamic_cast<xgDagTransform*>(xg.m_data->m_dag[dagIndex].m_base))
 			loadTransform(xgm, xg.m_data->m_dag[dagIndex]);
 		else
 		{
 			DagMesh* mesh = new DagMesh;
-			if (mesh->load(xgm, (xgDagMesh*)xg.m_data->m_dag[dagIndex].m_base.get(), m_animator.m_timeline, 0))
+			if (mesh->load(xgm, (xgDagMesh*)xg.m_data->m_dag[dagIndex].m_base, m_animator.m_timeline, 0))
 				m_meshes.push_back(mesh);
 			else
 			{
@@ -277,7 +277,7 @@ GitarooViewer::Model::Model(XGM* xgm, XG& xg)
 
 void GitarooViewer::Model::loadTransform(XGM* xgm, XG_Data::DagBase& dagBase)
 {
-	xgDagTransform* transformNode = (xgDagTransform*)dagBase.m_base.get();
+	xgDagTransform* transformNode = (xgDagTransform*)dagBase.m_base;
 	size_t transformIndex = 0;
 	if (transformNode->m_inputMatrices.size())
 	{
@@ -291,12 +291,12 @@ void GitarooViewer::Model::loadTransform(XGM* xgm, XG_Data::DagBase& dagBase)
 Load_Meshes:
 	for (int dagIndex = 0; dagIndex < dagBase.m_connected.size(); ++dagIndex)
 	{
-		if (std::dynamic_pointer_cast<xgDagTransform>(dagBase.m_connected[dagIndex].m_base))
+		if (dynamic_cast<xgDagTransform*>(dagBase.m_connected[dagIndex].m_base))
 			loadTransform(xgm, dagBase.m_connected[dagIndex]);
 		else
 		{
 			DagMesh* mesh = new DagMesh;
-			if (mesh->load(xgm, (xgDagMesh*)dagBase.m_connected[dagIndex].m_base.get(), m_animator.m_timeline, transformIndex))
+			if (mesh->load(xgm, (xgDagMesh*)dagBase.m_connected[dagIndex].m_base, m_animator.m_timeline, transformIndex))
 				m_meshes.push_back(mesh);
 			else
 			{

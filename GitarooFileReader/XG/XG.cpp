@@ -887,11 +887,11 @@ XG_Data::XG_Data(FILE* inFile)
 			dagStack.pop_back();
 		else
 		{
-			for (std::shared_ptr<XGNode>& node : m_nodes)
+			for (auto& node : m_nodes)
 			{
 				if (node->m_name == xgName)
 				{
-					dagStack.back()->emplace_back(node);
+					dagStack.back()->emplace_back(node.get());
 					break;
 				}
 			}
@@ -933,7 +933,7 @@ XG_Data::XG_Data(XG_Data& xg)
 			{
 				if (dag.m_base->m_name == m_nodes.back()->m_name)
 				{
-					m_dag.push_back(m_nodes.back());
+					m_dag.push_back(m_nodes.back().get());
 					break;
 				}
 			}
@@ -948,7 +948,7 @@ XG_Data::XG_Data(XG_Data& xg)
 			{
 				if (node->m_name == base.m_base->m_name)
 				{
-					m_dag[d].m_connected.push_back(node);
+					m_dag[d].m_connected.push_back(node.get());
 					break;
 				}
 			}
@@ -977,7 +977,7 @@ void XG_Data::create(FILE* outFile)
 
 XG_Data::DagBase::DagBase() : m_base(nullptr) {}
 
-XG_Data::DagBase::DagBase(std::shared_ptr<XGNode> m_base) : m_base(m_base) {}
+XG_Data::DagBase::DagBase(XGNode* m_base) : m_base(m_base) {}
 
 void XG_Data::DagBase::create(FILE* outFile, bool braces)
 {

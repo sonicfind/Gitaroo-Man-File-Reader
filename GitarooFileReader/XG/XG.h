@@ -24,10 +24,10 @@ class XG_Data
 public:
 	struct DagBase
 	{
-		std::shared_ptr<XGNode> m_base;
+		XGNode* m_base;
 		std::vector<DagBase> m_connected;
 		DagBase();
-		DagBase(std::shared_ptr<XGNode> base);
+		DagBase(XGNode* base);
 		void create(FILE* outFile, bool braces = false);
 	};
 private:

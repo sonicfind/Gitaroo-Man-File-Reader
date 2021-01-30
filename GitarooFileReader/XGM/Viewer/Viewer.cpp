@@ -352,7 +352,7 @@ bool GitarooViewer::DagMesh::load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline,
 		if (dynamic_cast<xgMaterial*>(node))
 		{
 			xgMaterial* mat = (xgMaterial*)node;
-			m_materials.push_back({ mat });
+			m_materials.push_back({ mat, GL_LESS });
 			if (mat->m_blendType || mat->m_flags & 1)
 				m_transparency = true;
 			if (mat->m_inputTextures.size())
@@ -372,7 +372,10 @@ bool GitarooViewer::DagMesh::load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline,
 			for (auto& shared : ((xgMultiPassMaterial*)node)->m_inputMaterials)
 			{
 				xgMaterial* mat = (xgMaterial*)shared.m_node;
-				m_materials.push_back({ mat });
+				if (!m_materials.size())
+					m_materials.push_back({ mat, GL_LESS });
+				else
+					m_materials.push_back({ mat, GL_LEQUAL });
 				if (mat->m_blendType || mat->m_flags & 1)
 					m_transparency = true;
 				if (mat->m_inputTextures.size())
@@ -778,30 +781,30 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 		if (dag->m_mesh->m_primType == 5 && dag->m_transparency)
 		{
 			std::sort(dag->m_groups.rbegin(), dag->m_groups.rend(),
-				[&](const DagMesh::TriGroup& group_1, const DagMesh::TriGroup& group_2)
+			[&](const DagMesh::TriGroup& group_1, const DagMesh::TriGroup& group_2)
+			{
+				float dist1 = FLT_MAX;
+				for (unsigned long index = 0; index < group_1.numVerts; ++index)
 				{
-					float dist1 = FLT_MAX;
-					for (unsigned long index = 0; index < group_1.numVerts; ++index)
-					{
-						float distance = glm::length(g_camera.m_position -
-							glm::vec3(dag->m_vertices[group_1.index + index].m_position[0],
-								dag->m_vertices[group_1.index + index].m_position[1],
-								-dag->m_vertices[group_1.index + index].m_position[0]));
-						if (distance < dist1)
-							dist1 = distance;
-					}
-					float dist2 = FLT_MAX;
-					for (unsigned long index = 0; index < group_2.numVerts; ++index)
-					{
-						float distance = glm::length(g_camera.m_position -
-							glm::vec3(dag->m_vertices[group_2.index + index].m_position[0],
-								dag->m_vertices[group_2.index + index].m_position[1],
-								-dag->m_vertices[group_2.index + index].m_position[0]));
-						if (distance < dist2)
-							dist2 = distance;
-					}
-					return dist1 < dist2;
-				});
+					float distance = glm::length(g_camera.m_position -
+						glm::vec3(dag->m_vertices[group_1.index + index].m_position[0],
+							dag->m_vertices[group_1.index + index].m_position[1],
+							-dag->m_vertices[group_1.index + index].m_position[0]));
+					if (distance < dist1)
+						dist1 = distance;
+				}
+				float dist2 = FLT_MAX;
+				for (unsigned long index = 0; index < group_2.numVerts; ++index)
+				{
+					float distance = glm::length(g_camera.m_position -
+						glm::vec3(dag->m_vertices[group_2.index + index].m_position[0],
+							dag->m_vertices[group_2.index + index].m_position[1],
+							-dag->m_vertices[group_2.index + index].m_position[0]));
+					if (distance < dist2)
+						dist2 = distance;
+				}
+				return dist1 < dist2;
+			});
 		}
 
 		baseShader->setVec3("lightPosition", glm::value_ptr(g_camera.m_position));
@@ -851,6 +854,8 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 				glBlendEquation(GL_FUNC_SUBTRACT);
 			}
 
+			glDepthFunc(mat.depth);
+			
 			if (dag->m_mesh->m_primType == 4)
 			{
 				if (dag->m_fanEBO)

@@ -297,7 +297,6 @@ bool XGM::viewModel()
 				putchar('\n');
 			}
 			
-			printf_tab("N - Toggle Normal Vectors: %s\n", Viewer::s_showNormals ? "TRUE" : "FALSE");
 			printf_tab("B - BPM for tempo-base animations: %g\n", Animator::getBPM());
 			printf_tab("? - Show list of controls\n");
 			switch (insertIndexValues(sectionIndexes, "nb", m_models.size()))
@@ -330,12 +329,12 @@ bool XGM::viewModel()
 			case ResultType::Quit:
 				return true;
 			case ResultType::SpecialCase:
-				if (g_global.answer.character == 'b')
 				{
 					float bpm = Animator::getBPM();
 					do
 					{
-						printf("%sCurrent BPM: %g\n", g_global.tabs.c_str(), Animator::getBPM());
+						printf_tab("Current BPM: %g\n", bpm);
+						printf_tab("B - Keep current BPM\n");
 						printf("%sInput: ", g_global.tabs.c_str());
 						switch (valueInsert(bpm, false, "b"))
 						{
@@ -357,8 +356,6 @@ bool XGM::viewModel()
 					} while (!g_global.quit);
 					g_global.quit = false;
 				}
-				else
-					Viewer::s_showNormals = !Viewer::s_showNormals;
 				__fallthrough;
 			case ResultType::Success:
 				if (sectionIndexes.size())
@@ -366,8 +363,16 @@ bool XGM::viewModel()
 			}
 		} while (!g_global.quit);
 		g_global.quit = false;
-		Viewer viewer;
-		viewer.viewXG(this, sectionIndexes);
+
+		try
+		{
+			Viewer viewer;
+			viewer.viewXG(this, sectionIndexes);
+		}
+		catch (char* str)
+		{
+			printf("%s", str);
+		}
 	};
 }
 

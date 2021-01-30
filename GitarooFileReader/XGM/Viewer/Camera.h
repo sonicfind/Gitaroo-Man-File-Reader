@@ -25,14 +25,14 @@ private:
 	float m_lastY;
 	float m_yaw;
 	float m_pitch;
+	float m_sens;
+
 public:
 	glm::vec3 m_position;
 	float m_fov;
-	float m_sens;
-
-	Camera();
-	Camera(const glm::vec3 position);
-	void reset(const glm::vec3 position);
+	
+	Camera() : m_sens(500.0f) {}
+	void reset();
 	glm::mat4 getViewMatrix();
 	void moveCamera(float delta);
 	void turnCamera(double xpos, double ypos);

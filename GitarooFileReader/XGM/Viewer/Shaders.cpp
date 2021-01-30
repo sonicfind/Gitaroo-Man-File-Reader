@@ -19,6 +19,12 @@
 #include <iostream>
 
 unsigned int Shader::activeID = 0;
+Shader g_baseShader;
+Shader g_boneShader;
+Shader g_shapeShader;
+Shader g_baseGeometryShader;
+Shader g_boneGeometryShader;
+Shader g_shapeGeometryShader;
 
 void Shader::createProgram(const char* vertexPath, const char* fragmentPath)
 {
@@ -213,15 +219,15 @@ void Shader::setFloat(const std::string& name, float value) const
 {
 	glUniform1f(glGetUniformLocation(activeID, name.c_str()), value);
 }
-void Shader::setVec3(const std::string& name, float* vect, const size_t size) const
+void Shader::setVec3(const std::string& name, float* vect, const int size) const
 {
 	glUniform3fv(glGetUniformLocation(activeID, name.c_str()), size, vect);
 }
-void Shader::setVec4(const std::string& name, float* vect, const size_t size) const
+void Shader::setVec4(const std::string& name, float* vect, const int size) const
 {
 	glUniform4fv(glGetUniformLocation(activeID, name.c_str()), size, vect);
 }
-void Shader::setMat4(const std::string& name, float* matrix, const size_t size) const
+void Shader::setMat4(const std::string& name, float* matrix, const int size) const
 {
 	glUniformMatrix4fv(glGetUniformLocation(activeID, name.c_str()), size, GL_FALSE, matrix);
 }

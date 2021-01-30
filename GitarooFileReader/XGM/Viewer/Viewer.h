@@ -16,6 +16,8 @@
 #include "XGM/XGM.h"
 #include "Animator.h"
 #include "Shaders.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 namespace GitarooViewer
 {
@@ -80,7 +82,25 @@ class Viewer
 	const unsigned int s_SCR_WIDTH = 960;
 	const unsigned int s_SCR_HEIGHT = 720;
 	std::list<GitarooViewer::Model> m_models;
+	GLFWwindow* m_window;
+	unsigned int m_UBO;
+	unsigned int m_lightUBO;
+	unsigned int m_geoUBO;
+	unsigned int m_geoLineUBO;
+	unsigned int m_boneUBO;
+	float m_currentTime = 0;
+	float m_previousTime = 0;
+
+	glm::vec3 m_lightPos;
+	glm::vec3 m_lightAmbient;
+	glm::vec3 m_lightDiffuse;
+	glm::vec3 m_lightSpecular;
+	float m_lightConstant;
+	float m_lightLinear;
+	float m_lightQuadratic;
 public:
-	static bool s_showNormals;
+	Viewer();
 	int viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices);
+	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 };

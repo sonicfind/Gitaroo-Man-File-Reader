@@ -13,60 +13,31 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include <glad/glad.h>
+#include "Viewer.h"
 #include "InputHandler.h"
 #include "Camera.h"
-#include "Viewer.h"
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include "Shaders.h"
 #include <algorithm>
 
-Shader g_baseShader;
-Shader g_boneShader;
-Shader g_shapeShader;
-unsigned int g_UBO, g_lightUBO;
-Shader g_baseGeometryShader;
-Shader g_boneGeometryShader;
-Shader g_shapeGeometryShader;
-unsigned int g_geoUBO, g_geoLineUBO;
-unsigned int g_boneUBO;
-
-float g_previousTime;
-glm::vec3 lightPos(0, 100, 100);
-glm::vec3 lightAmbient(.5, .5, .5);
-glm::vec3 lightDiffuse(1, 1, 1);
-glm::vec3 lightSpecular(.5, .5, .5);
-float lightConstant = 1.0f, lightLinear = 0.007f, lightQuadratic = 0.0002f;
-
-bool Viewer::s_showNormals = false;
-
-int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
+Viewer::Viewer()
 {
-	g_camera.reset(glm::vec3(0.0f, 40.0f, 200.0f));
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(s_SCR_WIDTH, s_SCR_HEIGHT, "XG Viewer", NULL, NULL);
-	if (!window)
+	m_window = glfwCreateWindow(s_SCR_WIDTH, s_SCR_HEIGHT, "XG Viewer", NULL, NULL);
+	if (!m_window)
 	{
-		printf("Failed to create GLFW window\n");
 		glfwTerminate();
-		return -1;
+		throw "Failed to create GLFW window";
 	}
-	glfwMakeContextCurrent(window);
+	glfwMakeContextCurrent(m_window);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		printf("Failed to initialize GLAD\n");
-		return -1;
-	}
+		throw "Failed to initialize GLAD";
 
 	glViewport(0, 0, s_SCR_WIDTH, s_SCR_HEIGHT);
-	glfwSetFramebufferSizeCallback(window, InputHandling::framebuffer_size_callback);
 
 	g_baseShader.createProgram("Vertex.glsl", "Fragment.glsl");
 	g_boneShader.createProgram("Vertex - Bones.glsl", "Fragment.glsl");
@@ -74,21 +45,18 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 	g_baseGeometryShader.createProgram("Geo - Vertex.glsl", "Geo - Geometry.glsl", "Geo - Fragment.glsl");
 	g_boneGeometryShader.createProgram("Geo - Vertex - Bones.glsl", "Geo - Geometry.glsl", "Geo - Fragment.glsl");
 	g_shapeGeometryShader.createProgram("Geo - Vertex - Shapes.glsl", "Geo - Geometry.glsl", "Geo - Fragment.glsl");
-	
-	for (size_t modelIndex = 0; modelIndex < xgIndices.size(); ++modelIndex)
-		m_models.emplace_back(xgmObject, xgmObject->m_models[xgIndices[modelIndex]]);
+
+	glfwSetFramebufferSizeCallback(m_window, InputHandling::framebuffer_size_callback);
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
+	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
 
 	glEnable(GL_DEPTH_TEST);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, InputHandling::mouse_callback);
-	glfwSetScrollCallback(window, InputHandling::scroll_callback);
-
-	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	glGenBuffers(1, &g_UBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, g_UBO);
+	glGenBuffers(1, &m_UBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
 	glBufferData(GL_UNIFORM_BUFFER, 128, NULL, GL_STATIC_DRAW);
 
 	unsigned int uniform_index = glGetUniformBlockIndex(g_baseShader.ID, "Matrices");
@@ -99,11 +67,11 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 
 	uniform_index = glGetUniformBlockIndex(g_shapeShader.ID, "Matrices");
 	glUniformBlockBinding(g_shapeShader.ID, uniform_index, 0);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, g_UBO);
-	
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_UBO);
 
-	glGenBuffers(1, &g_lightUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, g_lightUBO);
+
+	glGenBuffers(1, &m_lightUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 56, NULL, GL_STATIC_DRAW);
 
 	uniform_index = glGetUniformBlockIndex(g_baseShader.ID, "Lights");
@@ -114,18 +82,18 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 
 	uniform_index = glGetUniformBlockIndex(g_shapeShader.ID, "Lights");
 	glUniformBlockBinding(g_shapeShader.ID, uniform_index, 1);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, g_lightUBO);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_lightUBO);
 
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, glm::value_ptr(lightAmbient));
-	glBufferSubData(GL_UNIFORM_BUFFER, 16, 4, glm::value_ptr(lightDiffuse));
-	glBufferSubData(GL_UNIFORM_BUFFER, 32, 4, glm::value_ptr(lightSpecular));
-	glBufferSubData(GL_UNIFORM_BUFFER, 44, 4, &lightConstant);
-	glBufferSubData(GL_UNIFORM_BUFFER, 48, 4, &lightLinear);
-	glBufferSubData(GL_UNIFORM_BUFFER, 52, 4, &lightQuadratic);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, glm::value_ptr(m_lightAmbient));
+	glBufferSubData(GL_UNIFORM_BUFFER, 16, 4, glm::value_ptr(m_lightDiffuse));
+	glBufferSubData(GL_UNIFORM_BUFFER, 32, 4, glm::value_ptr(m_lightSpecular));
+	glBufferSubData(GL_UNIFORM_BUFFER, 44, 4, &m_lightConstant);
+	glBufferSubData(GL_UNIFORM_BUFFER, 48, 4, &m_lightLinear);
+	glBufferSubData(GL_UNIFORM_BUFFER, 52, 4, &m_lightQuadratic);
 
 
-	glGenBuffers(1, &g_geoUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, g_geoUBO);
+	glGenBuffers(1, &m_geoUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_geoUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_STATIC_DRAW);
 
 	uniform_index = glGetUniformBlockIndex(g_baseGeometryShader.ID, "View");
@@ -136,11 +104,11 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 
 	uniform_index = glGetUniformBlockIndex(g_shapeGeometryShader.ID, "View");
 	glUniformBlockBinding(g_shapeGeometryShader.ID, uniform_index, 2);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 2, g_geoUBO);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_geoUBO);
 
 
-	glGenBuffers(1, &g_geoLineUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, g_geoLineUBO);
+	glGenBuffers(1, &m_geoLineUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_geoLineUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_STATIC_DRAW);
 
 	uniform_index = glGetUniformBlockIndex(g_baseGeometryShader.ID, "Projection");
@@ -151,31 +119,55 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 
 	uniform_index = glGetUniformBlockIndex(g_shapeGeometryShader.ID, "Projection");
 	glUniformBlockBinding(g_shapeGeometryShader.ID, uniform_index, 3);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, g_geoLineUBO);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_geoLineUBO);
 
-	glGenBuffers(1, &g_boneUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, g_boneUBO);
+	glGenBuffers(1, &m_boneUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_boneUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 4096, NULL, GL_STATIC_DRAW);
 	uniform_index = glGetUniformBlockIndex(g_boneShader.ID, "Bones");
 	glUniformBlockBinding(g_boneShader.ID, uniform_index, 4);
 
 	uniform_index = glGetUniformBlockIndex(g_boneGeometryShader.ID, "Bones");
 	glUniformBlockBinding(g_boneGeometryShader.ID, uniform_index, 4);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 4, g_boneUBO);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 4, m_boneUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	g_previousTime = (float)glfwGetTime();
-	bool first = true;
+	glm::vec3 m_lightPos = glm::vec3(0, 100, 100);
+	glm::vec3 m_lightAmbient = glm::vec3(.5, .5, .5);
+	glm::vec3 m_lightDiffuse = glm::vec3(1, 1, 1);
+	glm::vec3 m_lightSpecular = glm::vec3(.5, .5, .5);
+	float m_lightConstant = 1.0f;
+	float m_lightLinear = 0.007f;
+	float m_lightQuadratic = 0.0002f;
+}
+
+void Viewer::mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	g_camera.turnCamera(xpos, ypos);
+}
+
+void Viewer::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	g_camera.zoom(xoffset, yoffset);
+}
+
+int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
+{
+	g_camera.reset();
+	for (size_t modelIndex = 0; modelIndex < xgIndices.size(); ++modelIndex)
+		m_models.emplace_back(xgmObject, xgmObject->m_models[xgIndices[modelIndex]]);
+
+	m_previousTime = (float)glfwGetTime();
 	bool showNormals = false;
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(m_window))
 	{
-		float currentTime = (float)glfwGetTime();
-		InputHandling::processInputs(window, currentTime);
+		m_currentTime = (float)glfwGetTime();
+		InputHandling::processInputs(m_window, m_currentTime);
 
 		if (InputHandling::g_input_keyboard.KEY_ESCAPE.isPressed())
 			break;
 
-		g_camera.moveCamera(currentTime - g_previousTime);
+		g_camera.moveCamera(m_currentTime - m_previousTime);
 
 		if (InputHandling::g_input_keyboard.KEY_N.isPressed())
 			showNormals = !showNormals;
@@ -185,30 +177,34 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 		glm::mat4 view = g_camera.getViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(g_camera.m_fov), float(s_SCR_WIDTH) / s_SCR_HEIGHT, 0.1f, 40000.0f);
 
-		glBindBuffer(GL_UNIFORM_BUFFER, g_UBO);
+		glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
 		glBufferSubData(GL_UNIFORM_BUFFER, 64, 64, glm::value_ptr(view));
 
-		glBindBuffer(GL_UNIFORM_BUFFER, g_geoUBO);
+		glBindBuffer(GL_UNIFORM_BUFFER, m_geoUBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(view));
 
-		glBindBuffer(GL_UNIFORM_BUFFER, g_geoLineUBO);
+		glBindBuffer(GL_UNIFORM_BUFFER, m_geoLineUBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		for (auto& model : m_models)
 		{
-			if (first)
-				model.m_animator.setStartTime(currentTime);
-			model.draw(currentTime, glm::scale(glm::vec3(1, 1, -1)), showNormals);
+			model.m_animator.update(m_currentTime);
+			if (model.m_animator && model.m_animator.m_timeline.m_boneMatrices)
+			{
+				glBindBuffer(GL_UNIFORM_BUFFER, m_boneUBO);
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, 16 * sizeof(float) * model.m_animator.m_timeline.m_bones.size(), model.m_animator.m_timeline.m_boneMatrices);
+				glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			}
+			model.draw(m_currentTime, glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1)), showNormals);
 		}
 		glBindVertexArray(0);
 
 		// Check calls
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(m_window);
 		glfwPollEvents();
-		first = false;
-		g_previousTime = currentTime;
+		m_previousTime = m_currentTime;
 	}
 		
 	GitarooViewer::DagMesh::s_allMeshes.clear();
@@ -713,13 +709,6 @@ void GitarooViewer::DagMesh::bindTexture(const IMX& image, unsigned int& ID)
 
 void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool showNormals)
 {
-	m_animator.update(time);
-	if (m_animator && m_animator.m_timeline.m_boneMatrices)
-	{
-		glBindBuffer(GL_UNIFORM_BUFFER, g_boneUBO);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, 16 * sizeof(float) * m_animator.m_timeline.m_bones.size(), m_animator.m_timeline.m_boneMatrices);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	}
 	for (auto& dag : m_meshes)
 	{
 		Shader* baseShader;

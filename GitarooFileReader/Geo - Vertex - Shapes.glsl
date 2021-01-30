@@ -27,15 +27,14 @@ uniform float coefficient;
 void main()
 {
 	vec4 finalPos;
-	if (interpolation.position > 0 && coefficient > 0.01)
-		finalPos = mix(aPos, bPos, coefficient);
+	if (interpolation.position > 0)
+		finalPos = mix(vec4(aPos.xyz, 1), vec4(bPos.xyz, 1), coefficient);
 	else
-		finalPos = aPos;
-	finalPos.w = 1;
+		finalPos = vec4(aPos.xyz, 1);
 	gl_Position = view * model * finalPos;
 	
 	mat3 normalMatrix = mat3(transpose(inverse(view * model)));
-	if (interpolation.normal > 0 && coefficient > 0.01)
+	if (interpolation.normal > 0)
 		vs_out.normal = normalize(vec3(vec4(normalMatrix * mix(aNorm, bNorm, coefficient), 0.0)));
 	else
 		vs_out.normal = normalize(vec3(vec4(normalMatrix * aNorm, 0.0)));

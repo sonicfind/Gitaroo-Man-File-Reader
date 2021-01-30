@@ -33,14 +33,13 @@ void main()
 	for (int i = 0; i < MAX_WEIGHTS && totalWeight < .99; ++i)
 	{
 		mat4 boneTransform = boneTransforms[aBoneIDs[i]];
-		vec4 localPosition = boneTransform * aPos;
+		vec4 localPosition = boneTransform * vec4(aPos.xyz, 1);
 		finalPos += localPosition * aWeights[i];
 	
 		vec4 worldNormal = boneTransform * vec4(aNorm.xyz, 0);
 		finalNorm += worldNormal * aWeights[i];
 		totalWeight += aWeights[i];
 	}
-	finalPos.w = 1;
 	
 	gl_Position = view * model * finalPos;
 	mat3 normalMatrix = mat3(transpose(inverse(view * model)));

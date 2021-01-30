@@ -783,7 +783,7 @@ void xgMaterial::writeTXT(FILE* outTXT, const char* tabs)
 	fprintf_s(outTXT, "\t\t\t%sDiffuse (RGBA): %g, %g, %g, %g\n", tabs, m_diffuse.red, m_diffuse.green, m_diffuse.blue, m_diffuse.alpha);
 	fprintf_s(outTXT, "\t\t%s     Specular (RGBExp): %g, %g, %g, %g\n", tabs, m_specular.red, m_specular.green, m_specular.blue, m_specular.exponent);
 	fprintf_s(outTXT, "\t\t\t\t%s Flags: %s (Possibly overriden by blend or shading)\n", tabs, m_flags & 1 ? "Use Alpha" : "Ignore Alpha");
-	fprintf_s(outTXT, "\t\t%s   Texture Environment: %s\n", tabs, m_textureEnv ? "UV Coordinates" : "Sphere/Environment Map");
+	fprintf_s(outTXT, "\t\t%s   Texture Environment: %s\n", tabs, m_textureEnv ? "Sphere/Environment Map" : "UV Coordinates");
 	fprintf_s(outTXT, "\t\t\t\t%s UTile: %lu\n", tabs, m_uTile);
 	fprintf_s(outTXT, "\t\t\t\t%s VTile: %lu\n", tabs, m_vTile);
 	if (m_inputTextures.size())

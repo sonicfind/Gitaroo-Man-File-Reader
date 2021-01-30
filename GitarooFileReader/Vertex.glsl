@@ -19,6 +19,7 @@ layout (std140) uniform Matrices
 };
 
 uniform mat4 model;
+uniform int textEnv;
 
 void main()
 {
@@ -27,5 +28,13 @@ void main()
 	vs_out.fragPos = vec3(model * finalPos);
 	vs_out.normal = vec3(model * vec4(aNorm, 1));
 	vs_out.color = aColor;
-	vs_out.texCoord = aTexCoord;
+	if (textEnv == 0)
+		vs_out.texCoord = aTexCoord;
+	else
+	{
+		mat3 normalMatrix = mat3(transpose(inverse(view * model)));
+		vec3 r = reflect(vec3(view * model * finalPos), normalMatrix * aNorm);
+		float m = 2 * sqrt(pow(r.x, 2) + pow(r.y, 2) + pow(r.z + 1, 2));
+		vs_out.texCoord = r.xy / m + .5;
+	}
 }

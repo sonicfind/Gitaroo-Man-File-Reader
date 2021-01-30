@@ -68,8 +68,13 @@ void Timeline::fillShape(xgShapeInterpolator* interpolator, const Vertex* pose)
 		m_shapes.back().m_keys.push_back(verts);
 	}
 
-	for (size_t t = 0; t < interpolator->m_numtimes; ++t)
-		m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[t]);
+	for (size_t t = 0; t < interpolator->m_inputTimes.front()->m_numFrames; ++t)
+	{
+		if (t < interpolator->m_numtimes)
+			m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[t]);
+		else
+			m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[interpolator->m_numtimes - 1]);
+	}
 }
 
 void Timeline::fillPositions(xgVertexInterpolator* interpolator, const Vertex* pose, bool& preFilled)
@@ -94,8 +99,13 @@ void Timeline::fillPositions(xgVertexInterpolator* interpolator, const Vertex* p
 
 	if (!preFilled)
 	{
-		for (size_t t = 0; t < interpolator->m_numtimes; ++t)
-			m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[t]);
+		for (size_t t = 0; t < interpolator->m_inputTimes.front()->m_numFrames; ++t)
+		{
+			if (t < interpolator->m_numtimes)
+				m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[t]);
+			else
+				m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[interpolator->m_numtimes - 1]);
+		}
 		preFilled = true;
 	}
 }
@@ -122,8 +132,13 @@ void Timeline::fillNormals(xgNormalInterpolator* interpolator, const Vertex* pos
 
 	if (!preFilled)
 	{
-		for (size_t t = 0; t < interpolator->m_numtimes; ++t)
-			m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[t]);
+		for (size_t t = 0; t < interpolator->m_inputTimes.front()->m_numFrames; ++t)
+		{
+			if (t < interpolator->m_numtimes)
+				m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[t]);
+			else
+				m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[interpolator->m_numtimes - 1]);
+		}
 		preFilled = true;
 	}
 }
@@ -150,7 +165,12 @@ void Timeline::fillTexCoords(xgTexCoordInterpolator* interpolator, const Vertex*
 
 	if (!preFilled)
 	{
-		for (size_t t = 0; t < interpolator->m_numtimes; ++t)
-			m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[t]);
+		for (size_t t = 0; t < interpolator->m_inputTimes.front()->m_numFrames; ++t)
+		{
+			if (t < interpolator->m_numtimes)
+				m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[t]);
+			else
+				m_shapes.back().m_times.push_back((unsigned long)interpolator->m_times[interpolator->m_numtimes - 1]);
+		}
 	}
 }

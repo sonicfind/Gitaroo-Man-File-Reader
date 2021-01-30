@@ -16,14 +16,13 @@
 #include "pch.h"
 #include "SSQ.h"
 #include <algorithm>
-#include <filesystem>
 
 SSQ::SSQ() : FileType(".SSQ") {}
 
-SSQ::SSQ(std::string filename, bool useBanner)
-	: FileType(filename, ".SSQ", useBanner)
+SSQ::SSQ(std::string filename, bool loadXGM)
+	: FileType(filename, ".SSQ", true)
 {
-	char test[4];
+	char test[4] = { 0 };
 	fread(test, 1, 4, m_filePtr);
 	if (!strstr(test, "GMSX"))
 	{
@@ -87,24 +86,13 @@ SSQ::SSQ(std::string filename, bool useBanner)
 
 	m_pSetup.read(m_filePtr);
 	fclose(m_filePtr);
+}
 
-	if (std::filesystem::exists(filename + ".XGM"))
-	{
-		do
-		{
-			printf("%sLoad %s.XGM as well? [Y/N][Q = N]\n", g_global.tabs.c_str(), filename.c_str());
-			switch (GlobalFunctions::menuChoices("yn"))
-			{
-			case GlobalFunctions::ResultType::Success:
-				if (g_global.answer.character == 'y')
-					m_xgm = std::make_unique<XGM>(filename);
-				__fallthrough;
-			case GlobalFunctions::ResultType::Quit:
-				g_global.quit = true;
-			}
-		} while (!g_global.quit);
-		g_global.quit = false;
-	}
+bool SSQ::loadXGM()
+{
+	if (!m_xgm)
+		m_xgm = std::make_unique<XGM>(m_directory + m_filename);
+	return true;
 }
 
 bool SSQ::create(std::string filename, bool trueSave)
@@ -194,7 +182,7 @@ void XGEntry::create(FILE* outFile)
 
 ModelSetup::ModelSetup(FILE* inFile, char(&name)[16]): m_name(name)
 {
-	char test[4];
+	char test[4] = { 0 };
 	fread(test, 1, 4, inFile);
 	if (!strstr(test, "GMPX"))
 	{
@@ -344,7 +332,7 @@ void SnakeModelSetup::create(FILE* outFile)
 
 void CameraSetup::read(FILE* inFile)
 {
-	char test[4];
+	char test[4] = { 0 };
 	fread(test, 1, 4, inFile);
 	if (!strstr(test, "GMPX"))
 	{
@@ -452,10 +440,9 @@ void CameraSetup::create(FILE* outFile)
 
 LightSetup::LightSetup(FILE* inFile)
 {
-
 	fread(&m_80bytes, sizeof(Struct80_7f), 1, inFile);
 
-	char test[4];
+	char test[4] = { 0 };
 	fread(test, 1, 4, inFile);
 	if (!strstr(test, "GMLT"))
 	{
@@ -515,7 +502,7 @@ void LightSetup::create(FILE* outFile)
 
 void SpritesSetup::read(FILE* inFile)
 {
-	char test[4];
+	char test[4] = { 0 };
 	fread(test, 1, 4, inFile);
 	if (!strstr(test, "GMSP"))
 	{
@@ -571,7 +558,7 @@ void SpritesSetup::create(FILE* outFile)
 void FixedSpriteSetup::read(FILE* inFile)
 {
 	m_used = true;
-	char test[4];
+	char test[4] = { 0 };
 	fread(test, 1, 4, inFile);
 	if (!strstr(test, "GMF0"))
 	{
@@ -632,7 +619,7 @@ void Unk2SpriteSetup::create(FILE* outFile)
 
 FixedSprite::FixedSprite(FILE* inFile)
 {
-	char test[4];
+	char test[4] = { 0 };
 	fread(test, 1, 4, inFile);
 	if (!strstr(test, "GMSP"))
 	{
@@ -705,7 +692,7 @@ void FixedSprite::create(FILE* outFile)
 
 TexAnim::TexAnim(FILE* inFile)
 {
-	char test[4];
+	char test[4] = { 0 };
 	fread(test, 1, 4, inFile);
 	if (!strstr(test, "\0\0\0\0"))
 	{
@@ -752,7 +739,7 @@ void TexAnim::create(FILE* outFile)
 
 void PSetup::read(FILE* inFile)
 {
-	char test[4];
+	char test[4] = { 0 };
 	fread(test, 1, 4, inFile);
 	if (!strstr(test, "PSTP"))
 	{

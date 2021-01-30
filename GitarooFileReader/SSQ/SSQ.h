@@ -482,8 +482,9 @@ private:
 
 public:
 	SSQ();
-	SSQ(std::string filename, bool useBanner = true);
+	SSQ(std::string filename, bool loadXGM = true);
 	SSQ(const SSQ&) = default;
+	bool loadXGM();
 	bool create(std::string filename, bool trueSave = true);
 
 	bool write_to_txt() { return false; }

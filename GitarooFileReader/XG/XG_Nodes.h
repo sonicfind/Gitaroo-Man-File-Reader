@@ -208,6 +208,7 @@ struct xgVec3Interpolator : public xgInterpolator
 	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgVec3Interpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgVec3Interpolator", str.m_pstring) == 0; }
+	float* getKey(unsigned long time);
 };
 
 struct xgQuatInterpolator : public xgInterpolator
@@ -223,6 +224,7 @@ struct xgQuatInterpolator : public xgInterpolator
 	void writeTXT(FILE* outTXT, const char* tabs = "");
 	const char* getType() { return "xgQuatInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgQuatInterpolator", str.m_pstring) == 0; }
+	float* getKey(unsigned long time);
 };
 
 struct xgBgMatrix : public XGNode

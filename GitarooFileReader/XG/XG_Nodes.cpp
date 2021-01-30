@@ -1056,6 +1056,13 @@ void xgQuatInterpolator::writeTXT(FILE* outTXT, const char* tabs)
 
 	fprintf_s(outTXT, "\t\t%s    Input Time: %s\n", tabs, m_inputTimes.front().getPString()->m_pstring);
 }
+float* xgQuatInterpolator::getKey(unsigned long key)
+{
+	if (key < m_numkeys)
+		return m_keys[key];
+	else
+		return m_keys[m_numkeys - 1];
+}
 
 xgShapeInterpolator::Key& xgShapeInterpolator::Key::operator=(const Key& m_key)
 {
@@ -1492,6 +1499,13 @@ void xgVec3Interpolator::writeTXT(FILE* outTXT, const char* tabs)
 	}
 
 	fprintf_s(outTXT, "\t\t%s    Input Time: %s\n", tabs, m_inputTimes.front().getPString()->m_pstring);
+}
+float* xgVec3Interpolator::getKey(unsigned long key)
+{
+	if (key < m_numkeys)
+		return m_keys[key];
+	else
+		return m_keys[m_numkeys - 1];
 }
 
 xgVertexInterpolator::Key& xgVertexInterpolator::Key::operator=(const Key& m_key)

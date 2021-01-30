@@ -181,8 +181,15 @@ void Animator::Interpolate()
 		// This frame mixed with next frame
 		mixFrames(m_keyFrame + 1);
 	else if (m_loop)
-		// This frame mixed with the first frame in the loop
-		mixFrames(m_startingKeyframe);
+	{
+		if (m_endingKeyframe - m_startingKeyframe > 1)
+		{
+			// This frame mixed with the first frame in the loop
+			mixFrames(m_startingKeyframe);
+		}
+		else
+			staticFrame();
+	}
 	else if (m_animIndex + 1 < m_xg->m_animations.size())
 		// This frame mixed with the first frame of the next animation
 		mixFrames((unsigned long)m_xg->m_animations[m_animIndex + 1].m_starting_keyframe);
@@ -234,17 +241,17 @@ void Animator::staticMatrix(glm::vec3& trn, glm::quat& rot, glm::vec3& scl, cons
 		staticMatrix(trn, rot, scl, matrix->m_inputParentMatrix.m_node);
 
 	if (matrix->m_inputPosition.isValid())
-		trn += glm::make_vec3(matrix->m_inputPosition->m_keys[m_keyFrame]);
+		trn += glm::make_vec3(matrix->m_inputPosition->getKey(m_keyFrame));
 	else
 		trn += glm::make_vec3(matrix->m_position);
 
 	if (matrix->m_inputRotation.isValid())
-		rot *= glm::make_quat(matrix->m_inputRotation->m_keys[m_keyFrame]);
+		rot *= glm::make_quat(matrix->m_inputRotation->getKey(m_keyFrame));
 	else
 		rot *= glm::make_quat(matrix->m_rotation);
 
 	if (matrix->m_inputScale.isValid())
-		scl *= glm::make_vec3(matrix->m_inputScale->m_keys[m_keyFrame]);
+		scl *= glm::make_vec3(matrix->m_inputScale->getKey(m_keyFrame));
 	else
 		scl *= glm::make_vec3(matrix->m_scale);
 }
@@ -298,17 +305,17 @@ void Animator::mixMatrix(glm::vec3& trn, glm::quat& rot, glm::vec3& scl, const x
 		mixMatrix(trn, rot, scl, matrix->m_inputParentMatrix.m_node, next);
 
 	if (matrix->m_inputPosition.isValid())
-		trn += mixVec3(matrix->m_inputPosition->m_keys[m_keyFrame], matrix->m_inputPosition->m_keys[next]);
+		trn += mixVec3(matrix->m_inputPosition->getKey(m_keyFrame), matrix->m_inputPosition->getKey(next));
 	else
 		trn += glm::make_vec3(matrix->m_position);
 
 	if (matrix->m_inputRotation.isValid())
-		rot *= mixQuat(matrix->m_inputRotation->m_keys[m_keyFrame], matrix->m_inputRotation->m_keys[next]);
+		rot *= mixQuat(matrix->m_inputRotation->getKey(m_keyFrame), matrix->m_inputRotation->getKey(next));
 	else
 		rot *= glm::make_quat(matrix->m_rotation);
 
 	if (matrix->m_inputScale.isValid())
-		scl *= mixVec3(matrix->m_inputScale->m_keys[m_keyFrame], matrix->m_inputScale->m_keys[next]);
+		scl *= mixVec3(matrix->m_inputScale->getKey(m_keyFrame), matrix->m_inputScale->getKey(next));
 	else
 		scl *= glm::make_vec3(matrix->m_scale);
 }

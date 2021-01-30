@@ -33,31 +33,43 @@ struct Interpolate
 };
 uniform Interpolate interpolation;
 uniform float coefficient;
+uniform int textEnv;
 
 void main()
 {
 	vec4 finalPos;
-	if (interpolation.position > 0 && coefficient > 0.01)
-		finalPos = mix(aPos, bPos, coefficient);
+	if (interpolation.position > 0)
+		finalPos = mix(vec4(aPos.xyz, 1), vec4(bPos.xyz, 1), coefficient);
 	else
-		finalPos = aPos;
-	finalPos.w = 1;
+		finalPos = vec4(aPos.xyz, 1);
 	
 	gl_Position = projection * view * model * finalPos;
 	vs_out.fragPos = vec3(model * finalPos);
 	
-	if (interpolation.normal > 0 && coefficient > 0.01)
-		vs_out.normal = vec3(model * vec4(mix(aNorm, bNorm, coefficient), 1));
+	vec4 finalNorm;
+	if (interpolation.normal > 0)
+		finalNorm = vec4(mix(aNorm, bNorm, coefficient), 1);
 	else
-		vs_out.normal = vec3(model * vec4(aNorm, 1));
+		finalNorm = vec4(aNorm, 1);
+	vs_out.normal = vec3(model * finalNorm);
 	
-	if (interpolation.color > 0 && coefficient > 0.01)
+	if (interpolation.color > 0)
 		vs_out.color = mix(aColor, bColor, coefficient);
 	else
 		vs_out.color = aColor;
 	
-	if (interpolation.texCoord > 0 && coefficient > 0.01)
-		vs_out.texCoord = mix(aTexCoord, bTexCoord, coefficient);
+	if (textEnv == 0)
+	{
+		if (interpolation.texCoord > 0)
+			vs_out.texCoord = mix(aTexCoord, bTexCoord, coefficient);
+		else
+			vs_out.texCoord = aTexCoord;
+	}
 	else
-		vs_out.texCoord = aTexCoord;
+	{
+		mat3 normalMatrix = mat3(transpose(inverse(view * model)));
+		vec3 r = reflect(vec3(view * model * finalPos), normalMatrix * vec3(finalNorm));
+		float m = 2 * sqrt(pow(r.x, 2) + pow(r.y, 2) + pow(r.z + 1, 2));
+		vs_out.texCoord = r.xy / m + .5;
+	}
 }

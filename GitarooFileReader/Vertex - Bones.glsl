@@ -31,6 +31,8 @@ layout (std140) uniform Bones
 	mat4 boneTransforms[MAX_BONES];
 };
 
+uniform int textEnv;
+
 void main()
 {
 	vec4 finalPos = vec4(0.0);
@@ -40,18 +42,25 @@ void main()
 	for (int i = 0; i < MAX_WEIGHTS && totalWeight < .99; ++i)
 	{
 		mat4 boneTransform = boneTransforms[aBoneIDs[i]];
-		vec4 localPosition = boneTransform * aPos;
+		vec4 localPosition = boneTransform * vec4(aPos.xyz, 1);
 		finalPos += localPosition * aWeights[i];
 	
 		vec4 worldNormal = boneTransform * vec4(aNorm.xyz, 0);
 		finalNorm += worldNormal * aWeights[i];
 		totalWeight += aWeights[i];
 	}
-	finalPos.w = 1;
-		
+	
 	gl_Position = projection * view * model * finalPos;
 	vs_out.fragPos = vec3(model * finalPos);
 	vs_out.normal = vec3(model * finalNorm);
 	vs_out.color = aColor;
-	vs_out.texCoord = aTexCoord;
+	if (textEnv == 0)
+		vs_out.texCoord = aTexCoord;
+	else
+	{
+		mat3 normalMatrix = mat3(transpose(inverse(view * model)));
+		vec3 r = reflect(vec3(view * model * finalPos), normalMatrix * vec3(finalNorm));
+		float m = 2 * sqrt(pow(r.x, 2) + pow(r.y, 2) + pow(r.z + 1, 2));
+		vs_out.texCoord = r.xy / m + .5;
+	}
 }

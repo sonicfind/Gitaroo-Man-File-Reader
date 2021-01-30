@@ -823,6 +823,7 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 					baseShader->setInt("shadingType", shader);
 				glBindTexture(GL_TEXTURE_2D, mat.texture);
 				baseShader->setInt("useTexAlpha", mat.mat->m_flags & 1);
+				baseShader->setInt("textEnv", mat.mat->m_textureEnv);
 			}
 			else
 				baseShader->setInt("shadingType", shader);

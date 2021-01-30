@@ -47,6 +47,7 @@ namespace GitarooViewer
 		{
 			xgMaterial* mat;
 			unsigned int texture = 0;
+			GLenum depth;
 		};
 		std::vector<Material> m_materials;
 		bool m_transparency = false;

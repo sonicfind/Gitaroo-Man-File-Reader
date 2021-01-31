@@ -334,8 +334,8 @@ void IMX_Main::writeTxt(FILE* outTXT, FILE* outSimpleTXT)
 		fputs("\t\t\t\t     Palette: R  | G  | B  | A\n", outTXT);
 		fputs("\t\t\t\t             -------------------\n", outTXT);
 		for (unsigned char* palette = imx.m_data->m_colorData->m_palette[0], *end = palette + imx.m_data->m_colorData->m_paletteSize;
-			palette < end;)
-			fprintf_s(outTXT, "\t\t\t\t\t      %02x | %02x | %02x | %02x\n", *(palette++), *(palette++), *(palette++), *(palette++));
+			palette < end; palette += 4)
+			fprintf_s(outTXT, "\t\t\t\t\t      %02x | %02x | %02x | %02x\n", *palette, *(palette + 1), *(palette + 2), *(palette + 3));
 	}
 	else if (imx.m_data->m_pixelVal1 == 3 && imx.m_data->m_pixelVal2 == 2)
 		fputs("24-bit RGB 888\n", outTXT);

@@ -265,5 +265,8 @@
     <Natvis Include="Main\SharedPtr.natvis">
       <Filter>Global</Filter>
     </Natvis>
+    <Natvis Include="XGM\Viewer_DagMesh.natvis">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

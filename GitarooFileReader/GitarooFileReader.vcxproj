@@ -271,6 +271,7 @@
   <ItemGroup>
     <Natvis Include="IMX\IMX.natvis" />
     <Natvis Include="Main\SharedPtr.natvis" />
+    <Natvis Include="XGM\Viewer_DagMesh.natvis" />
     <Natvis Include="XG\XG.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

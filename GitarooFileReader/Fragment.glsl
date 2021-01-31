@@ -19,7 +19,8 @@ struct Material
 uniform Material material;
 uniform int blendingType;
 uniform int shadingType;
-uniform int useTexAlpha;
+uniform int alphaType;
+uniform int alphaMultiplier;
 
 struct Light
 {
@@ -41,40 +42,43 @@ uniform vec3 viewPos;
 uniform vec3 lightPosition;
 
 
-void blend(vec4 baseColor);
+void blendTexture(vec4 baseColor);
+void blendColor();
 void applyShading();
 vec3 applySpecular(vec3 lightDir, float attenuation);
 
 void main()
 {
-	
+	bool shade;
 	if (shadingType < 3)
 	{
-		vec4 texColor = texture(material.diffuse, vs_out.texCoord);
-		blend(vec4(texColor.rgb, 1));
-		if (false) //(shadingType != 0)
-			applyShading();
-		if (false) //if (useTexAlpha == 1)
-			FragColor.a *= texColor.a;
+		blendTexture(texture(material.diffuse, vs_out.texCoord));
+		if (alphaType == 1)
+			FragColor.a *= alphaMultiplier;
+		shade = false;//shadingType != 0;
 	}
 	else if (shadingType < 5)
 	{
-		blend(vs_out.color);
-		if (false) //(shadingType == 4)
-			applyShading();
+		blendColor();
+		shade = false;//shadingType == 4;
 	}
 	else
 	{
 		vec4 texColor = texture(material.diffuse, vs_out.texCoord);
-		blend(vec4(texColor.rgb, 1) * vs_out.color);
-		if (false) //(shadingType == 6)
-			applyShading();
-		if (false) //if (useTexAlpha == 1)
-			FragColor.a *= texColor.a;
+		blendTexture(texColor * vs_out.color);
+		if (alphaType == 1)
+			FragColor.a *= alphaMultiplier;
+		shade = false;//shadingType == 6;
 	}
+
+	if (FragColor.a < 0.01)
+		discard;
+	
+	if (shade)
+		applyShading();
 };
 
-void blend(vec4 baseColor)
+void blendTexture(vec4 baseColor)
 {
 	vec4 combo = baseColor * material.color;
 	switch (blendingType)
@@ -83,16 +87,41 @@ void blend(vec4 baseColor)
 		FragColor = vec4(baseColor.rgb, 1);
 		break;
 	case 1:
-		FragColor = vec4(baseColor.rgb, (baseColor.r + baseColor.g + baseColor.b) / 3);
+		FragColor = baseColor;
 		break;
 	case 2:
-		FragColor = vec4(baseColor.rgb, (combo.r * combo.g * combo.b));
+		FragColor = baseColor;
 		break;
 	case 3:
-		FragColor = vec4(baseColor.rgb, (combo.r * combo.g * combo.b));
+		FragColor = baseColor;
 		break;
 	case 4:
-		FragColor = combo;
+		FragColor = vec4(baseColor.rgb * material.color.rgb, 1);
+		break;
+	case 5:
+		FragColor = vec4(combo.rgb, 1 - material.color.a);
+	}
+};
+
+void blendColor()
+{
+	vec4 combo = vs_out.color * material.color;
+	switch (blendingType)
+	{
+	case 0:
+		FragColor = vec4(vs_out.color.rgb, 1);
+		break;
+	case 1:
+		FragColor = vec4(vs_out.color.rgb, (vs_out.color.r + vs_out.color.g + vs_out.color.b) / 3);
+		break;
+	case 2:
+		FragColor = vec4(vs_out.color.rgb, (combo.r * combo.g * combo.b));
+		break;
+	case 3:
+		FragColor = vs_out.color;
+		break;
+	case 4:
+		FragColor = vec4(vs_out.color.rgb * material.color.rgb, 1);
 		break;
 	case 5:
 		FragColor = vec4(combo.rgb, 1 - material.color.a);

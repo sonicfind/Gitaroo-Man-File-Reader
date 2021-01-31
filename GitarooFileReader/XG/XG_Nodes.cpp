@@ -704,6 +704,13 @@ void xgMaterial::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& 
 	while (!strchr(test.m_pstring, '}'))
 	{
 		m_inputTextures.emplace_back(inFile, nodeList);
+		const PString& compare = *m_inputTextures.back().getPString();
+		for (size_t i = m_inputTextures.size() - 1; i > 0;)
+			if (*m_inputTextures[--i].getPString() == compare)
+			{
+				m_inputTextures.pop_back();
+				break;
+			}
 		PString::pull(inFile);
 		test.fill(inFile);
 	}
@@ -801,6 +808,13 @@ void xgMultiPassMaterial::read(FILE* inFile, const std::vector<std::shared_ptr<X
 	do
 	{
 		m_inputMaterials.emplace_back(inFile, nodeList);
+		const PString& compare = *m_inputMaterials.back().getPString();
+		for (size_t i = m_inputMaterials.size() - 1; i > 0;)
+			if (*m_inputMaterials[--i].getPString() == compare)
+			{
+				m_inputMaterials.pop_back();
+				break;
+			}
 		PString::pull(inFile);
 		test.fill(inFile);
 	} while (!strchr(test.m_pstring, '}'));

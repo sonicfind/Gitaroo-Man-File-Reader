@@ -46,10 +46,17 @@ namespace GitarooViewer
 		struct Material
 		{
 			xgMaterial* mat;
-			unsigned int texture = 0;
 			GLenum depth;
+			unsigned int textureID = 0;
+			unsigned long width = 0;
+			unsigned long height = 0;
+			unsigned char(*texture_24)[3] = nullptr;
+			unsigned char(*texture_32)[4] = nullptr;
+			~Material();
+			void loadTexture(const IMX& image);
+			void bindTexture();
 		};
-		std::vector<Material> m_materials;
+		std::shared_ptr<std::list<Material>> m_materials;
 		bool m_transparency = false;
 
 		struct TriGroup
@@ -63,7 +70,6 @@ namespace GitarooViewer
 
 		~DagMesh();
 		bool load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, size_t transformIndex);
-		void bindTexture(const IMX& image, unsigned int& ID);
 	};
 
 	struct Model

@@ -247,5 +247,8 @@
     <Natvis Include="XG\XG.natvis">
       <Filter>Visual-Based Types\XG</Filter>
     </Natvis>
+    <Natvis Include="XGM\Viewer_DagMesh.natvis">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

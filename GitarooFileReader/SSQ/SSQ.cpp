@@ -53,21 +53,21 @@ SSQ::SSQ(std::string filename, bool loadXGM)
 		switch (m_XGentries[i].m_type)
 		{
 		case ModelType::Normal:
-			m_modelSetups.push_back(std::make_shared<ModelSetup>(m_filePtr, m_XGentries[i].m_name));
+			m_modelSetups.push_back(std::make_unique<ModelSetup>(m_filePtr, m_XGentries[i].m_name));
 			break;
 		case ModelType::Player1:
 		case ModelType::Player2:
 		case ModelType::DuetPlayer:
-			m_modelSetups.push_back(std::make_shared<PlayerModelSetup>(m_filePtr, m_XGentries[i].m_name));
+			m_modelSetups.push_back(std::make_unique<PlayerModelSetup>(m_filePtr, m_XGentries[i].m_name));
 			break;
 		case ModelType::Player1AttDef:
 		case ModelType::Player2AttDef:
 		case ModelType::DuetPlayerAttDef:
 		case ModelType::DuetComboAttack:
-			m_modelSetups.push_back(std::make_shared<AttDefModelSetup>(m_filePtr, m_XGentries[i].m_name));
+			m_modelSetups.push_back(std::make_unique<AttDefModelSetup>(m_filePtr, m_XGentries[i].m_name));
 			break;
 		case ModelType::Snake:
-			m_modelSetups.push_back(std::make_shared<SnakeModelSetup>(m_filePtr, m_XGentries[i].m_name));
+			m_modelSetups.push_back(std::make_unique<SnakeModelSetup>(m_filePtr, m_XGentries[i].m_name));
 		}
 		
 	}
@@ -219,8 +219,8 @@ ModelSetup::ModelSetup(FILE* inFile, char(&name)[16]): m_name(name)
 		fread(&num32, 4, 1, inFile);
 		if (num32 > 1)
 		{
-			m_scaling.resize(num32);
-			fread(&m_scaling.front(), sizeof(ModelScaling), num32, inFile);
+			m_scalars.resize(num32);
+			fread(&m_scalars.front(), sizeof(ModelScalar), num32, inFile);
 		}
 		fread(&m_64bytes_Opt, sizeof(BaseValues), 1, inFile);
 	}
@@ -251,13 +251,13 @@ void ModelSetup::create(FILE* outFile)
 
 	if (m_headerVersion >= 0x1100)
 	{
-		size = (unsigned long)m_scaling.size();
+		size = (unsigned long)m_scalars.size();
 		if (!size)
 			size = 1;
 		fwrite(&size, 4, 1, outFile);
 
 		if (size > 1)
-			fwrite(&m_scaling.front(), sizeof(ModelScaling), size, outFile);
+			fwrite(&m_scalars.front(), sizeof(ModelScalar), size, outFile);
 		fwrite(&m_64bytes_Opt, sizeof(BaseValues), 1, outFile);
 	}
 }

@@ -320,7 +320,6 @@
     <Natvis Include="IMX\IMX.natvis" />
     <Natvis Include="Main\SharedPtr.natvis" />
     <Natvis Include="XG\XG.natvis" />
-    <Natvis Include="SSQ\SSQ.natvis" />
   </ItemGroup>
   <ItemGroup>
     <None Include="base.vert" />

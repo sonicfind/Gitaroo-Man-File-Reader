@@ -92,21 +92,19 @@ class CameraSetup
 		unsigned long ulong_e;
 		unsigned long ulong_f;
 		unsigned long ulong_g;
-		float float_e;
-		float float_f;
-		float float_g;
-		float float_h;
+		float m_fov;
+		float m_aspectRatio;
+		float m_ZNear;
+		float m_ZFar;
 		unsigned long ulong_h;	
 	} m_64bytes;
 
 	struct CamPosition
 	{
 		float m_frame;
-		float m_distance;
-		float m_xCoord;
-		float m_yCoord;
-		float m_zCoord;
-		unsigned long m_isMoving;
+		float m_coefficient;
+		float m_position[3];
+		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 		unsigned long ulong_c;
@@ -117,9 +115,9 @@ class CameraSetup
 	struct CamRotation
 	{
 		float m_frame;
-		float m_distance;
+		float m_coefficient;
 		float m_rotation[4];
-		unsigned long m_isMoving;
+		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 	};
@@ -142,11 +140,11 @@ class CameraSetup
 	struct ShadeColor
 	{
 		float m_frame;
-		float m_distance;
+		float m_coefficient;
 		float m_red;
 		float m_blue;
 		float m_green;
-		unsigned long m_isMoving;
+		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 		// Seems to match m_otherPos
@@ -351,10 +349,8 @@ class FixedSprite
 	struct Struct48_8f
 	{
 		float m_frame;
-		float m_distance;
-		float m_worldPosition_X;
-		float m_worldPosition_Y;
-		float m_worldPosition_Z;
+		float m_coefficient;
+		float m_position[3];
 		float m_worldScale_X;
 		float m_worldScale_Y;
 		unsigned long ulong_a;
@@ -454,23 +450,14 @@ private:
 	std::string m_shortname;
 	// 
 	unsigned long m_headerVersion;
-
 	char m_unk[12] = { 0 };
-
 	char m_junk[16] = { 0 };
-
 	std::vector<IMXEntry> m_IMXentries;
-
 	std::vector<XGEntry> m_XGentries;
-
-	std::vector<std::shared_ptr<ModelSetup>> m_modelSetups;
-
+	std::vector<std::unique_ptr<ModelSetup>> m_modelSetups;
 	CameraSetup m_camera;
-
 	SpritesSetup m_sprites;
-
 	std::vector<TexAnim> m_texAnimations;
-
 	PSetup m_pSetup;
 
 	//0 - Not saved
@@ -498,6 +485,8 @@ public:
 
 class ModelSetup
 {
+public:
+
 protected:
 	char* m_name;
 
@@ -512,11 +501,9 @@ protected:
 	struct ModelPosition
 	{
 		float m_frame;
-		float m_distance;
-		float m_coord_X;
-		float m_coord_Y;
-		float m_coord_Z;
-		unsigned long m_isMoving;
+		float m_coefficient;
+		float m_position[3];
+		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 		unsigned long ulong_c;
@@ -527,9 +514,9 @@ protected:
 	struct ModelRotation
 	{
 		float m_frame;
-		float m_distance;
+		float m_coefficient;
 		float m_rotation[4];
-		unsigned long m_isMoving;
+		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 	};
@@ -538,9 +525,9 @@ protected:
 
 	struct ModelAnim
 	{
-		float float_a;
-		float float_b;
-		unsigned long ulong_a;
+		float m_frame;
+		float m_coefficient;
+		unsigned long m_animIndex;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
 		unsigned long ulong_d;
@@ -548,35 +535,31 @@ protected:
 		unsigned long ulong_f;
 		unsigned long ulong_g;
 		unsigned long ulong_h;
-		unsigned long ulong_i;
-		unsigned long ulong_j;
+		unsigned long m_unknown;
+		unsigned long m_otherPos;
 	};
 
 	std::vector<ModelAnim> m_animations;
 
-	struct ModelScaling
+	struct ModelScalar
 	{
 		float m_frame;
-		float m_distance;
-		float m_scale_X;
-		float m_scale_Y;
-		float m_scale_Z;
-		unsigned long m_isMoving;
+		float m_coefficient;
+		float m_scalar[3];
+		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		// May not get used
 		unsigned long m_otherPos;
 		unsigned long ulong_c;
 	};
 
-	std::vector<ModelScaling> m_scaling;
+	std::vector<ModelScalar> m_scalars;
 
 	struct BaseValues
 	{
-		float m_baseCoord_X;
-		float m_baseCoord_Y;
-		float m_baseCoord_Z;
+		float m_basePosition[3];
 		float m_baseRotation[4];
-		unsigned long ulong_a;
+		unsigned long m_baseAnimIndex_maybe;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
 		unsigned long ulong_d;
@@ -692,7 +675,7 @@ class TexAnim
 	struct TexFrame
 	{
 		float m_frame;
-		float m_distance;
+		float m_coefficient;
 		unsigned long m_cutOutIndex;
 		unsigned long m_unknown;
 	};

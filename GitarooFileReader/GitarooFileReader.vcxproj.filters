@@ -439,9 +439,6 @@
     <Natvis Include="XG\XG.natvis">
       <Filter>Visual-Based Types\XG</Filter>
     </Natvis>
-    <Natvis Include="SSQ\SSQ.natvis">
-      <Filter>Visual-Based Types\SSQ</Filter>
-    </Natvis>
     <Natvis Include="Main\SharedPtr.natvis">
       <Filter>Global</Filter>
     </Natvis>

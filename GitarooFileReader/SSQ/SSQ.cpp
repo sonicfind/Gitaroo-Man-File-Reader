@@ -244,8 +244,8 @@ ModelSetup::ModelSetup(FILE* inFile, char(&name)[16]): m_name(name)
 		fread(&num32, 4, 1, inFile);
 		if (num32 > 1)
 		{
-			m_scaling.resize(num32);
-			fread(&m_scaling.front(), sizeof(ModelScaling), num32, inFile);
+			m_scalars.resize(num32);
+			fread(&m_scalars.front(), sizeof(ModelScalar), num32, inFile);
 		}
 		fread(&m_64bytes_Opt, sizeof(BaseValues), 1, inFile);
 	}
@@ -276,13 +276,13 @@ void ModelSetup::create(FILE* outFile)
 
 	if (m_headerVersion >= 0x1100)
 	{
-		size = (unsigned long)m_scaling.size();
+		size = (unsigned long)m_scalars.size();
 		if (!size)
 			size = 1;
 		fwrite(&size, 4, 1, outFile);
 
 		if (size > 1)
-			fwrite(&m_scaling.front(), sizeof(ModelScaling), size, outFile);
+			fwrite(&m_scalars.front(), sizeof(ModelScalar), size, outFile);
 		fwrite(&m_64bytes_Opt, sizeof(BaseValues), 1, outFile);
 	}
 }

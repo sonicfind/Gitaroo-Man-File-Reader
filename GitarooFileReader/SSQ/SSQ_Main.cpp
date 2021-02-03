@@ -16,6 +16,7 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "SSQ_Main.h"
+#include "XGM/XGM_Main.h"
 using namespace std;
 
 bool SSQType::loadSingle(string filename)
@@ -123,9 +124,14 @@ bool SSQ_Main::menu(size_t fileCount)
 	do
 	{
 		GlobalFunctions::banner(" " + m_ssq.m_shortname + ".SSQ - Mode Selection ");
-		string choices = "sw";
+		string choices = "s";
 		printf("%sS - Save\n", g_global.tabs.c_str());
-		printf("%sW - Write %s_SSQ.txt\n", g_global.tabs.c_str(), m_ssq.m_shortname.c_str());
+		//printf("%sW - Write %s_SSQ.txt\n", g_global.tabs.c_str(), m_ssq.m_shortname.c_str());
+		if (m_ssq.m_xgm)
+		{
+			printf("%sX - Evaluate %s_XGM.txt\n", g_global.tabs.c_str(), m_ssq.m_shortname.c_str());
+			choices += 'x';
+		}
 		if (fileCount > 1)
 		{
 			printf("%sN - Next SSQ file\n", g_global.tabs.c_str());
@@ -193,6 +199,15 @@ bool SSQ_Main::menu(size_t fileCount)
 					break;
 				case 'w':
 					writeTxt();
+					break;
+				case 'x':
+				{
+					XGM_Main xgm_main(*m_ssq.m_xgm);
+					xgm_main.menu();
+					if (xgm_main.xgm.m_saved != m_ssq.m_xgm->m_saved)
+						m_ssq.m_saved = 0;
+					*m_ssq.m_xgm = xgm_main.xgm;
+				}
 				}
 				--g_global;
 			}

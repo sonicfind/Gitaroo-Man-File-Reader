@@ -19,6 +19,7 @@
 
 class XGM
 {
+	friend class SSQ_Main;
 	friend class XGM_Main;
 	friend class Editor;
 private:

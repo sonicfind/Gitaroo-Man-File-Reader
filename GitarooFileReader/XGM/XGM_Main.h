@@ -25,10 +25,15 @@ struct XGMType : FileType
 
 class XGM_Main
 {
+	friend class SSQ_Main;
 private:
 	XGM xgm;
 public:
 	XGM_Main(std::string filename) : xgm(filename) {}
+	XGM_Main(XGM& other)
+	{
+		xgm = other;
+	}
 	bool menu(size_t fileCount = 0);
 	void saveFile(bool onExit = false);
 	void writeTxt();

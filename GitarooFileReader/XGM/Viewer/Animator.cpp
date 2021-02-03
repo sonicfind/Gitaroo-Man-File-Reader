@@ -43,7 +43,8 @@ void Animator::setStartTime(const float time) { m_startTime = time; }
 void Animator::setCurrentAnimation(float time, float coefficient)
 {
 	m_keyFrame = m_startingKeyframe;
-	m_startTime = time;
+	if (!m_paused)
+		m_startTime = time;
 	m_coefficient = coefficient;
 
 	staticFrame();
@@ -52,6 +53,7 @@ void Animator::setCurrentAnimation(float time, float coefficient)
 void Animator::changeAnimation(size_t index, bool loop, float time, float coefficient)
 {
 	m_animIndex = index;
+	printf("Anim: %zu\n", m_animIndex);
 	m_startingKeyframe = (unsigned long)m_xg->m_animations[m_animIndex].m_starting_keyframe;
 	m_endingKeyframe = m_startingKeyframe + (unsigned long)(m_xg->m_animations[m_animIndex].m_length / m_xg->m_animations[m_animIndex].m_keyframe_interval);
 	m_loop = loop;
@@ -78,10 +80,7 @@ void Animator::update(const float time)
 		if (g_input_keyboard.KEY_O.isPressed())
 		{
 			m_isActive = true;
-			if (!m_paused)
-				setCurrentAnimation(time);
-			else
-				setCurrentAnimation(m_startTime);
+			setCurrentAnimation(time);
 		}
 	}
 	else if (g_input_keyboard.KEY_O.isPressed())
@@ -95,28 +94,13 @@ void Animator::update(const float time)
 		}
 
 		if (g_input_keyboard.KEY_R.isPressed() || g_input_keyboard.KEY_R.isDelayed())
-		{
-			if (!m_paused)
-				setCurrentAnimation(time);
-			else
-				setCurrentAnimation(m_startTime);
-		}
+			setCurrentAnimation(time);
 		else if (g_input_keyboard.KEY_R.isHeld())
 		{
 			if (m_animIndex == 0)
-			{
-				if (!m_paused)
-					setCurrentAnimation(time);
-				else
-					setCurrentAnimation(m_startTime);
-			}
+				setCurrentAnimation(time);
 			else
-			{
-				if (!m_paused)
-					changeAnimation(0, m_loop, time);
-				else
-					changeAnimation(0, m_loop, m_startTime);
-			}
+				changeAnimation(0, m_loop, time);
 		}
 		else if (g_input_keyboard.KEY_RIGHT.isTicked() && !g_input_keyboard.KEY_LEFT.isActive())
 		{

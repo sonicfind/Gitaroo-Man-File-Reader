@@ -20,17 +20,31 @@ const std::string SSQ::multiChoiceString = "ew";
 
 bool SSQ::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 {
-	const std::string choices = nextFile ? "swxn" : "swx";
 	while (true)
 	{
 		banner(" " + m_filename + m_extension + " - Mode Selection ");
+		std::string choices = "sw";
 		printf_tab("S - Save\n");
 		printf_tab("W - Write %s_SSQ.txt\n", m_filename.c_str());
-		if (!m_xgm && std::filesystem::exists(m_directory + m_filename + ".XGM"))
-			printf_tab("X - Load accompanying .XGM file (%s.XGM)\n", m_filename.c_str());
+		if (!m_xgm)
+		{
+			if (std::filesystem::exists(m_directory + m_filename + ".XGM"))
+			{
+				printf_tab("X - Load accompanying .XGM file (%s.XGM)\n", m_filename.c_str());
+				choices += 'x';
+			}
+		}
+		else
+		{
+			printf_tab("X - Open %s.XGM's menu\n", m_filename.c_str());
+			choices += 'x';
+		}
 
 		if (nextFile)
+		{
 			printf_tab("N - Next .SSQ file\n");
+			choices += 'n';
+		}
 
 		if (nextExtension.first)
 			printf_tab("Q - Proceed to the next filetype (%s)\n", nextExtension.second);
@@ -75,7 +89,10 @@ bool SSQ::functionSelection(const char choice, bool isMulti)
 	case 'w':
 		return write_to_txt();
 	case 'x':
-		return loadXGM();
+		if (!m_xgm)
+			return loadXGM();
+		else
+			return m_xgm->menu(false, {false, ""});
 	default:
 		return false;
 	}

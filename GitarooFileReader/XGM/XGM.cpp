@@ -309,6 +309,7 @@ bool XGM::viewModel()
 				printf_tab("Mouse - Camera Aiming\n");
 				printf_tab("Mouse Scroll - Increase/Decrease zoom\n");
 				printf_tab("ESC - exit\n");
+				printf_tab("'M' - Release/Reattach mouse control from/to the window\n");
 				printf_tab("'N' - Toggle displaying vertex normal vectors\n");
 				printf_tab("'O' - Switch between Animation & Pose modes\n");
 				printf_tab("'L' - Toggle animation looping\n");

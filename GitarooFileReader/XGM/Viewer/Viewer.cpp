@@ -47,9 +47,6 @@ Viewer::Viewer()
 	g_shapeGeometryShader.createProgram("Geo - Vertex - Shapes.glsl", "Geo - Geometry.glsl", "Geo - Fragment.glsl");
 
 	glfwSetFramebufferSizeCallback(m_window, InputHandling::framebuffer_size_callback);
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
-	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
 
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -159,6 +156,9 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 
 	m_previousTime = (float)glfwGetTime();
 	bool showNormals = false;
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
+	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
 	while (!glfwWindowShouldClose(m_window))
 	{
 		m_currentTime = (float)glfwGetTime();
@@ -166,8 +166,26 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 
 		if (InputHandling::g_input_keyboard.KEY_ESCAPE.isPressed())
 			break;
+		if (InputHandling::g_input_keyboard.KEY_M.isPressed())
+		{
+			if (m_activeMouse)
+			{
+				glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				glfwSetCursorPosCallback(m_window, NULL);
+				glfwSetScrollCallback(m_window, NULL);
+			}
+			else
+			{
+				glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
+				glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
+				g_camera.setFirstMouse();
+			}
+			m_activeMouse = !m_activeMouse;
+		}
 
-		g_camera.moveCamera(m_currentTime - m_previousTime);
+		if (m_activeMouse)
+			g_camera.moveCamera(m_currentTime - m_previousTime);
 
 		if (InputHandling::g_input_keyboard.KEY_N.isPressed())
 			showNormals = !showNormals;

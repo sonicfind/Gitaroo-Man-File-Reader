@@ -90,6 +90,7 @@ class Viewer
 	const unsigned int s_SCR_HEIGHT = 720;
 	std::list<GitarooViewer::Model> m_models;
 	GLFWwindow* m_window;
+	bool m_activeMouse = true;
 	unsigned int m_UBO;
 	unsigned int m_lightUBO;
 	unsigned int m_geoUBO;

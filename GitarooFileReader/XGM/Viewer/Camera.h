@@ -34,6 +34,7 @@ public:
 	Camera() : m_sens(500.0f) {}
 	void reset();
 	glm::mat4 getViewMatrix();
+	void setFirstMouse() { m_firstMouse = true; }
 	void moveCamera(GLFWwindow* window, float delta);
 	void turnCamera(GLFWwindow* window, double xpos, double ypos);
 	void zoom(GLFWwindow* window, double xoffset, double yoffset);

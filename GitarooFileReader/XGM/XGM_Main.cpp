@@ -478,6 +478,7 @@ void XGM_Main::viewModel()
 				printf("%sMouse - Camera Aiming\n", g_global.tabs.c_str());
 				printf("%sMouse Scroll - Increase/Decrease zoom\n", g_global.tabs.c_str());
 				printf("%sESC - exit\n", g_global.tabs.c_str());
+				printf("%s'M' - Release/Reattach mouse control from/to the window\n", g_global.tabs.c_str());
 				printf("%s'N' - Toggle displaying vertex normal vectors\n", g_global.tabs.c_str());
 				printf("%s'O' - Switch between Animation & Pose modes\n", g_global.tabs.c_str());
 				printf("%s'L' - Toggle animation looping\n", g_global.tabs.c_str());

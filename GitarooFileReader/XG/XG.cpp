@@ -276,8 +276,8 @@ bool XG::exportOBJ(std::string newDirectory)
 									const unsigned long coordIndex = (unsigned long)texCoords.size();
 									const unsigned long numIndexes = mesh->m_triStripData.m_arrayData[valueIndex++];
 									{
-										unsigned long firstIndex = mesh->m_triFanData.m_arrayData[valueIndex++] * vertexSize;
-										unsigned long secondIndex = mesh->m_triFanData.m_arrayData[valueIndex++] * vertexSize;
+										unsigned long firstIndex = mesh->m_triStripData.m_arrayData[valueIndex++] * vertexSize;
+										unsigned long secondIndex = mesh->m_triStripData.m_arrayData[valueIndex++] * vertexSize;
 										if (geo->m_vertexFlags & 1) // Position
 										{
 											vertices.push_back({ geo->m_vertices[firstIndex],
@@ -465,7 +465,7 @@ bool XG::exportOBJ(std::string newDirectory)
 									const unsigned long coordIndex = (unsigned long)texCoords.size();
 									const unsigned long numVerts = mesh->m_triFanData.m_arrayData[valueIndex++];
 									{
-										unsigned long firstIndex = startIndex;
+										unsigned long firstIndex = startIndex * vertexSize;
 										unsigned long secondIndex = firstIndex + vertexSize;
 										if (geo->m_vertexFlags & 1) // Position
 										{
@@ -505,7 +505,7 @@ bool XG::exportOBJ(std::string newDirectory)
 
 									for (unsigned long vertex = 2; vertex < numVerts; ++vertex)
 									{
-										unsigned long index = startIndex + vertex * vertexSize;
+										unsigned long index = (startIndex + vertex) * vertexSize;
 										Face face;
 										if (geo->m_vertexFlags & 1) // Position
 										{
@@ -553,7 +553,7 @@ bool XG::exportOBJ(std::string newDirectory)
 									const unsigned long coordIndex = (unsigned long)texCoords.size();
 									const unsigned long numVerts = mesh->m_triStripData.m_arrayData[valueIndex++];
 									{
-										unsigned long firstIndex = startIndex;
+										unsigned long firstIndex = startIndex * vertexSize;
 										unsigned long secondIndex = firstIndex + vertexSize;
 										if (geo->m_vertexFlags & 1) // Position
 										{
@@ -593,7 +593,7 @@ bool XG::exportOBJ(std::string newDirectory)
 									for (unsigned long vertex = 2; vertex < numVerts; ++vertex)
 									{
 										Face face;
-										unsigned long index = startIndex + vertex * vertexSize;
+										unsigned long index = (startIndex + vertex) * vertexSize;
 										if (geo->m_vertexFlags & 1) // Position
 										{
 											vertices.push_back({ geo->m_vertices[index],
@@ -657,13 +657,13 @@ bool XG::exportOBJ(std::string newDirectory)
 							if (mesh->m_triListCount)
 							{
 								unsigned long valueIndex = 0;
-								for (unsigned long startIndex = mesh->m_triListData.m_arrayData[valueIndex++] * vertexSize;
+								for (unsigned long startIndex = mesh->m_triListData.m_arrayData[valueIndex++];
 									valueIndex < mesh->m_triListData.m_arraySize;)
 								{
 									const unsigned long numVerts = mesh->m_triListData.m_arrayData[valueIndex++];
 									for (unsigned long vertex = 0; vertex < numVerts; vertex += 3)
 									{
-										unsigned long index1 = startIndex + vertex * vertexSize;
+										unsigned long index1 = (startIndex + vertex) * vertexSize;
 										unsigned long index2 = index1 + vertexSize;
 										unsigned long index3 = index2 + vertexSize;
 										Face face;

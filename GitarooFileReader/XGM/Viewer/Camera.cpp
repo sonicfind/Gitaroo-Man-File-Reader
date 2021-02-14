@@ -37,7 +37,7 @@ glm::mat4 Camera::getViewMatrix()
 	return glm::lookAt(m_position, m_position + m_front, m_up);
 }
 
-void Camera::moveCamera(GLFWwindow* window, float delta)
+void Camera::moveCamera(float delta)
 {
 	const float cameraSpeed = m_sens * delta; // adjust accordingly
 	if (g_input_keyboard.KEY_W.isActive())
@@ -77,7 +77,7 @@ void Camera::moveCamera(GLFWwindow* window, float delta)
 	}
 }
 
-void Camera::turnCamera(GLFWwindow* window, double xpos, double ypos)
+void Camera::turnCamera(double xpos, double ypos)
 {
 	if (m_firstMouse) // initially set to true
 	{
@@ -115,7 +115,7 @@ void Camera::turnCamera(GLFWwindow* window, double xpos, double ypos)
 	m_front = glm::normalize(direction);
 }
 
-void Camera::zoom(GLFWwindow* window, double xoffset, double yoffset)
+void Camera::zoom(double xoffset, double yoffset)
 {
 	m_fov -= (float)yoffset;
 	if (m_fov < 1.0f)

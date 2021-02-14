@@ -74,7 +74,13 @@ public:
 		float m_framerate = 60;
 		float m_starting_keyframe = 0;
 		unsigned long m_non_tempo = true;
-		char m_junk[12] = { 0 };
+		union
+		{
+			char c[4];
+			float f;
+			unsigned long ul;
+			long l;
+		} m_junk[3] = { 0 };
 		Animation() : m_length(0), m_keyframe_interval(0), m_framerate(60), m_starting_keyframe(0), m_non_tempo(true) {}
 		Animation(FILE* inFile);
 		Animation(const Animation& anim) = default;

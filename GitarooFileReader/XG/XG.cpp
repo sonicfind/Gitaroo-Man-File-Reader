@@ -130,7 +130,12 @@ void XG::create(string filename)
 
 XG::Animation::Animation(FILE* inFile)
 {
-	fread(this, 4, 8, inFile);
+	fread(&m_length, 4, 1, inFile);
+	fread(&m_keyframe_interval, 4, 1, inFile);
+	fread(&m_framerate, 4, 1, inFile);
+	fread(&m_starting_keyframe, 4, 1, inFile);
+	fread(&m_non_tempo, 4, 1, inFile);
+	fread(&m_junk, 4, 3, inFile);
 }
 
 bool XG::exportOBJ(std::string newDirectory)

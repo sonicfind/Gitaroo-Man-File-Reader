@@ -1097,38 +1097,38 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const unsigned
 	switch (stageNumber)
 	{
 	case 0:
-		fprintf(m_chart, "artist = Tomohiro Harada\n");
-		fprintf(m_chart, "name = 0. Boogie For An Afternoon <p style=\"color:#FF0000\";>(MODCHART)</p> [Tutorial]\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = You tell me\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Puma: This infernal dog is Gitaroo Man's partner.\"<br>\"I find his cutesy facade quite nauseating!\"<br>\"He aids Gitaroo Man in destroying *us* Gravillians!\"");
-		fprintf(m_chart, "<br><br>Lights Out\n");
-		fprintf(m_chart, "diff_guitar = 1\n");
-		fprintf(m_chart, "preview_start_time = 336070\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 2\n");
-		fprintf(m_chart, "playlist_track = 1\n");
-		fprintf(m_chart, "video_start_time = 0\n");
-		fprintf(m_chart, "lyrics = 1\n");
+		fprintf(m_chart, "artist = Tomohiro Harada\n"
+		"name = 0. Boogie For An Afternoon <p style=\"color:#FF0000\";>(MODCHART)</p> [Tutorial]\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = You tell me\n"
+		"year = 2001\n"
+		"loading_phrase = \"Puma: This infernal dog is Gitaroo Man's partner.\"<br>\"I find his cutesy facade quite nauseating!\"<br>\"He aids Gitaroo Man in destroying *us* Gravillians!\""
+		"<br><br>Lights Out\n"
+		"diff_guitar = 1\n"
+		"preview_start_time = 336070\n"
+		"icon = gitaroo\n"
+		"album_track = 2\n"
+		"playlist_track = 1\n"
+		"video_start_time = 0\n"
+		"lyrics = 1\n");
 		break;
 	case 1:
-		fprintf(m_chart, "artist = COIL, Tomohiro Harada, Kaleb James\n");
-		fprintf(m_chart, "name = 1. Twisted Reality <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Rock\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Panpeus: His axe is an axe!\"<br>\"The Axe Gitaroo rips right through space-time, so watch out!\"<br>\"Panpeus may have a baby face, but not baby skills!\"");
-		fprintf(m_chart, "<br><br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 3\n");
-		fprintf(m_chart, "preview_start_time = 29000\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 3\n");
-		fprintf(m_chart, "playlist_track = 2\n");
-		fprintf(m_chart, "video_start_time = 0\n");
-		fprintf(m_chart, "lyrics = 1\n");
+		fprintf(m_chart, "artist = COIL, Tomohiro Harada, Kaleb James\n"
+		"name = 1. Twisted Reality <p style=\"color:#FF0000\";>(MODCHART)</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Rock\n"
+		"year = 2001\n"
+		"loading_phrase = \"Panpeus: His axe is an axe!\"<br>\"The Axe Gitaroo rips right through space-time, so watch out!\"<br>\"Panpeus may have a baby face, but not baby skills!\""
+		"<br><br>Modchart Full\n"
+		"diff_guitar = 3\n"
+		"preview_start_time = 29000\n"
+		"icon = gitaroo\n"
+		"album_track = 3\n"
+		"playlist_track = 2\n"
+		"video_start_time = 0\n"
+		"lyrics = 1\n");
 		break;
 	case 2:
 		fprintf(m_chart, "artist = Tomohiro Harada, YUAN, a - li\n");
@@ -1136,184 +1136,184 @@ void ChartFileExporter::writeIni(const unsigned char stageNumber, const unsigned
 			fprintf(m_chart, "name = 2E. Flyin' to Your Heart (EN) <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
 		else
 			fprintf(m_chart, "name = 2. Flyin' to Your Heart (JP) <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = J - Pop\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Flyin-O: A loyal soldier of the empire!\"<br>\"His synth gitaroo shoots 'Dance-Until-Death' rays!\"<br>\"His henchmen, the Little-Os, are nothing to be scoffed at either!\"");
-		fprintf(m_chart, "<br><br>EPILEPSY WARNING DURING CHARGE PHASE<br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 3\n");
-		fprintf(m_chart, "preview_start_time = 23460\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 4\n");
-		fprintf(m_chart, "playlist_track = 3\n");
-		fprintf(m_chart, "video_start_time = 0\n");
-		fprintf(m_chart, "lyrics = 1\n");
+		fprintf(m_chart, "charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = J - Pop\n"
+		"year = 2001\n"
+		"loading_phrase = \"Flyin-O: A loyal soldier of the empire!\"<br>\"His synth gitaroo shoots 'Dance-Until-Death' rays!\"<br>\"His henchmen, the Little-Os, are nothing to be scoffed at either!\""
+		"<br><br>EPILEPSY WARNING DURING CHARGE PHASE<br>Modchart Full\n"
+		"diff_guitar = 3\n"
+		"preview_start_time = 23460\n"
+		"icon = gitaroo\n"
+		"album_track = 4\n"
+		"playlist_track = 3\n"
+		"video_start_time = 0\n"
+		"lyrics = 1\n");
 		break;
 	case 3:
-		fprintf(m_chart, "artist = COIL, Tomohiro Harada, Keiichi Yano\n");
-		fprintf(m_chart, "name = 3. Bee Jam Blues <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Funk\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Mojo King Bee: He rules the darkness with his trumpet Gitaroo!\"<br>\"No one has ever seen the man behind the shades...\"");
-		fprintf(m_chart, "<br><br>EPILEPSY WARNING NEAR THE END<br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 4\n");
-		fprintf(m_chart, "preview_start_time = 34260\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 5\n");
-		fprintf(m_chart, "playlist_track = 4\n");
-		fprintf(m_chart, "video_start_time = 0\n");
-		fprintf(m_chart, "lyrics = 1\n");
+		fprintf(m_chart, "artist = COIL, Tomohiro Harada, Keiichi Yano\n"
+		"name = 3. Bee Jam Blues <p style=\"color:#FF0000\";>(MODCHART)</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Funk\n"
+		"year = 2001\n"
+		"loading_phrase = \"Mojo King Bee: He rules the darkness with his trumpet Gitaroo!\"<br>\"No one has ever seen the man behind the shades...\""
+		"<br><br>EPILEPSY WARNING NEAR THE END<br>Modchart Full\n"
+		"diff_guitar = 4\n"
+		"preview_start_time = 34260\n"
+		"icon = gitaroo\n"
+		"album_track = 5\n"
+		"playlist_track = 4\n"
+		"video_start_time = 0\n"
+		"lyrics = 1\n");
 		break;
 	case 4:
-		fprintf(m_chart, "artist = Tomohiro Harada, k - nzk\n");
-		fprintf(m_chart, "name = 4. VOID <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Industrial\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Ben-K: As a space shark, he's a rough, tough, customer just looking for trouble!\"");
-		fprintf(m_chart, "<br><br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 4\n");
-		fprintf(m_chart, "preview_start_time = 13650\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 6\n");
-		fprintf(m_chart, "playlist_track = 5\n");
-		fprintf(m_chart, "video_start_time = 0\n");
+		fprintf(m_chart, "artist = Tomohiro Harada, k - nzk\n"
+		"name = 4. VOID <p style=\"color:#FF0000\";>(MODCHART)</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Industrial\n"
+		"year = 2001\n"
+		"loading_phrase = \"Ben-K: As a space shark, he's a rough, tough, customer just looking for trouble!\""
+		"<br><br>Modchart Full\n"
+		"diff_guitar = 4\n"
+		"preview_start_time = 13650\n"
+		"icon = gitaroo\n"
+		"album_track = 6\n"
+		"playlist_track = 5\n"
+		"video_start_time = 0\n");
 		break;
 	case 5:
-		fprintf(m_chart, "artist = COIL, Tomohiro Harada, feat.NAHKI\n");
-		fprintf(m_chart, "name = 5. Nuff Respect <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Reggae\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Ben-K: He attacks by scratching the turntable Gitaroo on his chest - but his Karate moves prove he's a man of many talents!\"");
-		fprintf(m_chart, "<br><br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 3\n");
-		fprintf(m_chart, "preview_start_time = 38480\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 7\n");
-		fprintf(m_chart, "playlist_track = 6\n");
-		fprintf(m_chart, "video_start_time = 0\n");
+		fprintf(m_chart, "artist = COIL, Tomohiro Harada, feat.NAHKI\n"
+		"name = 5. Nuff Respect <p style=\"color:#FF0000\";>(MODCHART)</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Reggae\n"
+		"year = 2001\n"
+		"loading_phrase = \"Ben-K: He attacks by scratching the turntable Gitaroo on his chest - but his Karate moves prove he's a man of many talents!\""
+		"<br><br>Modchart Full\n"
+		"diff_guitar = 3\n"
+		"preview_start_time = 38480\n"
+		"icon = gitaroo\n"
+		"album_track = 7\n"
+		"playlist_track = 6\n"
+		"video_start_time = 0\n");
 		break;
 	case 6:
-		fprintf(m_chart, "artist = COIL, Tomohiro Harada\n");
-		fprintf(m_chart, "name = 6. The Legendary Theme (Acoustic) <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Acoustic\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Kirah: A shy and reserved girl with the heart of a warrior.\"<br>\"She excels at baking Gitaroo Apple Pies.\"");
-		fprintf(m_chart, "<br><br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 2\n");
-		fprintf(m_chart, "preview_start_time = 26120\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 8\n");
-		fprintf(m_chart, "playlist_track = 7\n");
-		fprintf(m_chart, "video_start_time = 0\n");
+		fprintf(m_chart, "artist = COIL, Tomohiro Harada\n"
+		"name = 6. The Legendary Theme (Acoustic) <p style=\"color:#FF0000\";>(MODCHART)</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Acoustic\n"
+		"year = 2001\n"
+		"loading_phrase = \"Kirah: A shy and reserved girl with the heart of a warrior.\"<br>\"She excels at baking Gitaroo Apple Pies.\""
+		"<br><br>Modchart Full\n"
+		"diff_guitar = 2\n"
+		"preview_start_time = 26120\n"
+		"icon = gitaroo\n"
+		"album_track = 8\n"
+		"playlist_track = 7\n"
+		"video_start_time = 0\n");
 		break;
 	case 7:
-		fprintf(m_chart, "artist = Tomohiro Harada, Steve Eto, Kazuki Abe\n");
-		fprintf(m_chart, "name = 7. Born To Be Bone <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Flamenco\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Sanbone Trio: Carrot, Soda, & Pine are three mariachis who use their bones as Gitaroos!\"<br>\"Their bare-knuckled fighting style is truly praiseworthy!\"");
-		fprintf(m_chart, "<br><br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 5\n");
-		fprintf(m_chart, "preview_start_time = 84330\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 9\n");
-		fprintf(m_chart, "playlist_track = 8\n");
-		fprintf(m_chart, "video_start_time = 0\n");
+		fprintf(m_chart, "artist = Tomohiro Harada, Steve Eto, Kazuki Abe\n"
+		"name = 7. Born To Be Bone <p style=\"color:#FF0000\";>(MODCHART)</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Flamenco\n"
+		"year = 2001\n"
+		"loading_phrase = \"Sanbone Trio: Carrot, Soda, & Pine are three mariachis who use their bones as Gitaroos!\"<br>\"Their bare-knuckled fighting style is truly praiseworthy!\""
+		"<br><br>Modchart Full\n"
+		"diff_guitar = 5\n"
+		"preview_start_time = 84330\n"
+		"icon = gitaroo\n"
+		"album_track = 9\n"
+		"playlist_track = 8\n"
+		"video_start_time = 0\n");
 		break;
 	case 8:
-		fprintf(m_chart, "artist = Tomohiro Harada, Kozo Suganuma, Yoshifumi Yamaguchi\n");
-		fprintf(m_chart, "name = 8. Tainted Lovers <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Metal\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Gregorio (Seigfried) Wilhelm III: That would be me - at your service.\"<br>\"The Great Cathedral itself is my Gitaroo, with which I share my fate.\"<br>\"I find inspiration for my art in tragedy and pain.\"");
-		fprintf(m_chart, "<br><br>EPILEPSY WARNING<br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 5\n");
-		fprintf(m_chart, "preview_start_time = 34730\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 10\n");
-		fprintf(m_chart, "playlist_track = 9\n");
-		fprintf(m_chart, "video_start_time = 0\n");
+		fprintf(m_chart, "artist = Tomohiro Harada, Kozo Suganuma, Yoshifumi Yamaguchi\n"
+		"name = 8. Tainted Lovers <p style=\"color:#FF0000\";>(MODCHART)</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Metal\n"
+		"year = 2001\n"
+		"loading_phrase = \"Gregorio (Seigfried) Wilhelm III: That would be me - at your service.\"<br>\"The Great Cathedral itself is my Gitaroo, with which I share my fate.\"<br>\"I find inspiration for my art in tragedy and pain.\""
+		"<br><br>EPILEPSY WARNING<br>Modchart Full\n"
+		"diff_guitar = 5\n"
+		"preview_start_time = 34730\n"
+		"icon = gitaroo\n"
+		"album_track = 10\n"
+		"playlist_track = 9\n"
+		"video_start_time = 0\n");
 		break;
 	case 9:
-		fprintf(m_chart, "artist = Tomohiro Harada, Yoshifumi Yamaguchi, Yusuke Nishikawa\n");
-		fprintf(m_chart, "name = 9. Overpass <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Rock\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Kirah: The most powerful Gravillian warrior who was trained from childhood to be a Gitaroo Master.\"<br>\"No one can defeat her - not even me!\"");
-		fprintf(m_chart, "<br><br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 2\n");
-		fprintf(m_chart, "preview_start_time = 22750\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 11\n");
-		fprintf(m_chart, "playlist_track = 10\n");
-		fprintf(m_chart, "video_start_time = 0\n");
+		fprintf(m_chart, "artist = Tomohiro Harada, Yoshifumi Yamaguchi, Yusuke Nishikawa\n"
+		"name = 9. Overpass <p style=\"color:#FF0000\";>(MODCHART)</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Rock\n"
+		"year = 2001\n"
+		"loading_phrase = \"Kirah: The most powerful Gravillian warrior who was trained from childhood to be a Gitaroo Master.\"<br>\"No one can defeat her - not even me!\""
+		"<br><br>Modchart Full\n"
+		"diff_guitar = 2\n"
+		"preview_start_time = 22750\n"
+		"icon = gitaroo\n"
+		"album_track = 11\n"
+		"playlist_track = 10\n"
+		"video_start_time = 0\n");
 		break;
 	case 10:
-		fprintf(m_chart, "artist = COIL, Tomohiro Harada\n");
-		fprintf(m_chart, "name = 10. Resurrection <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Hard Rock\n");
-		fprintf(m_chart, "year = 2001\n");
-		fprintf(m_chart, "loading_phrase = \"Lord Zowie: He has revealed to us his true power!\"<br>\"His Armored Gitaroo, the apex of Gravillian technology, will now rev into life!\"");
-		fprintf(m_chart, "<br><br>Modchart Full\n");
-		fprintf(m_chart, "diff_guitar = 5\n");
-		fprintf(m_chart, "preview_start_time = 23830\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 13\n");
-		fprintf(m_chart, "playlist_track = 11\n");
-		fprintf(m_chart, "video_start_time = 0\n");
+		fprintf(m_chart, "artist = COIL, Tomohiro Harada\n"
+		"name = 10. Resurrection <p style=\"color:#FF0000\";>(MODCHART)</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Hard Rock\n"
+		"year = 2001\n"
+		"loading_phrase = \"Lord Zowie: He has revealed to us his true power!\"<br>\"His Armored Gitaroo, the apex of Gravillian technology, will now rev into life!\""
+		"<br><br>Modchart Full\n"
+		"diff_guitar = 5\n"
+		"preview_start_time = 23830\n"
+		"icon = gitaroo\n"
+		"album_track = 13\n"
+		"playlist_track = 11\n"
+		"video_start_time = 0\n");
 		break;
 	case 11:
-		fprintf(m_chart, "artist = Tomozuin H, Andy MacKinlay, Satoshi Izumi\n");
-		fprintf(m_chart, "name = 11. Metal Header <p style=\"color:#FF0000\";>(MODCHART)</p> [MP-Only]\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Rock\n");
-		fprintf(m_chart, "year = 2006\n");
-		fprintf(m_chart, "loading_phrase =The first of two duet stage from the PSP re-release of Gitaroo Man. Note that this will only work in either singleplayer or Co-op ONLINE multipayer. ");
-		fprintf(m_chart, "Local multiplayer will not work (unless both players are on the same instrument).<br><br>Modchart Full<br>Quickplay<br>Make sure to move the score meter off the middle of the screen\n");
-		fprintf(m_chart, "diff_guitar = 4\n");
-		fprintf(m_chart, "diff_rhythm = 4\n");
-		fprintf(m_chart, "preview_start_time = 0\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 14\n");
-		fprintf(m_chart, "playlist_track = 12\n");
-		fprintf(m_chart, "video_start_time = 0\n");
-		fprintf(m_chart, "lyrics = 1\n");
+		fprintf(m_chart, "artist = Tomozuin H, Andy MacKinlay, Satoshi Izumi\n"
+		"name = 11. Metal Header <p style=\"color:#FF0000\";>(MODCHART)</p> <p style=\"color:#FF0000\";>[Online MP]</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Rock\n"
+		"year = 2006\n"
+		"loading_phrase =The first of two duet stage from the PSP re-release of Gitaroo Man. This is only works properly in singleplayer or Co-op ONLINE multipayer. "
+		"Unless both players are on the same instrument, local multiplayer is incompatible.<br><br>Modchart Full<br>Quickplay<br>Make sure to move the score meter off the middle of the screen\n"
+		"diff_guitar = 4\n"
+		"diff_rhythm = 4\n"
+		"preview_start_time = 0\n"
+		"icon = gitaroo\n"
+		"album_track = 14\n"
+		"playlist_track = 12\n"
+		"video_start_time = 0\n"
+		"lyrics = 1\n");
 		break;
 	case 12:
-		fprintf(m_chart, "artist = Tomozuin H, Yordanka Farres, Kenjiro Imawara, Tetsuo Koizumi\n");
-		fprintf(m_chart, "name = 12. Toda Pasion <p style=\"color:#FF0000\";>(MODCHART)</p> [SP/Online MP]\n");
-		fprintf(m_chart, "charter = Sonicfind\n");
-		fprintf(m_chart, "album = Gitaroo Man: Warrior of Music [OST]\n");
-		fprintf(m_chart, "genre = Latin Rock\n");
-		fprintf(m_chart, "year = 2006\n");
-		fprintf(m_chart, "loading_phrase =The second of two duet stage from the PSP re-release of Gitaroo Man. Note that this will only work in either singleplayer or Co-op ONLINE multipayer. ");
-		fprintf(m_chart, "Local multiplayer will not work (unless both players are on the same instrument).<br><br>Modchart Full<br>Quickplay<br>Make sure to move the score meter off the middle of the screen\n");
-		fprintf(m_chart, "diff_guitar = 4\n");
-		fprintf(m_chart, "diff_rhythm = 4\n");
-		fprintf(m_chart, "preview_start_time = 0\n");
-		fprintf(m_chart, "icon = gitaroo\n");
-		fprintf(m_chart, "album_track = 15\n");
-		fprintf(m_chart, "playlist_track = 13\n");
-		fprintf(m_chart, "video_start_time = 0\n");
-		fprintf(m_chart, "lyrics = 1\n");
+		fprintf(m_chart, "artist = Tomozuin H, Yordanka Farres, Kenjiro Imawara, Tetsuo Koizumi\n"
+		"name = 12. Toda Pasion <p style=\"color:#FF0000\";>(MODCHART)</p> <p style=\"color:#FF0000\";>[Online MP]</p>\n"
+		"charter = Sonicfind\n"
+		"album = Gitaroo Man: Warrior of Music [OST]\n"
+		"genre = Latin Rock\n"
+		"year = 2006\n"
+		"loading_phrase =The second of two duet stage from the PSP re-release of Gitaroo Man. This is only works properly in singleplayer or Co-op ONLINE multipayer. "
+		"Unless both players are on the same instrument, local multiplayer is incompatible.<br><br>Modchart Full<br>Quickplay<br>Make sure to move the score meter off the middle of the screen\n"
+		"diff_guitar = 4\n"
+		"diff_rhythm = 4\n"
+		"preview_start_time = 0\n"
+		"icon = gitaroo\n"
+		"album_track = 15\n"
+		"playlist_track = 13\n"
+		"video_start_time = 0\n"
+		"lyrics = 1\n");
 	}
 	fprintf(m_chart, "modchart = 1\n");
 	//Converting totalDur to milliseconds

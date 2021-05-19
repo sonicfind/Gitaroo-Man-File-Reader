@@ -268,34 +268,34 @@ public:
 	//Returns the number of the trace lines in the chart/subsection
 	size_t getNumTracelines() const { return m_tracelines.size(); }
 	template<class... Args>
-	size_t emplaceTraceline(Args&&... args)
+	void emplaceTraceline(Args&&... args)
 	{
 		m_size += 16;
-		return GlobalFunctions::emplace_ordered(m_tracelines, args...);
+		GlobalFunctions::emplace_ordered(m_tracelines, args...);
 	}
 
 	//Returns the number of the phrase bars in the chart/subsection
 	size_t getNumPhrases() const { return m_phrases.size(); }
 	template<class... Args>
-	size_t emplacePhrase(Args&&... args)
+	void emplacePhrase(Args&&... args)
 	{
 		m_size += 32;
-		return GlobalFunctions::emplace_ordered(m_phrases, args...);
+		GlobalFunctions::emplace_ordered(m_phrases, args...);
 	}
 
 	//Returns the number of the guard marks in the chart/subsection
 	size_t getNumGuards() const { return m_guards.size(); }
 	template<class... Args>
-	size_t emplaceGuard(Args&&... args)
+	void emplaceGuard(Args&&... args)
 	{
 		m_size += 16;
-		return GlobalFunctions::emplace_ordered(m_guards, args...);
+		GlobalFunctions::emplace_ordered(m_guards, args...);
 	}
 
-	size_t add(Note*);
-	size_t add(Traceline*);
-	size_t add(Phrase*);
-	size_t add(Guard*);
+	void add(Note*);
+	void add(Traceline*);
+	void add(Phrase*);
+	void add(Guard*);
 	bool resize(long numElements, char type = 't');
 	bool removeTraceline(size_t index);
 	bool removePhraseBar(size_t index);

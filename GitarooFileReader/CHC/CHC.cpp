@@ -411,22 +411,22 @@ size_t Chart::add(Note* note)
 }
 
 //Add a note to its corresponding List in ascending pivotAlpha order
-size_t Chart::add(Traceline* note)
+void Chart::add(Traceline* note)
 {
 	m_size += 16;
-	return GlobalFunctions::emplace_ordered(m_tracelines, *note);
+	GlobalFunctions::emplace_ordered(m_tracelines, *note);
 }
 
-size_t Chart::add(Phrase* note)
+void Chart::add(Phrase* note)
 {
 	m_size += 32;
-	return GlobalFunctions::emplace_ordered(m_phrases, *note);
+	GlobalFunctions::emplace_ordered(m_phrases, *note);
 }
 
-size_t Chart::add(Guard* note)
+void Chart::add(Guard* note)
 {
 	m_size += 16;
-	return GlobalFunctions::emplace_ordered(m_guards, *note);
+	GlobalFunctions::emplace_ordered(m_guards, *note);
 }
 
 //Removes the element at the given index out of the chosen list.

@@ -137,8 +137,7 @@ namespace GlobalFunctions
 		if (g_global.multi)
 		{
 			ungetc(g_global.input, stdin);
-			printf("*%c\n", toupper(g_global.input));
-			g_global.multi = false;
+			printf("*");
 		}
 		do
 		{
@@ -165,6 +164,12 @@ namespace GlobalFunctions
 				//scanf_s("%c", &wtf, 1);
 				double tmp = atof(val);
 				//scanf_s("%lg", &tmp);
+				if (g_global.multi)
+				{
+					printf("%s\n", val);
+					g_global.multi = false;
+				}
+
 				if (!min)
 				{
 					if (!max)
@@ -251,6 +256,12 @@ namespace GlobalFunctions
 					ungetc(g_global.input, stdin);
 					double tmp;
 					scanf_s("%lg", &tmp);
+					if (g_global.multi)
+					{
+						printf("%lf\n", tmp);
+						g_global.multi = false;
+					}
+					clearIn();
 					return ResultType::InvalidNegative;
 				}
 			}
@@ -275,6 +286,11 @@ namespace GlobalFunctions
 			}
 			else
 			{
+				if (g_global.multi)
+				{
+					printf("%c\n", toupper(g_global.input));
+					g_global.multi = false;
+				}
 				g_global.input = tolower(g_global.input);
 				if (specials.find(g_global.input) != std::string::npos)
 				{

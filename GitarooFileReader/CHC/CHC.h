@@ -36,31 +36,31 @@ private:
 	std::string m_filename;
 	//Short version
 	std::string m_shortname;
-	//Stage number
+	// Stage number
 	int m_stage;
-	//Holds header data from original file
+	// Holds header data from original file
 	char m_header[36] = { 0 };
 
-	//String for an IMC's location
+	// String for an IMC's location
 	char m_imc[256] = { 0 };
 
-	//Win-Loss Animations
+	// Win-Loss Animations
 	SSQRange m_events[4];
 
-	//Hold data for all 8 audio channels
+	// Hold data for all 8 audio channels
 	struct AudioChannel
 	{
 		unsigned long volume = 32767;
 		unsigned long pan = 16383;
 	} m_audio[8];
 
-	//Gameplay speed
+	// Gameplay speed
 	float m_speed;
-	//Hold the number of unorganized sections
+	// Hold the number of unorganized sections
 	unsigned m_unorganized;
-	//Saves whether all notes were readjusted for minimal glitching
+	// Saves whether all notes were readjusted for minimal glitching
 	bool m_optimized;
-	//Holds all life-value data for every player and phase type
+	// Holds all life-value data for every player and phase type
 	struct EnergyDamage
 	{
 		float initialEnergy = .2f;
@@ -98,32 +98,32 @@ public:
 private:
 	//Index pulled from the list of SSQs in the CHC
 	unsigned long m_index = 0;
-	//Section name
-	//16 characters + a null character
+	// Section name
+	// 16 characters + a null character
 	char m_name[17] = { 0 };
 
 	//Name of Audio Section
-	//16 characters + a null character
+	// 16 characters + a null character
 	char m_audio[17] = { 0 };
 
 	//SSQ frame range
 	SSQRange m_frames;
-	//Saves whether the subsections are correctly ordered
+	// Saves whether the subsections are correctly ordered
 	unsigned long m_organized = false;
-	//Value that holds how the section is swapped
+	// Value that holds how the section is swapped
 	unsigned long m_swapped = 0;
 	//Total size in bytes
 	unsigned long m_size = 384;
-	//Just junk, saved for consistency
+	// Just junk, saved for consistency
 	char m_junk[16] = { 0 };
 
-	//Phase type
+	// Phase type
 	Phase m_battlePhase = Phase::INTRO;
-	//BPM for the section
+	// BPM for the section
 	float m_tempo = 0;
-	//Total duration in samples
+	// Total duration in samples
 	unsigned long m_duration = 0;
-	//Determines what actions to take after the section
+	// Determines what actions to take after the section
 	struct Condition
 	{
 		unsigned long m_type;
@@ -134,11 +134,11 @@ private:
 		Condition(FILE* inFile);
 		Condition(const Condition& cond) = default;
 	};
-	//LinkedList::List of all conditions
+	// Vector of all conditions
 	std::vector<Condition> m_conditions;
-	//Number of players assigned to the section, always 4
+	// Number of players assigned to the section, always 4
 	unsigned long m_numPlayers = 4;
-	//Number of charts/subsections per player
+	// Number of charts/subsections per player
 	unsigned long m_numCharts = 1;
 public:
 	// Vector of all charts/subsections
@@ -147,26 +147,26 @@ public:
 	SongSection();
 	SongSection(FILE* inFile);
 	SongSection(const SongSection&) = default;
-	//Returns name C-string (size: 16)
+	// Returns name C-string (size: 16)
 	char* getName() { return m_name; }
-	//Returns audio C-string (size: 16)
+	// Returns audio C-string (size: 16)
 	char* getAudio() { return m_audio; }
-	//Returns whether the section is organized
+	// Returns whether the section is organized
 	bool getOrganized() const { return m_organized; }
-	//Sets organized to the provided value
+	// Sets organized to the provided value
 	void setOrganized(bool org) { m_organized = org; }
-	//Returns swap value
+	// Returns swap value
 	unsigned long getSwapped() const { return m_swapped; }
-	//Sets swap value
+	// Sets swap value
 	void setSwapped(char swap) { m_swapped = swap; }
 	//Returns the byte size of the section
 	unsigned long getSize() const { return m_size; }
-	//Returns a section's phase type
+	// Returns a section's phase type
 	Phase getPhase() const { return m_battlePhase; }
-	//Sets the section's phase type to the provided value
+	// Sets the section's phase type to the provided value
 	void setPhase(Phase ph) { m_battlePhase = ph; }
-	//Sets the section's phase type to the provided value converted into a phase type
-	//If the provided value is 6 or greater, battlePhase is set to FINAL_I
+	// Sets the section's phase type to the provided value converted into a phase type
+	// If the provided value is 6 or greater, battlePhase is set to FINAL_I
 	void setPhase(unsigned long ph)
 	{
 		if (ph < 6)
@@ -174,15 +174,15 @@ public:
 		else
 			m_battlePhase = Phase::FINAL_I;
 	}
-	//Returns the tempo for the section
+	// Returns the tempo for the section
 	float getTempo() const { return m_tempo; }
-	//Returns the duration of the section
+	// Returns the duration of the section
 	unsigned long getDuration() const { return m_duration; }
-	//Sets the duration of the section to the provided value
+	// Sets the duration of the section to the provided value
 	void setDuration(unsigned long dur) { m_duration = dur; }
-	//Returns the number of conditions in the section
+	// Returns the number of conditions in the section
 	size_t getNumCondtions() const { return m_conditions.size(); }
-	//Adds a new condition to the end of the section's condition list
+	// Adds a new condition to the end of the section's condition list
 	template<class...Args>
 	size_t addCondition(size_t index, Args&&...args)
 	{
@@ -194,10 +194,10 @@ public:
 	}
 	Condition& getCondition(size_t index);
 	bool removeCondition(size_t);
-	//Returns the num of players assigned to this section.
-	//Will usually be 4
+	// Returns the num of players assigned to this section.
+	// Will usually be 4
 	unsigned long getNumPlayers() const { return m_numPlayers; }
-	//Returns the total number of the charts/subsections in this section
+	// Returns the total number of the charts/subsections in this section
 	unsigned long getNumCharts() const { return m_numCharts; }
 	void clearConditions();
 	void operator++();
@@ -216,13 +216,13 @@ class Chart
 private:
 	//Total size in bytes
 	unsigned long m_size = 76;
-	//Just junk, saved for consistency
+	// Just junk, saved for consistency
 	char m_junk[16] = { 0 };
 
-	//'Center' point that all notes revolve around
+	// 'Center' point that all notes revolve around
 	long m_pivotTime = 0;
-	//Optional value noting when to transition to another chart/subsection
-	//Unused in the game
+	// Optional value noting when to transition to another chart/subsection
+	// Unused in the game
 	long m_endTime = 0;
 public:
 	// Vector of all trace lines
@@ -241,7 +241,7 @@ public:
 	// USE emplaceGuard()!!
 	std::vector<Guard> m_guards;
 
-	Chart(const bool tracelines);
+	Chart(const bool addTraceline);
 	Chart();
 	Chart(const Chart&) = default;
 	//Returns the byte size of the chart/subsection
@@ -250,22 +250,22 @@ public:
 	void setSize(unsigned long siz) { m_size = siz; }
 	//Adjusts the byte size of the chart/subsection by the provided value
 	void adjustSize(long difference);
-	//Returns junk C-string (size: 16)
+	// Returns junk C-string (size: 16)
 	char* getJunk() { return m_junk; }
-	//Copies C-string newJunk to junk
-	//Size "count" will be limited to a max of 16
+	// Copies C-string newJunk to junk
+	// Size "count" will be limited to a max of 16
 	void setJunk(char* newJunk, rsize_t count = 16);
-	//Returns the pivot time for the chart/subsection
+	// Returns the pivot time for the chart/subsection
 	long getPivotTime() const { return m_pivotTime; }
-	//Sets the pivot time for the chart/subsection to the provided value
+	// Sets the pivot time for the chart/subsection to the provided value
 	void setPivotTime(long piv) { m_pivotTime = piv; }
-	//Adjusts the pivot time for the chart/subsection by the provided value
+	// Adjusts the pivot time for the chart/subsection by the provided value
 	void adjustPivotTime(long difference) { m_pivotTime += difference; }
-	//Returns the end time for the chart/subsection
+	// Returns the end time for the chart/subsection
 	long getEndTime() const { return m_endTime; }
-	//Sets the end time for the chart/subsection to the provided value
+	// Sets the end time for the chart/subsection to the provided value
 	void setEndTime(long piv) { m_endTime = piv; }
-	//Returns the number of the trace lines in the chart/subsection
+	// Returns the number of the trace lines in the chart/subsection
 	size_t getNumTracelines() const { return m_tracelines.size(); }
 	template<class... Args>
 	void emplaceTraceline(Args&&... args)
@@ -274,7 +274,7 @@ public:
 		GlobalFunctions::emplace_ordered(m_tracelines, args...);
 	}
 
-	//Returns the number of the phrase bars in the chart/subsection
+	// Returns the number of the phrase bars in the chart/subsection
 	size_t getNumPhrases() const { return m_phrases.size(); }
 	template<class... Args>
 	void emplacePhrase(Args&&... args)
@@ -283,7 +283,7 @@ public:
 		GlobalFunctions::emplace_ordered(m_phrases, args...);
 	}
 
-	//Returns the number of the guard marks in the chart/subsection
+	// Returns the number of the guard marks in the chart/subsection
 	size_t getNumGuards() const { return m_guards.size(); }
 	template<class... Args>
 	void emplaceGuard(Args&&... args)
@@ -304,8 +304,8 @@ public:
 	void clearPhrases();
 	void clearGuards();
 	void clear();
-	//Takes the notes from the source chart and moves them into
-	//the current chart (replacing any old notes that would overlap
+	// Takes the notes from the source chart and moves them into
+	// the current chart (replacing any old notes that would overlap
 	long insertNotes(Chart* source);
 };
 
@@ -314,27 +314,16 @@ class Note
 	friend class CHC_Editor;
 	friend class CHC;
 public:
-	//Displacement from chart pivot time in samples
+	// Displacement from chart pivot time in samples
 	long m_pivotAlpha;
 	Note() { m_pivotAlpha = 0; }
 	Note(long alpha) { m_pivotAlpha = alpha; }
 	Note(const Note& note) : m_pivotAlpha(note.m_pivotAlpha) {}
 	virtual Note& operator=(const Note& note);
 	virtual ~Note() {};
-	//Adjusts the note's pivot alpha by the provided value
+	// Adjusts the note's pivot alpha by the provided value
 	void adjustPivotAlpha(long change) { m_pivotAlpha += change; }
-	//Returns whether pivot alphas are equal
-	bool operator==(const Note& note) const { return m_pivotAlpha == note.m_pivotAlpha; }
-	//Returns whether pivot alphas are not equal
-	bool operator!=(const Note& note) const { return m_pivotAlpha != note.m_pivotAlpha; }
-	//Returns whether pivot alpha is >= the pivot alpha of the provided note
-	bool operator>=(const Note& note) const { return m_pivotAlpha >= note.m_pivotAlpha; }
-	//Returns whether pivot alpha is > the pivot alpha of the provided note
-	bool operator>(const Note& note) const { return m_pivotAlpha > note.m_pivotAlpha; }
-	//Returns whether pivot alpha is <= the pivot alpha of the provided note
-	bool operator<=(const Note& note) const { return m_pivotAlpha <= note.m_pivotAlpha; }
-	//Returns whether pivot alpha is < the pivot alpha of the provided note
-	bool operator<(const Note& note) const { return m_pivotAlpha < note.m_pivotAlpha; }
+	auto operator<=>(const Note& other) { return m_pivotAlpha <=> other.m_pivotAlpha; }
 };
 
 class Path : public Note
@@ -342,32 +331,32 @@ class Path : public Note
 	friend class CHC_Editor;
 	friend class CHC;
 public:
-	//Duration of the note in samples
+	// Duration of the note in samples
 	unsigned long m_duration;
 	Path() : Note(), m_duration(1) {}
 	Path(long alpha, unsigned long dur = 1) : Note(alpha), m_duration(dur) {}
 	Path(const Note& note);
 	virtual Note& operator=(const Note& note);
 	virtual ~Path() {};
-	//Adjusts the path note's duration to the provided value
-	//Returns whether the resulting duration is >= 1
-	//If not, duration gets set to 1 and false is returned
+	// Adjusts the path note's duration to the provided value
+	// Returns whether the resulting duration is >= 1
+	// If not, duration gets set to 1 and false is returned
 	bool adjustDuration(long change);
-	//Returns the result of adding the note's pivot alpha with its duration
+	// Returns the result of adding the note's pivot alpha with its duration
 	long getEndAlpha() const { return m_pivotAlpha + m_duration; }
-	//Attempts to set the path note's pivot alpha to the provided value.
-	//Will stretch or shrink the note's duration to maintain the same end alpha.
-	//If the result would be a duration < 1, then no changes are made and false is returned.
-	//Otherwise, return true.
+	// Attempts to set the path note's pivot alpha to the provided value.
+	// Will stretch or shrink the note's duration to maintain the same end alpha.
+	// If the result would be a duration < 1, then no changes are made and false is returned.
+	// Otherwise, return true.
 	bool changePivotAlpha(const long alpha);
-	//Attempts to set the path note's end alpha to the provided value.
-	//Automatically adjusts duration to match.
-	//If the result would be a duration < 1, then no changes are made and false is returned.
-	//Otherwise, return true.
+	// Attempts to set the path note's end alpha to the provided value.
+	// Automatically adjusts duration to match.
+	// If the result would be a duration < 1, then no changes are made and false is returned.
+	// Otherwise, return true.
 	bool changeEndAlpha(const long endAlpha);
-	//Returns whether the provided alpha value lands inside the path note's range of values
+	// Returns whether the provided alpha value lands inside the path note's range of values
 	bool contains(const long alpha) const { return alpha >= m_pivotAlpha && alpha < m_pivotAlpha + (long)m_duration; }
-	//Returns whether the pivot alpha of the provided note lands inside the path note's range of values
+	// Returns whether the pivot alpha of the provided note lands inside the path note's range of values
 	bool contains(Note& note) const { return note.m_pivotAlpha >= m_pivotAlpha && note.m_pivotAlpha < m_pivotAlpha + (long)m_duration; }
 };
 
@@ -376,10 +365,10 @@ class Traceline : public Path
 	friend class CHC_Editor;
 	friend class CHC;
 public:
-	//Direction that the trace line points (flipped 180 degrees)
-	//Held in Radians
+	// Direction that the trace line points (flipped 180 degrees)
+	// Held in Radians
 	float m_angle;
-	//Holds whether the entire trace line is curved
+	// Holds whether the entire trace line is curved
 	unsigned long m_curve;
 	Traceline() : Path(), m_angle(0), m_curve(false) {}
 	Traceline(FILE* inFile);
@@ -387,7 +376,7 @@ public:
 	Traceline(const Note& note);
 	Note& operator=(const Note& note);
 	~Traceline() {};
-	//Adjusts the radian angle value of the trace line by the provided value
+	// Adjusts the radian angle value of the trace line by the provided value
 	void adJustAngle(float change) { m_angle += change; }
 };
 
@@ -399,15 +388,15 @@ private:
 	// Just junk, saved for consistency
 	// May hold data for "color" generated from a .chart import
 	char m_junk[12] = { 0 };
-	//Color value used in Clone Hero & color patch exporting
-	//0 = not used
+	// Color value used in Clone Hero & color patch exporting
+	// 0 = not used
 	unsigned long m_color;
 public:
-	//Boolean for whether the phrase bar has a start cap
+	// Boolean for whether the phrase bar has a start cap
 	unsigned long m_start;
-	//Boolean for whether the phrase bar has an end cap
+	// Boolean for whether the phrase bar has an end cap
 	unsigned long m_end;
-	//Which character animation to play when hit (if "start" is true)
+	// Which character animation to play when hit (if "start" is true)
 	unsigned long m_animation;
 	Phrase() : Path(), m_start(true), m_end(true), m_animation(0), m_color(0) {}
 	Phrase(FILE* inFile);
@@ -416,15 +405,15 @@ public:
 	Phrase(const Note& note);
 	Note& operator=(const Note& note);
 	~Phrase() {};
-	//Returns the color value of the phrase bar
+	// Returns the color value of the phrase bar
 	unsigned long getColor() const { return m_color; }
-	//Sets the color value of the phrase bar
+	// Sets the color value of the phrase bar
 	void setColor(unsigned long col) { m_color = col; }
-	//Sets the color value of the phrase bar
+	// Sets the color value of the phrase bar
 	void addColor(unsigned long col) { m_color |= col; }
-	//Sets the color value of the phrase bar
+	// Sets the color value of the phrase bar
 	void removeColor(unsigned long col) { m_color &= ~col; }
-	//Returns junk C-string (size: 12)
+	// Returns junk C-string (size: 12)
 	char* getJunk() { return m_junk; }
 };
 
@@ -433,11 +422,11 @@ class Guard : public Note
 	friend class CHC_Editor;
 	friend class CHC;
 public:
-	//Direction to appear from
-	//0 - []
-	//1 - X
-	//2 - O
-	//3 - /\.
+	// Direction to appear from
+	// 0 - []
+	// 1 - X
+	// 2 - O
+	// 3 - /\.
 	unsigned long m_button = 0;
 	Guard() : Note(), m_button(0) {}
 	Guard(FILE* inFile);

@@ -16,7 +16,8 @@
 #include "CH_ChartFile.h"
 using namespace std;
 
-ChartFile::ChartFile(string filename, bool write) : m_file(filename)
+ChartFile::ChartFile(string filename, bool write)
+	: m_file(filename)
 {
 	if (write)
 	{

@@ -64,16 +64,11 @@ struct CHNote : public CHItem
 	Modifier m_mod;
 	NoteType m_type;
 	std::string m_name;
-	CHNote() : CHItem(), m_mod(Modifier::NORMAL), m_type(NoteType::NOTE), m_name("") {}
+	CHNote();
 	CHNote(FILE* inFile);
-	CHNote(float pos, unsigned lane = 0, float sus = 0, bool write = true, Modifier md = Modifier::NORMAL, NoteType tp = NoteType::NOTE, std::string nam = "")
-		: CHItem(pos), m_fret(lane, sus, write), m_mod(md), m_type(tp), m_name(nam) {}
+	CHNote(float pos, unsigned lane = 0, float sus = 0, bool write = true, Modifier md = Modifier::NORMAL, NoteType tp = NoteType::NOTE, std::string nam = "");
 	CHNote(const CHNote& note) = default;
-	float setEndPoint(float endTick)
-	{
-		m_fret.m_sustain = endTick - m_position;
-		return m_fret.m_sustain;
-	}
+	float setEndPoint(float endTick);
 	void write(FILE* outFile);
 	bool operator==(const CHNote& note) const;
 	bool operator<(const CHNote& note) const;

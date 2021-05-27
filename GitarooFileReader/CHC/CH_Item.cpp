@@ -66,6 +66,12 @@ void Event::write(FILE* outFile)
 	fprintf(outFile, "  %lu = E \"%s\"\n", (unsigned long)round(m_position), m_name.c_str());
 };
 
+CHNote::CHNote()
+	: CHItem(), m_mod(Modifier::NORMAL), m_type(NoteType::NOTE), m_name("") {}
+
+CHNote::CHNote(float pos, unsigned lane, float sus, bool write, Modifier md, NoteType tp, std::string nam)
+	: CHItem(pos), m_fret(lane, sus, write), m_mod(md), m_type(tp), m_name(nam) {}
+
 CHNote::CHNote(FILE* inFile)
 {
 	char type = 0;
@@ -107,6 +113,12 @@ CHNote::CHNote(FILE* inFile)
 	}
 };
 
+float CHNote::setEndPoint(float endTick)
+{
+	m_fret.m_sustain = endTick - m_position;
+	return m_fret.m_sustain;
+}
+
 void CHNote::write(FILE* outFile)
 {
 	switch (m_type)
@@ -142,11 +154,12 @@ bool CHNote::operator==(const CHNote& note) const
 		switch (m_type)
 		{
 		case NoteType::NOTE:
-			return m_fret.m_lane == note.m_fret.m_lane && m_mod == note.m_mod;
+			return m_fret.m_lane == note.m_fret.m_lane
+					&& m_mod == note.m_mod;
 		case NoteType::EVENT:
 			if (m_name.length() == note.m_name.length())
 			{
-				for (std::string::const_iterator iter1 = m_name.begin(), iter2 = note.m_name.begin();
+				for (auto iter1 = m_name.begin(), iter2 = note.m_name.begin();
 					iter1 != m_name.end(); ++iter1, ++iter2)
 				{
 					if (tolower(*iter1) != tolower(*iter2))
@@ -156,7 +169,7 @@ bool CHNote::operator==(const CHNote& note) const
 			}
 			else
 				return false;
-		default:
+		case NoteType::STAR:
 			return true;
 		}
 	}

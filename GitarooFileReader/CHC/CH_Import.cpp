@@ -137,7 +137,9 @@ bool CH_Importer::importChart()
 			for (size_t songSectIndex = 0; songSectIndex < m_song.m_sections.size(); ++songSectIndex)
 			{
 				SongSection& songSection = m_song.m_sections[songSectIndex];
-				if (!(songSection.getPhase() == SongSection::Phase::INTRO || strstr(songSection.getName(), "BRK") || strstr(songSection.getName(), "BREAK")))
+				if (!(songSection.getPhase() == SongSection::Phase::INTRO
+					|| strstr(songSection.getName(), "BRK")
+					|| strstr(songSection.getName(), "BREAK")))
 				{
 					for (size_t currSect = 0; currSect < m_sections.size(); ++currSect)
 					{
@@ -307,7 +309,8 @@ void ChartFileImporter::read(CH_Importer& importer)
 
 			//Add all tempos between the current section event and the previous section
 			//to the previous section
-			while (tempo != &tempos.back() && (ev.m_position >= (tempo + 1)->m_position || tempo->m_bpm == 0))
+			while (tempo != &tempos.back()
+				&& (ev.m_position >= (tempo + 1)->m_position || tempo->m_bpm == 0))
 			{
 				++tempo;
 				if (ev.m_position > tempo->m_position && tempo->m_bpm > 0)

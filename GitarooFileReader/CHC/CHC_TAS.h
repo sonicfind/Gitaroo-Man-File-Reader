@@ -1,6 +1,6 @@
 #pragma once
 /*  Gitaroo Man File Reader
- *  Copyright (C) 2020 Gitaroo Pals
+ *  Copyright (C) 2020-2021 Gitaroo Pals
  *
  *  Gitaroo Man File Reader is free software: you can redistribute it and/or modify it under
  *  the terms of the GNU Lesser General Public License as published by the Free Software Found-

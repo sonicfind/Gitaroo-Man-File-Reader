@@ -71,7 +71,7 @@ BEGIN
             VALUE "FileDescription", "Gitaroo Man File Reader"
             VALUE "FileVersion", "3.1.0.0"
             VALUE "InternalName", "GitarooF.exe"
-            VALUE "LegalCopyright", "Copyright (C) 2020"
+            VALUE "LegalCopyright", "Copyright (C) 2020-2021"
             VALUE "OriginalFilename", "GitarooF.exe"
             VALUE "ProductName", "Gitaroo Man File Reader"
             VALUE "ProductVersion", "1.0.0.0"

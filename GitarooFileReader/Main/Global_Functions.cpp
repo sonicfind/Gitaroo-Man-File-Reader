@@ -49,10 +49,10 @@ namespace GlobalFunctions
 
 	void testForMulti()
 	{
-		do scanf_s("%c", &g_global.input, 1);
+		do
+			scanf_s("%c", &g_global.input, 1);
 		while (g_global.input == ' ' || g_global.input == ';');
-		if (g_global.input != '\n')
-			g_global.multi = true;
+		g_global.multi = g_global.input != '\n';
 	}
 
 	//Generates banner
@@ -66,13 +66,13 @@ namespace GlobalFunctions
 	ResultType stringInsertion(string& name, string specials, size_t maxSize)
 	{
 		if (g_global.multi)
-		{
-			ungetc(g_global.input, stdin);
 			putchar('*');
-		}
+		else
+		{
 
-		do scanf_s("%c", &g_global.input, 1);
-		while (g_global.input == ' ');
+			do scanf_s("%c", &g_global.input, 1);
+			while (g_global.input == ' ');
+		}
 
 		switch (g_global.input)
 		{
@@ -92,20 +92,16 @@ namespace GlobalFunctions
 				case 'q':
 				case 'Q':
 					if (g_global.multi)
-					{
 						printf("Q\n");
-						g_global.multi = false;
-					} 
+
 					testForMulti();
 					return ResultType::Quit;
 				default:
 					if (specials.find(tolower(g_global.input)) != string::npos)
 					{
 						if (g_global.multi)
-						{
 							printf("%c\n", toupper(g_global.input));
-							g_global.multi = false;
-						}
+
 						g_global.answer.character = tolower(g_global.input);
 						testForMulti();
 						return ResultType::SpecialCase;
@@ -144,13 +140,9 @@ namespace GlobalFunctions
 	ResultType charArrayInsertion(char* name, size_t maxSize, std::string specials)
 	{
 		if (g_global.multi)
-		{
-			ungetc(g_global.input, stdin);
 			putchar('*');
-		}
-
-		do scanf_s("%c", &g_global.input, 1);
-		while (g_global.input == ' ');
+		else
+			scanf_s(" %c", &g_global.input, 1);
 
 		switch (g_global.input)
 		{
@@ -180,10 +172,8 @@ namespace GlobalFunctions
 					if (specials.find(tolower(g_global.input)) != string::npos)
 					{
 						if (g_global.multi)
-						{
 							printf("%c\n", toupper(g_global.input));
-							g_global.multi = false;
-						}
+
 						g_global.answer.character = tolower(g_global.input);
 						testForMulti();
 						return ResultType::SpecialCase;
@@ -200,33 +190,29 @@ namespace GlobalFunctions
 				}
 
 				if (g_global.multi)
-				{
 					printf("%s\n", name);
-					g_global.multi = false;
-				}
 
 				if (index == maxSize)
 				{
 					switch (g_global.input)
 					{
 					case '\n':
+						g_global.multi = false;
 						break;
 					case ';':
 					case ' ':
 						testForMulti();
 						break;
 					default:
+						g_global.multi = false;
 						printf("\n%sString insertion overflow - Input buffer cleared\n", g_global.tabs.c_str());
 						clearIn();
 					}
 				}
 				else
 				{
-					while (g_global.input == ' ' || g_global.input == ';')
-						scanf_s("%c", &g_global.input, 1);
-
-					if (g_global.input != '\n')
-						g_global.multi = true;
+					ungetc(g_global.input, stdin);
+					testForMulti();
 				}
 
 				return ResultType::Success;
@@ -249,44 +235,37 @@ namespace GlobalFunctions
 	{
 		choices = "q?" + choices;
 		printf("%sInput: ", g_global.tabs.c_str());
+
 		if (g_global.multi)
-		{
-			ungetc(g_global.input, stdin);
 			printf("*%c\n", toupper(g_global.input));
-			g_global.multi = false;
-		}
-		do
+		else
 		{
-			scanf_s("%c", &g_global.input, 1);
-		} while (g_global.input == ' ' || g_global.input == ';');
-		if (g_global.input == '\n')
-		{
-			printf("%sPlease remember to select a valid option before pressing 'Enter'\n", g_global.tabs.c_str());
-			printf("%s\n", g_global.tabs.c_str());
-			clearIn();
-			return ResultType::Failed;
+			do
+			{
+				scanf_s(" %c", &g_global.input, 1);
+			} while (g_global.input == ';');
 		}
+
 		g_global.answer.index = choices.find(tolower(g_global.input));
-		switch (g_global.answer.index)
+		if (g_global.answer.index != string::npos)
 		{
-		case string::npos:
-			GlobalFunctions::fillInvalid();
-			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-			return ResultType::Failed;
-		case 0:
 			testForMulti();
-			return ResultType::Quit;
-		case 1:
-			testForMulti();
-			return ResultType::Help;
-		default:
-			if (indexMode)
+			if (g_global.answer.index == 0)
+				return ResultType::Quit;
+			else if (g_global.answer.index == 1)
+				return ResultType::Help;
+			else if (indexMode)
 				g_global.answer.index -= 2;
 			else
 				g_global.answer.character = choices[g_global.answer.index];
-			testForMulti();
 			return ResultType::Success;
-		}	
+		}
+		else
+		{
+			GlobalFunctions::fillInvalid();
+			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
+			return ResultType::Failed;
+		}
 	}
 
 	/*
@@ -323,32 +302,23 @@ namespace GlobalFunctions
 	ResultType insertIndexValues(std::vector<size_t>& values, std::string outCharacters, const size_t max, bool allowRepeats, const size_t min)
 	{
 		printf("%sInput: ", g_global.tabs.c_str());
-		auto printValues = [&](const int type = 0)
+		auto printValues = [&](const bool writeInput)
 		{
 			if (g_global.multi)
 			{
 				for (size_t val : values)
 					printf("%zu ", val);
-				switch (type)
-				{
-				case 0:
-					printf("\n");
-					break;
-				case 2:
-					printf("Q\n");
-					break;
-				default:
-					printf("?\n");
-				}
+
+				if (writeInput)
+					putchar(g_global.input);
+				putchar('\n');
 			}
 		};
 
 		if (g_global.multi)
-		{
-			ungetc(g_global.input, stdin);
 			putchar('*');
-		}
-		scanf_s("%c", &g_global.input, 1);
+		else
+			scanf_s("%c", &g_global.input, 1);
 		do
 		{
 			switch (g_global.input)
@@ -357,29 +327,31 @@ namespace GlobalFunctions
 				scanf_s("%c", &g_global.input, 1);
 				break;
 			case '?':
-				printValues(1);
-				testForMulti();
-				return ResultType::Help;
 			case 'q':
-				printValues(2);
+				printValues(true);
 				testForMulti();
-				return ResultType::Quit;
+				if (g_global.input == '?')
+					return ResultType::Help;
+				else
+					return ResultType::Quit;
 			case '\n':
-				printValues(0);
+				printValues(false);
 				g_global.multi = false;
 				return ResultType::Success;
 			case ';':
-				printValues(0);
+				printValues(false);
 				testForMulti();
 				return ResultType::Success;
 			default:
 				if (g_global.input >= '0' && g_global.input <= '9')
 				{
 					ungetc(g_global.input, stdin);
-					char val[40] = { 0 };
-					scanf_s("%39[0-9.]", val, 40);
+
+					char val[40] = { g_global.input, 0 };
+					scanf_s("%38[0-9.]", val + 1, 39);
 					double tmp = atof(val);
 					size_t value = size_t(tmp);
+
 					if (value < min || value >= max)
 						printf("%s%zu is not within range. Skipping value.\n%s\n", g_global.tabs.c_str(), value, g_global.tabs.c_str());
 					else if (allowRepeats || !checkForIndex(values, value))
@@ -388,21 +360,18 @@ namespace GlobalFunctions
 						printf("%s%zu is already in this list.\n%s\n", g_global.tabs.c_str(), value, g_global.tabs.c_str());
 					scanf_s("%c", &g_global.input, 1);
 				}
+				else if (outCharacters.find(tolower(g_global.input)) != std::string::npos)
+				{
+					g_global.answer.character = tolower(g_global.input);
+					printValues(false);
+					g_global.multi = true;
+					return ResultType::SpecialCase;
+				}
 				else
 				{
-					if (outCharacters.find(tolower(g_global.input)) != std::string::npos)
-					{
-						g_global.answer.character = tolower(g_global.input);
-						printValues(0);
-						g_global.multi = true;
-						return ResultType::SpecialCase;
-					}
-					else
-					{
-						fillInvalid();
-						printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-						return ResultType::Failed;
-					}
+					fillInvalid();
+					printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
+					return ResultType::Failed;
 				}
 			}
 		} while (true);

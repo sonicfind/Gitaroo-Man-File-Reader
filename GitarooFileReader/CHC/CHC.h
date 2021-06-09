@@ -28,7 +28,6 @@ class CHC
 {
 	friend class CHC_Main;
 	friend class CHC_Editor;
-	friend class TAS;
 	friend class CH_Exporter;
 	friend class CH_Importer;
 private:
@@ -84,6 +83,7 @@ public:
 	CHC(const CHC&) = default;
 	void create(std::string filename);
 	size_t getNumSections() { return m_sections.size(); }
+	bool buildTAS();
 };
 
 class Chart;

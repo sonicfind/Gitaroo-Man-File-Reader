@@ -379,25 +379,8 @@ namespace GlobalFunctions
 
 	bool checkForIndex(std::vector<size_t>& values, const size_t value)
 	{
-		size_t max = values.size(), min = 0;
-		while (max > min)
-		{
-			if (values[min] > value || values[max - 1] < value)
-				return false;
-			else if (values[min] == value || values[max - 1] == value)
-				return true;
-			else
-			{
-				size_t index = (max + min) >> 1;
-				if (values[index] == value)
-					return true;
-				else if (values[index] > value)
-					max = index;
-				else
-					min = index + 1;
-			}
-		}
-		return false;
+		auto iter = std::lower_bound(values.begin(), values.end(), value);
+		return iter != values.end() && *iter == value;
 	}
 
 	long radiansToDegrees(float angle)

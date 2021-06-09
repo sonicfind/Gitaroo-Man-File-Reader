@@ -393,32 +393,26 @@ namespace GlobalFunctions
 		static const int factors[] = { 90, 60, 45, 36, 30, 20, 18, 15, 12, 10, 9, 6, 5, 4, 3, 2 };
 		static const char* dems[] = { "2", "3", "4", "5", "6", "9", "10", "12", "15", "18", "20", "30", "36", "45", "60", "90" };
 		long degree = radiansToDegrees(angle);
-		string fraction;
 		if (degree == 0)
-			fraction = '0';
+			return "0";
 		else if (degree == 180)
-			fraction = '1';
+			return "1";
 		else if (degree == -180)
-			fraction = "-1";
+			return "-1";
 		else
 		{
 			if (degree >= 360 || degree <= -360)
 				degree %= 360;
+
 			if (degree > 180)
 				degree -= 360;
 			else if (degree < -180)
 				degree += 360;
+
 			for (size_t factor = 0; factor < 16; factor++)
-			{
-				if (!(degree % factors[factor]))
-				{
-					fraction = to_string(degree / factors[factor]) + '/' + dems[factor];
-					break;
-				}
-				else if (factor + 1 == 16)
-					fraction = to_string(angle / M_PI);
-			}
+				if (degree % factors[factor] == 0)
+					return to_string(degree / factors[factor]) + '/' + dems[factor];
+			return to_string(angle / M_PI);
 		}
-		return fraction;
 	}
 }

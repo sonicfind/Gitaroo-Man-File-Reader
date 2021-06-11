@@ -78,8 +78,8 @@ namespace GlobalFunctions
 		{
 		case ';':
 		case '\n':
-			printf("%sPlease remember to type SOMETHING before pressing 'Enter'\n", g_global.tabs.c_str());
-			printf("%s\n", g_global.tabs.c_str());
+			printf_tab("Please remember to type SOMETHING before pressing 'Enter'\n");
+			printf_tab("\n");
 			clearIn();
 			return ResultType::Failed;
 		default:
@@ -148,8 +148,8 @@ namespace GlobalFunctions
 		{
 		case ';':
 		case '\n':
-			printf("%sPlease remember to type SOMETHING before pressing 'Enter'\n", g_global.tabs.c_str());
-			printf("%s\n", g_global.tabs.c_str());
+			printf_tab("Please remember to type SOMETHING before pressing 'Enter'\n");
+			printf_tab("\n");
 			clearIn();
 			return ResultType::Failed;
 		default:
@@ -191,6 +191,8 @@ namespace GlobalFunctions
 
 				if (g_global.multi)
 					printf("%s\n", name);
+				else
+					putchar('\n');
 
 				if (index == maxSize)
 				{
@@ -205,7 +207,7 @@ namespace GlobalFunctions
 						break;
 					default:
 						g_global.multi = false;
-						printf("\n%sString insertion overflow - Input buffer cleared\n", g_global.tabs.c_str());
+						printf_tab("String insertion overflow - Input buffer cleared\n");
 						clearIn();
 					}
 				}
@@ -221,6 +223,15 @@ namespace GlobalFunctions
 		}
 	}
 
+	void printf_tab(const char* format, ...)
+	{
+		printf("%s", g_global.tabs.c_str());
+		va_list args;
+		va_start(args, format);
+		vprintf_s(format, args);
+		va_end(args);
+	}
+
 	void dualvfprintf_s(FILE* out1, FILE* out2, const char* format, ...)
 	{
 		va_list args;
@@ -234,7 +245,7 @@ namespace GlobalFunctions
 	ResultType menuChoices(string choices, bool indexMode)
 	{
 		choices = "q?" + choices;
-		printf("%sInput: ", g_global.tabs.c_str());
+		printf_tab("Input: ");
 
 		if (g_global.multi)
 			printf("*%c\n", toupper(g_global.input));
@@ -262,8 +273,8 @@ namespace GlobalFunctions
 		}
 		else
 		{
-			GlobalFunctions::fillInvalid();
-			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
+			fillInvalid();
+			printf_tab("\"%s\" is not a valid response.\n%s\n", g_global.invalid.c_str(), g_global.tabs.c_str());
 			return ResultType::Failed;
 		}
 	}
@@ -279,13 +290,13 @@ namespace GlobalFunctions
 		while (test)
 		{
 			fclose(test);
-			printf("%sOverride/Replace %s? [Y/N][Q to not generate a file]\n", g_global.tabs.c_str(), fileName.c_str());
+			printf_tab("Override/Replace %s? [Y/N][Q to not generate a file]\n", fileName.c_str());
 			switch (menuChoices("yn"))
 			{
 			case ResultType::Quit:
 				return ResultType::Quit;
 			case ResultType::Help:
-				printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+				printf_tab("Help: [TBD]\n%s\n", g_global.tabs.c_str());
 				break;
 			case ResultType::Success:
 				if (g_global.answer.character == 'n')
@@ -301,7 +312,7 @@ namespace GlobalFunctions
 
 	ResultType insertIndexValues(std::vector<size_t>& values, std::string outCharacters, const size_t max, bool allowRepeats, const size_t min)
 	{
-		printf("%sInput: ", g_global.tabs.c_str());
+		printf_tab("Input: ");
 		auto printValues = [&](const bool writeInput)
 		{
 			if (g_global.multi)
@@ -353,11 +364,11 @@ namespace GlobalFunctions
 					size_t value = size_t(tmp);
 
 					if (value < min || value >= max)
-						printf("%s%zu is not within range. Skipping value.\n%s\n", g_global.tabs.c_str(), value, g_global.tabs.c_str());
+						printf_tab("%zu is not within range. Skipping value.\n%s\n", value, g_global.tabs.c_str());
 					else if (allowRepeats || !checkForIndex(values, value))
 						values.push_back(value);
 					else
-						printf("%s%zu is already in this list.\n%s\n", g_global.tabs.c_str(), value, g_global.tabs.c_str());
+						printf_tab("%zu is already in this list.\n%s\n", value, g_global.tabs.c_str());
 					scanf_s("%c", &g_global.input, 1);
 				}
 				else if (outCharacters.find(tolower(g_global.input)) != std::string::npos)
@@ -370,7 +381,7 @@ namespace GlobalFunctions
 				else
 				{
 					fillInvalid();
-					printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
+					printf_tab("\"%s\" is not a valid response.\n%s\n", g_global.invalid.c_str(), g_global.tabs.c_str());
 					return ResultType::Failed;
 				}
 			}

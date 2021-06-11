@@ -85,6 +85,9 @@ namespace GlobalFunctions
 	void banner(std::string title, float coef = 1);
 
 	// Used for printing to two files at once
+	void printf_tab(const char* format, ...);
+
+	// Used for printing to two files at once
 	void dualvfprintf_s(FILE* out1, FILE* out2, const char* format, ...);
 
 	enum class ResultType : char

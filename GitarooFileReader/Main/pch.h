@@ -27,5 +27,5 @@
 #include <thread>
 #include <vector>
 #include <list>
-#include <strstream>
+#include <sstream>
 #endif //PCH_H

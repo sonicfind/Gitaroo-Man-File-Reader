@@ -38,9 +38,12 @@ bool TAS::loadValues(string filename)
 				{
 					char line[128];
 					p2m2v.getline(line, 128);
+
+					// Used to skip to the next group of values
 					if (strchr(line, ';'))
 						break;
-					std::strstream str;
+
+					std::stringstream str;
 					str << line;
 					unsigned int stage;
 					str >> stage;

@@ -320,7 +320,7 @@ namespace GlobalFunctions
 	Failed - User entered an invalid character
 	*/
 	template<typename T>
-	extern ResultType insertFromStream(std::strstream& str, T& value, bool allowNegatives = false, T min = 0, T max = 0)
+	extern ResultType insertFromStream(std::stringstream& str, T& value, bool allowNegatives = false, T min = 0, T max = 0)
 	{
 		auto rangeTest = [&]()
 		{
@@ -471,7 +471,6 @@ namespace GlobalFunctions
 		return valueInsert(value, allowNegatives, T(0), T(0), specials);
 	}
 
-	
 	// Function for inserting a vector of values all in one go from the standard input stream
 	ResultType insertIndexValues(std::vector<size_t>& values, std::string outCharacters, const size_t max, bool allowRepeats = true, const size_t min = 0);
 

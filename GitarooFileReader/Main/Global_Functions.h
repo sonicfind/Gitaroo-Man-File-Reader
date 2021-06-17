@@ -476,6 +476,71 @@ namespace GlobalFunctions
 	ResultType insertIndexValues(std::vector<size_t>& values, std::string outCharacters, const size_t max, bool allowRepeats = true, const size_t min = 0);
 
 	template<typename T>
+	std::vector<size_t> indexInsertionDialogue(std::vector<T>& objects, const char* promptText, const char* eventType, std::string specials = "")
+	{
+		std::vector<size_t> indices;
+
+		bool loop = true;
+		while (loop)
+		{
+			printf("%s%s\n", g_global.tabs.c_str(), promptText);
+			for (size_t index = 0; index < objects.size(); ++index)
+				printf("%s%zu - %s\n", g_global.tabs.c_str(), index, objects[index].getName());
+
+			if (indices.size())
+			{
+				printf("%sCurrent List: ", g_global.tabs.c_str());
+				for (size_t index : indices)
+					printf("%s ", objects[index].getName());
+				putchar('\n');
+			}
+
+			switch (insertIndexValues(indices, specials, objects.size(), false))
+			{
+			case ResultType::Help:
+
+				break;
+			case ResultType::Quit:
+				indices = std::vector<size_t>();
+				loop = false;
+				break;
+			case ResultType::SpecialCase:
+				if (!indices.size())
+				{
+					loop = false;
+					break;
+				}
+				__fallthrough;
+			case ResultType::Success:
+				if (!indices.size())
+				{
+					bool loop2 = true;
+					while (loop && loop2)
+					{
+						printf("%sNone have been selected. Quit %s? [Y/N]\n", g_global.tabs.c_str(), eventType);
+						switch (GlobalFunctions::menuChoices("yn"))
+						{
+						case GlobalFunctions::ResultType::Quit:
+						case GlobalFunctions::ResultType::Success:
+							if (g_global.answer.character == 'n')
+								loop2 = false;
+							else
+								loop = false;
+							printf("%s\n", g_global.tabs.c_str());
+						}
+					}
+				}
+				else
+					loop = false;
+			}
+		}
+
+		if (indices.size() == 0)
+			printf("%s%s cancelled.\n", g_global.tabs.c_str(), eventType);
+		return indices;
+	}
+	
+	template<typename T>
 	ResultType indexSelector(std::vector<T>& vect, const char* type)
 	{
 		printf("%sType the index for the %s that you wish to operate with\n", g_global.tabs.c_str(), type);

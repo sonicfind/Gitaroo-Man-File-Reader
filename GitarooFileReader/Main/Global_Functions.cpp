@@ -17,7 +17,6 @@
 using namespace std;
 
 GlobalVars g_global;
-std::vector<FileType*> g_filetypes;
 
 namespace GlobalFunctions
 {

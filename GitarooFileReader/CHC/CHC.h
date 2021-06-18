@@ -87,6 +87,30 @@ public:
 	bool isPS2Compatible() const { return m_imc[0] > 0; }
 	bool isOrganized() const { return m_unorganized == 0; }
 	bool isOptimized() const { return m_optimized; }
+
+private:
+	// Editor-based functions
+
+	bool quickFix();
+
+	void swapIMC();
+	void audioSettings();
+	void winLossSettings();
+	void adjustSpeed();
+	void adjustFactors();
+
+	void fixNotes();
+	void organizeAll();
+	void PSPToPS2();
+
+	void sectionMassMenu();
+	void playerSwapAll();
+	void playOrder();
+	void rearrange();
+	void sectionSelector();
+
+	bool testPathing(const size_t index = 0);
+	bool sectionPathTest(const size_t index, bool* isAccessible, bool* canReachEnd);
 };
 
 class Chart;
@@ -209,6 +233,21 @@ public:
 	void clearConditions();
 	void operator++();
 	bool operator--();
+
+private:
+	// Editor-based functions
+
+	bool reorganize(const bool isPs2, const int stage);
+	void playerSwap(const bool isPs2);
+
+	void menu(const bool isPs2, const int stage);
+	void changeName();
+	void changeAudio();
+	void changeFrames();
+	void switchPhase();
+	void adjustTempo();
+	void adjustDuration();
+	void conditionMenu() {}
 };
 
 class Note;

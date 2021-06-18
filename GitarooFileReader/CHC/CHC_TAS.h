@@ -14,106 +14,114 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CHC.h"
+#include <thread>
 
-class TAS
+struct TAS_Frame
 {
-	static struct FrameFile
-	{
-		std::string name = "VALUES.P2M2V";
-		bool use = false;
-		long samples[2][13][6] =
-		{ { { 0, 0, 0, 0, 0, 0 }, { 44, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 } },
-		  { { 0, 0, 0, 0, 0, 0 }, { 44, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0 } } };
-		long frames[2][13][6] =
-		{ { {373, 399, 0, 0, 0, 0}, {646, 639, 646, 720, 735, 739},
-			{553, 553, 547, 680, 693, 696}, {712, 705, 711, 755, 767, 772},
-			{304, 298, 304, 0, 0, 0}, {741, 733, 739, 871, 885, 887},
-			{419, 414, 420, 0, 0, 0}, {695, 673, 682, 818, 827, 833},
-			{622, 615, 622, 735, 746, 749}, {595, 589, 595, 0, 0, 0},
-			{656, 650, 657, 523, 0, 0}, {256, 580, 574, 0, 0, 0},
-			{241, 280, 406, 0, 0, 0} },
-		  { {373, 399, 0, 0, 0, 0}, {646, 639, 646, 720, 735, 739},
-			{553, 553, 547, 680, 693, 696}, {712, 705, 711, 755, 767, 772},
-			{304, 298, 304, 0, 0, 0}, {741, 733, 739, 871, 885, 887},
-			{419, 414, 420, 0, 0, 0}, {695, 673, 682, 818, 827, 833},
-			{622, 615, 622, 735, 746, 749}, {595, 589, 595, 0, 0, 0},
-			{656, 650, 657, 523, 0, 0}, {256, 580, 574, 0, 0, 0},
-			{241, 280, 406, 0, 0, 0} } };
-	} frameValues;
+	unsigned char dpad = 255;
+	unsigned char button = 255;
+	unsigned char leftStickX = 127;
+	unsigned char leftStickY = 127;
+	unsigned char rightStickX = 127;
+	unsigned char rightStickY = 127;
+};
 
-	struct TAS_Frame
-	{
-		unsigned char dpad = 255;
-		unsigned char button = 255;
-		unsigned char leftStickX = 127;
-		unsigned char leftStickY = 127;
-		unsigned char rightStickX = 127;
-		unsigned char rightStickY = 127;
-	};
+struct Point
+{
+	long position;
+	auto operator<=>(const Point& point) const { return position <=> point.position; }
+};
 
-	struct PCSX2TAS
+struct TracePoint : public Point
+{
+	bool last;
+	float angle;
+	bool curve;
+};
+
+struct PhrasePoint : public Point
+{
+	size_t index;
+	bool last;
+	unsigned long duration;
+};
+
+struct GuardPoint : public Point
+{
+	size_t index;
+	unsigned button;
+};
+
+struct SectPoint : public Point
+{
+	enum class VisualType
 	{
-		friend class TAS;
-	private:
-		char m_version = 2;
-		char m_emulator[50] = { "PCSX2-1.7.X" };
+		Technical,
+		Visual,
+		Mixed
+	} type;
+	long sustainLimit = 0;
+};
+
+struct PlayerTrack
+{
+	// Square - 127
+	// X/Cross  - 191
+	// Circle - 223
+	// Triangle - 239
+	static const int s_GUARD_ORIENTATIONS[4][4];
+	static const int s_PHRASE_ORIENTATIONS[4];
+
+	std::vector<TAS_Frame> m_frames;
+	std::vector<TracePoint> m_tracelines;
+	std::vector<PhrasePoint> m_phrases;
+	std::vector<GuardPoint> m_guards;
+	void convertToFrames(const std::string& filename, const size_t initialFrame, const int orientation);
+	operator bool() const { return m_tracelines.size() > 0 || m_guards.size() > 0; }
+};
+
+struct TAS
+{
+	std::string m_filename;
+	int m_stage = 0;
+	int m_difficulty = 0;
+	int m_orientation = 0;
+	bool m_multi[2] = { false, false };
+
+	long m_position = 0;
+	size_t m_initialFrame = 0;
+	int m_notes[2] = { 0, 0 };
+	PlayerTrack m_players[4];
+
+	TAS() = default;
+	TAS(const std::string& filename, const int stage);
+	std::thread convertToFrames(const size_t playerIndex);
+	virtual void insertFrames(size_t numFrames) = 0;
+	virtual void resultScreen() = 0;
+	virtual bool print() = 0;
+};
+
+class PCSX2 : public TAS
+{
+	struct
+	{
+		const char m_version = 2;
+		const char m_emulator[50] = { "PCSX2-1.7.X" };
 		char m_author[256] = { 0 };
-		char m_game[256] = { "Gitaroo Man (USA).ISO" };
-		float m_framerate = 59.94f;
-		std::vector<TAS_Frame> m_players[4];
-	public:
-		size_t insertFrames(const int stage, const int orientation, const int difficulty, const bool(&multi)[2], size_t numFrames);
-		void resultScreen(const int stage, const int notes, const bool singleplayer, const bool(&multi)[2]);
-		void print(std::string filename);
-	} m_pcsx2;
+		const char m_game[256] = { "Gitaroo Man (USA).ISO" };
+	} m_header;
 
-	struct PPSSPPTAS
-	{
-		friend class TAS;
-		std::vector<TAS_Frame> players[4];
-	} m_ppsspp;
-
-	struct NotePoint
-	{
-		long position;
-		Note* note;
-		size_t index;
-		bool last;
-		NotePoint(long pos, Note* note = nullptr, size_t index = 0, bool last = false) : position(pos), note(note), index(index), last(last) {}
-	};
-	struct SectPoint
-	{
-		long position;
-		enum class VisualType
-		{
-			Technical,
-			Visual,
-			Mixed
-		} type;
-		long sustainLimit = 0;
-		SectPoint(long pos, size_t visuals = 0, long sus = 0) : position(pos), type(static_cast<VisualType>(visuals)), sustainLimit(sus) {}
-	};
-	std::vector<NotePoint> timeline[4];
-	std::vector<SectPoint> markers;
-	CHC* m_tutorialStageB = nullptr;
 public:
-	bool build(CHC song);
-	bool loadValues(std::string file = frameValues.name);
-	~TAS()
-	{
-		if (m_tutorialStageB)
-			delete m_tutorialStageB;
-	}
+	PCSX2(const std::string& filename, const int stage);
+	void insertFrames(size_t numFrames);
+	void resultScreen();
+	bool print();
+};
+
+class PPSSPPTAS : public TAS
+{
+public:
+	void insertFrames(size_t numFrames) {}
+	void resultScreen() {}
+	bool print() { return false; }
 };

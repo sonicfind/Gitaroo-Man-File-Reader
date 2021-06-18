@@ -15,6 +15,7 @@
  */
 #include "CHC.h"
 #include "CH_ChartFile.h"
+#include <queue>
 
 struct Section
 {

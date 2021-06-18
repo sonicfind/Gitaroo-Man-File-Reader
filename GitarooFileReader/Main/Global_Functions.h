@@ -15,18 +15,6 @@
  */
 
 constexpr float M_PI = 3.141592741f;
-const auto processor_count = std::thread::hardware_concurrency();
-
-//Holds all data pertaining to applicable file extensions.
-struct FileType
-{
-	std::list<std::string> m_files;
-	virtual const char* getType() = 0;
-	virtual const size_t size() = 0;
-	virtual bool loadSingle(std::string filename) = 0;
-	virtual bool loadMulti() = 0;
-};
-extern std::vector<FileType*> g_filetypes;
 
 /*
 	App-wide structure that holds universal values used by many functions across the solution.
@@ -135,7 +123,7 @@ namespace GlobalFunctions
 	Failed - User entered an invalid character
 	*/
 	template<typename T>
-	extern ResultType valueInsert(T& value, bool allowNegatives = false, T min = 0, T max = 0, std::string specials = "")
+	ResultType valueInsert(T& value, bool allowNegatives = false, T min = 0, T max = 0, std::string specials = "")
 	{
 		if (g_global.multi)
 		{
@@ -320,7 +308,7 @@ namespace GlobalFunctions
 	Failed - User entered an invalid character
 	*/
 	template<typename T>
-	extern ResultType insertFromStream(std::stringstream& str, T& value, bool allowNegatives = false, T min = 0, T max = 0)
+	ResultType insertFromStream(std::stringstream& str, T& value, bool allowNegatives = false, T min = 0, T max = 0)
 	{
 		auto rangeTest = [&]()
 		{
@@ -466,7 +454,7 @@ namespace GlobalFunctions
 	Failed - User entered an invalid character
 	*/
 	template<typename T>
-	extern ResultType valueInsert(T& value, bool allowNegatives, std::string specials)
+	ResultType valueInsert(T& value, bool allowNegatives, std::string specials)
 	{
 		return valueInsert(value, allowNegatives, T(0), T(0), specials);
 	}

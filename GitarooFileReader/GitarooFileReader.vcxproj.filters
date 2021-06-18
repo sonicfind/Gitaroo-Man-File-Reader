@@ -60,14 +60,11 @@
     <ClCompile Include="Main\pch.cpp">
       <Filter>GMFR</Filter>
     </ClCompile>
+    <ClCompile Include="Main\FileType.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CHC\CHC_Main.h">
-      <Filter>CHC\Main</Filter>
-    </ClInclude>
-    <ClInclude Include="CHC\CHC_Editor.h">
-      <Filter>CHC\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="CHC\CHC_TAS.h">
       <Filter>CHC\TAS</Filter>
     </ClInclude>
@@ -91,6 +88,15 @@
     </ClInclude>
     <ClInclude Include="CHC\CH_NoteTrack.h">
       <Filter>CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\FileMainList.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\FileType.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\FileMain.h">
+      <Filter>Global</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

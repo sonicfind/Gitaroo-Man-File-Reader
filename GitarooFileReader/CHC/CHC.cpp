@@ -14,269 +14,485 @@
  */
 #include "pch.h"
 #include "CHC.h"
-#include <algorithm>
-using namespace std;
+using namespace GlobalFunctions;
 
 //Creates a CHC object with 1 songsection
-CHC::CHC() : m_sections(1), m_stage(0), m_speed(0), m_unorganized(0), m_optimized(false), m_saved(2) {}
+CHC::CHC()
+	: FileType(".CHC")
+	, m_stage(0)
+	, m_speed(0)
+	, m_sections(1)
+	, m_unorganized(0)
+	, m_optimized(false) {}
 
 //Creates a CHC object using values from the CHC file pointed to by the provided filename.
 //
 //Value names chosen to be kept are based off the CHC tab in the Gitaroo Pals shoutwiki
-CHC::CHC(string filename) : m_filename(filename + ".CHC"), m_saved(2)
+CHC::CHC(std::string filename) : FileType(filename, ".CHC")
 {
-	{
-		size_t pos = filename.find_last_of('\\');
-		m_shortname = filename.substr(pos != string::npos ? pos + 1 : 0);
-	}
-	GlobalFunctions::banner(" Loading " + m_shortname + ".CHC ");
+	union {
+		char c[4];
+		unsigned ui = 0;
+	} u;
+
 	try
 	{
-		m_stage = stoi(m_shortname.substr(2, 2));
+		m_stage = stoi(m_filename.substr(2, 2));
 	}
 	catch (...)
 	{
 		m_stage = -1;
 	}
-	union {
-		char c[4];
-		unsigned ui;
-	} u;
-	FILE* inFile;
-	if (fopen_s(&inFile, m_filename.c_str(), "rb"))
-		throw "Error: " + m_filename + " does not exist.";
-	fread(m_header, 1, 36, inFile);
+
+	fread(m_header, 1, 36, m_filePtr);
 	if (!strstr(m_header, "SNGS"))
 	{
-		fclose(inFile);
+		fclose(m_filePtr);
 		throw "Error: No 'SNGS' Tag at byte 0.";
 	}
 	std::copy(m_header + 4, m_header + 8, u.c);
 	m_optimized = u.ui == 6145;
-	fread(m_imc, 1, 256, inFile);
-	bool duet = m_imc[0] == 0;
-	fread(&m_events, sizeof(SSQRange), 4, inFile);
-	fread(&m_audio, sizeof(AudioChannel), 8, inFile);
-	fread(&m_speed, 4, 1, inFile);
-	fread(u.c, 4, 1, inFile);
-	m_unorganized = u.ui;
+	fread(m_imc, 1, 256, m_filePtr);
+	fread(&m_events, sizeof(SSQRange), 4, m_filePtr);
+	fread(&m_audio, sizeof(AudioChannel), 8, m_filePtr);
+	fread(&m_speed, 4, 1, m_filePtr);
+	fread(&m_unorganized, 4, 1, m_filePtr);
+
 	// Uses FILE* constructor to read section cue data
-	for (size_t index = 0; index <  u.ui; ++index)
-		m_sections.emplace_back(inFile);
-	fseek(inFile, 4, SEEK_CUR);
-	bool reorganized = false;
+	for (size_t index = 0; index < m_unorganized; ++index)
+		m_sections.push_back({ this, m_filePtr });
+
+	fseek(m_filePtr, 4, SEEK_CUR);
 	for (size_t sectIndex = 0; sectIndex < m_sections.size(); sectIndex++) //SongSections
 	{
-		fread(u.c, 1, 4, inFile);
+		fread(u.c, 1, 4, m_filePtr);
 		if (!strstr(u.c, "CHLS"))
 		{
-			fclose(inFile);
-			throw "Error: No 'CHLS' Tag for section #" + to_string(sectIndex) + " [File offset: " + to_string(ftell(inFile) - 4) + "].";
+			const int position = ftell(m_filePtr) - 4;
+			fclose(m_filePtr);
+			throw "Error: No 'CHLS' Tag for section #" + std::to_string(sectIndex) + " [File offset: " + std::to_string(position) + "].";
 		}
-		SongSection& section = m_sections[sectIndex];
-		fread(u.c, 1, 4, inFile);
-		if (u.ui & 1)
-		{
-			section.m_organized = true;
-			m_unorganized--;
-		}
-		section.m_swapped = (u.ui - 4864) / 2;
-		fread(&section.m_size, 4, 1, inFile);
-		if (!section.m_organized)
-		{
-			fread(&section.m_organized, 4, 1, inFile);
-			m_unorganized -= section.m_organized;
-		}
-		else
-			fseek(inFile, 4, SEEK_CUR);
-		if (!section.m_swapped)
-			fread(&section.m_swapped, 4, 1, inFile);
-		else
-			fseek(inFile, 4, SEEK_CUR);
-		if ((m_stage == 11 || m_stage == 12) && !duet && section.m_swapped < 4)
-		{
-			section.m_swapped += 4;
-			printf("%sSection #%zu (%s)'s swap value was adjusted to match current implementation for Duet->PS2 conversions. Make sure to save this file to apply this change.\n", g_global.tabs.c_str(), sectIndex, section.m_name);
-			m_saved = 0;
-		}
-		fread(section.m_junk, 1, 16, inFile);
-		fread(&section.m_battlePhase, 4, 1, inFile);
-		fread(&section.m_tempo, 4, 1, inFile);
-		fread(&section.m_duration, 4, 1, inFile);
-		fseek(inFile, 4, SEEK_CUR);
-		fread(u.c, 4, 1, inFile);
-		for (unsigned condIndex = 0; condIndex < u.ui; condIndex++)
-			section.m_conditions.emplace_back(inFile);
-		fread(&section.m_numPlayers, 4, 1, inFile);
-		fread(&section.m_numCharts, 4, 1, inFile);
-		section.m_charts.clear();
-		for (unsigned playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
-		{
-			for (unsigned chartIndex = 0; chartIndex < section.m_numCharts; chartIndex++)
-			{
-				fread(u.c, 1, 4, inFile);
-				if (!strstr(u.c, "CHCH"))
-				{
-					fclose(inFile);
-					throw "Error: No 'CHCH' Tag for section " + to_string(sectIndex) + " - subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) +
-						" [File offset: " + to_string(ftell(inFile) - 4) + "].";
-				}
-				Chart chart(false);
-				//Skip Chart size as the embedded value can be wrong
-				fseek(inFile, 16, SEEK_CUR);
-				fread(chart.m_junk, 1, 16, inFile);
-				fread(&chart.m_pivotTime, 4, 1, inFile);
-				fread(&chart.m_endTime, 4, 1, inFile);
-				fread(u.c, 1, 4, inFile); //Read number of trace lines
-				//Uses Traceline FILE* constructor
-				for (unsigned traceIndex = 0; traceIndex < u.ui; traceIndex++)
-					chart.emplaceTraceline(inFile);
-				fread(u.c, 1, 4, inFile); //Read number of Phrase bars
-				//Uses Phrase FILE* constructor
-				for (unsigned phraseIndex = 0; phraseIndex < u.ui; phraseIndex++)
-					chart.emplacePhrase(inFile);
-				fread(u.c, 1, 4, inFile); //Read number of Guard marks
-				//Uses Guard FILE* constructor
-				for (unsigned guardIndex = 0; guardIndex < u.ui; guardIndex++)
-					chart.emplaceGuard(inFile);
-				fseek(inFile, 4, SEEK_CUR);
-				section.m_charts.push_back(chart);
-			}
-		}
+
+		m_sections[sectIndex].continueRead(m_filePtr, sectIndex, m_stage, !m_imc[0]);
 	}
-	fread(u.c, 1, 4, inFile);
+
+	fread(u.c, 1, 4, m_filePtr);
 	if (u.ui != 20)
 	{
-		fclose(inFile);
+		const int position = ftell(m_filePtr) - 4;
+		fclose(m_filePtr);
 		throw "Error: Incorrect constant value found when attempting to read Player Damage / Energy Factors.\n" + 
-			g_global.tabs + "Needed: '20' (or '0x00000014')| Found: " + to_string(u.ui) + " [File offset: " + to_string(ftell(inFile) - 4) + "].";
+			g_global.tabs + "Needed: '20' (or '0x00000014')| Found: " + std::to_string(u.ui) + " [File offset: " + std::to_string(position) + "].";
 	}
-	fread(&m_energyDamageFactors, sizeof(EnergyDamage), 20, inFile);
-	fclose(inFile);
+	fread(&m_energyDamageFactors, sizeof(EnergyDamage), 20, m_filePtr);
+	fclose(m_filePtr);
 }
 
 //Create or update a CHC file
-void CHC::create(string filename)
+bool CHC::create(std::string filename)
 {
+	if (FileType::create(filename))
 	{
-		size_t pos = filename.find_last_of('\\');
-		GlobalFunctions::banner(" Saving " + filename.substr(pos != string::npos ? pos + 1 : 0) + ' ');
-	}
-	FILE* outFile;
-	fopen_s(&outFile, filename.c_str(), "wb");
-	union {
-		char c[4];
-		unsigned ui;
-	} u;
-	u.ui = 6144UL + m_optimized;
-	std::copy(u.c, u.c + 4, m_header + 4);
-	fwrite(m_header, 1, 36, outFile);
-	fwrite(m_imc, 1, 256, outFile);
+		union {
+			char c[4];
+			unsigned ui = 0;
+		} u;
+		u.ui = 6144UL + m_optimized;
+		std::copy(u.c, u.c + 4, m_header + 4);
+		fwrite(m_header, 1, 36, m_filePtr);
+		fwrite(m_imc, 1, 256, m_filePtr);
 
-	fwrite(m_events, sizeof(SSQRange), 4, outFile);
-	fwrite(m_audio, sizeof(AudioChannel), 8, outFile);
-	fwrite(&m_speed, 4, 1, outFile);
+		fwrite(m_events, sizeof(SSQRange), 4, m_filePtr);
+		fwrite(m_audio, sizeof(AudioChannel), 8, m_filePtr);
+		fwrite(&m_speed, 4, 1, m_filePtr);
 
-	unsigned long size = (unsigned long)m_sections.size();
-	fwrite(&size, 4, 1, outFile);
-	for (SongSection& section : m_sections)	// Cues
-	{
-		fwrite(&section.m_index, 4, 1, outFile);
-		fwrite(section.m_name, 1, 16, outFile);
-		fwrite(section.m_audio, 1, 16, outFile);
-		fwrite(&section.m_frames, 4, 2, outFile);
-		fwrite("\0\0\0\0", 1, 4, outFile);
-	}
-
-	fwrite(&size, 4, 1, outFile);
-	for (SongSection& section : m_sections) // SongSections
-	{
-		fputs("CHLS", outFile);
-		u.ui = 4864UL;
-		fwrite(u.c, 1, 4, outFile);
-
-		fwrite(&section.m_size, 4, 1, outFile);
-		fwrite(&section.m_organized, 4, 1, outFile);
-		fwrite(&section.m_swapped, 4, 1, outFile);
-		fwrite(section.m_junk, 1, 16, outFile);
-
-		fwrite(&section.m_battlePhase, 4, 1, outFile);
-		fwrite(&section.m_tempo, 4, 1, outFile);
-		fwrite(&section.m_duration, 4, 1, outFile);
-		fwrite("\0\0\0\0", 1, 4, outFile);
-
-		size = (unsigned long)section.m_conditions.size();
-		fwrite(&size, 4, 1, outFile);
-		for (SongSection::Condition& cond : section.m_conditions)
-			fwrite(&cond, 16, 1, outFile);
-
-		fwrite(&section.m_numPlayers, 4, 1, outFile);
-		fwrite(&section.m_numCharts, 4, 1, outFile);
-		for (unsigned playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
+		// Cues
+		const unsigned long size = (unsigned long)m_sections.size();
+		fwrite(&size, 4, 1, m_filePtr);
+		for (SongSection& section : m_sections)	
 		{
-			for (unsigned chartIndex = 0; chartIndex < section.m_numCharts; chartIndex++)
-			{
-				Chart& chart = section.m_charts[(size_t)playerIndex * section.m_numCharts + chartIndex];
-				fputs("CHCH", outFile);
-				u.ui = 4864UL;
-				fwrite(u.c, 1, 4, outFile);
-
-				fwrite(&chart.m_size, 4, 1, outFile);
-				fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
-				fwrite(chart.m_junk, 1, 16, outFile);
-				fwrite(&chart.m_pivotTime, 4, 1, outFile);
-				fwrite(&chart.m_endTime, 4, 1, outFile);
-
-				size = (unsigned long)chart.m_tracelines.size();
-				fwrite(&size, 4, 1, outFile);
-				for (Traceline& trace : chart.m_tracelines)
-				{
-					fwrite(&trace.m_pivotAlpha, 4, 1, outFile);
-					fwrite(&trace.m_duration, 4, 1, outFile);
-					fwrite(&trace.m_angle, 4, 1, outFile);
-					fwrite(&trace.m_curve, 4, 1, outFile);
-				}
-
-				size = (unsigned long)chart.m_phrases.size();
-				fwrite(&size, 4, 1, outFile);
-				for (Phrase& phrase : chart.m_phrases)
-				{
-					fwrite(&phrase.m_pivotAlpha, 4, 1, outFile);
-					fwrite(&phrase.m_duration, 4, 1, outFile);
-					fwrite(&phrase.m_start, 4, 1, outFile);
-					fwrite(&phrase.m_end, 4, 1, outFile);
-					fwrite(&phrase.m_animation, 4, 1, outFile);
-					if (phrase.m_color != -1)
-					{
-						fputs("NOTECOLR", outFile);
-						fwrite(&phrase.m_color, 4, 1, outFile);
-					}
-					else
-						fwrite(phrase.m_junk, 1, 12, outFile);
-				}
-
-				size = (unsigned long)chart.m_guards.size();
-				fwrite(&size, 4, 1, outFile);
-				for (Guard& guard : chart.m_guards)
-				{
-					fwrite(&guard.m_pivotAlpha, 4, 1, outFile);
-					fwrite(&guard.m_button, 4, 1, outFile);
-					fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
-				}
-
-				fwrite("\0\0\0\0", 1, 4, outFile);
-			}
+			fwrite(&section.m_index, 4, 1, m_filePtr);
+			fwrite(section.m_name, 1, 16, m_filePtr);
+			fwrite(section.m_audio, 1, 16, m_filePtr);
+			fwrite(&section.m_frames, 4, 2, m_filePtr);
+			fwrite("\0\0\0\0", 1, 4, m_filePtr);
 		}
-		fflush(outFile);
+
+		// SongSection chart data
+		fwrite(&size, 4, 1, m_filePtr);
+		for (SongSection& section : m_sections) 
+			section.create(m_filePtr);
+
+		u.ui = 20UL;
+		fwrite(u.c, 1, 4, m_filePtr);
+		fwrite(m_energyDamageFactors, sizeof(EnergyDamage), 20, m_filePtr);
+		fclose(m_filePtr);
+		m_saved = 1;
+		return true;
 	}
-	u.ui = 20UL;
-	fwrite(u.c, 1, 4, outFile);
-	fwrite(m_energyDamageFactors, sizeof(EnergyDamage), 20, outFile);
-	fclose(outFile);
-	m_saved = 1;
+	return false;
 }
 
-SongSection::Condition::Condition() : m_type(0), m_argument(0), m_trueEffect(0), m_falseEffect(0) {}
+/*
+Writes out the data present in the CHC file to a readable txt file. This would include all SSQ & cue data, audio values,
+section & subsection data - including values for every separate note -, and damage & energy factors. Creates two files -
+with one being a simplistic form with only the bare minimum necessary information.
+*/
+bool CHC::write_to_txt()
+{
+	FILE* txtFile, *simpleTxtFile;
+	if (FileType::write_to_txt(txtFile, simpleTxtFile))
+	{
+		try
+		{
+			fprintf(txtFile, "Header: %s", m_header);
+			dualvfprintf_s(txtFile, simpleTxtFile, "IMC: %s\n", m_imc[0] ? m_imc : "Unused in PSP version");
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t   SSQ Events:\n");
+
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t    Win A:\n");
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\tFirst Frame: %g\n", m_events[0].first);
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t Last Frame: %g\n", m_events[0].last);
+
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t    Win B:\n");
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\tFirst Frame: %g\n", m_events[1].first);
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t Last Frame: %g\n", m_events[1].last);
+
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t Lose Pre:\n");
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\tFirst Frame: %g\n", m_events[2].first);
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t Last Frame: %g\n", m_events[2].last);
+
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\tLose Loop:\n");
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\tFirst Frame: %g\n", m_events[3].first);
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t Last Frame: %g\n", m_events[3].last);
+
+			dualvfprintf_s(txtFile, simpleTxtFile, "       Audio Channels:\n");
+
+			if (m_imc[0])
+			{
+				for (size_t index = 0; index < 8; index++)
+				{
+					dualvfprintf_s(txtFile, simpleTxtFile, "\t\t Channel %zu:\n", index + 1);
+					dualvfprintf_s(txtFile, simpleTxtFile, "\t\t       Volume: %lu (%g%%)\n", m_audio[index].volume, m_audio[index].volume * 100.0 / 32767);
+					switch (m_audio[index].pan)
+					{
+					case 0:
+						dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t  Pan: Left (0)\n");
+						break;
+					case 16383:
+						dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t  Pan: Center (16383)\n");
+						break;
+					case 32767:
+						dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t  Pan: Right (32767)\n");
+						break;
+					default:
+						dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t  Pan: %g%% Left | %g%% Right (%lu)\n",
+							100 - (m_audio[index].pan * 100.0 / 32767),
+							m_audio[index].pan * 100.0 / 32767, m_audio[index].pan);
+					}
+				}
+			}
+			else
+			{
+				dualvfprintf_s(txtFile, simpleTxtFile, "\t\t Channel 1: Unused in PSP version\n");
+				dualvfprintf_s(txtFile, simpleTxtFile, "\t\t Channel 2: Unused in PSP version\n");
+				for (size_t index = 2; index < 8; index++)
+				{
+					dualvfprintf_s(txtFile, simpleTxtFile, "\t\t Channel %zu:\n", index + 1);
+					dualvfprintf_s(txtFile, simpleTxtFile, "\t\t       Volume: %lu (%g%%)\n", m_audio[index].volume, m_audio[index].volume * 100.0 / 32767);
+					dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t  Pan: Unused in PSP version\n");
+				}
+			}
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t       Speed: %g\n", m_speed);
+
+			fprintf(txtFile, "\t   # of Cues: %zu\n", m_sections.size());
+			fputs("\t    SSQ Cues:\n", txtFile);
+
+			for (auto& section : m_sections)	//Cues
+			{
+				fprintf(txtFile, "\t       Cue %s:\n", section.m_name);
+				fprintf(txtFile, "\t\t\tAudio Used: %s\n", section.m_audio);
+				fprintf(txtFile, "\t\t\t     Index: %lu\n", section.m_index);
+				fprintf(txtFile, "\t\t       First frame: %5g\n", section.m_frames.first);
+				fprintf(txtFile, "\t\t\tLast frame: %5g\n", section.m_frames.last);
+			}
+
+			fflush(txtFile);
+			fflush(simpleTxtFile);
+
+			dualvfprintf_s(txtFile, simpleTxtFile, "       # of Sections: %zu\n", m_sections.size());
+			dualvfprintf_s(txtFile, simpleTxtFile, "       Song Sections:\n");
+
+			for (auto& section : m_sections) //SongSections
+			{
+				
+			}
+
+			dualvfprintf_s(txtFile, simpleTxtFile, "Damage/Energy Factors:\n");
+			for (size_t player = 0; player < 4; player++)
+			{
+				dualvfprintf_s(txtFile, simpleTxtFile, "       Player %zu ||", player + 1);
+				dualvfprintf_s(txtFile, simpleTxtFile, " Starting Energy || Initial-Press Energy || Initial-Press Damage || Guard Energy Gain ||");
+				dualvfprintf_s(txtFile, simpleTxtFile, " Attack Miss Damage || Guard Miss Damage || Release Max Energy || Release Max Damage ||\n");
+				dualvfprintf_s(txtFile, simpleTxtFile, "       %s||\n", std::string(184, '='));
+				for (size_t section = 0; section < 5; section++)
+				{
+					switch (section)
+					{
+					case 0: dualvfprintf_s(txtFile, simpleTxtFile, "\t  Intro ||"); break;
+					case 1: dualvfprintf_s(txtFile, simpleTxtFile, "\t Charge ||"); break;
+					case 2: dualvfprintf_s(txtFile, simpleTxtFile, "\t Battle ||"); break;
+					case 3: dualvfprintf_s(txtFile, simpleTxtFile, "\tHarmony ||"); break;
+					case 4: dualvfprintf_s(txtFile, simpleTxtFile, "\t    End ||");
+					}
+					dualvfprintf_s(txtFile, simpleTxtFile, "%015g%% ||%020g%% ||%020g%% ||%017g%% ||%018g%% ||%017g%% ||%018g%% ||%018g%% ||\n",
+						m_energyDamageFactors[player][section].initialEnergy * 100.0,
+						m_energyDamageFactors[player][section].chargeInitial * 100.0,
+						m_energyDamageFactors[player][section].attackInitial * 100.0,
+						m_energyDamageFactors[player][section].guardEnergy * 100.0,
+						m_energyDamageFactors[player][section].attackMiss * 100.0,
+						m_energyDamageFactors[player][section].guardMiss * 100.0,
+						m_energyDamageFactors[player][section].chargeRelease * 100.0,
+						m_energyDamageFactors[player][section].attackRelease * 100.0);
+				}
+				dualvfprintf_s(txtFile, simpleTxtFile, "\n");
+			}
+		}
+		catch (std::string str)
+		{
+			printf_tab("%s\n", str.c_str());
+		}
+		catch (const char* str)
+		{
+			printf_tab("%s\n", str);
+		}
+		fclose(txtFile);
+		fclose(simpleTxtFile);
+		return true;
+	}
+	return false;
+}
+
+//Create a SongSection object with 1 Condition and 4 Charts
+SongSection::SongSection()
+	: m_conditions(1)
+	, m_charts(4) {}
+
+//Uses a file to read in a few of the values
+//Due to the context, no conditions or charts are created
+SongSection::SongSection(CHC* parent, FILE* inFile)
+	: m_parent(parent)
+	, m_organized(false)
+	, m_battlePhase(Phase::INTRO)
+	, m_tempo(0)
+	, m_duration(0)
+	, m_numPlayers(0)
+	, m_numCharts(0)
+{
+	fread(&m_index, 4, 1, inFile);
+	fread(&m_name, 1, 16, inFile);
+	fread(&m_audio, 1, 16, inFile);
+	fread(&m_frames, sizeof(SSQRange), 1, inFile);
+	fseek(inFile, 4, SEEK_CUR);
+}
+
+SongSection& SongSection::operator=(const SongSection& section)
+{
+	setOrganized(section.m_organized);
+	m_swapped = section.m_swapped;
+	m_tempo = section.m_tempo;
+	m_duration = section.m_duration;
+	m_numPlayers = section.m_numPlayers;
+	m_numCharts = section.m_numCharts;
+	m_charts = section.m_charts;
+	return *this;
+}
+
+// Fills in rest of values from the given file
+// Returns if the section is organized
+void SongSection::continueRead(FILE* inFile, const size_t index, const int stage, bool isDuet)
+{
+	unsigned long value;
+	fread(&value, 1, 4, inFile);
+	setOrganized(value & 1);
+	m_swapped = (value - 4864) / 2;
+	fseek(inFile, 4, SEEK_CUR);
+	if (!m_organized)
+	{
+		fread(&value, 1, 4, inFile);
+		setOrganized(value & 1);
+	}
+	else
+		fseek(inFile, 4, SEEK_CUR);
+
+	if (!m_swapped)
+		fread(&m_swapped, 4, 1, inFile);
+	else
+		fseek(inFile, 4, SEEK_CUR);
+
+	if ((stage == 11 || stage == 12)
+		&& !isDuet
+		&& m_swapped < 4)
+	{
+		m_swapped += 4;
+		printf_tab("Section #%zu (%s)'s swap value was adjusted to match current implementation for Duet->PS2 conversions. "
+				"Make sure to save this file to apply this change.\n",  index, m_name);
+	}
+
+	fread(m_junk, 1, 16, inFile);
+	fread(&m_battlePhase, 4, 1, inFile);
+	fread(&m_tempo, 4, 1, inFile);
+	fread(&m_duration, 4, 1, inFile);
+	fseek(inFile, 4, SEEK_CUR);
+
+	// Reads in the number of conditions
+	fread(&value, 4, 1, inFile);
+	for (unsigned condIndex = 0; condIndex < value; condIndex++)
+		m_conditions.push_back({ inFile });
+
+	fread(&m_numPlayers, 4, 1, inFile);
+	fread(&m_numCharts, 4, 1, inFile);
+	char tmp[5] = { 0 };
+	for (unsigned chartIndex = 0; chartIndex < m_numPlayers * m_numCharts; ++chartIndex)
+	{
+		fread(tmp, 1, 4, inFile);
+		if (!strstr(tmp, "CHCH"))
+		{
+			const int position = ftell(inFile) - 4;
+			fclose(inFile);
+			throw "Error: No 'CHCH' Tag for section " + std::string(m_name) + " - subsection " + std::to_string(chartIndex) +
+				" [File offset: " + std::to_string(position) + "].";
+		}
+		m_charts.push_back({ inFile });
+	}
+}
+
+void SongSection::create(FILE* outFile)
+{
+	fputs("CHLS", outFile);
+	unsigned long value = 4864UL;
+	fwrite(&value, 1, 4, outFile);
+	value = getSize();
+	fwrite(&value, 1, 4, outFile);
+	fwrite(&m_organized, 4, 1, outFile);
+	fwrite(&m_swapped, 4, 1, outFile);
+	fwrite(m_junk, 1, 16, outFile);
+
+	fwrite(&m_battlePhase, 4, 1, outFile);
+	fwrite(&m_tempo, 4, 1, outFile);
+	fwrite(&m_duration, 4, 1, outFile);
+	fwrite("\0\0\0\0", 1, 4, outFile);
+
+	const unsigned long size = (unsigned long)m_conditions.size();
+	fwrite(&size, 4, 1, outFile);
+	for (SongSection::Condition& cond : m_conditions)
+		fwrite(&cond, 16, 1, outFile);
+
+	fwrite(&m_numPlayers, 4, 1, outFile);
+	fwrite(&m_numCharts, 4, 1, outFile);
+	for (auto& chart : m_charts)
+		chart.create(outFile);
+	fflush(outFile);
+}
+
+void SongSection::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const CHC* const chc)
+{
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t       Section %s:\n", m_name);
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t       Organized: %s\n", m_organized & 1 ? "TRUE" : "FALSE");
+
+	{
+		std::string swapped = "Swapped Players : ";
+		switch (m_swapped & 3)
+		{
+		case 0:
+			swapped += m_swapped & 4 ? "FALSE (P1/P2D/P3/P4D) [Duet->PS2 Conversion]"
+									 : "FALSE";
+			break;
+		case 1:
+			swapped += m_swapped & 4 ? "TRUE (P2D/P1/P4D/P3) [Duet->PS2 Conversion]"
+									 : "TRUE (P2/P1/P4/P3)";
+			break;
+		case 2:
+			swapped += m_swapped & 4 ? "TRUE (P3/P4D/P1/P2D) [Duet->PS2 Conversion]"
+									 : (chc->isPS2Compatible() ? "TRUE (P3/P4/P1/P2)"
+															   : "TRUE (P3/P2/P1/P4) [DUET]");
+			break;
+		default:
+			swapped += m_swapped & 4 ? "TRUE (P4D/P3/P2D/P1) [Duet->PS2 Conversion]"
+									 : "TRUE (P4/P3/P2/P1)";
+		}
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t %s\n", swapped.c_str());
+	}
+
+	fprintf(txtFile, "\t\t       Size (32bit) - 44: %lu\n", getSize());
+	fprintf(txtFile, "\t\t\t\t    Junk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk)));
+	fprintf(txtFile, "\t\t\t\t\t  0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 4)));
+	fprintf(txtFile, "\t\t\t\t\t  0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 8)));
+	fprintf(txtFile, "\t\t\t\t\t  0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 12)));
+
+	switch (m_battlePhase)
+	{
+	case SongSection::Phase::INTRO:
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Phase: INTRO\n");
+		break;
+	case SongSection::Phase::CHARGE:
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Phase: CHARGE\n");
+		break;
+	case SongSection::Phase::BATTLE:
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Phase: BATTLE\n");
+		break;
+	case SongSection::Phase::FINAL_AG:
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Phase: FINAL_AG\n");
+		break;
+	case SongSection::Phase::HARMONY:
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Phase: HARMONY\n");
+		break;
+	case SongSection::Phase::END:
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Phase: END\n");
+		break;
+	default:
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Phase: FINAL_I\n");
+	}
+
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Tempo: %g\n", m_tempo);
+	fprintf(txtFile, "\t\t\t    Samples/Beat: %Lg\n", s_SAMPLES_PER_MIN / m_tempo);
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\tDuration: %lu samples\n", m_duration);
+
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t # of Conditions: %lu\n", m_conditions.size());
+	for (size_t condIndex = 0; condIndex < m_conditions.size(); condIndex++)
+	{
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Condition %zu:\n", condIndex + 1);
+		m_conditions[condIndex].write_to_txt(txtFile, simpleTxtFile, chc);
+	}
+
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t    # of Players: %lu\n", m_numPlayers);
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t       Charts per Player: %lu\n", m_numCharts);
+	for (size_t playerIndex = 0; playerIndex < m_numPlayers; playerIndex++)
+	{
+		for (size_t chartIndex = 0; chartIndex < m_numCharts; chartIndex++)
+		{
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t Player %zu - Chart %02zu\n", playerIndex + 1, chartIndex + 1);
+			m_charts[playerIndex * m_numCharts + chartIndex].write_to_txt(txtFile, simpleTxtFile);
+		}
+	}
+
+	fflush(txtFile);
+	fflush(simpleTxtFile);
+}
+
+void SongSection::setOrganized(unsigned long org)
+{
+	if (m_organized != org)
+	{
+		m_organized = org;
+		org ? --m_parent->m_unorganized : ++m_parent->m_unorganized;
+	}
+}
+
+SongSection::Condition::Condition()
+	: m_type(0)
+	, m_argument(0)
+	, m_trueEffect(0)
+	, m_falseEffect(0) {}
 
 SongSection::Condition::Condition(FILE* inFile)
 {
@@ -286,33 +502,81 @@ SongSection::Condition::Condition(FILE* inFile)
 	fread(&m_falseEffect, 4, 1, inFile);
 }
 
-//Create a SongSection object with 1 Condition and 4 Charts
-SongSection::SongSection()
-	: m_index(0), m_organized(false), m_size(384), m_battlePhase(Phase::INTRO), m_tempo(0), m_duration(0), m_conditions(1), m_numPlayers(4), m_numCharts(1), m_charts(4) {}
-
-//Uses a file to read in a few of the values
-//Due to the context, no conditions or charts are created
-SongSection::SongSection(FILE* inFile) : m_organized(false), m_size(384), m_battlePhase(Phase::INTRO), m_tempo(0), m_duration(0), m_numPlayers(0), m_numCharts(0)
+void SongSection::Condition::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const CHC* const chc)
 {
-	fread(&m_index, 4, 1, inFile);
-	fread(&m_name, 1, 16, inFile);
-	fread(&m_audio, 1, 16, inFile);
-	fread(&m_frames, sizeof(SSQRange), 1, inFile);
-	fseek(inFile, 4, SEEK_CUR);
-}
-
-//Returns the condition at the provided index
-//An index >= the number of conditions will return the last condition
-SongSection::Condition& SongSection::getCondition(size_t index)
-{
-	try
+	switch (m_type)
 	{
-		return m_conditions[index];
+	case 0:
+		fputs("\t\t\t\t\t\tType: Unconditional\n", txtFile);
+		dualvfprintf_s(txtFile, simpleTxtFile,
+			"\t\t\t\t\t      Result: Always true.\n");
+		break;
+	case 1:
+		fputs("\t\t\t\t\t\tType: Left Side Energy\n", txtFile);
+		fprintf(txtFile, "\t\t\t\t\t    Argument: %g\n", m_argument);
+		dualvfprintf_s(txtFile, simpleTxtFile,
+			"\t\t\t\t\t      Result: True if Left Side's energy is less than %g%%. False otherwise.\n", m_argument * 100.0);
+		break;
+	case 2:
+		fputs("\t\t\t\t\t\tType: Right Side Energy\n", txtFile);
+		fprintf(txtFile, "\t\t\t\t\t    Argument: %g\n", m_argument);
+		dualvfprintf_s(txtFile, simpleTxtFile,
+			"\t\t\t\t\t      Result: True if Right Side's energy is less than %g%%. False otherwise.\n", m_argument * 100.0);
+		break;
+	case 3:
+		fputs("\t\t\t\t\t\tType: Random\n", txtFile);
+		fprintf(txtFile, "\t\t\t\t\t    Argument: %g\n", m_argument);
+		dualvfprintf_s(txtFile, simpleTxtFile,
+			"\t\t\t\t\t      Result: Generates a random number between 0.0 and 1.0, True if the random number is less than %g%%. False otherwise.\n", m_argument);
+		break;
+	case 4:
+		fputs("\t\t\t\t\t\tType: Left Side Unavailable\n", txtFile);
+		dualvfprintf_s(txtFile, simpleTxtFile,
+			"\t\t\t\t\t      Result: False if this match has a Player 3 participating (only possible in Versus mode). True otherwise.\n");
+		break;
+	case 5:
+		fputs("\t\t\t\t\t\tType: Right Side Unavailable\n", txtFile);
+		dualvfprintf_s(txtFile, simpleTxtFile,
+			"\t\t\t\t\t      Result: False if this match has a Player 4 participating (only possible in Versus mode). True otherwise.\n");
+		break;
+	case 6:
+		fputs("\t\t\t\t\t\tType: Left Side < Right Side\n", txtFile);
+		dualvfprintf_s(txtFile, simpleTxtFile,
+			"\t\t\t\t\t      Result: True if Left Side's energy is less than Right Side's energy. False otherwise.\n");
+		break;
 	}
-	catch (...)
+
+	if (m_trueEffect < 0)
 	{
-		printf("%sIndex out of Condition range: %zu. Returning the last condition.\n", g_global.tabs.c_str(), m_conditions.size());
-		return m_conditions.back();
+		if (m_trueEffect == -1)
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t True Effect: Move to the next condition.\n");
+		else
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t True Effect: Move over %li conditions.\n", abs(m_trueEffect));
+	}
+	else
+	{
+		if ((size_t)m_trueEffect < chc->m_sections.size())
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t True Effect: Move to Section %s.\n", chc->m_sections[m_trueEffect].m_name);
+		else
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t True Effect: End song.\n");
+	}
+
+	if (m_type != 0)
+	{
+		if (m_falseEffect < 0)
+		{
+			if (m_falseEffect == -1)
+				dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\tFalse Effect: Move to the next condition\n");
+			else
+				dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\tFalse Effect: Move over %li conditions.\n", abs(m_falseEffect));
+		}
+		else
+		{
+			if ((size_t)m_falseEffect < chc->m_sections.size())
+				dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\tFalse Effect: Move to Section %s.\n", chc->m_sections[m_falseEffect].m_name);
+			else
+				dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\tFalse Effect: End song.\n");
+		}
 	}
 }
 
@@ -321,7 +585,6 @@ bool SongSection::removeCondition(size_t index)
 {
 	if (m_conditions.size() != 1 && index < m_conditions.size())
 	{
-		m_size -= 16;
 		m_conditions.erase(m_conditions.begin() + index);
 		printf("Condition %zu removed\n", index + 1);
 		return true;
@@ -329,9 +592,9 @@ bool SongSection::removeCondition(size_t index)
 	else
 	{
 		if (m_conditions.size() == 1)
-			printf("%sCannot delete condition - a section must have at least 1 condition\n", g_global.tabs.c_str());
+			printf_tab("Cannot delete condition - a section must have at least 1 condition\n");
 		else
-			printf("%sIndex out of range - # of Conditions: %zu\n", g_global.tabs.c_str(), m_conditions.size());
+			printf_tab("Index out of range - # of Conditions: %zu\n", m_conditions.size());
 		return false;
 	}
 }
@@ -340,16 +603,21 @@ bool SongSection::removeCondition(size_t index)
 void SongSection::clearConditions()
 {
 	if (m_conditions.size() > 1)
-	{
-		m_size -= unsigned long(16 * (m_conditions.size() - 1));
 		m_conditions.assign(1, m_conditions.back());
-	}
+}
+
+//Returns the byte size of the section
+unsigned long SongSection::getSize() const
+{
+	unsigned long size = 64 + 16 * (unsigned long)m_conditions.size();
+	for (auto& chart : m_charts)
+		size += chart.getSize();
+	return size;
 }
 
 //Add a chart to the end of every player's sector
 void SongSection::operator++()
 {
-	m_size += m_numPlayers * 72;
 	for (size_t player = m_numPlayers; player > 0; --player)
 		m_charts.emplace(m_charts.begin() + player * m_numCharts);
 	m_numCharts++;
@@ -361,10 +629,7 @@ bool SongSection::operator--()
 	if (m_numCharts > 1)
 	{
 		for (size_t player = m_numPlayers; player > 0; --player)
-		{
-			m_size -= m_charts[player * m_numCharts - 1].getSize();
 			m_charts.erase(m_charts.begin() + player * m_numCharts - 1);
-		}
 		m_numCharts--;
 		return true;
 	}
@@ -373,25 +638,140 @@ bool SongSection::operator--()
 }
 
 //Creates Chart object with 1 Trace line
-Chart::Chart(const bool tracelines) : m_size(76), m_pivotTime(0), m_endTime(0)
+Chart::Chart(const bool addTraceline)
+	: m_pivotTime(0)
+	, m_endTime(0)
 {
-	m_size = 60;
-	m_pivotTime = m_endTime = 0;
-	if (tracelines)
+	if (addTraceline)
 	{
-		emplaceTraceline();
-		++m_endTime;
+		m_tracelines.push_back({});
+		m_endTime = 1;
 	}
 }
 
-Chart::Chart() : Chart(true) {}
+Chart::Chart()
+	: Chart(true) {}
 
-void Chart::adjustSize(long difference)
+Chart::Chart(FILE* inFile)
 {
-	if ((long)m_size + difference >= 0)
-		m_size += difference;
-	else
-		m_size = 0;
+	// Skip Chart size as the embedded value can be wrong
+	fseek(inFile, 16, SEEK_CUR);
+	fread(m_junk, 1, 16, inFile);
+	fread(&m_pivotTime, 4, 1, inFile);
+	fread(&m_endTime, 4, 1, inFile);
+
+	unsigned long numNotes;
+	// Read number of trace lines
+	fread(&numNotes, 1, 4, inFile);
+	// Uses Traceline FILE* constructor
+	for (unsigned traceIndex = 0; traceIndex < numNotes; ++traceIndex)
+		emplace_ordered(m_tracelines, inFile);
+
+	// Read number of Phrase bars
+	fread(&numNotes, 1, 4, inFile);
+	// Uses Phrase FILE* constructor
+	for (unsigned phraseIndex = 0; phraseIndex < numNotes; ++phraseIndex)
+		emplace_ordered(m_phrases, inFile);
+
+	// Read number of Guard marks
+	fread(&numNotes, 1, 4, inFile);
+	// Uses Guard FILE* constructor
+	for (unsigned guardIndex = 0; guardIndex < numNotes; ++guardIndex)
+		emplace_ordered(m_guards, inFile);
+	fseek(inFile, 4, SEEK_CUR);
+}
+
+void Chart::create(FILE* outFile)
+{
+	fputs("CHCH", outFile);
+	unsigned long value = 4864UL;
+	fwrite(&value, 1, 4, outFile);
+
+	value = getSize();
+	fwrite(&value, 1, 4, outFile);
+	fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
+	fwrite(m_junk, 1, 16, outFile);
+	fwrite(&m_pivotTime, 4, 1, outFile);
+	fwrite(&m_endTime, 4, 1, outFile);
+
+	value = (unsigned long)m_tracelines.size();
+	fwrite(&value, 4, 1, outFile);
+	for (Traceline& trace : m_tracelines)
+		trace.create(outFile);
+
+	value = (unsigned long)m_phrases.size();
+	fwrite(&value, 4, 1, outFile);
+	for (Phrase& phrase : m_phrases)
+		phrase.create(outFile);
+
+	value = (unsigned long)m_guards.size();
+	fwrite(&value, 4, 1, outFile);
+	for (Guard& guard : m_guards)
+		guard.create(outFile);
+
+	fwrite("\0\0\0\0", 1, 4, outFile);
+}
+
+void Chart::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
+{
+	fprintf(txtFile, "\t\t\t\t\t  Size (32bit): %lu\n", getSize());
+
+	fprintf(txtFile, "\t\t\t\t\t\t  Junk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk)));
+	fprintf(txtFile, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 4)));
+	fprintf(txtFile, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 8)));
+	fprintf(txtFile, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 12)));
+
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t   Pivot Point: %lu samples\n", m_pivotTime);
+	fprintf(txtFile, "\t\t\t\t\t      End Time: %lu samples\n", m_endTime);
+
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t      # of Trace Lines: %zu\n", m_tracelines.size());
+	for (size_t traceIndex = 0; traceIndex < m_tracelines.size(); ++traceIndex)
+	{
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t  Trace Line %03zu:\n", traceIndex + 1);
+		m_tracelines[traceIndex].write_to_txt(txtFile, simpleTxtFile, m_pivotTime);
+		fprintf(txtFile, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", m_tracelines[traceIndex].getEndAlpha() + m_pivotTime);
+
+		if (traceIndex + 1 == m_tracelines.size())
+			fprintf(simpleTxtFile, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n", m_tracelines[traceIndex].getEndAlpha() + m_pivotTime);
+	}
+
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t # of Phrase Fragments: %zu\n", m_phrases.size());
+	for (size_t traceIndex = 0, phraseIndex = 0, note = 0; traceIndex < m_tracelines.size(); ++traceIndex)
+	{
+		for (size_t piece = 0;
+			phraseIndex < m_phrases.size() && m_tracelines[traceIndex].contains(m_phrases[phraseIndex].m_pivotAlpha);
+			++phraseIndex, ++piece)
+		{
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t     Phrase Fragment %03zu:\n", phraseIndex + 1);
+			dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t     [Note #%03zu", note + 1);
+
+			if (piece > 0)
+				dualvfprintf_s(txtFile, simpleTxtFile, " - Piece #%02zu", piece + 1);
+
+			fprintf(txtFile, "| Trace Line #%03zu]:\n", traceIndex + 1);
+			fputs("]:\n", simpleTxtFile);
+
+			m_phrases[phraseIndex].write_to_txt(txtFile, simpleTxtFile, m_pivotTime);
+
+			if (m_phrases[phraseIndex].m_end)
+			{
+				++phraseIndex;
+				break;
+			}
+		}
+	}
+
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t      # of Guard Marks: %zu\n", getNumGuards());
+	for (size_t guardIndex = 0; guardIndex < getNumGuards(); guardIndex++)
+	{
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t  Guard Mark %03zu:\n", guardIndex + 1);
+		m_guards[guardIndex].write_to_txt(txtFile, simpleTxtFile, m_pivotTime);
+	}
+}
+
+unsigned long Chart::getSize() const
+{
+	return 60 + 16 * unsigned long(m_tracelines.size() + m_guards.size() + 2 * m_phrases.size());
 }
 
 void Chart::setJunk(char* newJunk, rsize_t count)
@@ -400,33 +780,31 @@ void Chart::setJunk(char* newJunk, rsize_t count)
 }
 
 //Add a note to its corresponding List in ascending pivotAlpha order
-size_t Chart::add(Note* note)
+void Chart::add(Note* note)
 {
 	if (dynamic_cast<Traceline*>(note) != nullptr)
-		return add(static_cast<Traceline*>(note));
+		add(static_cast<Traceline*>(note));
+
 	else if (dynamic_cast<Phrase*>(note) != nullptr)
-		return add(static_cast<Phrase*>(note));
+		add(static_cast<Phrase*>(note));
 	else
-		return add(static_cast<Guard*>(note));
+		add(static_cast<Guard*>(note));
 }
 
 //Add a note to its corresponding List in ascending pivotAlpha order
 void Chart::add(Traceline* note)
 {
-	m_size += 16;
-	GlobalFunctions::emplace_ordered(m_tracelines, *note);
+	emplace_ordered(m_tracelines, *note);
 }
 
 void Chart::add(Phrase* note)
 {
-	m_size += 32;
-	GlobalFunctions::emplace_ordered(m_phrases, *note);
+	emplace_ordered(m_phrases, *note);
 }
 
 void Chart::add(Guard* note)
 {
-	m_size += 16;
-	GlobalFunctions::emplace_ordered(m_guards, *note);
+	emplace_ordered(m_guards, *note);
 }
 
 //Removes the element at the given index out of the chosen list.
@@ -438,7 +816,6 @@ bool Chart::removeTraceline(size_t index)
 {
 	if ((m_phrases.size() + m_guards.size() || m_tracelines.size() > 1) && index < m_tracelines.size())
 	{
-		m_size -= 16;
 		m_tracelines.erase(m_tracelines.begin() + index);
 		return true;
 	}
@@ -454,7 +831,6 @@ bool Chart::removePhraseBar(size_t index)
 {
 	if (index < m_phrases.size())
 	{
-		m_size -= 32;
 		m_phrases.erase(m_phrases.begin() + index);
 		return true;
 	}
@@ -469,7 +845,6 @@ bool Chart::removeGuardMark(size_t index)
 {
 	if ((m_phrases.size() + m_tracelines.size() || m_guards.size() > 1) && index < m_guards.size())
 	{
-		m_size -= 16;
 		m_guards.erase(m_guards.begin() + index);
 		return true;
 	}
@@ -485,38 +860,12 @@ bool Chart::removeGuardMark(size_t index)
 void Chart::clear()
 {
 	if (m_tracelines.size() > 1)
-	{
-		m_size -= unsigned long(16 * (m_tracelines.size() - 1));
 		m_tracelines.erase(m_tracelines.begin(), m_tracelines.begin() + m_tracelines.size() - 1);
-	}
-	m_size -= unsigned long(32 * m_phrases.size());
 	m_phrases.clear();
-	m_size -= unsigned long(16 * m_guards.size());
 	m_guards.clear();
 }
 
-//Full clear of Trace lines
-void Chart::clearTracelines()
-{
-	m_size -= unsigned long(16 * m_tracelines.size());
-	m_tracelines.clear();
-}
-
-//Full clear of Phrase bars
-void Chart::clearPhrases()
-{
-	m_size -= unsigned long(32 * m_phrases.size());
-	m_phrases.clear();
-}
-
-//Full clear of Guard marks
-void Chart::clearGuards()
-{
-	m_size -= unsigned long(16 * m_guards.size());
-	m_guards.clear();
-}
-
-long Chart::insertNotes(Chart* source)
+long Chart::transferNotes(Chart* source)
 {
 	long lastNote = 0;
 	clearPhrases();
@@ -534,7 +883,6 @@ long Chart::insertNotes(Chart* source)
 		//Pivot alpha was previous set to the total displacement from the start of the section
 		m_phrases.emplace_back(phr);
 		m_phrases.back().adjustPivotAlpha(-m_pivotTime);
-		m_size += 32;
 	}
 
 	clearTracelines();
@@ -548,7 +896,6 @@ long Chart::insertNotes(Chart* source)
 			trace.changeEndAlpha(source->m_tracelines[trIndex + 1].m_pivotAlpha);
 		m_tracelines.emplace_back(trace);
 		m_tracelines.back().adjustPivotAlpha(-m_pivotTime);
-		m_size += 16;
 	}
 	//Go through every phrase bar & trace line to find places where phrase bars
 	//should be split into two pieces
@@ -569,8 +916,6 @@ long Chart::insertNotes(Chart* source)
 				bool end = phrase.m_end;
 				phrase.changeEndAlpha(trace.m_pivotAlpha);
 				phrase.m_end = false;
-				emplacePhrase(trace.m_pivotAlpha, dur, false, end, 0, phrase.getColor());
-				++phrIndex;
 			}
 
 			if (trIndex + 1 == m_tracelines.size())
@@ -580,6 +925,7 @@ long Chart::insertNotes(Chart* source)
 				{
 					if (!phrase.m_start)
 						m_phrases[phrIndex - 1].m_end = true;
+
 					if (removePhraseBar(phrIndex))
 						printf("Phrase bar %zu removed\n", phrIndex);
 				}
@@ -605,15 +951,44 @@ long Chart::insertNotes(Chart* source)
 			lastNote = grd.m_pivotAlpha;
 		m_guards.emplace_back(grd);
 		m_guards.back().adjustPivotAlpha(-m_pivotTime);
-		m_size += 16;
 	}
 	return lastNote;
+}
+
+Note::Note()
+	: m_pivotAlpha(0) {}
+
+Note::Note(long alpha) 
+	: m_pivotAlpha(alpha) {}
+
+Note::Note(FILE* inFile)
+{
+	fread(&m_pivotAlpha, 4, 1, inFile);
 }
 
 Note& Note::operator=(const Note& note)
 {
 	m_pivotAlpha = note.m_pivotAlpha;
 	return *this;
+}
+
+void Note::create(FILE* outFile)
+{
+	fwrite(&m_pivotAlpha, 4, 1, outFile);
+}
+
+Path::Path()
+	: Note()
+	, m_duration(1) {}
+
+Path::Path(long alpha, unsigned long dur)
+	: Note(alpha)
+	, m_duration(dur) {}
+
+Path::Path(FILE* inFile)
+	: Note(inFile)
+{
+	fread(&m_duration, 4, 1, inFile);
 }
 
 Path::Path(const Note& note) : Note(note)
@@ -634,6 +1009,12 @@ Note& Path::operator=(const Note& note)
 	else
 		m_duration = 1;
 	return *this;
+}
+
+void Path::create(FILE* outFile)
+{
+	Note::create(outFile);
+	fwrite(&m_duration, 4, 1, outFile);
 }
 
 bool Path::adjustDuration(long change)
@@ -673,17 +1054,21 @@ bool Path::changeEndAlpha(const long endAlpha)
 		return false;
 }
 
+Traceline::Traceline()
+	: Path()
+	, m_angle(0)
+	, m_curve(false) {}
+
+Traceline::Traceline(long alpha, unsigned long dur, float ang, unsigned long cur)
+	: Path(alpha, dur)
+	, m_angle(ang)
+	, m_curve(cur) {}
+
 Traceline::Traceline(FILE* inFile)
+	: Path(inFile)
 {
-	if (inFile != nullptr)
-	{
-		fread(&m_pivotAlpha, 4, 1, inFile);
-		fread(&m_duration, 4, 1, inFile);
-		fread(&m_angle, 4, 1, inFile);
-		fread(&m_curve, 4, 1, inFile);
-	}
-	else
-		throw "Error creating Trace line: Bruh, open a file first.";
+	fread(&m_angle, 4, 1, inFile);
+	fread(&m_curve, 4, 1, inFile);
 }
 
 Traceline::Traceline(const Note& note) : Path(note)
@@ -718,26 +1103,52 @@ Note& Traceline::operator=(const Note& note)
 	return *this;
 }
 
-Phrase::Phrase(FILE* inFile)
+void Traceline::create(FILE* outFile)
 {
-	if (inFile != nullptr)
-	{
-		fread(&m_pivotAlpha, 4, 1, inFile);
-		fread(&m_duration, 4, 1, inFile);
-		fread(&m_start, 4, 1, inFile);
-		fread(&m_end, 4, 1, inFile);
-		fread(&m_animation, 4, 1, inFile);
-		fread(m_junk, 1, 8, inFile);
-		if (strstr(m_junk, "NOTECOLR"))
-			fread(&m_color, 4, 1, inFile);
-		else
-		{
-			fread(m_junk + 8, 1, 4, inFile);
-			m_color = 0;
-		}
-	}
+	Path::create(outFile);
+	fwrite(&m_angle, 4, 1, outFile);
+	fwrite(&m_curve, 4, 1, outFile);
+}
+
+void Traceline::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivotTime)
+{
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", m_pivotAlpha);
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", m_pivotAlpha + pivotTime);
+
+	fprintf(txtFile, "\t\t\t\t\t\t\t    Duration: %lu samples\n", m_duration);
+	fprintf(txtFile, "\t\t\t\t\t\t\t       Angle: %s*PI radians | %li degrees\n", angleToFraction(m_angle).c_str(), radiansToDegrees(m_angle));
+	m_curve ? fputs("\t\t\t\t\t\t\t       Curve: True\n", txtFile)
+		: fputs("\t\t\t\t\t\t\t       Curve: False\n", txtFile);
+}
+
+Phrase::Phrase()
+	: Path()
+	, m_start(true)
+	, m_end(true)
+	, m_animation(0)
+	, m_color(0) {}
+
+Phrase::Phrase(long alpha, unsigned long dur, unsigned long start, unsigned long end, unsigned long anim, unsigned long color)
+	: Path(alpha, dur)
+	, m_start(start)
+	, m_end(end)
+	, m_animation(anim)
+	, m_color(color) {}
+
+Phrase::Phrase(FILE* inFile)
+	: Path(inFile)
+{
+	fread(&m_start, 4, 1, inFile);
+	fread(&m_end, 4, 1, inFile);
+	fread(&m_animation, 4, 1, inFile);
+	fread(m_junk, 1, 8, inFile);
+	if (strstr(m_junk, "NOTECOLR"))
+		fread(&m_color, 4, 1, inFile);
 	else
-		throw "Error creating Phrase bar: Bruh, open a file first.";
+	{
+		fread(m_junk + 8, 1, 4, inFile);
+		m_color = 0;
+	}
 }
 
 Phrase::Phrase(const Note& note) : Path(note)
@@ -780,16 +1191,78 @@ Note& Phrase::operator=(const Note& note)
 	return *this;
 }
 
-Guard::Guard(FILE* inFile)
+void Phrase::create(FILE* outFile)
 {
-	if (inFile != nullptr)
+	Path::create(outFile);
+	fwrite(&m_start, 4, 1, outFile);
+	fwrite(&m_end, 4, 1, outFile);
+	fwrite(&m_animation, 4, 1, outFile);
+	if (m_color != -1)
 	{
-		fread(&m_pivotAlpha, 4, 1, inFile);
-		fread(&m_button, 4, 1, inFile);
-		fseek(inFile, 8, SEEK_CUR);
+		fputs("NOTECOLR", outFile);
+		fwrite(&m_color, 4, 1, outFile);
 	}
 	else
-		throw "Error creating Guard Mark: Bruh, open a file first.";
+		fwrite(m_junk, 1, 12, outFile);
+}
+
+void Phrase::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivotTime)
+{
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", m_pivotAlpha);
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n",
+		m_pivotAlpha + pivotTime);
+	fprintf(txtFile, "\t\t\t\t\t\t\t    Duration: %lu samples\n", m_duration);
+	fprintf(txtFile, "\t\t\t\t\t\t\t       Start: %s\n", m_start ? "True" : "False");
+	fprintf(txtFile, "\t\t\t\t\t\t\t         End: %s\n", m_end ? "True" : "False");
+	fprintf(txtFile, "\t\t\t\t\t\t\t   Animation: %lu\n", m_animation);
+
+	if (m_end)
+	{
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n",
+			getEndAlpha() + pivotTime);
+	}
+	else
+	{
+		fprintf(txtFile, "\t\t\t\t\t\t\t    End Time: %li samples (Relative to SongSection)\n",
+			getEndAlpha() + pivotTime);
+	}
+
+	if (m_color)
+	{
+		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\tColor Export: %s%s%s%s%s%s%s\n"
+			, m_color & 1 ? "G" : ""
+			, m_color & 2 ? "R" : ""
+			, m_color & 4 ? "Y" : ""
+			, m_color & 8 ? "B" : ""
+			, m_color & 16 ? "O" : ""
+			, m_color & 32 ? "P" : ""
+			, m_color & 64 ? " (Tap)" : "");
+	}
+	else
+	{
+		fprintf(txtFile, "\t\t\t\t\t\t\t\tJunk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk)));
+		fprintf(txtFile, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 4)));
+		fprintf(txtFile, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 8)));
+	}
+}
+
+Guard::Guard()
+	: Note()
+	, m_button(0) {}
+
+Guard::Guard(long alpha, unsigned long but)
+	: Note(alpha)
+	, m_button(but)
+{
+	if (m_button > 3)
+		throw "Error: Invalid button choice for Guard Mark";
+}
+
+Guard::Guard(FILE* inFile)
+	: Note(inFile)
+{
+	fread(&m_button, 4, 1, inFile);
+	fseek(inFile, 8, SEEK_CUR);
 }
 
 Guard::Guard(const Note& note) : Note(note)
@@ -810,4 +1283,36 @@ Note& Guard::operator=(const Note& note)
 	else
 		m_button = 0;
 	return *this;
+}
+
+void Guard::create(FILE* outFile)
+{
+	Note::create(outFile);
+	fwrite(&m_button, 4, 1, outFile);
+	fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
+}
+
+void Guard::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivotTime)
+{
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", m_pivotAlpha);
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", m_pivotAlpha + pivotTime);
+	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t      Button: ");
+	switch (m_button)
+	{
+	case 0:
+		fputs("Left\n", txtFile);
+		fputs("Square\n", simpleTxtFile);
+		break;
+	case 1:
+		fputs("Down\n", txtFile);
+		fputs("X/Cross\n", simpleTxtFile);
+		break;
+	case 2:
+		fputs("Right\n", txtFile);
+		fputs("Circle\n", simpleTxtFile);
+		break;
+	case 3:
+		fputs("Up\n", txtFile);
+		fputs("Triangle\n", simpleTxtFile);
+	}
 }

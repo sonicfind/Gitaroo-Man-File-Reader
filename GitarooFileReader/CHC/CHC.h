@@ -13,7 +13,7 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "Global_Functions.h"
+#include "FileType.h"
 constexpr float s_SAMPLES_PER_MIN = 2880000.0f;
 
 struct SSQRange
@@ -25,16 +25,12 @@ struct SSQRange
 class SongSection;
 
 class CHC
+	: public FileType
 {
-	friend class CHC_Main;
-	friend class CHC_Editor;
-	friend class CH_Exporter;
-	friend class CH_Importer;
+	friend class CHC_To_CloneHero;
+	friend class CloneHero_To_CHC;
+	friend class SongSection;
 private:
-	//Full filename
-	std::string m_filename;
-	//Short version
-	std::string m_shortname;
 	// Stage number
 	int m_stage;
 	// Holds header data from original file
@@ -71,31 +67,37 @@ private:
 		float chargeRelease = .025f;
 		float attackRelease = .025f;
 	} m_energyDamageFactors[4][5];
-	//0 - Not saved
-	//1 - Saved
-	//2 - Saved at the currently pointed location
-	char m_saved;
+
 public:
 	// Vector of all sections
 	std::vector<SongSection> m_sections;
 	CHC();
 	CHC(std::string filename);
 	CHC(const CHC&) = default;
-	void create(std::string filename);
-	size_t getNumSections() { return m_sections.size(); }
+	CHC& operator=(const CHC&) = default;
+	bool create(std::string filename);
+	bool write_to_txt();
+	bool applyChanges(const bool fix, const bool swap = false, const bool save = false);
+	void edit(const bool multi = false);
 	bool buildTAS();
+	bool exportForCloneHero();
+	CHC* importFromCloneHero();
+	bool colorCheatTemplate();
+	size_t getNumSections() const { return m_sections.size(); }
+	bool isPS2Compatible() const { return m_imc[0] > 0; }
+	bool isOrganized() const { return m_unorganized == 0; }
+	bool isOptimized() const { return m_optimized; }
 };
 
 class Chart;
 
 class SongSection
 {
-	friend class CHC_Main;
-	friend class CHC_Editor;
 	friend class CHC;
 public:
 	enum class Phase { INTRO, CHARGE, BATTLE, FINAL_AG, HARMONY, END, FINAL_I };
 private:
+	CHC* m_parent = nullptr;
 	//Index pulled from the list of SSQs in the CHC
 	unsigned long m_index = 0;
 	// Section name
@@ -112,8 +114,6 @@ private:
 	unsigned long m_organized = false;
 	// Value that holds how the section is swapped
 	unsigned long m_swapped = 0;
-	//Total size in bytes
-	unsigned long m_size = 384;
 	// Just junk, saved for consistency
 	char m_junk[16] = { 0 };
 
@@ -133,6 +133,7 @@ private:
 		Condition();
 		Condition(FILE* inFile);
 		Condition(const Condition& cond) = default;
+		void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const CHC* const chc);
 	};
 	// Vector of all conditions
 	std::vector<Condition> m_conditions;
@@ -145,8 +146,16 @@ public:
 	std::vector<Chart> m_charts;
 	static const long s_SAMPLE_GAP = 1800;
 	SongSection();
-	SongSection(FILE* inFile);
+	SongSection(CHC* parent, FILE* inFile);
 	SongSection(const SongSection&) = default;
+	SongSection& operator=(const SongSection& section);
+	// Fills in rest of values from the given file
+	// Returns if the section is organized
+	void continueRead(FILE* inFile, const size_t index, const int stage, bool isDuet);
+
+	void create(FILE* outFile);
+	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const CHC* const chc);
+
 	// Returns name C-string (size: 16)
 	char* getName() { return m_name; }
 	// Returns audio C-string (size: 16)
@@ -154,13 +163,13 @@ public:
 	// Returns whether the section is organized
 	bool getOrganized() const { return m_organized; }
 	// Sets organized to the provided value
-	void setOrganized(bool org) { m_organized = org; }
+	void setOrganized(unsigned long org);
 	// Returns swap value
 	unsigned long getSwapped() const { return m_swapped; }
 	// Sets swap value
 	void setSwapped(char swap) { m_swapped = swap; }
-	//Returns the byte size of the section
-	unsigned long getSize() const { return m_size; }
+	// Returns the byte size of the section
+	unsigned long getSize() const;
 	// Returns a section's phase type
 	Phase getPhase() const { return m_battlePhase; }
 	// Sets the section's phase type to the provided value
@@ -188,11 +197,9 @@ public:
 	{
 		if (index > m_conditions.size())
 			index = m_conditions.size();
-		m_size += 16;
 		m_conditions.emplace(index, args...);
 		return index;
 	}
-	Condition& getCondition(size_t index);
 	bool removeCondition(size_t);
 	// Returns the num of players assigned to this section.
 	// Will usually be 4
@@ -211,11 +218,8 @@ class Guard;
 
 class Chart
 {
-	friend class CHC_Editor;
 	friend class CHC;
 private:
-	//Total size in bytes
-	unsigned long m_size = 76;
 	// Just junk, saved for consistency
 	char m_junk[16] = { 0 };
 
@@ -243,13 +247,13 @@ public:
 
 	Chart(const bool addTraceline);
 	Chart();
+	Chart(FILE* inFile);
 	Chart(const Chart&) = default;
-	//Returns the byte size of the chart/subsection
-	unsigned long getSize() const { return m_size; }
-	//Sets the byte size of the chart/subsection to the provided value
-	void setSize(unsigned long siz) { m_size = siz; }
-	//Adjusts the byte size of the chart/subsection by the provided value
-	void adjustSize(long difference);
+
+	void create(FILE* outFile);
+	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile);
+	// Returns the byte size of the chart/subsection
+	unsigned long getSize() const;
 	// Returns junk C-string (size: 16)
 	char* getJunk() { return m_junk; }
 	// Copies C-string newJunk to junk
@@ -270,7 +274,6 @@ public:
 	template<class... Args>
 	void emplaceTraceline(Args&&... args)
 	{
-		m_size += 16;
 		GlobalFunctions::emplace_ordered(m_tracelines, args...);
 	}
 
@@ -279,7 +282,6 @@ public:
 	template<class... Args>
 	void emplacePhrase(Args&&... args)
 	{
-		m_size += 32;
 		GlobalFunctions::emplace_ordered(m_phrases, args...);
 	}
 
@@ -288,7 +290,6 @@ public:
 	template<class... Args>
 	void emplaceGuard(Args&&... args)
 	{
-		m_size += 16;
 		GlobalFunctions::emplace_ordered(m_guards, args...);
 	}
 
@@ -296,48 +297,45 @@ public:
 	void add(Traceline*);
 	void add(Phrase*);
 	void add(Guard*);
-	bool resize(long numElements, char type = 't');
 	bool removeTraceline(size_t index);
 	bool removePhraseBar(size_t index);
 	bool removeGuardMark(size_t index);
-	void clearTracelines();
-	void clearPhrases();
-	void clearGuards();
 	void clear();
 	// Takes the notes from the source chart and moves them into
-	// the current chart (replacing any old notes that would overlap
-	long insertNotes(Chart* source);
+	// the current chart (replacing any old notes that would overlap)
+	long transferNotes(Chart* source);
 };
 
 class Note
 {
-	friend class CHC_Editor;
 	friend class CHC;
 public:
 	// Displacement from chart pivot time in samples
 	long m_pivotAlpha;
-	Note() { m_pivotAlpha = 0; }
-	Note(long alpha) { m_pivotAlpha = alpha; }
-	Note(const Note& note) : m_pivotAlpha(note.m_pivotAlpha) {}
+	Note();
+	Note(long alpha);
+	Note(FILE* inFile);
+	Note(const Note& note) = default;
 	virtual Note& operator=(const Note& note);
-	virtual ~Note() {};
+	virtual void create(FILE* outFile);
 	// Adjusts the note's pivot alpha by the provided value
 	void adjustPivotAlpha(long change) { m_pivotAlpha += change; }
-	auto operator<=>(const Note& other) { return m_pivotAlpha <=> other.m_pivotAlpha; }
+	bool operator==(const Note& other) const { return m_pivotAlpha == other.m_pivotAlpha; }
+	auto operator<=>(const Note& other) const { return m_pivotAlpha <=> other.m_pivotAlpha; }
 };
 
 class Path : public Note
 {
-	friend class CHC_Editor;
 	friend class CHC;
 public:
 	// Duration of the note in samples
 	unsigned long m_duration;
-	Path() : Note(), m_duration(1) {}
-	Path(long alpha, unsigned long dur = 1) : Note(alpha), m_duration(dur) {}
+	Path();
+	Path(long alpha, unsigned long dur = 1);
+	Path(FILE* inFile);
 	Path(const Note& note);
-	virtual Note& operator=(const Note& note);
-	virtual ~Path() {};
+	Note& operator=(const Note& note);
+	void create(FILE* outFile);
 	// Adjusts the path note's duration to the provided value
 	// Returns whether the resulting duration is >= 1
 	// If not, duration gets set to 1 and false is returned
@@ -362,7 +360,6 @@ public:
 
 class Traceline : public Path
 {
-	friend class CHC_Editor;
 	friend class CHC;
 public:
 	// Direction that the trace line points (flipped 180 degrees)
@@ -370,19 +367,20 @@ public:
 	float m_angle;
 	// Holds whether the entire trace line is curved
 	unsigned long m_curve;
-	Traceline() : Path(), m_angle(0), m_curve(false) {}
+	Traceline();
+	Traceline(long alpha, unsigned long dur = 1, float ang = 0, unsigned long cur = false);
 	Traceline(FILE* inFile);
-	Traceline(long alpha, unsigned long dur = 1, float ang = 0, bool cur = false) : Path(alpha, dur), m_angle(ang), m_curve(cur) {}
 	Traceline(const Note& note);
 	Note& operator=(const Note& note);
-	~Traceline() {};
+
+	void create(FILE* outFile);
+	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivotTime);
 	// Adjusts the radian angle value of the trace line by the provided value
 	void adJustAngle(float change) { m_angle += change; }
 };
 
 class Phrase : public Path
 {
-	friend class CHC_Editor;
 	friend class CHC;
 private:
 	// Just junk, saved for consistency
@@ -398,13 +396,14 @@ public:
 	unsigned long m_end;
 	// Which character animation to play when hit (if "start" is true)
 	unsigned long m_animation;
-	Phrase() : Path(), m_start(true), m_end(true), m_animation(0), m_color(0) {}
+	Phrase();
+	Phrase(long alpha, unsigned long dur = 1, unsigned long start = true, unsigned long end = true, unsigned long anim = 0, unsigned long color = 0);
 	Phrase(FILE* inFile);
-	Phrase(long alpha, unsigned long dur = 1, bool start = true, bool end = true, unsigned long anim = 0, unsigned long color = 0)
-		: Path(alpha, dur), m_start(start), m_end(end), m_animation(anim), m_color(color) {}
 	Phrase(const Note& note);
 	Note& operator=(const Note& note);
-	~Phrase() {};
+
+	void create(FILE* outFile);
+	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivotTime);
 	// Returns the color value of the phrase bar
 	unsigned long getColor() const { return m_color; }
 	// Sets the color value of the phrase bar
@@ -419,7 +418,6 @@ public:
 
 class Guard : public Note
 {
-	friend class CHC_Editor;
 	friend class CHC;
 public:
 	// Direction to appear from
@@ -428,14 +426,12 @@ public:
 	// 2 - O
 	// 3 - /\.
 	unsigned long m_button = 0;
-	Guard() : Note(), m_button(0) {}
+	Guard();
+	Guard(long alpha, unsigned long but = 0);
 	Guard(FILE* inFile);
-	Guard(long alpha, unsigned long but = 0) : Note(alpha), m_button(but)
-	{
-		if (m_button > 3)
-			throw "Error: Invalid button choice for Guard Mark";
-	}
-	~Guard() {};
 	Guard(const Note& note);
 	Note& operator=(const Note& note);
+
+	void create(FILE* outFile);
+	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivotTime);
 };

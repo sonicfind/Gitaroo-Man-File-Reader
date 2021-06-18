@@ -555,15 +555,33 @@ namespace GlobalFunctions
 
 	bool checkForIndex(std::vector<size_t>& values, const size_t value);
 
-	template<typename T, class... Args>
-	void emplace_ordered(std::vector<T>& vect, Args&&... args)
+	template<typename T>
+	auto insert_ordered(std::vector<T>& vect, const T& obj)
 	{
-		T obj(args...);
 		auto location = std::lower_bound(vect.begin(), vect.end(), obj);
 		if (location != vect.end() && *location == obj)
+		{
 			*location = obj;
-		else
-			vect.insert(location, obj);
+			return location;
+		}
+		return vect.insert(location, obj);
+	}
+
+	template<typename T>
+	auto insert_ordered(std::vector<T*>& vect, const T* obj)
+	{
+		auto location = std::lower_bound(vect.begin(), vect.end(), obj,
+											[](const T* a, const T* b) { return *a < *b; });
+		if (location == vect.end() || **location != *obj)
+			return vect.insert(location, obj);
+		return location;
+	}
+
+	template<typename T, class... Args>
+	auto emplace_ordered(std::vector<T>& vect, Args&&... args)
+	{
+		T obj(args...);
+		return insert_ordered(vect, obj);
 	}
 
 	long radiansToDegrees(float angle);

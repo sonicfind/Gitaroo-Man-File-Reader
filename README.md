@@ -3,7 +3,6 @@ Gitaroo Man File Reader is a wide-range (Windows-only) program for reading and e
 
 ## Usage
 Either simply open the application and follow the instructions to go through single files one-by-one or click and drag multiple files onto the .exe to process them all at once (does not support dragging a folder at this time).
-Users can choose whatever supported features they want to apply through specialized dlls. Simply plop in the proper dlls into their respective locations and load GMFR. Doing this allows for customization, so that a user only has what they need.
 
 ## Filetype(s) Currently Supported
 ### CHC

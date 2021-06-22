@@ -21,12 +21,12 @@ FileType::FileType(const char* extension)
 
 FileType::FileType(std::string filename, const char* extension)
 	: m_extension(extension)
-	, m_saved(2)
+	, m_saved(true)
 {
 	size_t pos = filename.find_last_of('\\');
 	if (pos != std::string::npos)
 	{
-		m_directory = filename.substr(0, pos);
+		m_directory = filename.substr(0, pos + 1);
 		m_filename = filename.substr(pos + 1);
 	}
 	else

@@ -127,7 +127,7 @@ bool CHC::create(std::string filename)
 		fwrite(u.c, 1, 4, m_filePtr);
 		fwrite(m_energyDamageFactors, sizeof(EnergyDamage), 20, m_filePtr);
 		fclose(m_filePtr);
-		m_saved = 1;
+		m_saved = true;
 		return true;
 	}
 	return false;

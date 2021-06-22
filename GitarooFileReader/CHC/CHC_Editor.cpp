@@ -510,7 +510,7 @@ void CHC::fixNotes()
 	if (tracelinesStraightened || tracelinesCurved || phrasesDeleted || phrasesShortened || guardsDeleted)
 	{
 		printf("%s\n%sChanges will be applied if you choose to save the file\n", g_global.tabs.c_str(), g_global.tabs.c_str());
-		m_saved = 0;
+		m_saved = false;
 	}
 	else
 		printf("%sNo changes made\n", g_global.tabs.c_str());
@@ -649,7 +649,7 @@ void CHC::PSPToPS2()
 		m_energyDamageFactors[0][s].chargeRelease *= 2;
 		m_energyDamageFactors[0][s].guardMiss *= 2;
 	}
-	m_saved = 0;
+	m_saved = false;
 	m_optimized = false;
 }
 
@@ -685,9 +685,9 @@ void CHC::swapIMC()
 							strIMC += ".IMC";
 						std::copy(strIMC.begin(), strIMC.end(), m_imc + 34);
 						m_imc[34 + strIMC.length()] = 0;
-						m_saved = 0;
-						__fallthrough;
+						m_saved = false;
 					}
+					__fallthrough;
 				case GlobalFunctions::ResultType::Quit:
 					return;
 				}
@@ -793,7 +793,7 @@ void CHC::audioSettings()
 								break;
 							case GlobalFunctions::ResultType::Success:
 								if (m_audio[channel].volume != oldVol)
-									m_saved = 0;
+									m_saved = false;
 								break;
 							case GlobalFunctions::ResultType::InvalidNegative:
 							case GlobalFunctions::ResultType::MaxExceeded:
@@ -831,7 +831,7 @@ void CHC::audioSettings()
 								break;
 							case GlobalFunctions::ResultType::Success:
 								if (m_audio[channel].pan != oldPan)
-									m_saved = 0;
+									m_saved = false;
 								break;
 							case GlobalFunctions::ResultType::InvalidNegative:
 							case GlobalFunctions::ResultType::MaxExceeded:
@@ -914,7 +914,7 @@ void CHC::winLossSettings()
 								break;
 							case GlobalFunctions::ResultType::Success:
 								if (m_events[g_global.answer.index].first != oldAnim)
-									m_saved = 0;
+									m_saved = false;
 								break;
 							case GlobalFunctions::ResultType::InvalidNegative:
 								printf("%sValue must be positive. Not adjusting.\n", g_global.tabs.c_str());
@@ -943,7 +943,7 @@ void CHC::winLossSettings()
 								break;
 							case GlobalFunctions::ResultType::Success:
 								if (m_events[g_global.answer.index].last != oldAnim)
-									m_saved = 0;
+									m_saved = false;
 								break;
 							case GlobalFunctions::ResultType::InvalidNegative:
 								printf("%sValue must be positive. Not adjusting.\n", g_global.tabs.c_str()); GlobalFunctions::clearIn();
@@ -978,7 +978,7 @@ void CHC::adjustSpeed()
 			return;
 		case GlobalFunctions::ResultType::Success:
 			if (m_speed != oldSpeed)
-				m_saved = 0;
+				m_saved = false;
 			break;
 		case GlobalFunctions::ResultType::MaxExceeded:
 			break;
@@ -1035,7 +1035,7 @@ void CHC::playerSwapAll()
 	GlobalFunctions::banner(" " + m_filename + ".CHC - Complete Player Swap");
 	for (size_t sectIndex = 0; sectIndex < m_sections.size(); sectIndex++)
 		m_sections[sectIndex].playerSwap(m_imc[0]);
-	m_saved = 0;
+	m_saved = false;
 }
 
 void CHC::playOrder()
@@ -1063,7 +1063,7 @@ void CHC::playOrder()
 		}
 
 		printf("%s ", m_sections[sectionIndexes[index]].m_name);
-		m_saved = 0;
+		m_saved = false;
 	}
 	putchar('\n');
 }
@@ -1360,7 +1360,8 @@ void CHC::adjustFactors()
 											g_global.quit = true;
 											break;
 										case GlobalFunctions::ResultType::Success:
-											if (*val != oldFac) m_saved = 0;
+											if (*val != oldFac)
+												m_saved = false;
 											break;
 										case GlobalFunctions::ResultType::Quit:
 											return;
@@ -1544,7 +1545,7 @@ void SongSection::menu(const bool isPs2, const int stage)
 				break;
 			case 's':
 				playerSwap(isPs2);
-				m_parent->m_saved = 0;
+				m_parent->m_saved = false;
 			}
 			--g_global;
 		}
@@ -1875,7 +1876,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 			for (size_t i = 0; i < newCharts[pl].size(); i++)
 				m_charts.push_back(newCharts[pl][i]);
 		}
-		m_parent->m_saved = 0;
+		m_parent->m_saved = false;
 	}
 	else
 		ret = false;
@@ -1981,7 +1982,7 @@ void SongSection::changeName()
 		if (strcmp(m_name, newName))
 		{
 			memcpy_s(m_name, 17, newName, 16);
-			m_parent->m_saved = 0;
+			m_parent->m_saved = false;
 		}
 	}
 }
@@ -1997,7 +1998,7 @@ void SongSection::changeAudio()
 		if (strcmp(m_audio, newAudio))
 		{
 			memcpy_s(m_audio, 17, newAudio, 16);
-			m_parent->m_saved = 0;
+			m_parent->m_saved = false;
 		}
 	}
 }
@@ -2018,7 +2019,7 @@ void SongSection::changeFrames()
 			return;
 		case GlobalFunctions::ResultType::Success:
 			if (m_frames.first != oldFirst)
-				m_parent->m_saved = 0;
+				m_parent->m_saved = false;
 			__fallthrough;
 		case GlobalFunctions::ResultType::SpecialCase:
 			g_global.quit = true;
@@ -2047,7 +2048,7 @@ void SongSection::changeFrames()
 			return;
 		case GlobalFunctions::ResultType::Success:
 			if (m_frames.last != oldLast)
-				m_parent->m_saved = 0;
+				m_parent->m_saved = false;
 			__fallthrough;
 		case GlobalFunctions::ResultType::SpecialCase:
 			g_global.quit = true;
@@ -2105,7 +2106,7 @@ void SongSection::switchPhase()
 			if (m_battlePhase != static_cast<SongSection::Phase>(g_global.answer.index))
 			{
 				m_battlePhase = static_cast<SongSection::Phase>(g_global.answer.index);
-				m_parent->m_saved = 0;
+				m_parent->m_saved = false;
 			}
 		}
 	} while (!g_global.quit);
@@ -2126,7 +2127,7 @@ void SongSection::adjustTempo()
 		{
 		case GlobalFunctions::ResultType::Success:
 			if (m_tempo != oldTempo)
-				m_parent->m_saved = 0;
+				m_parent->m_saved = false;
 			break;
 		case GlobalFunctions::ResultType::Quit:
 			g_global.quit = true;
@@ -2152,7 +2153,7 @@ void SongSection::adjustDuration()
 		{
 		case GlobalFunctions::ResultType::Success:
 			if (m_duration != oldDuration)
-				m_parent->m_saved = 0;
+				m_parent->m_saved = false;
 			break;
 		case GlobalFunctions::ResultType::Quit:
 			g_global.quit = true;

@@ -22,10 +22,7 @@ protected:
 	// Pointer to use for reading and writing files of the class type to/from the class
 	FILE* m_filePtr = nullptr;
 
-	//0 - Not saved
-	//1 - Saved
-	//2 - Saved at the currently pointed location
-	int m_saved = 0;
+	bool m_saved = false;
 public:
 	// Directory where the file is located
 	std::string m_directory;
@@ -38,8 +35,7 @@ public:
 	FileType(const char* extension);
 	FileType(std::string filename, const char* extension);
 	FileType(const FileType&) = default;
-	int getSaveStatus() const { return m_saved; }
-	void setSaveStatus(const int status) { m_saved = status; }
+	bool getSaveStatus() const { return m_saved; }
 	virtual bool write_to_txt() = 0;
 	virtual bool create(std::string filename) = 0;
 	virtual void edit(const bool multi = false) = 0;

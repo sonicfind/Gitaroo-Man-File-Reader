@@ -14,63 +14,10 @@
  */
 #include "pch.h"
 #include "Global_Functions.h"
-#include "FileMainList.h"
-FileMainList g_fileMains;
-
-bool FileMainList::compareExtensions(const std::string& filename, const bool openSingleMenu)
-{
-	FILE* test;
-	//If the file is found
-	if (!fopen_s(&test, filename.c_str(), "r"))
-	{
-		fclose(test);
-		if (m_CHC.compareExtension(filename))
-		{
-			if (openSingleMenu)
-				m_CHC.singleFile();
-			return true;
-		}
-		else
-		{
-			GlobalFunctions::printf_tab("\"%s\" is not a valid extension.\n", filename.substr(filename.find_last_of('.')).c_str());
-			GlobalFunctions::clearIn();
-			return false;
-		}
-	}
-	else
-	{
-		size_t pos = filename.find_last_of('\\');
-		GlobalFunctions::printf_tab("Could not locate the file \"%s\".\n", filename.substr(pos != std::string::npos ? pos + 1 : 0).c_str());
-		return false;
-	}
-}
-
-bool FileMainList::testAllExtensions(const std::string& filename, const bool openSingleMenu)
-{
-	bool found = false;
-	if (m_CHC.testExtension(filename))
-	{
-		if (openSingleMenu)
-			m_CHC.singleFile();
-		found = true;
-	}
-
-	if (!found)
-	{
-		size_t pos = filename.find_last_of('\\');
-		GlobalFunctions::printf_tab("Could not locate a file with the file name \"%s\" using any of the accepted extensions\n"
-									, filename.substr(pos != std::string::npos ? pos + 1 : 0).c_str());
-	}
-	return found;
-}
-
-bool FileMainList::allFiles()
-{
-	return m_CHC.multipleFiles();
-}
-
+#include "FileMain.h"
 bool multi(int fileCount, char** files);
 bool single();
+FileMainList g_fileMains;
 
 /*---------------------------------------------------------------------\
 The main function has two modes:
@@ -120,8 +67,7 @@ bool multi(int fileCount, char** files)
 	// Go through every extension that has 1+ file associated with it and run its "Multi" function
 	//
 	// If no "quit app" command is sent, exit based off whether any valid files were found 
-	return g_fileMains.m_CHC.multipleFiles()
-		|| hadValidFiles;
+	return g_fileMains.allFiles() || hadValidFiles;
 }
 
 bool single()

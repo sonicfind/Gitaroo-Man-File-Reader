@@ -189,6 +189,7 @@
     <ClCompile Include="CHC\CH_Import.cpp" />
     <ClCompile Include="CHC\CH_Item.cpp" />
     <ClCompile Include="CHC\CH_NoteTrack.cpp" />
+    <ClCompile Include="Main\FileMain.cpp" />
     <ClCompile Include="Main\FileType.cpp" />
     <ClCompile Include="Main\GitarooFileReader.cpp" />
     <ClCompile Include="Main\Global_Functions.cpp" />
@@ -203,7 +204,6 @@
     <ClInclude Include="CHC\CH_Item.h" />
     <ClInclude Include="CHC\CH_NoteTrack.h" />
     <ClInclude Include="Main\FileMain.h" />
-    <ClInclude Include="Main\FileMainList.h" />
     <ClInclude Include="Main\FileType.h" />
     <ClInclude Include="Main\Global_Functions.h" />
     <ClInclude Include="Main\pch.h" />

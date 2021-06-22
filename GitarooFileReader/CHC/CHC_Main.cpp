@@ -13,16 +13,12 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "FileMainList.h"
+#include "FileMain.h"
+#include "CHC/CHC.h"
 using namespace std;
 using namespace GlobalFunctions;
 
-//Loads a CHC file and runs the single-file function
-/*
-Main menu prompt used for choosing what action to perform on the loaded CHC file.
-Returns false if this is used from the multimenu and if the user wants to proceed to the next CHC.
-*/
-bool FileMain<CHC>::singleFile()
+bool FileMain<CHC>::singleFile(const std::pair<bool, const char*> nextExtension)
 {
 	bool val = false;
 	if (CHC* chart = loadFile())
@@ -51,14 +47,21 @@ bool FileMain<CHC>::singleFile()
 				choices += 'c';
 			}
 			printf_tab("? - Help info\n");
-			
-			if (g_fileMains.checkFilenameLists(this, 0))
+			if (m_filenames.size())
+			{
+				printf_tab("N - Next .CHC file\n");
 				choices += 'n';
+			}
+
+			if (nextExtension.first)
+				printf_tab("Q - Proceed to the next filetype (%s)\n", nextExtension.second);
+			else
+				printf_tab("Q - Quit\n");
 
 			switch (menuChoices(choices))
 			{
 			case ResultType::Quit:
-				if (chart->getSaveStatus() == 0)
+				if (!chart->getSaveStatus())
 				{
 					printf_tab("\n");
 					printf_tab("Recent changes have not been saved externally to a CHC file. Which action will you take?\n");
@@ -127,8 +130,8 @@ bool FileMain<CHC>::singleFile()
 				printf_tab("C - Create a PCSX2 Phrase Bar Color Cheat template\n");
 				printf_tab("Generates a outline txt file for use in conjunction with BoringPerson#2570's phrase bar coloring Pyhton script. It will leave all chosen\n");
 				printf_tab("sections blank for you to fill in and all others filled with a base color. Feel free to change the colors in the file after it's generated.\n%s\n", g_global.tabs.c_str());
-			}
 				break;
+			}
 			case ResultType::Success:
 				if (g_global.answer.character == 'n')
 				{
@@ -185,11 +188,7 @@ bool FileMain<CHC>::singleFile()
 	return val;
 }
 
-/*
-Cycles through every file in the provided list and performs the function chosen in the nested menu.
-Returns true if the user wishes to end the program, false otherwise.
-*/
-bool FileMain<CHC>::multipleFiles()
+bool FileMain<CHC>::multipleFiles(const std::pair<bool, const char*> nextExtension)
 {
 	if (m_filenames.size() == 0)
 		return false;
@@ -211,9 +210,8 @@ bool FileMain<CHC>::multipleFiles()
 			printf_tab("G - Export each CHC as a \".chart\" file for Clone/Guitar Hero\n");
 			printf_tab("I - Import notes from Clone/Guitar Hero \".chart\"s into the CHC files\n");
 			printf_tab("C - Create a PCSX2 Phrase Bar Color Cheat template for each CHC\n");
-
-			if (g_fileMains.checkFilenameLists(this, 0))
-				choices += 'n';
+			if (nextExtension.first)
+				printf_tab("N - Proceed to the next filetype (%s)\n", nextExtension.second);
 
 			printf_tab("Q - Quit Program\n");
 			result = menuChoices(choices);
@@ -286,7 +284,7 @@ bool FileMain<CHC>::multipleFiles()
 						switch (choice)
 						{
 						case 'e':
-							if (singleFile())
+							if (singleFile(nextExtension))
 							{
 								--g_global;
 								return false;
@@ -334,274 +332,4 @@ bool FileMain<CHC>::multipleFiles()
 	g_global.quit = false;
 	printf_tab("All provided CHC files have been evaluated.\n");
 	return false;
-}
-
-bool CHC::colorCheatTemplate()
-{
-	banner(" " + m_filename + ".CHC - Color Sheet Creation ");
-	bool multiplayer = toupper(m_filename.back()) == 'M';
-	if (!multiplayer)
-	{
-		do
-		{
-			printf_tab("Is this chart for multiplayer? [Y/N]\n");
-			switch (menuChoices("yn"))
-			{
-			case ResultType::Quit:
-				return false;
-			case ResultType::Success:
-				if (g_global.answer.character == 'y')
-					multiplayer = true;
-				g_global.quit = true;
-			}
-		} while (!g_global.quit);
-		g_global.quit = false;
-	}
-
-	bool generate = false;
-	std::vector<size_t> sectionIndexes;
-	do
-	{
-		printf_tab("Type the number for each section that you wish to outline colors for - w/ spaces inbetween.\n");
-		for (size_t sectIndex = 0; sectIndex < m_sections.size(); sectIndex++)
-			printf_tab("%zu - %s\n", sectIndex, m_sections[sectIndex].getName());
-
-		if (sectionIndexes.size())
-		{
-			printf_tab("Current list: ");
-			for (size_t index : sectionIndexes)
-				printf_tab(" ", m_sections[index].getName());
-			putchar('\n');
-		}
-
-		switch (insertIndexValues(sectionIndexes, "ac", m_sections.size(), false))
-		{
-		case ResultType::Quit:
-			printf_tab("Color Sheet creation cancelled.\n");
-			return false;
-		case ResultType::Help:
-			printf_tab("Help: [TBD]\n%s\n", g_global.tabs.c_str());
-			break;
-		case ResultType::SpecialCase:
-			if (sectionIndexes.size())
-			{
-				g_global.multi = false;
-				g_global.quit = true;
-				break;
-			}
-			__fallthrough;
-		case ResultType::Success:
-			if (!sectionIndexes.size())
-			{
-				do
-				{
-					printf_tab("No sections have been selected.\n");
-					printf_tab("A - Add section values\n");
-					printf_tab("C - Create template file with default colors\n");
-					printf_tab("Q - Quit Color Sheet creation\n");
-					switch (menuChoices("ac"))
-					{
-					case ResultType::Quit:
-						printf_tab("Color Sheet creation cancelled.\n");
-						return false;
-					case ResultType::Success:
-						if (g_global.answer.character == 'c')
-							generate = true;
-						g_global.quit = true;
-					}
-				} while (!g_global.quit);
-				g_global.quit = false;
-			}
-			else
-				g_global.quit = true;
-		}
-	} while (!g_global.quit && !generate);
-	g_global.quit = false;
-
-	bool writeColors = false;
-	do
-	{
-		printf_tab("If found, use any colors that are pre-saved in a phrase bar? [Y/N]\n");
-		switch (menuChoices("yn"))
-		{
-		case ResultType::Quit:
-			return false;
-		case ResultType::Success:
-			if (g_global.answer.character == 'y')
-				writeColors = true;
-			g_global.quit = true;
-		}
-	} while (!g_global.quit);
-	g_global.quit = false;
-
-	string filename = m_directory + m_filename + "_COLORDEF";
-	string filename2 = m_directory + m_filename + "_COLORDEF_FRAGS";
-	FILE *outSheet = nullptr, *outSheet2 = nullptr;
-	do
-	{
-		switch (fileOverwriteCheck(filename + ".txt"))
-		{
-		case ResultType::No:
-				printf_tab("\n");
-				filename += "_T";
-				break;
-		case ResultType::Yes:
-			fopen_s(&outSheet, (filename + ".txt").c_str(), "w");
-			__fallthrough;
-		case ResultType::Quit:
-			g_global.quit = true;
-		}
-	} while (!g_global.quit);
-	printf_tab("\n");
-	g_global.quit = false;
-
-	do
-	{
-		switch (fileOverwriteCheck(filename2 + ".txt"))
-		{
-		case ResultType::No:
-			printf_tab("\n");
-			filename2 += "_T";
-			break;
-		case ResultType::Yes:
-			fopen_s(&outSheet2, (filename2 + ".txt").c_str(), "w");
-			__fallthrough;
-		case ResultType::Quit:
-			g_global.quit = true;
-		}
-	} while (!g_global.quit);
-	g_global.quit = false;
-
-	if (outSheet != nullptr || outSheet2 != nullptr)
-	{
-		fputs("[phrasemode fragments]\n", outSheet2);
-		dualvfprintf_s(outSheet, outSheet2, "[attack point palette]\nG: 00ff00\nR: ff0000\nY: ffff00\nB: 0000ff\nO: ff7f00\nP: ff00ff\nN: f89b44\ng: ffffff\nr: ffffff\ny: ffffff\nb: ffffff\no: ffffff\np: ffffff\n\n");
-		dualvfprintf_s(outSheet, outSheet2, "[phrase bar palette]\nG: 40ff40\nR: ff4040\nY: ffff40\nB: 4040c8\nO: ff9f40\nP: ff40ff\nN: f07b7b\ng: 40ff40\nr: ff4040\ny: ffff40\nb: 4040c8\no: ff9f40\np: ff40ff\n\n");
-		unsigned long chartCount = 0;
-		const size_t size = m_sections.size();
-		bool* inputs = new bool[size]();
-		for (size_t sect = 0; sect < sectionIndexes.size(); sect++)
-			inputs[sectionIndexes[sect]] = true;
-		string colors = "GRYBOPgrybop";
-		for (unsigned long sectIndex = 0; sectIndex < size; sectIndex++)
-		{
-			SongSection& section = m_sections[sectIndex];
-			for (unsigned playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
-			{
-				for (unsigned chartIndex = 0; chartIndex < section.m_numCharts; chartIndex++)
-				{
-					if (!(playerIndex & 1) || multiplayer)
-					{
-						Chart& chart = section.m_charts[(unsigned long long)playerIndex * section.m_numCharts + chartIndex];
-						if (chart.getNumPhrases())
-						{
-							dualvfprintf_s(outSheet, outSheet2, "#SongSection %lu [%s], P%lu CHCH %lu\n", sectIndex, section.getName(), playerIndex + 1, chartIndex);
-							dualvfprintf_s(outSheet, outSheet2, "[drawn chart %lu]\n", chartCount);
-							if (inputs[sectIndex] )
-							{
-								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
-								{
-									Phrase& phr = chart.m_phrases[phrIndex];
-									if (writeColors && phr.getColor())
-									{
-										size_t colIndex = 0;
-										while (colIndex < 5 && !(phr.getColor() & (1 << colIndex)))
-											colIndex++;
-
-										if (phr.getColor() & 64)
-											colIndex += 6;
-
-										if (!phrIndex)
-										{
-											fprintf(outSheet, "%c", colors[colIndex]);
-											fprintf(outSheet2, "!%c", colors[colIndex]);
-										}
-										else if (phr.m_start) //Start
-										{
-											fprintf(outSheet, " %c", colors[colIndex]);
-											fprintf(outSheet2, " !%c", colors[colIndex]);
-										}
-										else
-											fprintf(outSheet2, "-%c", colors[colIndex]);
-									}
-									else if (!phrIndex)
-									{
-										fputc('_', outSheet);
-										fputs("!_", outSheet2);
-									}
-									else if (phr.m_start) //Start
-									{
-										fputs(" _", outSheet);
-										fputs(" !_", outSheet2);
-									}
-									else
-										fputs("-_", outSheet2);
-								}
-							}
-							else
-							{
-								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
-								{
-									Phrase& phr = chart.m_phrases[phrIndex];
-									if (writeColors && phr.getColor())
-									{
-										size_t colIndex = 0;
-										while (colIndex < 5 && !(phr.getColor() & (1 << colIndex)))
-											colIndex++;
-
-										if (phr.getColor() & 64)
-											colIndex += 6;
-
-										if (!phrIndex)
-										{
-											fprintf(outSheet, "%c", colors[colIndex]);
-											fprintf(outSheet2, "!%c", colors[colIndex]);
-										}
-										else if (phr.m_start) //Start
-										{
-											fprintf(outSheet, " %c", colors[colIndex]);
-											fprintf(outSheet2, " !%c", colors[colIndex]);
-										}
-										else
-											fprintf(outSheet2, "-%c", colors[colIndex]);
-									}
-									else if (!phrIndex)
-									{
-										fputc('N', outSheet);
-										fputs("!N", outSheet2);
-									}
-									else if (phr.m_start) //Start
-									{
-										fputs(" N", outSheet);
-										fputs(" !N", outSheet2);
-									}
-									else
-										fputs("-N", outSheet2);
-								}
-							}
-							fprintf(outSheet, "\n\n");
-							fprintf(outSheet2, "\n\n");
-						}
-						chartCount++;
-					}
-				}
-			}
-			printf_tab("Colored %s", section.getName());
-			if (inputs[sectIndex])
-				printf(" - With added outlines");
-			printf("\n");
-		}
-
-		delete[size] inputs;
-		if (outSheet != nullptr)
-			fclose(outSheet);
-		if (outSheet2 != nullptr)
-			fclose(outSheet2);
-		return true;
-	}
-	else
-	{ 
-		printf_tab("Color Sheet creation cancelled.\n");
-		return false;
-	}
 }

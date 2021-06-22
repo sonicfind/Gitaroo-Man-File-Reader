@@ -272,6 +272,276 @@ bool CHC::write_to_txt()
 	return false;
 }
 
+bool CHC::colorCheatTemplate()
+{
+	banner(" " + m_filename + ".CHC - Color Sheet Creation ");
+	bool multiplayer = toupper(m_filename.back()) == 'M';
+	if (!multiplayer)
+	{
+		do
+		{
+			printf_tab("Is this chart for multiplayer? [Y/N]\n");
+			switch (menuChoices("yn"))
+			{
+			case ResultType::Quit:
+				return false;
+			case ResultType::Success:
+				if (g_global.answer.character == 'y')
+					multiplayer = true;
+				g_global.quit = true;
+			}
+		} while (!g_global.quit);
+		g_global.quit = false;
+	}
+
+	bool generate = false;
+	std::vector<size_t> sectionIndexes;
+	do
+	{
+		printf_tab("Type the number for each section that you wish to outline colors for - w/ spaces inbetween.\n");
+		for (size_t sectIndex = 0; sectIndex < m_sections.size(); sectIndex++)
+			printf_tab("%zu - %s\n", sectIndex, m_sections[sectIndex].getName());
+
+		if (sectionIndexes.size())
+		{
+			printf_tab("Current list: ");
+			for (size_t index : sectionIndexes)
+				printf_tab(" ", m_sections[index].getName());
+			putchar('\n');
+		}
+
+		switch (insertIndexValues(sectionIndexes, "ac", m_sections.size(), false))
+		{
+		case ResultType::Quit:
+			printf_tab("Color Sheet creation cancelled.\n");
+			return false;
+		case ResultType::Help:
+			printf_tab("Help: [TBD]\n%s\n", g_global.tabs.c_str());
+			break;
+		case ResultType::SpecialCase:
+			if (sectionIndexes.size())
+			{
+				g_global.multi = false;
+				g_global.quit = true;
+				break;
+			}
+			__fallthrough;
+		case ResultType::Success:
+			if (!sectionIndexes.size())
+			{
+				do
+				{
+					printf_tab("No sections have been selected.\n");
+					printf_tab("A - Add section values\n");
+					printf_tab("C - Create template file with default colors\n");
+					printf_tab("Q - Quit Color Sheet creation\n");
+					switch (menuChoices("ac"))
+					{
+					case ResultType::Quit:
+						printf_tab("Color Sheet creation cancelled.\n");
+						return false;
+					case ResultType::Success:
+						if (g_global.answer.character == 'c')
+							generate = true;
+						g_global.quit = true;
+					}
+				} while (!g_global.quit);
+				g_global.quit = false;
+			}
+			else
+				g_global.quit = true;
+		}
+	} while (!g_global.quit && !generate);
+	g_global.quit = false;
+
+	bool writeColors = false;
+	do
+	{
+		printf_tab("If found, use any colors that are pre-saved in a phrase bar? [Y/N]\n");
+		switch (menuChoices("yn"))
+		{
+		case ResultType::Quit:
+			return false;
+		case ResultType::Success:
+			if (g_global.answer.character == 'y')
+				writeColors = true;
+			g_global.quit = true;
+		}
+	} while (!g_global.quit);
+	g_global.quit = false;
+
+	std::string filename = m_directory + m_filename + "_COLORDEF";
+	std::string filename2 = m_directory + m_filename + "_COLORDEF_FRAGS";
+	FILE* outSheet = nullptr, * outSheet2 = nullptr;
+	do
+	{
+		switch (fileOverwriteCheck(filename + ".txt"))
+		{
+		case ResultType::No:
+			printf_tab("\n");
+			filename += "_T";
+			break;
+		case ResultType::Yes:
+			fopen_s(&outSheet, (filename + ".txt").c_str(), "w");
+			__fallthrough;
+		case ResultType::Quit:
+			g_global.quit = true;
+		}
+	} while (!g_global.quit);
+	printf_tab("\n");
+	g_global.quit = false;
+
+	do
+	{
+		switch (fileOverwriteCheck(filename2 + ".txt"))
+		{
+		case ResultType::No:
+			printf_tab("\n");
+			filename2 += "_T";
+			break;
+		case ResultType::Yes:
+			fopen_s(&outSheet2, (filename2 + ".txt").c_str(), "w");
+			__fallthrough;
+		case ResultType::Quit:
+			g_global.quit = true;
+		}
+	} while (!g_global.quit);
+	g_global.quit = false;
+
+	if (outSheet != nullptr || outSheet2 != nullptr)
+	{
+		fputs("[phrasemode fragments]\n", outSheet2);
+		dualvfprintf_s(outSheet, outSheet2, "[attack point palette]\nG: 00ff00\nR: ff0000\nY: ffff00\nB: 0000ff\nO: ff7f00\nP: ff00ff\nN: f89b44\ng: ffffff\nr: ffffff\ny: ffffff\nb: ffffff\no: ffffff\np: ffffff\n\n");
+		dualvfprintf_s(outSheet, outSheet2, "[phrase bar palette]\nG: 40ff40\nR: ff4040\nY: ffff40\nB: 4040c8\nO: ff9f40\nP: ff40ff\nN: f07b7b\ng: 40ff40\nr: ff4040\ny: ffff40\nb: 4040c8\no: ff9f40\np: ff40ff\n\n");
+		unsigned long chartCount = 0;
+		const size_t size = m_sections.size();
+		bool* inputs = new bool[size]();
+		for (size_t sect = 0; sect < sectionIndexes.size(); sect++)
+			inputs[sectionIndexes[sect]] = true;
+		std::string colors = "GRYBOPgrybop";
+		for (unsigned long sectIndex = 0; sectIndex < size; sectIndex++)
+		{
+			SongSection& section = m_sections[sectIndex];
+			for (unsigned playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
+			{
+				for (unsigned chartIndex = 0; chartIndex < section.m_numCharts; chartIndex++)
+				{
+					if (!(playerIndex & 1) || multiplayer)
+					{
+						Chart& chart = section.m_charts[(unsigned long long)playerIndex * section.m_numCharts + chartIndex];
+						if (chart.getNumPhrases())
+						{
+							dualvfprintf_s(outSheet, outSheet2, "#SongSection %lu [%s], P%lu CHCH %lu\n", sectIndex, section.getName(), playerIndex + 1, chartIndex);
+							dualvfprintf_s(outSheet, outSheet2, "[drawn chart %lu]\n", chartCount);
+							if (inputs[sectIndex])
+							{
+								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
+								{
+									Phrase& phr = chart.m_phrases[phrIndex];
+									if (writeColors && phr.getColor())
+									{
+										size_t colIndex = 0;
+										while (colIndex < 5 && !(phr.getColor() & (1 << colIndex)))
+											colIndex++;
+
+										if (phr.getColor() & 64)
+											colIndex += 6;
+
+										if (!phrIndex)
+										{
+											fprintf(outSheet, "%c", colors[colIndex]);
+											fprintf(outSheet2, "!%c", colors[colIndex]);
+										}
+										else if (phr.m_start) //Start
+										{
+											fprintf(outSheet, " %c", colors[colIndex]);
+											fprintf(outSheet2, " !%c", colors[colIndex]);
+										}
+										else
+											fprintf(outSheet2, "-%c", colors[colIndex]);
+									}
+									else if (!phrIndex)
+									{
+										fputc('_', outSheet);
+										fputs("!_", outSheet2);
+									}
+									else if (phr.m_start) //Start
+									{
+										fputs(" _", outSheet);
+										fputs(" !_", outSheet2);
+									}
+									else
+										fputs("-_", outSheet2);
+								}
+							}
+							else
+							{
+								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
+								{
+									Phrase& phr = chart.m_phrases[phrIndex];
+									if (writeColors && phr.getColor())
+									{
+										size_t colIndex = 0;
+										while (colIndex < 5 && !(phr.getColor() & (1 << colIndex)))
+											colIndex++;
+
+										if (phr.getColor() & 64)
+											colIndex += 6;
+
+										if (!phrIndex)
+										{
+											fprintf(outSheet, "%c", colors[colIndex]);
+											fprintf(outSheet2, "!%c", colors[colIndex]);
+										}
+										else if (phr.m_start) //Start
+										{
+											fprintf(outSheet, " %c", colors[colIndex]);
+											fprintf(outSheet2, " !%c", colors[colIndex]);
+										}
+										else
+											fprintf(outSheet2, "-%c", colors[colIndex]);
+									}
+									else if (!phrIndex)
+									{
+										fputc('N', outSheet);
+										fputs("!N", outSheet2);
+									}
+									else if (phr.m_start) //Start
+									{
+										fputs(" N", outSheet);
+										fputs(" !N", outSheet2);
+									}
+									else
+										fputs("-N", outSheet2);
+								}
+							}
+							fprintf(outSheet, "\n\n");
+							fprintf(outSheet2, "\n\n");
+						}
+						chartCount++;
+					}
+				}
+			}
+			printf_tab("Colored %s", section.getName());
+			if (inputs[sectIndex])
+				printf(" - With added outlines");
+			printf("\n");
+		}
+
+		delete[size] inputs;
+		if (outSheet != nullptr)
+			fclose(outSheet);
+		if (outSheet2 != nullptr)
+			fclose(outSheet2);
+		return true;
+	}
+	else
+	{
+		printf_tab("Color Sheet creation cancelled.\n");
+		return false;
+	}
+}
+
 //Create a SongSection object with 1 Condition and 4 Charts
 SongSection::SongSection()
 	: m_conditions(1)
@@ -873,6 +1143,7 @@ long Chart::transferNotes(Chart* source)
 	{
 		Phrase& phr = source->m_phrases[phrIndex];
 		lastNote = phr.m_pivotAlpha;
+
 		if (!phr.m_end)
 		{
 			if (phrIndex + 1 == source->m_phrases.size())
@@ -880,6 +1151,7 @@ long Chart::transferNotes(Chart* source)
 			else
 				phr.changeEndAlpha(source->m_phrases[phrIndex + 1].m_pivotAlpha);
 		}
+
 		//Pivot alpha was previous set to the total displacement from the start of the section
 		m_phrases.emplace_back(phr);
 		m_phrases.back().adjustPivotAlpha(-m_pivotTime);
@@ -895,8 +1167,11 @@ long Chart::transferNotes(Chart* source)
 		if (trIndex + 1 != source->m_tracelines.size())
 			trace.changeEndAlpha(source->m_tracelines[trIndex + 1].m_pivotAlpha);
 		m_tracelines.emplace_back(trace);
+
+		//Pivot alpha was previous set to the total displacement from the start of the section
 		m_tracelines.back().adjustPivotAlpha(-m_pivotTime);
 	}
+
 	//Go through every phrase bar & trace line to find places where phrase bars
 	//should be split into two pieces
 	for (size_t trIndex = 0, phrIndex = 0; phrIndex < m_phrases.size() && trIndex < m_tracelines.size();)
@@ -943,6 +1218,7 @@ long Chart::transferNotes(Chart* source)
 				++trIndex;
 		}
 	}
+
 	clearGuards();
 	for (size_t grdIndex = 0; grdIndex < source->m_guards.size(); ++grdIndex)
 	{

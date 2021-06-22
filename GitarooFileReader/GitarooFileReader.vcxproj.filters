@@ -7,9 +7,6 @@
     <Filter Include="CHC">
       <UniqueIdentifier>{e06d6fb7-2b3e-4476-928d-d73b14f09a2b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CHC\Main">
-      <UniqueIdentifier>{6225b60e-9882-499f-beeb-6f90cb4a0c8d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="CHC\TAS">
       <UniqueIdentifier>{e90c0a41-deb6-4089-bc13-3ee0b2188db5}</UniqueIdentifier>
     </Filter>
@@ -24,9 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CHC\CHC_Main.cpp">
-      <Filter>CHC\Main</Filter>
-    </ClCompile>
     <ClCompile Include="CHC\CHC_Editor.cpp">
       <Filter>CHC\Editor</Filter>
     </ClCompile>
@@ -63,6 +57,12 @@
     <ClCompile Include="Main\FileType.cpp">
       <Filter>Global</Filter>
     </ClCompile>
+    <ClCompile Include="Main\FileMain.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CHC_Main.cpp">
+      <Filter>CHC</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CHC\CHC_TAS.h">
@@ -88,9 +88,6 @@
     </ClInclude>
     <ClInclude Include="CHC\CH_NoteTrack.h">
       <Filter>CHC\Clone Hero</Filter>
-    </ClInclude>
-    <ClInclude Include="Main\FileMainList.h">
-      <Filter>Global</Filter>
     </ClInclude>
     <ClInclude Include="Main\FileType.h">
       <Filter>Global</Filter>

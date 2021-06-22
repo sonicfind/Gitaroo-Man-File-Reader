@@ -15,7 +15,6 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "CH_Import.h"
-#include "CHC/CHC_Editor.h"
 
 using namespace std;
 

@@ -1138,10 +1138,10 @@ void Chart::clear()
 long Chart::transferNotes(Chart* source)
 {
 	long lastNote = 0;
-	clearPhrases();
+	m_phrases.resize(source->m_phrases.size());
 	for (size_t phrIndex = 0; phrIndex < source->m_phrases.size(); ++phrIndex)
 	{
-		Phrase& phr = source->m_phrases[phrIndex];
+		Phrase& phr = m_phrases[phrIndex] = source->m_phrases[phrIndex];
 		lastNote = phr.m_pivotAlpha;
 
 		if (!phr.m_end)
@@ -1153,23 +1153,24 @@ long Chart::transferNotes(Chart* source)
 		}
 
 		//Pivot alpha was previous set to the total displacement from the start of the section
-		m_phrases.emplace_back(phr);
-		m_phrases.back().adjustPivotAlpha(-m_pivotTime);
+		phr.adjustPivotAlpha(-m_pivotTime);
 	}
 
-	clearTracelines();
-	for (size_t trIndex = 0; trIndex < source->m_tracelines.size(); ++trIndex)
+	if (source->m_tracelines.size() > 1)
 	{
-		Traceline& trace = source->m_tracelines[trIndex];
-		if (trace.m_pivotAlpha > lastNote)
-			lastNote = trace.m_pivotAlpha;
+		m_tracelines.resize(source->m_tracelines.size());
+		for (size_t trIndex = 0; trIndex < source->m_tracelines.size(); ++trIndex)
+		{
+			Traceline& trace = m_tracelines[trIndex] = source->m_tracelines[trIndex];
+			if (trace.m_pivotAlpha > lastNote)
+				lastNote = trace.m_pivotAlpha;
 
-		if (trIndex + 1 != source->m_tracelines.size())
-			trace.changeEndAlpha(source->m_tracelines[trIndex + 1].m_pivotAlpha);
-		m_tracelines.emplace_back(trace);
+			if (trIndex + 1 != source->m_tracelines.size())
+				trace.changeEndAlpha(source->m_tracelines[trIndex + 1].m_pivotAlpha);
 
-		//Pivot alpha was previous set to the total displacement from the start of the section
-		m_tracelines.back().adjustPivotAlpha(-m_pivotTime);
+			//Pivot alpha was previous set to the total displacement from the start of the section
+			trace.adjustPivotAlpha(-m_pivotTime);
+		}
 	}
 
 	//Go through every phrase bar & trace line to find places where phrase bars
@@ -1187,8 +1188,15 @@ long Chart::transferNotes(Chart* source)
 		{
 			if (trace.m_pivotAlpha > phrase.m_pivotAlpha)
 			{
-				unsigned long dur = phrase.getEndAlpha() - trace.m_pivotAlpha;
-				bool end = phrase.m_end;
+				++phrIndex;
+				m_phrases.insert(m_phrases.begin() + phrIndex,
+									{ trace.m_pivotAlpha
+									, unsigned long(phrase.getEndAlpha() - trace.m_pivotAlpha)
+									, false
+									, phrase.m_end
+									, 0
+									, phrase.getColor() });
+
 				phrase.changeEndAlpha(trace.m_pivotAlpha);
 				phrase.m_end = false;
 			}
@@ -1219,14 +1227,15 @@ long Chart::transferNotes(Chart* source)
 		}
 	}
 
-	clearGuards();
+	m_guards.resize(source->m_guards.size());
 	for (size_t grdIndex = 0; grdIndex < source->m_guards.size(); ++grdIndex)
 	{
-		Guard& grd = source->m_guards[grdIndex];
-		if (grd.m_pivotAlpha > lastNote)
-			lastNote = grd.m_pivotAlpha;
-		m_guards.emplace_back(grd);
-		m_guards.back().adjustPivotAlpha(-m_pivotTime);
+		Guard& grd = m_guards[grdIndex] = source->m_guards[grdIndex];
+
+		if (m_guards[grdIndex].m_pivotAlpha > lastNote)
+			lastNote = m_guards[grdIndex].m_pivotAlpha;
+
+		m_guards[grdIndex].adjustPivotAlpha(-m_pivotTime);
 	}
 	return lastNote;
 }

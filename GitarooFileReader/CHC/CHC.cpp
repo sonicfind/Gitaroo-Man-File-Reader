@@ -25,6 +25,23 @@ CHC::CHC()
 	, m_unorganized(0)
 	, m_optimized(false) {}
 
+CHC::CHC(const CHC& chc)
+	: FileType(chc)
+	, m_stage(chc.m_stage)
+	, m_speed(chc.m_speed)
+	, m_unorganized(chc.m_unorganized)
+	, m_optimized(chc.m_optimized)
+	, m_sections(chc.m_sections)
+{
+	std::copy(chc.m_header, chc.m_header + sizeof(m_header), m_header);
+	std::copy(chc.m_imc, chc.m_imc + sizeof(m_imc), m_imc);
+	std::copy(chc.m_events, chc.m_events + sizeof(m_events), m_events);
+	std::copy(chc.m_audio, chc.m_audio + sizeof(m_audio), m_audio);
+	memcpy(m_energyDamageFactors, chc.m_energyDamageFactors, sizeof(m_energyDamageFactors));
+	for (auto& section : m_sections)
+		section.m_parent = this;
+}
+
 //Creates a CHC object using values from the CHC file pointed to by the provided filename.
 //
 //Value names chosen to be kept are based off the CHC tab in the Gitaroo Pals shoutwiki
@@ -543,9 +560,13 @@ bool CHC::colorCheatTemplate()
 }
 
 //Create a SongSection object with 1 Condition and 4 Charts
-SongSection::SongSection()
-	: m_conditions(1)
+SongSection::SongSection(CHC* parent)
+	: m_parent(parent)
+	, m_conditions(1)
 	, m_charts(4) {}
+
+SongSection::SongSection()
+	: SongSection(nullptr) {}
 
 //Uses a file to read in a few of the values
 //Due to the context, no conditions or charts are created

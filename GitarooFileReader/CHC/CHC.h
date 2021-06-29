@@ -73,7 +73,7 @@ public:
 	std::vector<SongSection> m_sections;
 	CHC();
 	CHC(std::string filename);
-	CHC(const CHC&) = default;
+	CHC(const CHC&);
 	CHC& operator=(const CHC&) = default;
 	bool create(std::string filename);
 	bool write_to_txt();
@@ -121,7 +121,6 @@ class SongSection
 public:
 	enum class Phase { INTRO, CHARGE, BATTLE, FINAL_AG, HARMONY, END, FINAL_I };
 private:
-	CHC* m_parent = nullptr;
 	//Index pulled from the list of SSQs in the CHC
 	unsigned long m_index = 0;
 	// Section name
@@ -165,10 +164,13 @@ private:
 	unsigned long m_numPlayers = 4;
 	// Number of charts/subsections per player
 	unsigned long m_numCharts = 1;
+	// Parent CHC
+	CHC* m_parent = nullptr;
 public:
 	// Vector of all charts/subsections
 	std::vector<Chart> m_charts;
 	static const long s_SAMPLE_GAP = 1800;
+	SongSection(CHC* parent);
 	SongSection();
 	SongSection(CHC* parent, FILE* inFile);
 	SongSection(const SongSection&) = default;

@@ -284,9 +284,7 @@ namespace GlobalFunctions
 		*/
 	ResultType fileOverwriteCheck(string fileName)
 	{
-#pragma warning(suppress : 4996)
-		FILE* test = fopen(fileName.c_str(), "r");
-		while (test)
+		while (FILE* test = _fsopen(fileName.c_str(), "r", _SH_DENYNO))
 		{
 			fclose(test);
 			printf_tab("Override/Replace %s? [Y/N][Q to not generate a file]\n", fileName.c_str());
@@ -303,8 +301,7 @@ namespace GlobalFunctions
 				else
 					return ResultType::Yes;
 			}
-#pragma warning(suppress : 4996)
-			test = fopen(fileName.c_str(), "r");
+			test = _fsopen(fileName.c_str(), "r", _SH_DENYNO);
 		}
 		return ResultType::Yes;
 	}

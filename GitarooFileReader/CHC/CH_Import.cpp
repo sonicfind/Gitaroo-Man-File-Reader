@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "CH_Import.h"
+#include <thread>
 
 using namespace std;
 

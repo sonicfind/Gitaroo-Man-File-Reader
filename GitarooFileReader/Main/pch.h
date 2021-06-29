@@ -24,8 +24,8 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include <string>
 #include <windows.h>
-#include <thread>
 #include <vector>
+#include <queue>
 #include <list>
 #include <sstream>
 #endif //PCH_H

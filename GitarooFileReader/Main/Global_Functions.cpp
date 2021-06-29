@@ -355,10 +355,8 @@ namespace GlobalFunctions
 			default:
 				if (g_global.input >= '0' && g_global.input <= '9')
 				{
-					ungetc(g_global.input, stdin);
-
 					char val[40] = { g_global.input, 0 };
-					scanf_s("%38[0-9.]", val + 1, 39);
+					scanf_s("%38[0-9.]", val + 1, 38);
 					double tmp = atof(val);
 					size_t value = size_t(tmp);
 

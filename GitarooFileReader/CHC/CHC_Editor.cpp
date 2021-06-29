@@ -141,6 +141,7 @@ void CHC::edit(const bool multi)
 			printf("%sFor each player separately, each phase type has values pertaining to 8 different HP related factors.\n", g_global.tabs.c_str());
 			printf("%sThis will bring up a series of menus so that you can edit any factors you like - although some factors have no effect in certain phase types.\n", g_global.tabs.c_str());
 			printf("%s(No dealing or receiving damage in charge phases for example).\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+			__fallthrough;
 		case GlobalFunctions::ResultType::Failed:
 			break;
 		default:
@@ -270,26 +271,23 @@ void CHC::fixNotes()
 						{
 							for (size_t traceIndex = 0, phraseIndex = 0; traceIndex + 1 < chart.m_tracelines.size(); ++traceIndex)
 							{
-								bool adjust = chart.m_tracelines[traceIndex].m_angle == chart.m_tracelines[traceIndex + 1].m_angle;
-								for (; phraseIndex < chart.m_phrases.size(); ++phraseIndex)
+								unsigned long curve = false;
+								while (phraseIndex < chart.m_phrases.size() && chart.m_phrases[phraseIndex].m_pivotAlpha < chart.m_tracelines[traceIndex].getEndAlpha())
 								{
-									if (chart.m_phrases[phraseIndex].m_pivotAlpha >= chart.m_tracelines[traceIndex].getEndAlpha())
-										break;
 									if (chart.m_phrases[phraseIndex].m_start)
 									{
-										if (phraseIndex)
+										if (phraseIndex
+											&& chart.m_phrases[phraseIndex].m_pivotAlpha - chart.m_phrases[phraseIndex - 1].getEndAlpha() < SongSection::s_SAMPLE_GAP)
 										{
-											if (chart.m_phrases[phraseIndex].m_pivotAlpha - chart.m_phrases[phraseIndex - 1].getEndAlpha() < SongSection::s_SAMPLE_GAP)
-											{
-												chart.m_phrases[phraseIndex - 1].changeEndAlpha(chart.m_phrases[phraseIndex].m_pivotAlpha - SongSection::s_SAMPLE_GAP);
-												strings.push(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
-												strings.push("Phrase bar " + to_string(phraseIndex + barsRemoved - 1) + " shortened\n");
-												++phrasesShortened;
-											}
+											chart.m_phrases[phraseIndex - 1].changeEndAlpha(chart.m_phrases[phraseIndex].m_pivotAlpha - SongSection::s_SAMPLE_GAP);
+											strings.push(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
+											strings.push("Phrase bar " + to_string(phraseIndex + barsRemoved - 1) + " shortened\n");
+											++phrasesShortened;
 										}
+
 										while (!chart.m_phrases[phraseIndex].m_end
-											&& (chart.m_phrases[phraseIndex].m_pivotAlpha >= chart.m_tracelines[traceIndex].getEndAlpha() - 3000)
-											&& (chart.m_phrases[phraseIndex].m_pivotAlpha - chart.m_tracelines[traceIndex].m_pivotAlpha > 800))
+											&& chart.m_phrases[phraseIndex].m_pivotAlpha >= chart.m_tracelines[traceIndex].getEndAlpha() - 3000
+											&& chart.m_phrases[phraseIndex].m_pivotAlpha > chart.m_tracelines[traceIndex].m_pivotAlpha + 800)
 										{
 											chart.m_phrases[phraseIndex].m_duration += chart.m_phrases[phraseIndex + 1].m_duration;
 											chart.m_phrases[phraseIndex].m_end = chart.m_phrases[phraseIndex + 1].m_end;
@@ -306,34 +304,38 @@ void CHC::fixNotes()
 												++traceIndex;
 											chart.m_tracelines[traceIndex].changePivotAlpha(chart.m_phrases[phraseIndex].m_pivotAlpha);
 
-											adjust = traceIndex + 1 != chart.m_tracelines.size()
-												&& chart.m_tracelines[traceIndex].m_angle == chart.m_tracelines[traceIndex + 1].m_angle;
-
 											strings.push(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
 											if (chart.removePhraseBar(phraseIndex + 1))
 												strings.push("Phrase bar " + to_string(phraseIndex + barsRemoved + 1) + " removed\n");
 											++barsRemoved;
 										}
-										if (adjust && !chart.m_tracelines[traceIndex].m_curve && m_imc[0])
-										{
-											if (chart.m_phrases[phraseIndex].m_pivotAlpha >= chart.m_tracelines[traceIndex].getEndAlpha() - 8000)
-											{
 
-												chart.m_tracelines[traceIndex].m_curve = true;
-												strings.push(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
-												strings.push("Trace line " + to_string(traceIndex + linesRemoved) + " set to \"smooth\"\n");
-												++tracelinesCurved;
-												adjust = false;
-											}
-										}
+										if (m_imc[0] && chart.m_phrases[phraseIndex].m_pivotAlpha + 8000 >= chart.m_tracelines[traceIndex].getEndAlpha())
+											curve = true;
 									}
+									++phraseIndex;
 								}
-								if (adjust && chart.m_tracelines[traceIndex].m_curve)
+
+								if (!curve
+									&& chart.m_tracelines[traceIndex].m_curve
+									&& traceIndex + 1 != chart.m_tracelines.size()
+									&& chart.m_tracelines[traceIndex].m_angle != chart.m_tracelines[traceIndex + 1].m_angle)
+									curve = true;
+
+								if (curve != chart.m_tracelines[traceIndex].m_curve)
 								{
-									chart.m_tracelines[traceIndex].m_curve = false;
+									chart.m_tracelines[traceIndex].m_curve = curve;
 									strings.push(g_global.tabs + section.m_name + " - Subsection " + to_string(chartIndex) + ": ");
-									strings.push("Trace line " + to_string(traceIndex + linesRemoved) + " set to \"rigid\"\n");
-									++tracelinesStraightened;
+									if (curve)
+									{
+										strings.push("Trace line " + to_string(traceIndex + linesRemoved) + " set to \"smooth\"\n");
+										++tracelinesCurved;
+									}
+									else
+									{
+										strings.push("Trace line " + to_string(traceIndex + linesRemoved) + " set to \"rigid\"\n");
+										++tracelinesStraightened;
+									}
 								}
 							}
 						}
@@ -375,9 +377,10 @@ void CHC::fixNotes()
 			{
 				for (size_t playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
 				{
-					for (size_t chartIndex = 0; chartIndex < section.m_numCharts; ++chartIndex)
+					for (size_t chartIndex = section.m_numCharts; chartIndex > 0;)
 					{
-						Chart& chart = section.m_charts[(playerIndex + 1) * section.m_numCharts - 1];
+						--chartIndex;
+						Chart& chart = section.m_charts[playerIndex * section.m_numCharts + chartIndex];
 						if (chart.getNumPhrases())
 						{
 							for (size_t condIndex = 0; condIndex < section.m_conditions.size(); condIndex++)
@@ -412,10 +415,10 @@ void CHC::fixNotes()
 			{
 				for (size_t p = 0; p < 2; p++)
 				{
-					for (size_t chartIndex = section.m_numCharts; !g_global.quit && chartIndex > 0;)
+					for (size_t chartIndex = section.m_numCharts; chartIndex > 0;)
 					{
 						--chartIndex;
-						for (size_t playerIndex = section.m_numPlayers + p; !g_global.quit && playerIndex > 1;)
+						for (size_t playerIndex = section.m_numPlayers + p; playerIndex > 1;)
 						{
 							playerIndex -= 2;
 							Chart& chart = section.m_charts[playerIndex * section.m_numCharts + chartIndex];
@@ -444,11 +447,12 @@ void CHC::fixNotes()
 										}
 									}
 								}
-								g_global.quit = true;
+								goto Iteration;
 							}
 						}
 					}
-					g_global.quit = false;
+				Iteration:
+					++p;
 				}
 			}
 
@@ -562,7 +566,7 @@ void CHC::PSPToPS2()
 		// A B C D
 		// to
 		// A B C
-		section.m_charts.erase(section.m_charts.begin() + 3 * section.m_numCharts, section.m_charts.begin() + 4 * section.m_numCharts);
+		section.m_charts.erase(section.m_charts.begin() + 3ULL * section.m_numCharts, section.m_charts.begin() + 4ULL * section.m_numCharts);
 
 		if (player2 || !enemy)
 			// A B C
@@ -576,7 +580,7 @@ void CHC::PSPToPS2()
 			// A B C
 			// to
 			// A B
-			section.m_charts.erase(section.m_charts.begin() + 2 * section.m_numCharts, section.m_charts.begin() + 3 * section.m_numCharts);
+			section.m_charts.erase(section.m_charts.begin() + 2ULL * section.m_numCharts, section.m_charts.begin() + 3ULL * section.m_numCharts);
 		else
 			// A B C
 			// to
@@ -585,27 +589,29 @@ void CHC::PSPToPS2()
 
 		if (section.m_numCharts & 1)
 		{
-			section.m_charts.emplace_back();
-			section.m_charts.emplace(section.m_charts.begin() + section.m_numCharts);
+			section.m_charts.push_back(Chart());
+			section.m_charts.insert(section.m_charts.begin() + section.m_numCharts, Chart());
 			section.m_numCharts++;
 		}
 
 		{
 			const size_t offsetA = section.m_charts.size() - 1;
-			const size_t offSetB = section.m_numCharts - 1;
-			const auto beg = section.m_charts.rbegin();
-			for (size_t c = 1; c < section.m_numCharts >> 1; c++)
+			const size_t offSetB = section.m_numCharts - 1ULL;
+			section.m_numCharts >>= 1;
+			for (size_t c = 1; c < section.m_numCharts; c++)
 			{
+				auto beg = section.m_charts.rbegin();
 				std::rotate(beg + (offsetA - c),
 					beg + (offsetA - 2 * c),
 					beg + (offsetA - 2 * c));
 
+				beg = section.m_charts.rbegin();
 				std::rotate(beg + (offSetB - c),
 					beg + (offSetB - 2 * c),
 					beg + (offSetB - 2 * c));
 			}
 		}
-		section.m_numCharts >>= 1;
+		
 		// A B C D
 		// to
 		// A C B D
@@ -719,7 +725,7 @@ void CHC::audioSettings()
 				case 0:     printf("   Left   |           ||\n"); break;
 				case 16383: printf("        Center        ||\n"); break;
 				case 32767: printf("          |   Right   ||\n"); break;
-				default: printf("%8g%% |%8g%% ||\n", 100 - (m_audio[index].pan * 100.0f / 32767), m_audio[index].pan * 100.0f / 32767);
+				default: printf("%8g%% |%8g%% ||\n", 100.0 - (double(m_audio[index].pan) * (100.0 / 32767)), double(m_audio[index].pan) * (100.0 / 32767));
 				}
 			}
 			printf("%s==========================================================||\n", g_global.tabs.c_str());
@@ -819,7 +825,7 @@ void CHC::audioSettings()
 							case 0: printf("Left (0)\n"); break;
 							case 16383: printf("Center (16383)\n"); break;
 							case 32767: printf("Right (32767)\n"); break;
-							default: printf("%g%% Left | %g%% Right (%lu)\n", 100 - (m_audio[channel].pan * 100.0f / 32767), m_audio[channel].pan * 100.0f / 32767, m_audio[channel].pan);
+							default: printf("%g%% Left | %g%% Right (%lu)\n", 100.0 - (double(m_audio[channel].pan) * (100.0 / 32767)), double(m_audio[channel].pan) * (100.0 / 32767), m_audio[channel].pan);
 							}
 							printf("%sInput: ", g_global.tabs.c_str());
 							switch (GlobalFunctions::valueInsert(m_audio[channel].pan, false, 0UL, 32767UL, "b"))
@@ -1013,6 +1019,7 @@ void CHC::sectionMassMenu()
 			return;
 		case GlobalFunctions::ResultType::Help:
 			printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+			__fallthrough;
 		case GlobalFunctions::ResultType::Failed:
 			break;
 		default:
@@ -1071,7 +1078,7 @@ void CHC::playOrder()
 void CHC::rearrange()
 {
 	GlobalFunctions::banner(" " + m_filename + ".CHC - Section Rearrangement ");
-	size_t startIndex, numElements, position;
+	size_t startIndex = 0, numElements, position;
 	do
 	{
 		printf("%sProvide the starting index for the range of sections you want to move.\n", g_global.tabs.c_str());
@@ -1269,6 +1276,7 @@ void CHC::adjustFactors()
 			break;
 		case GlobalFunctions::ResultType::Help:
 			printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+			__fallthrough;
 		case GlobalFunctions::ResultType::Failed:
 			break;
 		default:
@@ -1296,6 +1304,7 @@ void CHC::adjustFactors()
 					return;
 				case GlobalFunctions::ResultType::Help:
 					printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+					__fallthrough;
 				case GlobalFunctions::ResultType::Failed:
 					break;
 				case GlobalFunctions::ResultType::Success:
@@ -1306,21 +1315,24 @@ void CHC::adjustFactors()
 					}
 					else
 					{
-						const size_t phase = g_global.answer.index;
+						//const size_t phase = g_global.answer.index;
+						const string& phase = phaseName[g_global.answer.index];
+						const unsigned nameLength = (unsigned)phaseName[g_global.answer.index].length();
+						auto& factors = m_energyDamageFactors[player][g_global.answer.index];
 						do
 						{
-							GlobalFunctions::banner(" " + m_filename + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phaseName[phase] + " ");
-							printf("%s          Player %zu        || %*s ||\n", g_global.tabs.c_str(), player + 1, unsigned(phaseName[phase].length() + 1), phaseName[phase].c_str());
-							printf("%s%s||\n", g_global.tabs.c_str(), string(31 + phaseName[phase].length(), '=').c_str());
-							printf("%s 1 - Starting Energy      || %*g%% ||\n", g_global.tabs.c_str(), (unsigned)phaseName[phase].length(), m_energyDamageFactors[player][phase].initialEnergy * 100.0);
-							printf("%s 2 - Initial-Press Energy || %*g%% ||\n", g_global.tabs.c_str(), (unsigned)phaseName[phase].length(), m_energyDamageFactors[player][phase].chargeInitial * 100.0);
-							printf("%s 3 - Initial-Press Damage || %*g%% ||\n", g_global.tabs.c_str(), (unsigned)phaseName[phase].length(), m_energyDamageFactors[player][phase].attackInitial * 100.0);
-							printf("%s 4 - Guard Energy Gain    || %*g%% ||\n", g_global.tabs.c_str(), (unsigned)phaseName[phase].length(), m_energyDamageFactors[player][phase].guardEnergy * 100.0);
-							printf("%s 5 - Attack Miss Damage   || %*g%% ||\n", g_global.tabs.c_str(), (unsigned)phaseName[phase].length(), m_energyDamageFactors[player][phase].attackMiss * 100.0);
-							printf("%s 6 - Guard  Miss Damage   || %*g%% ||\n", g_global.tabs.c_str(), (unsigned)phaseName[phase].length(), m_energyDamageFactors[player][phase].guardMiss * 100.0);
-							printf("%s 7 - Sustain Energy Coef. || %*g%% ||\n", g_global.tabs.c_str(), (unsigned)phaseName[phase].length(), m_energyDamageFactors[player][phase].chargeRelease * 100.0);
-							printf("%s 8 - Sustain Damage Coef. || %*g%% ||\n", g_global.tabs.c_str(), (unsigned)phaseName[phase].length(), m_energyDamageFactors[player][phase].attackRelease * 100.0);
-							printf("%s%s||\n", g_global.tabs.c_str(), string(31 + phaseName[phase].length(), '=').c_str());
+							GlobalFunctions::banner(" " + m_filename + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phase + " ");
+							printf("%s          Player %zu        || %*s ||\n", g_global.tabs.c_str(), player + 1, nameLength + 1, phase.c_str());
+							printf("%s%s||\n", g_global.tabs.c_str(), string(31 + phase.length(), '=').c_str());
+							printf("%s 1 - Starting Energy      || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.initialEnergy * 100.0);
+							printf("%s 2 - Initial-Press Energy || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.chargeInitial * 100.0);
+							printf("%s 3 - Initial-Press Damage || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.attackInitial * 100.0);
+							printf("%s 4 - Guard Energy Gain    || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.guardEnergy * 100.0);
+							printf("%s 5 - Attack Miss Damage   || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.attackMiss * 100.0);
+							printf("%s 6 - Guard  Miss Damage   || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.guardMiss * 100.0);
+							printf("%s 7 - Sustain Energy Coef. || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.chargeRelease * 100.0);
+							printf("%s 8 - Sustain Damage Coef. || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.attackRelease * 100.0);
+							printf("%s%s||\n", g_global.tabs.c_str(), string(31ULL + nameLength, '=').c_str());
 							printf("%sSelect a factor by number [Type 'B' to choose a different phase | 'Q' to exit factor settings]\n", g_global.tabs.c_str());
 							switch (GlobalFunctions::menuChoices("12345678b", true))
 							{
@@ -1328,6 +1340,7 @@ void CHC::adjustFactors()
 								return;
 							case GlobalFunctions::ResultType::Help:
 								printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+								__fallthrough;
 							case GlobalFunctions::ResultType::Failed:
 								break;
 							case GlobalFunctions::ResultType::Success:
@@ -1343,13 +1356,13 @@ void CHC::adjustFactors()
 									do
 									{
 										GlobalFunctions::banner(" " + m_filename + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) +
-											" | " + phaseName[phase] + bannerEnds[g_global.answer.index]);
-										float* val = &m_energyDamageFactors[player][phase].initialEnergy + g_global.answer.index;
+											" | " + phase + bannerEnds[g_global.answer.index]);
+										float* val = &factors.initialEnergy + g_global.answer.index;
 
-										printf("%s        Player %zu      || %s ||\n", g_global.tabs.c_str(), player + 1, phaseName[phase].c_str());
-										printf("%s%s||\n\t\t  ", g_global.tabs.c_str(), string(26 + phaseName[phase].length(), '=').c_str());
-										printf("%s %*g ||\n", headers[g_global.answer.index], (unsigned)phaseName[phase].length(), *val);
-										printf("%s%s||\n", g_global.tabs.c_str(), string(26 + phaseName[phase].length(), '=').c_str());
+										printf("%s        Player %zu      || %s ||\n", g_global.tabs.c_str(), player + 1, phase.c_str());
+										printf("%s%s||\n\t\t  ", g_global.tabs.c_str(), string(26 + phase.length(), '=').c_str());
+										printf("%s %*g ||\n", headers[g_global.answer.index], (unsigned)phase.length(), *val);
+										printf("%s%s||\n", g_global.tabs.c_str(), string(26 + phase.length(), '=').c_str());
 										printf("%sProvide a new value for this factor [Type 'B' to choose a different factor | 'Q' to exit factor settings]\n", g_global.tabs.c_str());
 										printf("%sCan be a decimal... and/or negative with weird effects\n", g_global.tabs.c_str());
 										printf("%sInput: ", g_global.tabs.c_str());
@@ -1500,6 +1513,7 @@ void SongSection::menu(const bool isPs2, const int stage)
 			break;
 		case GlobalFunctions::ResultType::Help:
 			printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+			break;
 		case GlobalFunctions::ResultType::Success:
 			++g_global;
 			switch (g_global.answer.character)
@@ -1685,7 +1699,10 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 									// If said note is a Trace line and has a duration of 1, delete it so it can be replaced
 									Traceline* tr2 = dynamic_cast<Traceline*>(ntIndex->note);
 									if (tr2 != nullptr && tr2->m_duration == 1)
-										notes[pl].erase(ntIndex++);
+									{
+										notes[pl].erase(ntIndex--);
+										++ntIndex;
+									}
 								}
 
 								// If it's the enemy's original charts
@@ -1708,20 +1725,21 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 									if (currentChart->m_tracelines.size())
 									{
 										const auto& tr = currentChart->m_tracelines.back();
-										size_t phraseIndex = currentChart->m_phrases.size();
+										size_t phraseIndex = currentChart->getNumPhrases();
 
 										// If the phrase bar is past the trace line
 										while (currentChart->m_phrases.size() && tr.getEndAlpha() <= currentChart->m_phrases.back().m_pivotAlpha)
 											if (currentChart->removePhraseBar(currentChart->getNumPhrases() - 1))
 												printf("%s%s: Phrase bar %zu removed\n", g_global.tabs.c_str(), m_name, currentChart->getNumPhrases());
 
-										if (currentChart->m_phrases.size())
+										if (currentChart->getNumPhrases())
 										{
-											currentChart->m_phrases.back().m_end = true;
+											Phrase& phr = currentChart->m_phrases.back();
+											phr.m_end = true;
 
 											// Check for safety that the PB is in THIS particular trace line
-											if (tr <= currentChart->m_phrases[phraseIndex])
-												currentChart->m_phrases[phraseIndex].changeEndAlpha(endAlpha);
+											if (tr <= phr)
+												phr.changeEndAlpha(endAlpha);
 										}
 
 										currentChart->emplaceTraceline(endAlpha, 1, angle);
@@ -1758,7 +1776,10 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 							}
 							// If the phrase bar is outside the trace line
 							else if (prevIndex->position + (long)tr->m_duration <= ntIndex->position)
-								notes[pl].erase(ntIndex++);
+							{
+								notes[pl].erase(ntIndex--);
+								++ntIndex;
+							}
 						}
 					}
 					// Note is a Guard Mark
@@ -1787,10 +1808,16 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 										std::iter_swap(prevIndex, next);
 									}
 									else
-										notes[pl].erase(prevIndex++);
+									{
+										notes[pl].erase(prevIndex--);
+										++prevIndex;
+									}
 								}
 								else
-									notes[pl].erase(prevIndex++);
+								{
+									notes[pl].erase(prevIndex--);
+									++prevIndex;
+								}
 								ntIndex = prevIndex--;
 								// Now the next note is confirmed a guard mark, so the next dynamic_cast<Guard*>
 								// will return true
@@ -1818,9 +1845,12 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 								}
 							}
 						}
+						// A guard mark followed by a phrase bar is an error
 						else if (dynamic_cast<Phrase*>(ntIndex->note) != nullptr)
-							// A guard mark followed by a phrase bar is an error
-							notes[pl].erase(ntIndex++);
+						{
+							notes[pl].erase(ntIndex--);
+							++ntIndex;
+						}
 
 						// If the next note is a guard mark
 						// AND if there is enough distance between these guard marks in a duet or tutorial stage
@@ -2157,6 +2187,7 @@ void SongSection::adjustDuration()
 			break;
 		case GlobalFunctions::ResultType::Quit:
 			g_global.quit = true;
+			break;
 		case GlobalFunctions::ResultType::InvalidNegative:
 			printf("%sProvided value *must* be a zero or greater.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			break;

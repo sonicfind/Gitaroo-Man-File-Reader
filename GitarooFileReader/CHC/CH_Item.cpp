@@ -177,132 +177,13 @@ bool CHNote::operator==(const CHNote& note) const
 		return false;
 }
 
-bool CHNote::operator<(const CHNote& note) const
 {
-	if (m_position < note.m_position)
-		return true;
-	else if (m_position > note.m_position)
-		return false;
-	else
-	{
-		switch (m_type)
-		{
-		case NoteType::NOTE:
-			switch (note.m_type)
-			{
-			case NoteType::NOTE:
-				switch (m_fret.m_lane)
-				{
-				case 6:
-					return false;
-				case 5:
-					return note.m_fret.m_lane == 6;
-				case 7:
-					return note.m_fret.m_lane == 5 || note.m_fret.m_lane == 6;
-				default:
-					if (m_fret.m_lane < note.m_fret.m_lane)
-						return true;
-					else if (m_fret.m_lane > note.m_fret.m_lane)
-						return false;
-					else
-						return m_mod < note.m_mod;
-				}
-			default:
-				return true;
-			}
-		case NoteType::STAR:
-			switch (note.m_type)
-			{
-			case NoteType::EVENT:
-				return true;
-			default:
-				return false;
-			}
-		default:
-			switch (note.m_type)
-			{
-			case NoteType::EVENT:
-				for (std::string::const_iterator iter1 = m_name.begin(), iter2 = note.m_name.begin();
-					iter1 != m_name.end() && iter2 != note.m_name.end(); ++iter1, ++iter2)
-				{
-					if (tolower(*iter1) < tolower(*iter2))
-						return true;
-					else if (tolower(*iter1) > tolower(*iter2))
-						return false;
-				}
-				if (m_name.length() < note.m_name.length())
-					return true;
-				else
-					return false;
-			default:
-				return false;
 
-			}
-		}
-	}
 }
 
-bool CHNote::operator>(const CHNote& note) const
 {
-	if (m_position > note.m_position)
-		return true;
-	else if (m_position < note.m_position)
-		return false;
-	else
 	{
-		switch (m_type)
 		{
-		case NoteType::NOTE:
-			switch (note.m_type)
-			{
-			case NoteType::NOTE:
-				switch (m_fret.m_lane)
-				{
-				case 6:
-					return note.m_fret.m_lane <= 5 || note.m_fret.m_lane == 7;
-				case 5:
-					return note.m_fret.m_lane < 5 || note.m_fret.m_lane == 7;
-				case 7:
-					return note.m_fret.m_lane < 5;
-				default:
-					if (m_fret.m_lane > note.m_fret.m_lane)
-						return true;
-					else if (m_fret.m_lane < note.m_fret.m_lane)
-						return false;
-					else
-						return m_mod > note.m_mod;
-				}
-			default:
-				return false;
-			}
-		case NoteType::STAR:
-			switch (note.m_type)
-			{
-			case NoteType::NOTE:
-				return true;
-			default:
-				return false;
-			}
-		default:
-			switch (note.m_type)
-			{
-			case NoteType::EVENT:
-				for (std::string::const_iterator iter1 = m_name.begin(), iter2 = note.m_name.begin();
-					iter1 != m_name.end() && iter2 != note.m_name.end(); ++iter1, ++iter2)
-				{
-					if (tolower(*iter1) > tolower(*iter2))
-						return true;
-					else if (tolower(*iter1) < tolower(*iter2))
-						return false;
-				}
-				if (m_name.length() > note.m_name.length())
-					return true;
-				else
-					return false;
-			default:
-				return true;
-
-			}
 		}
 	}
 }

@@ -21,10 +21,7 @@ struct CHItem
 	CHItem() : m_position(0) {}
 	CHItem(float pos) : m_position(pos) {}
 	bool operator==(const CHItem& item) const { return m_position == item.m_position; }
-	bool operator<(const CHItem& item) const { return m_position < item.m_position; }
-	bool operator<=(const CHItem& item) const { return operator==(item) || operator<(item); }
-	bool operator>(const CHItem& item) const { return m_position > item.m_position; }
-	bool operator>=(const CHItem& item) const { return operator==(item) || operator>(item); }
+	auto operator<=>(const CHItem& item) const { return m_position <=> item.m_position; }
 };
 
 struct SyncTrack : public CHItem
@@ -70,9 +67,4 @@ struct CHNote : public CHItem
 	CHNote(const CHNote& note) = default;
 	float setEndPoint(float endTick);
 	void write(FILE* outFile);
-	bool operator==(const CHNote& note) const;
-	bool operator<(const CHNote& note) const;
-	bool operator<=(const CHNote& note) const { return operator==(note) || operator<(note); }
-	bool operator>(const CHNote& note) const;
-	bool operator>=(const CHNote& note) const { return operator==(note) || operator>(note); }
 };

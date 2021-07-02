@@ -24,7 +24,7 @@ public:
 	ChartFile() : m_file(""), m_chart(nullptr) {}
 	ChartFile(std::string filename, const bool write = false);
 	virtual bool open(std::string filename, const bool write = false);
-	int close() { return fclose(m_chart); }
+	int close();
 };
 
 class ChartFileExporter : public ChartFile

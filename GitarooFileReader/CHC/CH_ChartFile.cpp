@@ -33,6 +33,7 @@ bool ChartFile::open(string filename, const bool write)
 {
 	if (m_chart != nullptr)
 		close();
+
 	m_file = filename;
 	if (write)
 		return !fopen_s(&m_chart, m_file.c_str(), "w");
@@ -42,4 +43,10 @@ bool ChartFile::open(string filename, const bool write)
 		m_chart = fopen(m_file.c_str(), "r");
 		return m_chart != nullptr;
 	}
+}
+
+int ChartFile::close() {
+	int val = fclose(m_chart);
+	m_chart = nullptr;
+	return val;
 }

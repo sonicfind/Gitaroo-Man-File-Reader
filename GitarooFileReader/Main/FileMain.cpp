@@ -52,7 +52,6 @@ bool AbstractMain::saveFile(bool onExit)
 					case ResultType::Quit:
 						return false;
 					case ResultType::No:
-						printf_tab("\n", g_global.tabs.c_str());
 						ext += "_T";
 						break;
 					default:

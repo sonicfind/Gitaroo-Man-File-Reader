@@ -894,7 +894,6 @@ bool PCSX2::print()
 			printf_tab("\n%sPCSX2 TAS was completed, but the file generation was cancelled.\n", g_global.tabs.c_str());
 			return false;
 		case ResultType::No:
-			printf_tab("\n");
 			m_filename += "_T";
 			break;
 		case ResultType::Yes:

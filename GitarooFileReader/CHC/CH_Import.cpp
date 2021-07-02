@@ -241,7 +241,6 @@ bool CH_Importer::importChart()
 						switch (GlobalFunctions::fileOverwriteCheck(filename + ext + ".CHC"))
 						{
 						case GlobalFunctions::ResultType::No:
-							printf("%s\n", g_global.tabs.c_str());
 							ext += "_T";
 							break;
 						case GlobalFunctions::ResultType::Yes:

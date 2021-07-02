@@ -287,6 +287,7 @@ namespace GlobalFunctions
 		while (FILE* test = _fsopen(fileName.c_str(), "r", _SH_DENYNO))
 		{
 			fclose(test);
+			printf_tab("\n");
 			printf_tab("Override/Replace %s? [Y/N][Q to not generate a file]\n", fileName.c_str());
 			switch (menuChoices("yn"))
 			{

@@ -126,7 +126,6 @@ bool CH_Exporter::exportChart()
 				break;
 			case GlobalFunctions::ResultType::No:
 				filenameMod += "_T";
-				printf("%s\n", g_global.tabs.c_str());
 				break;
 			case GlobalFunctions::ResultType::Yes:
 				//Generate the ini file if it's a chart from the original games (stage 2 also including separate EN & JP charts)
@@ -154,7 +153,6 @@ bool CH_Exporter::exportChart()
 			g_global.quit = true;
 			break;
 		case GlobalFunctions::ResultType::No:
-			printf("%s\n", g_global.tabs.c_str());
 			filename += "_T";
 			break;
 		case GlobalFunctions::ResultType::Yes:

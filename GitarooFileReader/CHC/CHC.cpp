@@ -395,7 +395,6 @@ bool CHC::colorCheatTemplate()
 		switch (fileOverwriteCheck(filename + ".txt"))
 		{
 		case ResultType::No:
-			printf_tab("\n");
 			filename += "_T";
 			break;
 		case ResultType::Yes:
@@ -413,7 +412,6 @@ bool CHC::colorCheatTemplate()
 		switch (fileOverwriteCheck(filename2 + ".txt"))
 		{
 		case ResultType::No:
-			printf_tab("\n");
 			filename2 += "_T";
 			break;
 		case ResultType::Yes:

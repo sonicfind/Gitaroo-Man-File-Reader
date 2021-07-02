@@ -35,8 +35,8 @@ CHC::CHC(const CHC& chc)
 {
 	std::copy(chc.m_header, chc.m_header + sizeof(m_header), m_header);
 	std::copy(chc.m_imc, chc.m_imc + sizeof(m_imc), m_imc);
-	std::copy(chc.m_events, chc.m_events + sizeof(m_events), m_events);
-	std::copy(chc.m_audio, chc.m_audio + sizeof(m_audio), m_audio);
+	std::copy(chc.m_events, chc.m_events + _countof(m_events), m_events);
+	std::copy(chc.m_audio, chc.m_audio + _countof(m_audio), m_audio);
 	memcpy(m_energyDamageFactors, chc.m_energyDamageFactors, sizeof(m_energyDamageFactors));
 	for (auto& section : m_sections)
 		section.m_parent = this;

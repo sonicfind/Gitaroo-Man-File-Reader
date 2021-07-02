@@ -18,6 +18,7 @@
 #include <thread>
 
 using namespace std;
+using namespace GlobalFunctions;
 
 bool CH_Importer::importChart()
 {
@@ -27,11 +28,11 @@ bool CH_Importer::importChart()
 	{
 		printf("%sProvide the name of the .CHART file you wish to use (Or 'Q' to exit): ", g_global.tabs.c_str());
 		string chartName = "";
-		switch (GlobalFunctions::stringInsertion(chartName))
+		switch (stringInsertion(chartName))
 		{
-		case GlobalFunctions::ResultType::Quit:
 			return false;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Quit:
+		case ResultType::Success:
 			if (chartName.find(".CHART") == string::npos && chartName.find(".chart") == string::npos)
 				chartName += ".CHART";
 			if (chart.open(chartName.c_str()))
@@ -180,13 +181,12 @@ bool CH_Importer::importChart()
 				printf("%sHow should the file be named?\n", g_global.tabs.c_str());
 				printf("%sK - Keep filename as %s\n", g_global.tabs.c_str(), m_song.m_shortname.c_str());
 				printf("%sC - Change filename to %s_IMPORTED\n", g_global.tabs.c_str(), m_song.m_shortname.c_str());
-				switch (GlobalFunctions::menuChoices("kc"))
+				switch (menuChoices("kc"))
 				{
-				case GlobalFunctions::ResultType::Quit:
 					return false;
-				case GlobalFunctions::ResultType::Failed:
+				case ResultType::Quit:
+				case ResultType::Failed:
 					break;
-				case GlobalFunctions::ResultType::Success:
 					if (g_global.answer.character == 'c')
 					{
 						m_song.m_filename = m_song.m_filename.substr(0, m_song.m_filename.length() - 4) + "_IMPORTED.CHC";
@@ -210,6 +210,7 @@ bool CH_Importer::importChart()
 				case GlobalFunctions::ResultType::Quit:
 					return false;
 				case GlobalFunctions::ResultType::Success:
+				case ResultType::Success:
 					if (g_global.answer.character == 'c')
 					{
 						m_song.m_filename = m_song.m_filename.substr(0, m_song.m_filename.length() - 4) + "_T.CHC";
@@ -226,7 +227,7 @@ bool CH_Importer::importChart()
 			//Either yes or no will still overwrite the old CHC data held
 			//in the current CHC_Main object
 			printf("%sSave %s externally? [Y/N]\n", g_global.tabs.c_str(), m_song.m_shortname.c_str());
-			switch (GlobalFunctions::menuChoices("yn"))
+			switch (menuChoices("yn"))
 			{
 			case GlobalFunctions::ResultType::Quit:
 				return false;
@@ -238,19 +239,19 @@ bool CH_Importer::importChart()
 					string ext = "";
 					do
 					{
-						switch (GlobalFunctions::fileOverwriteCheck(filename + ext + ".CHC"))
+						switch (fileOverwriteCheck(filename + ext + ".CHC"))
 						{
-						case GlobalFunctions::ResultType::No:
+						case ResultType::No:
 							ext += "_T";
 							break;
-						case GlobalFunctions::ResultType::Yes:
 							m_song.create(filename + ext + ".CHC");
 							m_song.m_filename = filename + ext + ".CHC";
 							m_song.m_shortname += ext;
 							m_song.m_saved = 2;
+						case ResultType::Yes:
 							g_global.quit = true;
 							break;
-						case GlobalFunctions::ResultType::Quit:
+						case ResultType::Quit:
 							printf("%s\n", g_global.tabs.c_str());
 							g_global.quit = true;
 						}

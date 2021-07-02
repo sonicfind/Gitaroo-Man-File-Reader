@@ -16,6 +16,7 @@
 #include "Global_Functions.h"
 #include "CH_Export.h"
 using namespace std;
+using namespace GlobalFunctions;
 
 bool CH_Exporter::exportChart()
 {
@@ -108,10 +109,10 @@ bool CH_Exporter::exportChart()
 		string filenameMod = filename;
 		do
 		{
-			switch (GlobalFunctions::fileOverwriteCheck(filenameMod + ".chart"))
+			switch (fileOverwriteCheck(filenameMod + ".chart"))
 			{
-			case GlobalFunctions::ResultType::Quit:
 				for (size_t i = 0; i < m_exporter.m_sync.size();)
+			case ResultType::Quit:
 				{
 					m_exporter.m_sync[i].m_position -= 2 * s_TICKS_PER_BEAT;
 					//Remove the two extra synctracks
@@ -124,10 +125,10 @@ bool CH_Exporter::exportChart()
 					m_exporter.m_events[i].m_position -= 2 * s_TICKS_PER_BEAT;
 				g_global.quit = true;
 				break;
-			case GlobalFunctions::ResultType::No:
+			case ResultType::No:
 				filenameMod += "_T";
 				break;
-			case GlobalFunctions::ResultType::Yes:
+			case ResultType::Yes:
 				//Generate the ini file if it's a chart from the original games (stage 2 also including separate EN & JP charts)
 				m_exporter.open(filenameMod + ".ini");
 				m_exporter.writeIni(m_song.m_stage, (unsigned long)ceilf(totalDuration * (.0625f / 3)),m_song.m_shortname.find("HE") == string::npos);
@@ -147,18 +148,18 @@ bool CH_Exporter::exportChart()
 	filename += "_For_Reimporting";
 	do
 	{
-		switch (GlobalFunctions::fileOverwriteCheck(filename + ".chart"))
+		switch (fileOverwriteCheck(filename + ".chart"))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::No:
+		case ResultType::No:
 			filename += "_T";
 			break;
-		case GlobalFunctions::ResultType::Yes:
 			m_exporter.open(filename + ".chart");
 			m_exporter.write(false);
 			m_exporter.close();
+		case ResultType::Yes:
 			written = true;
 			g_global.quit = true;
 		}
@@ -703,16 +704,17 @@ bool CH_Exporter::getOrientation(const char* sectionName, const size_t player, c
 		printf("%s 3 ||X|O| |S|T||(Default)\n", g_global.tabs.c_str());
 		printf("%s 4 ||X| |O|S|T||\n", g_global.tabs.c_str());
 		printf("%s 5 || |X|O|S|T||\n", g_global.tabs.c_str());
-		switch (GlobalFunctions::menuChoices("12345", true))
+		switch (menuChoices("12345", true))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			printf("%s\n", g_global.tabs.c_str());
 			return false;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 			printf("%s\n", g_global.tabs.c_str());
-		case GlobalFunctions::ResultType::Failed:
+			__fallthrough;
+		case ResultType::Failed:
 			break;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			printf("%s\n", g_global.tabs.c_str());
 			m_guardOrientation = (unsigned int) g_global.answer.index;
 			return true;
@@ -771,14 +773,15 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 			printf("%s         Manually toggle each fret you wish to use (M)        ||\n", g_global.tabs.c_str());
 			printf("%s==============================================================||\n", g_global.tabs.c_str());
 		}
-		switch (GlobalFunctions::menuChoices(choices, true))
+		switch (menuChoices(choices, true))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			printf("%s\n", g_global.tabs.c_str());
 			return false;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 			printf("%s\n", g_global.tabs.c_str());
-		case GlobalFunctions::ResultType::Failed:
+			__fallthrough;
+		case ResultType::Failed:
 			break;
 		default:
 			switch (choices[g_global.answer.index])
@@ -801,7 +804,7 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 				choices = "12345pf";
 				if (piece == 1 && playerIndex)
 					choices += 't';
-				GlobalFunctions::banner(" Clone Hero Export - Fret Selection - Toggle Mode ");
+				banner(" Clone Hero Export - Fret Selection - Toggle Mode ");
 				do
 				{
 					if (playerIndex)
@@ -850,14 +853,15 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 						printf("%s                        Finish fret selection for this note/piece (F)                       ||\n", g_global.tabs.c_str());
 						printf("%s============================================================================================||\n", g_global.tabs.c_str());
 					}
-					switch (GlobalFunctions::menuChoices(choices, true))
+					switch (menuChoices(choices, true))
 					{
-					case GlobalFunctions::ResultType::Quit:
+					case ResultType::Quit:
 						printf("%s\n", g_global.tabs.c_str());
 						return false;
-					case GlobalFunctions::ResultType::Help:
+					case ResultType::Help:
 						printf("%s\n", g_global.tabs.c_str());
-					case GlobalFunctions::ResultType::Failed:
+						__fallthrough;
+					case ResultType::Failed:
 						break;
 					default:
 						printf("%s\n", g_global.tabs.c_str());
@@ -878,11 +882,11 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 								do
 								{
 									printf("%sAll colored frets will need to be untoggled. Continue toggling open note? [Y/N]\n", g_global.tabs.c_str());
-									switch (GlobalFunctions::menuChoices("yn"))
+									switch (menuChoices("yn"))
 									{
-									case GlobalFunctions::ResultType::Quit:
+									case ResultType::Quit:
 										return false;
-									case GlobalFunctions::ResultType::Success:
+									case ResultType::Success:
 										switch (g_global.answer.character)
 										{
 										case 'y':
@@ -910,11 +914,11 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 										{
 											printf("%s\n", g_global.tabs.c_str());
 											printf("%sAll colored frets not used for the previous note will need to be untoggled. Continue toggling open note? [Y/N]\n", g_global.tabs.c_str());
-											switch (GlobalFunctions::menuChoices("yn"))
+											switch (menuChoices("yn"))
 											{
-											case GlobalFunctions::ResultType::Quit:
+											case ResultType::Quit:
 												return false;
-											case GlobalFunctions::ResultType::Success:
+											case ResultType::Success:
 												switch (g_global.answer.character)
 												{
 												case 'y':
@@ -953,11 +957,11 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 									{
 										printf("%s\n", g_global.tabs.c_str());
 										printf("%sOpen note will need to be untoggled. Continue toggling this color? [Y/N]\n", g_global.tabs.c_str());
-										switch (GlobalFunctions::menuChoices("yn"))
+										switch (menuChoices("yn"))
 										{
-										case GlobalFunctions::ResultType::Quit:
+										case ResultType::Quit:
 											return false;
-										case GlobalFunctions::ResultType::Success:
+										case ResultType::Success:
 											switch (g_global.answer.character)
 											{
 											case 'y':

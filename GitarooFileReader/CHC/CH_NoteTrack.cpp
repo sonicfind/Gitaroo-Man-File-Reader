@@ -16,25 +16,49 @@
 #include "CH_NoteTrack.h"
 using namespace std;
 
-NoteTrack::~NoteTrack()
+void NoteTrack::pushNote(const CHNote& note, const int version)
 {
-	for (CHNote* note : m_allNotes)
-		delete note;
+	if (m_allNotes.size() == 0 || note.m_position_ticks != m_allNotes.back().m_position_ticks)
+		m_allNotes.push_back(note);
+	else if (!note.m_isTap && !note.m_isForced)
+		m_allNotes.back() = note;
+	else if ((version == 2 && note.m_isForced)
+		|| (version == 1 && note.m_isTap))
+	{
+		m_allNotes.back().m_isForced = true;
+		m_allNotes.back().m_isTap = true;
+	}
 }
 
-size_t NoteTrack::addModifier(float pos, CHNote::Modifier mod)
+std::list<CHNote>::iterator NoteTrack::addNote(float pos, int frets, float sustain, bool writeSustain)
 {
-	return GlobalFunctions::insert_ordered(m_allNotes, new CHNote(pos, 5U + (mod == CHNote::Modifier::TAP), 0.0f, true, mod));
+	auto ntIterator = GlobalFunctions::emplace_ordered(m_allNotes, pos, frets, sustain, writeSustain);
+	for (unsigned index = 0; index < 6; index++)
+		if (frets & (1 << index))
+		{
+			auto location = std::lower_bound(m_colors[index].begin(),
+											m_colors[index].end(),
+											ntIterator->m_colors[index],
+											[](const CHNote::Fret* a, const CHNote::Fret b) { return *a < b; });
+
+			if (location == m_colors[index].end() || **location != ntIterator->m_colors[index])
+				m_colors[index].insert(location, &ntIterator->m_colors[index]);
+		}
+	return ntIterator;
 }
 
-size_t NoteTrack::addEvent(float pos, std::string name)
+std::list<CHNote>::iterator NoteTrack::addEvent(float pos, std::string name)
 {
-	return GlobalFunctions::insert_ordered(m_allNotes, new CHNote(pos, 0U, 0.0f, true, CHNote::Modifier::NORMAL, CHNote::NoteType::EVENT, name));
+	// Event constructor
+	return GlobalFunctions::emplace_ordered(m_allNotes, pos, name);
 }
 
-size_t NoteTrack::addStarPower(float pos, float sustain)
+std::list<CHNote>::iterator NoteTrack::addStarPower(float pos, float sustain)
 {
-	return GlobalFunctions::insert_ordered(m_allNotes, new CHNote(pos, 0U, sustain, true, CHNote::Modifier::NORMAL, CHNote::NoteType::STAR));
+	// Star Power constructor
+	auto ntIterator = GlobalFunctions::emplace_ordered(m_allNotes, pos, sustain);
+	m_star.push_back(&ntIterator->m_star);
+	return ntIterator;
 }
 
 void NoteTrack::write(FILE* outFile, const size_t player)
@@ -43,8 +67,8 @@ void NoteTrack::write(FILE* outFile, const size_t player)
 	if (m_allNotes.size())
 	{
 		fprintf(outFile, headers[player]);
-		for (CHNote* note : m_allNotes)
-			note->write(outFile);
+		for (CHNote& note : m_allNotes)
+			note.write(outFile);
 		fprintf(outFile, "}\n");
 	}
 }
@@ -55,17 +79,8 @@ void NoteTrack::writeDuet(FILE* outFile, const size_t player)
 	if (m_allNotes.size())
 	{
 		fprintf(outFile, headers[player]);
-		for (CHNote* note : m_allNotes)
-			note->write(outFile);
+		for (CHNote& note : m_allNotes)
+			note.write(outFile);
 		fprintf(outFile, "}\n");
 	}
-}
-
-void NoteTrack::clear()
-{
-	for (std::vector<CHNote*>& track : m_colors)
-		track.clear();
-	for (CHNote* note : m_allNotes)
-		delete note;
-	m_allNotes.clear();
 }

@@ -18,111 +18,93 @@
 using namespace std;
 using namespace GlobalFunctions;
 
-bool CH_Exporter::exportChart()
+bool CHC::exportForCloneHero()
 {
-	std::vector<size_t> sectionIndexes;
-	do
+	banner(" " + m_filename + " - .CHART creation ");
+	if (m_unorganized != 0)
 	{
-		printf("%sType the number for each section that you wish to chart - w/ spaces inbetween.\n", g_global.tabs.c_str());
-		for (size_t sectIndex = 0; sectIndex <m_song.m_sections.size(); sectIndex++)
-			printf("%s%zu - %s\n", g_global.tabs.c_str(), sectIndex, m_song.m_sections[sectIndex].getName());
-		if (sectionIndexes.size())
+		do
 		{
-			printf("%sCurrent LinkedList::List: ", g_global.tabs.c_str());
-			for (size_t index : sectionIndexes)
-				printf("%s ",m_song.m_sections[index].getName());
-			putchar('\n');
-		}
-		switch (GlobalFunctions::insertIndexValues(sectionIndexes, "bgscynp",m_song.m_sections.size()))
-		{
-		case GlobalFunctions::ResultType::Help:
-
-			break;
-		case GlobalFunctions::ResultType::Quit:
-			printf("%sCH chart creation cancelled.\n", g_global.tabs.c_str());
-			return false;
-		case GlobalFunctions::ResultType::SpecialCase:
-			if (sectionIndexes.size())
+			printf("%s%s.CHC must be fully fixed & organized before it can exported to .chart.\n", g_global.tabs.c_str(), m_filename.c_str());
+			printf("%sFix & organize the file now? [Y/N]\n", g_global.tabs.c_str());
+			const auto result = menuChoices("yn");
+			if (result == ResultType::Success && g_global.answer.character == 'y')
 			{
+				applyChanges(true, false);
+				banner(" " + m_filename + " - .CHART creation ");
 				g_global.quit = true;
-				break;
 			}
-		case GlobalFunctions::ResultType::Success:
-			if (!sectionIndexes.size())
+			else if (result != ResultType::Quit && result != ResultType::Failed)
 			{
-				do
-				{
-					printf("%s\n", g_global.tabs.c_str());
-					printf("%sNo sections have been selected. Quit CH chart creation? [Y/N]\n", g_global.tabs.c_str());
-					switch (GlobalFunctions::menuChoices("yn"))
-					{
-					case GlobalFunctions::ResultType::Quit:
-					case GlobalFunctions::ResultType::Success:
-						switch (g_global.answer.character)
-						{
-						case 'n':
-							printf("%s\n", g_global.tabs.c_str());
-							g_global.quit = true;
-							break;
-						default:
-							printf("%sCH chart creation cancelled.\n", g_global.tabs.c_str());
-							return false;
-						}
-					}
-				} while (!g_global.quit);
-				g_global.quit = false;
+				printf("%sCH Chart Export on %s aborted due to not being fully organized.\n", g_global.tabs.c_str(), m_filename.c_str());
+				return false;
 			}
-			else
-				g_global.quit = true;
-			break;
-		}
-	} while (!g_global.quit);
-	g_global.quit = false;
-	printf("%s", g_global.tabs.c_str());
-	for (size_t sect = 0; sect < sectionIndexes.size(); sect++)
-		printf("%s ",m_song.m_sections[sectionIndexes[sect]].getName());
-	putchar('\n');
-#ifdef _DEBUG
-	m_modchart = true;
-#else
-	{
-		//"yes.txt" is essentially a run-time checked setting
-		FILE* test;
-		if (!fopen_s(&test, "yes.txt", "r"))
-		{
-			m_modchart = true;
-			fclose(test);
-		}
+		} while (!g_global.quit);
+		g_global.quit = false;
 	}
-#endif
-	//Used for modchart song.ini file that accompanies the .chart
-	//Fills in the "song_length" tag
-	float totalDuration = 0;
-	if (!convertSong(sectionIndexes))
+
+	std::vector<size_t> sectionIndexes = indexInsertionDialogue(m_sections
+			, "Type the index for each section that you wish to chart - in chronological order and w/ spaces in-between."
+			, "CH Chart Creation"
+			, "bgscnp");
+
+	printf_tab("");
+	for (auto sect : sectionIndexes)
+		printf("%s ", m_sections[sect].getName());
+	putchar('\n');
+
+	CHC_To_CloneHero exporter;
+	if (!exporter.convertSong(this, sectionIndexes))
 		return false;
-	printf("%s\n", g_global.tabs.c_str());
-	printf("%sAll Notes Converted\n", g_global.tabs.c_str());
-	string filename = m_song.m_filename.substr(0,m_song.m_filename.length() - 4);
+	printf("%s\n%sAll Notes Converted\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+
+	return exporter.writeChart(this);
+}
+
+CHC_To_CloneHero::CHC_To_CloneHero()
+	: ChartFileExporter()
+#ifdef _DEBUG
+{}
+#else
+{
+	FILE* test;
+	// "yes.txt" is essentially a run-time checked setting
+	// If an error occurs
+	if (fopen_s(&test, "yes.txt", "r"))
+	{
+		m_modchart = false;
+		m_grdFound = true;
+	}
+	else if (test)
+		fclose(test);
+}
+#endif
+	
+
+bool CHC_To_CloneHero::writeChart(CHC* song)
+{
 	bool written = false;
 	if (m_modchart)
 	{
-		string filenameMod = filename;
+		string filenameMod = song->m_directory + song->m_filename;
 		do
 		{
 			switch (fileOverwriteCheck(filenameMod + ".chart"))
 			{
-				for (size_t i = 0; i < m_exporter.m_sync.size();)
 			case ResultType::Quit:
+				for (auto iter = m_sync.begin(); iter != m_sync.end();)
 				{
-					m_exporter.m_sync[i].m_position -= 2 * s_TICKS_PER_BEAT;
+					iter->m_position_ticks -= 2 * s_TICKS_PER_BEAT;
 					//Remove the two extra synctracks
-					if (m_exporter.m_sync[i].m_position < 0)
-						m_exporter.m_sync.erase(m_exporter.m_sync.begin() + i);
+					if (iter->m_position_ticks < 0)
+						m_sync.erase(iter++);
 					else
-						i++;
+						++iter;
 				}
-				for (size_t i = 0; i < m_exporter.m_events.size(); i++)
-					m_exporter.m_events[i].m_position -= 2 * s_TICKS_PER_BEAT;
+
+				for (auto& ev : m_events)
+					ev.m_position_ticks -= 2 * s_TICKS_PER_BEAT;
+
 				g_global.quit = true;
 				break;
 			case ResultType::No:
@@ -130,14 +112,16 @@ bool CH_Exporter::exportChart()
 				break;
 			case ResultType::Yes:
 				//Generate the ini file if it's a chart from the original games (stage 2 also including separate EN & JP charts)
-				m_exporter.open(filenameMod + ".ini");
-				m_exporter.writeIni(m_song.m_stage, (unsigned long)ceilf(totalDuration * (.0625f / 3)),m_song.m_shortname.find("HE") == string::npos);
-				m_exporter.open(filenameMod + ".chart");
-				if (m_song.m_imc[0])
-					m_exporter.write(true);
+				open(filenameMod + ".ini", true);
+				writeIni(song->m_stage, (unsigned long)ceilf((.0625f / 3) * m_samepleDuration), song->m_filename.find("HE") == string::npos);
+				open(filenameMod + ".chart", true);
+
+				if (song->m_imc[0])
+					write(true);
 				else
-					m_exporter.writeDuetModchart();
-				m_exporter.close();
+					writeDuetModchart();
+
+				close();
 				g_global.quit = true;
 				written = true;
 			}
@@ -145,7 +129,8 @@ bool CH_Exporter::exportChart()
 		} while (!g_global.quit);
 		g_global.quit = false;
 	}
-	filename += "_For_Reimporting";
+
+	string filename = song->m_directory + song->m_filename + "_For_Reimporting";
 	do
 	{
 		switch (fileOverwriteCheck(filename + ".chart"))
@@ -156,200 +141,111 @@ bool CH_Exporter::exportChart()
 		case ResultType::No:
 			filename += "_T";
 			break;
-			m_exporter.open(filename + ".chart");
-			m_exporter.write(false);
-			m_exporter.close();
 		case ResultType::Yes:
+			open(filename + ".chart", true);
+			write(false);
+			close();
 			written = true;
 			g_global.quit = true;
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
+
 	return written;
 }
 
-bool CH_Exporter::convertSong(std::vector<size_t>& sectionIndexes)
+bool CHC_To_CloneHero::convertSong(CHC* song, std::vector<size_t>& sectionIndexes)
 {
-	bool multiplayer = toupper(m_song.m_shortname.back()) == 'M' || (m_song.m_stage > 10 &&m_song.m_imc[0]);
-	bool grdFound = true, phrFound[2] = { false, false }, done = false;
 	if (m_modchart)
 	{
 		//Set starting position for generating the modchart
-		m_exporter.m_sync.emplace_back(m_position, 2, 12632);
-		m_position += s_TICKS_PER_BEAT;
-		if (m_song.m_shortname.find("ST02_HE") != string::npos)
-			m_exporter.m_sync.emplace_back(m_position, 2, 73983, false);
-		else if (0 <m_song.m_stage && m_song.m_stage <= 12)
+		m_sync.emplace_back(m_position_ticks, 2, 12632);
+		m_position_ticks += s_TICKS_PER_BEAT;
+
+		if (song->m_filename.find("ST02_HE") != string::npos)
+			m_sync.emplace_back(m_position_ticks, 2, 73983, false);
+		else if (0 < song->m_stage && song->m_stage <= 12)
 		{
 			static const unsigned long bpmArray[] = { 77538, 74070, 76473, 79798, 74718, 79658, 73913, 76523, 74219, 75500, 80000, 80000 };
-			m_exporter.m_sync.emplace_back(m_position, 2, bpmArray[m_song.m_stage - 1], false);
+			m_sync.emplace_back(m_position_ticks, 2, bpmArray[song->m_stage - 1], false);
 		}
-		m_position += s_TICKS_PER_BEAT;
-		grdFound = false;
+		m_position_ticks += s_TICKS_PER_BEAT;
 	}
 
-	m_exporter.m_events.reserve(sectionIndexes.size() + 1);
-	m_exporter.m_events.resize(sectionIndexes.size() + 1);
-	m_exporter.m_events[0] = { m_position, "GMFR EXPORT V2.0" };
-	for (size_t sect = 0; sect < sectionIndexes.size(); ++sect)
+	const bool multiplayer = toupper(song->m_filename.back()) == 'M' || (song->m_stage > 10 && song->m_imc[0]);
+	bool doneChecking = false;
+	m_events.push_back({ m_position_ticks, "GMFR EXPORT V2.0" });
+	for (auto& sect : sectionIndexes)
 	{
-		SongSection& section = m_song.m_sections[sectionIndexes[sect]];
+		SongSection& section = song->m_sections[sect];
 		printf("%sConverting %s\n", g_global.tabs.c_str(), section.getName());
 		switch (section.getPhase())
 		{
 		case SongSection::Phase::INTRO:
-			m_exporter.m_events[sect + 1] = { m_position, "section INTRO - " + string(section.getName()) }; break;
+			m_events.push_back({ m_position_ticks, "section INTRO - " + string(section.getName()) }); break;
 		case SongSection::Phase::CHARGE:
-			m_exporter.m_events[sect + 1] = { m_position, "section CHARGE - " + string(section.getName()) }; break;
+			m_events.push_back({ m_position_ticks, "section CHARGE - " + string(section.getName()) }); break;
 		case SongSection::Phase::BATTLE:
-			m_exporter.m_events[sect + 1] = { m_position, "section BATTLE - " + string(section.getName()) }; break;
+			m_events.push_back({ m_position_ticks, "section BATTLE - " + string(section.getName()) }); break;
 		case SongSection::Phase::FINAL_AG:
-			m_exporter.m_events[sect + 1] = { m_position, "section FINAL_AG - " + string(section.getName()) }; break;
+			m_events.push_back({ m_position_ticks, "section FINAL_AG - " + string(section.getName()) }); break;
 		case SongSection::Phase::HARMONY:
-			m_exporter.m_events[sect + 1] = { m_position, "section HARMONY - " + string(section.getName()) }; break;
+			m_events.push_back({ m_position_ticks, "section HARMONY - " + string(section.getName()) }); break;
 		case SongSection::Phase::END:
-			m_exporter.m_events[sect + 1] = { m_position, "section END - " + string(section.getName()) }; break;
+			m_events.push_back({ m_position_ticks, "section END - " + string(section.getName()) }); break;
 		default:
-			m_exporter.m_events[sect + 1] = { m_position, "section FINAL_I - " + string(section.getName()) };
+			m_events.push_back({ m_position_ticks, "section FINAL_I - " + string(section.getName()) });
 		}
 
-		if (m_exporter.m_sync.size() == 0 || unsigned long(section.getTempo() * 1000) != m_exporter.m_sync.back().m_bpm)
+		if (m_sync.size() == 0 || unsigned long(section.getTempo() * 1000) != m_sync.back().m_bpm)
 		{
-			if (m_song.m_stage == 12 && section.getPhase() == SongSection::Phase::INTRO)
+			// Toda Pasion is off by one beat. Yay for rushed development
+			if (song->m_stage == 12 && section.getPhase() == SongSection::Phase::INTRO)
 			{
-				m_exporter.m_sync.emplace_back(m_position, 3, unsigned long(section.getTempo() * 1000));
-				m_exporter.m_sync.emplace_back(m_position + 3 * s_TICKS_PER_BEAT, 4, 0);
+				m_sync.push_back({ m_position_ticks
+								 , 3
+								 , unsigned long(section.getTempo() * 1000) });
+
+				m_sync.push_back({ m_position_ticks + 3 * s_TICKS_PER_BEAT
+								 , 4 });
 			}
 			else
-				m_exporter.m_sync.emplace_back(m_position, 4, unsigned long(section.getTempo() * 1000));
-			if (section.getTempo() < 80.0f)
-				m_exporter.m_sync.back().m_eighth = " 3";
+				m_sync.push_back({ m_position_ticks
+								 , m_sync.size() == 0 ? 4UL : 0UL
+								 , unsigned long(section.getTempo() * 1000)
+								 , section.getTempo() < 80.0f ? 3UL : 2UL });
 		}
 
-		if (section.getPhase() != SongSection::Phase::INTRO && !strstr(section.getName(), "BRK")) //If not INTRO phase or BRK section
+		if (section.getPhase() != SongSection::Phase::INTRO
+			&& !strstr(section.getName(), "BRK")
+			&& !strstr(section.getName(), "BREAK")) //If not INTRO phase or BRK section
 		{
-			if (!done)
+			if (!doneChecking)
 			{
-				for (size_t playerIndex = 0; playerIndex < section.getNumPlayers() && (!done && !g_global.quit);
-					multiplayer ? ++playerIndex : playerIndex += 2)
+				try
 				{
-					const size_t endIndex = (playerIndex + 1) * section.getNumCharts();
-					for (size_t index = playerIndex * section.getNumCharts();
-						index < endIndex && (!done || (m_guardPromptType == 1 && !g_global.quit));
-						++index)
-					{
-						const Chart& chart = section.m_charts[index++];
-						if (chart.getNumGuards() && !g_global.quit)
-						{
-							while (!grdFound)
-							{
-								printf("%sHow will guard phrases be handled? [Only effects the modchart export]\n", g_global.tabs.c_str());
-								printf("%sB - Base orientation only\n", g_global.tabs.c_str());
-								printf("%sF - Choose full-song orientation\n", g_global.tabs.c_str());
-								printf("%sS - Determined per section\n", g_global.tabs.c_str());
-								printf("%sC - Determined per chart\n", g_global.tabs.c_str());
-								switch (GlobalFunctions::menuChoices("bfsc"))
-								{
-								case GlobalFunctions::ResultType::Quit:
-									printf("%s\n", g_global.tabs.c_str());
-									printf("%sCH chart creation cancelled.\n", g_global.tabs.c_str());
-									return false;
-								case GlobalFunctions::ResultType::Success:
-									switch (g_global.answer.character)
-									{
-									case 'f':
-										if (!getOrientation(section.getName()))
-										{
-											printf("%sClone Hero chart creation cancelled.\n", g_global.tabs.c_str());
-											return false;
-										}
-										__fallthrough;
-									case 'b':
-										printf("%s\n", g_global.tabs.c_str());
-										grdFound = true;
-										break;
-									case 's':
-										printf("%s\n", g_global.tabs.c_str());
-										m_guardPromptType = 1;
-										grdFound = true;
-										break;
-									default:
-										printf("%s\n", g_global.tabs.c_str());
-										m_guardPromptType = 2;
-										grdFound = true;
-									}
-								}
-							}
-							if (m_guardPromptType == 1)
-							{
-								if (!getOrientation(section.getName()))
-								{
-									printf("%sCH chart creation cancelled.\n", g_global.tabs.c_str());
-									return false;
-								}
-								else
-									g_global.quit = true;
-							}
-						}
-						if (chart.getNumPhrases())
-						{
-							const unsigned subPlayer = playerIndex & 1;
-							while (!phrFound[subPlayer])
-							{
-								printf("%sHow will strum phrases be handled for player %u?\n", g_global.tabs.c_str(), subPlayer + 1);
-								printf("%sS - Same frets for the entire song\n", g_global.tabs.c_str());
-								printf("%sN - Determined per note\n", g_global.tabs.c_str());
-								printf("%sP - Determined per phrase bar\n", g_global.tabs.c_str());
-								//printf("%s", g_global.tabs.c_str(), "Note for C, N, & P: if a phrase bar has a pre-set color from a .chart import, that color will be used.\n";
-								switch (GlobalFunctions::menuChoices("snp"))
-								{
-								case GlobalFunctions::ResultType::Quit:
-									printf("%s\n", g_global.tabs.c_str());
-									printf("%sCH chart creation cancelled.\n", g_global.tabs.c_str());
-									return false;
-								case GlobalFunctions::ResultType::Success:
-									switch (g_global.answer.character)
-									{
-									case 's':
-										printf("%s\n", g_global.tabs.c_str());
-										if (!getFrets(section.getName(), 0, subPlayer))
-										{
-											printf("%sCH chart creation cancelled.\n", g_global.tabs.c_str());
-											return false;
-										}
-										phrFound[subPlayer] = true;
-										break;
-									case 'n':
-										printf("%s\n", g_global.tabs.c_str());
-										m_phraseBarPromptType[subPlayer] = 1;
-										phrFound[subPlayer] = true;
-										break;
-									default:
-										printf("%s\n", g_global.tabs.c_str());
-										m_phraseBarPromptType[subPlayer] = 2;
-										phrFound[subPlayer] = true;
-									}
-								}
-							}
-						}
-						if (m_guardPromptType != 1)
-							done = grdFound && phrFound[0] && phrFound[1];
-						else
-							g_global.quit = grdFound && phrFound[0] && phrFound[1];
-					}
+					doneChecking = checkNoteHandling(section, multiplayer);
 				}
-				g_global.quit = false;
+				catch (...)
+				{
+					printf("%sClone Hero chart creation cancelled.\n", g_global.tabs.c_str());
+					return false;
+				}
 			}
+
 			const float TICKS_PER_SAMPLE = section.getTempo() * s_TICKS_PER_BEAT / s_SAMPLES_PER_MIN;
 			//Marking where each the list the current section starts
 			for (size_t chartIndex = 0; chartIndex < section.getNumCharts(); chartIndex++)
 			{
-				for (size_t playerIndex = 0, currentPlayer = 0; playerIndex < section.getNumPlayers(); multiplayer ? ++playerIndex : playerIndex += 2)
+				for (size_t playerIndex = 0; playerIndex < section.getNumPlayers(); multiplayer ? ++playerIndex : playerIndex += 2)
 				{
 					Chart& chart = section.m_charts[playerIndex * section.getNumCharts() + chartIndex];
-					currentPlayer = playerIndex & 1 || (playerIndex == 2 && !m_song.m_imc[0]);
-					size_t markIndex = m_exporter.m_reimportNotes[currentPlayer].m_allNotes.size();
+					size_t currentPlayer = playerIndex & 1 || (playerIndex == 2 && !song->m_imc[0]);
+					auto markIter = m_reimportNotes[currentPlayer].m_allNotes.end();
+					if (m_reimportNotes[currentPlayer].m_allNotes.size())
+						--markIter;
 					size_t grdIndex = 0;
+
 					if (chart.getNumGuards())
 					{
 						if (m_modchart && m_guardPromptType == 2 && !getOrientation(section.getName(), playerIndex, chartIndex))
@@ -357,74 +253,183 @@ bool CH_Exporter::convertSong(std::vector<size_t>& sectionIndexes)
 							printf("%sClone Hero chart creation cancelled.\n", g_global.tabs.c_str());
 							return false;
 						}
-						grdIndex = convertGuard(chart, TICKS_PER_SAMPLE, currentPlayer);
+						convertGuards(chart, TICKS_PER_SAMPLE, currentPlayer);
 					}
-					else
-						grdIndex = m_exporter.m_modchartNotes[currentPlayer].m_allNotes.size();
 
-					size_t phrIndex = 0;
 					if (chart.getNumTracelines() > 1)
 					{
 						convertTrace(chart, TICKS_PER_SAMPLE, (long)roundf(TICKS_PER_SAMPLE * section.getDuration()), currentPlayer);
 						try
 						{
-							phrIndex = convertPhrase(section, playerIndex, chartIndex, TICKS_PER_SAMPLE, currentPlayer);
+							if (m_phraseBarPromptType[currentPlayer])
+								for (auto& phrase : chart.m_phrases)
+									if (phrase.getColor() == 0)
+									{
+										banner(" Clone Hero Export - Fret Selections ");
+										banner(" " + string(section.getName()) + ": Player " + to_string(playerIndex) + " - Chart " + to_string(chartIndex) + ' ');
+										break;
+									}
+
+							convertPhrases(chart, TICKS_PER_SAMPLE, currentPlayer, section.getPhase());
 						}
 						catch (const char* str)
 						{
 							printf("%s%s\n", g_global.tabs.c_str(), str);
+							printf("%sClone Hero chart creation cancelled.\n", g_global.tabs.c_str());
 							return false;
 						}
 					}
-					//Firstly, determines whether a "start" marker should be placed
-					if ((chartIndex != 0 || (playerIndex >= 2 &&m_song.m_imc[0])) && (chart.getNumTracelines() > 1 || chart.getNumGuards()))
+
+					// Firstly, determines whether a "start" marker should be placed
+					if ((chartIndex != 0
+							// Second subsection for P1 of a non-duet song
+							|| (playerIndex >= 2 && song->m_imc[0]))
+						&& (chart.getNumTracelines() > 1 || chart.getNumGuards()))
 					{
-						//AKA, if any notes or trace lines were added
-						float pos;
-						if (markIndex < m_exporter.m_reimportNotes[currentPlayer].m_allNotes.size())
-							pos = 0.5f * (m_exporter.m_reimportNotes[currentPlayer].m_allNotes[markIndex]->m_position + m_exporter.m_reimportNotes[currentPlayer].m_allNotes[markIndex - 1]->m_position);
-						else if (markIndex > 0)
-							pos = m_exporter.m_reimportNotes[currentPlayer].m_allNotes[markIndex - 1]->m_position + 160;
-						else
-							pos = m_position + 160;
-						m_exporter.m_reimportNotes[currentPlayer].addEvent(pos, "start");
-					}
-					//Sets star power phrases
-					if (m_modchart)
-					{
-						switch (section.getPhase())
-						{
-						case SongSection::Phase::BATTLE:
-							if (chart.getNumGuards())
-								//Encapsulate all the guard marks in the subsection
-								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.m_guards[0].m_pivotAlpha + (float)chart.getPivotTime()),
-									20 + TICKS_PER_SAMPLE * ((float)chart.m_guards[chart.getNumGuards() - 1].m_pivotAlpha - chart.m_guards[0].m_pivotAlpha));
-							break;
-						case SongSection::Phase::CHARGE:
-							if (chart.getNumPhrases())
-								//Encapsulate all the phrase bars in the subsection
-								m_exporter.m_modchartNotes[currentPlayer].addStarPower(m_position + TICKS_PER_SAMPLE * (chart.m_phrases[0].m_pivotAlpha + (float)chart.getPivotTime()),
-									TICKS_PER_SAMPLE * ((float)chart.m_phrases[chart.getNumPhrases() - 1].getEndAlpha() - chart.m_phrases[0].m_pivotAlpha));
-						}
+						auto prevIter = markIter++;
+						m_reimportNotes[currentPlayer].addEvent(0.5f * (prevIter->m_position_ticks + markIter->m_position_ticks), "start");
 					}
 				}
 			}
 		}
-		m_position += s_TICKS_PER_BEAT * roundf(section.getDuration() * section.getTempo() / s_SAMPLES_PER_MIN);
+		m_position_ticks += s_TICKS_PER_BEAT * roundf(section.getDuration() * section.getTempo() / s_SAMPLES_PER_MIN);
+
 		if (m_modchart)
 			//							Samples per beat										Number of beats (rounded)
 			m_samepleDuration += (s_SAMPLES_PER_MIN / section.getTempo()) * roundf(section.getDuration() * section.getTempo() / s_SAMPLES_PER_MIN);
 	}
+
 	return true;
 }
 
-size_t CH_Exporter::convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer)
+bool CHC_To_CloneHero::checkNoteHandling(SongSection& section, const bool multiplayer)
 {
-	// 1 = G; 2 = R; 4 = Y; 8 = B; 16 = O
-	static const unsigned fretSets[5][4] = { { 4, 1, 2, 8 }, { 4, 1, 2, 16 }, { 8, 1, 2, 16 }, { 8, 1, 4, 16 }, { 8, 2, 4, 16 } };
+	for (size_t playerIndex = 0; playerIndex < section.getNumPlayers(); multiplayer ? ++playerIndex : playerIndex += 2)
+	{
+		for (size_t chartIndex = 0; chartIndex < section.getNumCharts(); ++chartIndex)
+		{
+			const Chart& chart = section.m_charts[playerIndex * section.getNumCharts() + chartIndex];
+			if (chart.getNumGuards())
+			{
+				while (!m_grdFound)
+				{
+					printf("%sHow will guard phrases be handled? [Only effects the modchart export]\n", g_global.tabs.c_str());
+					printf("%sB - Base orientation only\n", g_global.tabs.c_str());
+					printf("%sF - Choose full-song orientation\n", g_global.tabs.c_str());
+					printf("%sS - Determined per section\n", g_global.tabs.c_str());
+					printf("%sC - Determined per chart\n", g_global.tabs.c_str());
+					switch (menuChoices("bfsc"))
+					{
+					case ResultType::Quit:
+						printf("%s\n", g_global.tabs.c_str());
+						throw;
+					case ResultType::Success:
+						switch (g_global.answer.character)
+						{
+						case 'f':
+							if (!getOrientation(section.getName()))
+							{
+								printf("%sClone Hero chart creation cancelled.\n", g_global.tabs.c_str());
+								return false;
+							}
+							__fallthrough;
+						case 'b':
+							printf("%s\n", g_global.tabs.c_str());
+							m_grdFound = true;
+							break;
+						case 's':
+							printf("%s\n", g_global.tabs.c_str());
+							m_guardPromptType = 1;
+							m_grdFound = true;
+							break;
+						default:
+							printf("%s\n", g_global.tabs.c_str());
+							m_guardPromptType = 2;
+							m_grdFound = true;
+						}
+					}
+				}
+
+				if (m_guardPromptType == 1)
+				{
+					if (!getOrientation(section.getName()))
+					{
+						printf("%sCH chart creation cancelled.\n", g_global.tabs.c_str());
+						return false;
+					}
+					else if (m_phraseFound[0] && m_phraseFound[1])
+						return false;
+				}
+			}
+
+			if (chart.getNumPhrases())
+			{
+				const unsigned subPlayer = playerIndex & 1;
+				while (!m_phraseFound[subPlayer])
+				{
+					printf("%sHow will strum phrases be handled for player %u?\n", g_global.tabs.c_str(), subPlayer + 1);
+					printf("%sS - Same frets for the entire song\n", g_global.tabs.c_str());
+					printf("%sN - Determined per note\n", g_global.tabs.c_str());
+					printf("%sP - Determined per phrase bar\n", g_global.tabs.c_str());
+					//printf("%s", g_global.tabs.c_str(), "Note for C, N, & P: if a phrase bar has a pre-set color from a .chart import, that color will be used.\n";
+					switch (menuChoices("snp"))
+					{
+					case ResultType::Quit:
+						printf("%s\n", g_global.tabs.c_str());
+						printf("%sCH chart creation cancelled.\n", g_global.tabs.c_str());
+						return false;
+					case ResultType::Success:
+						switch (g_global.answer.character)
+						{
+						case 's':
+							printf("%s\n", g_global.tabs.c_str());
+							banner(" Clone Hero Export - Full Song Fret Selection ");
+							banner(" Player " + to_string(playerIndex) + " ");
+							if (!getFrets(3, subPlayer))
+							{
+								printf("%sCH chart creation cancelled.\n", g_global.tabs.c_str());
+								return false;
+							}
+							m_phraseFound[subPlayer] = true;
+							break;
+						case 'n':
+							printf("%s\n", g_global.tabs.c_str());
+							m_phraseBarPromptType[subPlayer] = 1;
+							m_phraseFound[subPlayer] = true;
+							break;
+						default:
+							printf("%s\n", g_global.tabs.c_str());
+							m_phraseBarPromptType[subPlayer] = 2;
+							m_phraseFound[subPlayer] = true;
+						}
+					}
+				}
+			}
+
+			if (m_grdFound && m_phraseFound[0] && m_phraseFound[1])
+				return m_guardPromptType != 1;
+		}
+	}
+	return false;
+}
+
+void CHC_To_CloneHero::convertGuards(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer)
+{
+	// 1  = G
+	// 2  = R
+	// 4  = Y
+	// 8  = B
+	// 16 = O
+	static const unsigned fretSets[5][4] =
+	{ { 4, 1, 2, 8 }
+	, { 4, 1, 2, 16 }
+	, { 8, 1, 2, 16 }
+	, { 8, 1, 4, 16 }
+	, { 8, 2, 4, 16 } };
+
 	const static long GUARD_GAP = 8000;
 	const float GUARD_OPEN_TICK_DISTANCE = GUARD_GAP * TICKS_PER_SAMPLE;
-	size_t grdStarIndex = m_exporter.m_modchartNotes[currentPlayer].m_allNotes.size();
+	std::pair<float, float> starPower;
 
 	struct open
 	{
@@ -436,20 +441,19 @@ size_t CH_Exporter::convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, con
 	open* openNotes = m_modchart && arraySize ? new open[arraySize]() : nullptr;
 	for (size_t i = 0, undersized = 0; i < chart.getNumGuards(); i++)
 	{
-		const Guard& guard = chart.m_guards[i];
-		unsigned modfret = fretSets[m_guardOrientation][guard.m_button];
-		unsigned fret = fretSets[2][guard.m_button];
-		float pos = m_position + TICKS_PER_SAMPLE * ((float)guard.m_pivotAlpha + chart.getPivotTime());
+		float pos = m_position_ticks + TICKS_PER_SAMPLE * ((float)chart.m_guards[i].m_pivotAlpha + chart.getPivotTime());
 		if (m_modchart)
 		{
 			if (i == 0)
-				grdStarIndex = m_exporter.m_modchartNotes[currentPlayer].addNote(pos, modfret);
-			else
-				m_exporter.m_modchartNotes[currentPlayer].addNote(pos, modfret);
-			m_exporter.m_modchartNotes[currentPlayer].addModifier(pos, CHNote::Modifier::TAP);
+				starPower.first = pos;
+			else if (i + 1 == chart.getNumGuards())
+				starPower.second = pos + 20;
+
+			m_modchartNotes[currentPlayer].addNote(pos, fretSets[m_guardOrientation][chart.m_guards[i].m_button])->m_isTap = true;
+
 			if (openNotes && i < arraySize)
 			{
-				const long dif = chart.m_guards[i + 1].m_pivotAlpha - guard.m_pivotAlpha;
+				const long dif = chart.m_guards[i + 1].m_pivotAlpha - chart.m_guards[i].m_pivotAlpha;
 				if (dif < 5200)
 				{
 					if (undersized < 3)
@@ -496,7 +500,7 @@ size_t CH_Exporter::convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, con
 			}
 			pos -= 2 * s_TICKS_PER_BEAT;
 		}
-		m_exporter.m_reimportNotes[currentPlayer].addNote(pos, fret);
+		m_reimportNotes[currentPlayer].addNote(pos, fretSets[2][chart.m_guards[i].m_button]);
 	}
 
 	if (m_modchart)
@@ -504,102 +508,96 @@ size_t CH_Exporter::convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, con
 		if (openNotes)
 		{
 			for (int index = 0; index < arraySize; ++index)
-			{
-				m_exporter.m_modchartNotes[currentPlayer].addNote(openNotes[index].position, 32);
-				if (openNotes[index].forced)
-					m_exporter.m_modchartNotes[currentPlayer].addModifier(openNotes[index].position, CHNote::Modifier::FORCED);
-			}
+				m_modchartNotes[currentPlayer].addNote(openNotes[index].position, 32)->m_isForced = openNotes[index].forced;
 			delete[arraySize] openNotes;
-		}	
+		}
+
+		// Encapsulate all the guard marks in the subsection
+		m_modchartNotes[currentPlayer].addStarPower(starPower.first, starPower.second);
 	}
-	return grdStarIndex;
 }
 
-void CH_Exporter::convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer)
+void CHC_To_CloneHero::convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer)
 {
 	for (size_t i = 0; i < chart.getNumTracelines(); i++)
 	{
 		float pos = TICKS_PER_SAMPLE * (chart.m_tracelines[i].m_pivotAlpha + (float)chart.getPivotTime());
-		string name;
-		if ((long)round(pos) < sectionDuration)
-			name = "Trace";
-		else
-			name = "TraceP";
+		string name = (long)round(pos) < sectionDuration ? "Trace" : "TraceP";
+
 		if (m_modchart)
-			pos += m_position - 2 * s_TICKS_PER_BEAT;
+			pos += m_position_ticks - 2 * s_TICKS_PER_BEAT;
 		else
-			pos += m_position;
+			pos += m_position_ticks;
+
 		if (i + 1 != chart.getNumTracelines())
 		{
 			if (chart.m_tracelines[i].m_angle == 0)
-				m_exporter.m_reimportNotes[currentPlayer].addEvent(pos, name);
+				m_reimportNotes[currentPlayer].addEvent(pos, name);
 			else
-				m_exporter.m_reimportNotes[currentPlayer].addEvent(pos, name + '_' + to_string(GlobalFunctions::radiansToDegrees(chart.m_tracelines[i].m_angle)));
+				m_reimportNotes[currentPlayer].addEvent(pos, name + '_' + to_string(radiansToDegrees(chart.m_tracelines[i].m_angle)));
+
 			if (chart.m_tracelines[i].m_curve)
-				m_exporter.m_reimportNotes[currentPlayer].addEvent(pos, "Trace_curve");
+				m_reimportNotes[currentPlayer].addEvent(pos, "Trace_curve");
 		}
 		else
-			m_exporter.m_reimportNotes[currentPlayer].addEvent(pos, name + "_end");
+			m_reimportNotes[currentPlayer].addEvent(pos, name + "_end");
 	}
 }
 
-size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex, const size_t chartIndex, const float TICKS_PER_SAMPLE, const size_t currentPlayer)
+void CHC_To_CloneHero::convertPhrases(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer, const SongSection::Phase phase)
 {
-	Chart& chart = section.m_charts[playerIndex * section.getNumCharts() + chartIndex];
-	size_t phrIndex = m_exporter.m_modchartNotes[currentPlayer].m_allNotes.size();
+	std::pair<float, float> starPower;
 	unsigned long prevFret = m_strumFret[currentPlayer];
 	unsigned long& fret = m_strumFret[currentPlayer];
-	const size_t max = chart.getNumPhrases();
-	for (size_t i = 0, note = 1, piece = 1; i < max; i++)
+
+	for (size_t i = 0, note = 1, piece = 1; i < chart.getNumPhrases(); i++)
 	{
 		if (m_phraseBarPromptType[currentPlayer])
 		{
 			fret = chart.m_phrases[i].getColor();
 			if (fret == 0)
 			{
-				if (section.getPhase() == SongSection::Phase::BATTLE && note == 1 && piece == 1)
-					g_global.quit = !getFrets(section.getName(), 1, playerIndex + 1, chartIndex, note, piece);
+				if (phase == SongSection::Phase::BATTLE && note == 1 && piece == 1)
+					g_global.quit = !getFrets(1, currentPlayer, note, piece);
 				else if (piece > 1)
-					g_global.quit = !getFrets(section.getName(), 2, playerIndex + 1, chartIndex, note, piece);
+					g_global.quit = !getFrets(2, currentPlayer, note, piece);
 				else
-					g_global.quit = !getFrets(section.getName(), 0, playerIndex + 1, chartIndex, note, piece);
+					g_global.quit = !getFrets(0, currentPlayer, note, piece);
+
 				if (g_global.quit)
 				{
 					g_global.quit = false;
 					throw "CH chart creation cancelled.";
-				}
-				else if (i + 1 == max)
-					GlobalFunctions::banner(" " + string(section.getName()) + "'s Phrase Bars Converted ");
+				}	
 			}
 		}
-		float pos = m_position + TICKS_PER_SAMPLE * (chart.m_phrases[i].m_pivotAlpha + (float)chart.getPivotTime());
+
+		float pos = m_position_ticks + TICKS_PER_SAMPLE * (chart.m_phrases[i].m_pivotAlpha + (float)chart.getPivotTime());
 		if (m_phraseBarPromptType[currentPlayer] < 2 || fret == 256)
-		{
-			size_t maxIndex = max;
-			while (i < maxIndex && !chart.m_phrases[i].m_end && i + 1 != maxIndex)
-				i++;
-		}
+			while (i + 1 != chart.getNumPhrases() && !chart.m_phrases[i].m_end)
+				++i;
+
 		if (fret >= 128)
 			fret = prevFret;
-		float endTick = m_position + TICKS_PER_SAMPLE * (chart.m_phrases[i].getEndAlpha() + (float)chart.getPivotTime());
+
+		float endTick = m_position_ticks + TICKS_PER_SAMPLE * (chart.m_phrases[i].getEndAlpha() + (float)chart.getPivotTime());
 		unsigned long addedNotes = fret & 63, removedNotes = 0;
 		if (piece > 1)
 		{
 			if (((prevFret & 31) != 31) == ((fret & 31) != 31))
 			{
-				for (unsigned long color = 0, val = 1; color < 6; ++color, val <<= 1) //Used for setting extended sustains
+				// Used for setting extended sustains
+				for (unsigned long color = 0, val = 1; color < 6; ++color, val <<= 1)
 				{
 					if ((prevFret & val) && (fret & val))
 					{
 						if (m_modchart)
 						{
-							CHNote* note = m_exporter.m_modchartNotes[currentPlayer].m_colors[color].back();
-							note->setEndPoint(endTick);
-							note->m_fret.m_writeSustain = note->m_fret.m_sustain >= 6200 * TICKS_PER_SAMPLE;
-							m_exporter.m_reimportNotes[currentPlayer].m_colors[color].back()->setEndPoint(endTick - 2 * s_TICKS_PER_BEAT);
+							m_modchartNotes[currentPlayer].m_allNotes.back().m_colors[color].setEndPoint(endTick, 6200 * TICKS_PER_SAMPLE);
+							m_reimportNotes[currentPlayer].m_allNotes.back().m_colors[color].setEndPoint(endTick - 2 * s_TICKS_PER_BEAT);
 						}
 						else
-							m_exporter.m_reimportNotes[currentPlayer].m_colors[color].back()->setEndPoint(endTick);
+							m_reimportNotes[currentPlayer].m_allNotes.back().m_colors[color].setEndPoint(endTick);
 						addedNotes &= ~val; //Removal
 					}
 					else if (prevFret & val)
@@ -612,70 +610,75 @@ size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex
 			float duration = endTick - pos;
 			if (m_modchart)
 			{
-				bool hammeron = false;
-				size_t ntIndex = m_exporter.m_modchartNotes[currentPlayer].addNote(pos, addedNotes, duration, duration >= 9600 * TICKS_PER_SAMPLE);
 				size_t added = 0;
 				for (unsigned long color = 0, val = 1; added < 2 && color < 6; ++color, val <<= 1)
 					if (addedNotes & val)
-						added++;
+						++added;
+
+				auto ntIterator = m_modchartNotes[currentPlayer].addNote(pos, addedNotes, duration, duration >= 9600 * TICKS_PER_SAMPLE);
+				bool hammeron = false;
 				if (added == 1 && fret != prevFret)
 				{
-					for (size_t prev = ntIndex; prev > 0;)
+					for (auto prev = std::make_reverse_iterator(ntIterator);
+						prev != m_modchartNotes[currentPlayer].m_allNotes.rend();
+						++prev)
 					{
-						if (m_exporter.m_modchartNotes[currentPlayer].m_allNotes[--prev]->m_type == CHNote::NoteType::NOTE)
+						if (prev->hasColors())
 						{
-							hammeron = pos - m_exporter.m_modchartNotes[currentPlayer].m_allNotes[prev]->m_position < 162.5f;
+							hammeron = pos - prev->m_position_ticks < 162.5f;
 							break;
 						}
 					}
 				}
+
 				if (fret & 64)
 				{
+					// Open notes do not have a tapped form
 					if (!(addedNotes & 32))
-						m_exporter.m_modchartNotes[currentPlayer].addModifier(pos, CHNote::Modifier::TAP);
+						ntIterator->m_isTap = true;
 					else if (!hammeron)
-						m_exporter.m_modchartNotes[currentPlayer].addModifier(pos, CHNote::Modifier::FORCED);
+						ntIterator->m_isForced = true;
 				}
-				else if ((piece == 1) == hammeron) //Ensures a strum on new notes and hammeron's for continuations
-					m_exporter.m_modchartNotes[currentPlayer].addModifier(pos, CHNote::Modifier::FORCED);
-				//Handles Sustain Gaps
+				// Ensures a strum on new notes and hammerons for continuations
+				else if ((piece == 1) == hammeron) 
+					ntIterator->m_isForced = true;
+
+				// Handles Sustain Gaps
 				for (unsigned long color = 0, val = 1; color < 6; ++color, val <<= 1)
 				{
-					size_t index = m_exporter.m_modchartNotes[currentPlayer].m_colors[color].size();
-					if (index && (!(addedNotes & val) || (fret & 31) == 31 || (prevFret & 31) == 31))
+					auto index = m_modchartNotes[currentPlayer].m_colors[color].rbegin();
+					if (index != m_modchartNotes[currentPlayer].m_colors[color].rend()
+						&& (!(addedNotes & val)
+							|| (fret & 31) == 31
+							|| (prevFret & 31) == 31))
 					{
 						
-						if (val & addedNotes)
-							--index;
-						if (index)
+						if (!(addedNotes & val)
+							|| ++index != m_modchartNotes[currentPlayer].m_colors[color].rend())
 						{
-							CHNote* prev = m_exporter.m_modchartNotes[currentPlayer].m_colors[color][--index];
 							//Adds sustain gaps for non-extended sustain notes
-							if (pos - (3400 * TICKS_PER_SAMPLE) < prev->m_position + prev->m_fret.m_sustain &&
-								prev->m_position + prev->m_fret.m_sustain <= pos)
-							{
-								prev->m_fret.m_writeSustain = prev->setEndPoint(pos - (3400 * TICKS_PER_SAMPLE)) >= 6200 * TICKS_PER_SAMPLE;
-							}
+							if (pos - (3400 * TICKS_PER_SAMPLE) < (*index)->m_parent->m_position_ticks + (*index)->m_sustain
+								&& (*index)->m_parent->m_position_ticks + (*index)->m_sustain <= pos)
+								(*index)->setEndPoint(pos - (3400 * TICKS_PER_SAMPLE), 6200 * TICKS_PER_SAMPLE);
 						}
 					}
 				}
-				pos -= 2 * s_TICKS_PER_BEAT;
+
 				if (note == 1 && piece == 1)
-					phrIndex = ntIndex;
+					starPower.first = pos;
+				else if (i + 1 == chart.getNumPhrases())
+					starPower.second = endTick;
+				pos -= 2 * s_TICKS_PER_BEAT;
 			}
-			m_exporter.m_reimportNotes[currentPlayer].addNote(pos, addedNotes, duration);
+			
+			auto ntIterator = m_reimportNotes[currentPlayer].addNote(pos, addedNotes, duration);
 			if (fret & 64)
-			{
-				if (m_modchart)
-					m_exporter.m_reimportNotes[currentPlayer].addModifier(pos - 2 * s_TICKS_PER_BEAT, CHNote::Modifier::FORCED);
-				else
-					m_exporter.m_reimportNotes[currentPlayer].addModifier(pos, CHNote::Modifier::FORCED);
-			}
+				ntIterator->m_isForced = true;
 			else if (piece > 1 && (removedNotes || fret == 31))
 			{
-				m_exporter.m_reimportNotes[currentPlayer].addModifier(pos, CHNote::Modifier::FORCED);
+				ntIterator->m_isForced = true;
 				if (!(addedNotes & 32))
-					m_exporter.m_reimportNotes[currentPlayer].addModifier(pos, CHNote::Modifier::TAP);
+					ntIterator->m_isTap = true;
 			}
 		}
 		prevFret = fret & ~64;
@@ -687,18 +690,25 @@ size_t CH_Exporter::convertPhrase(SongSection& section, const size_t playerIndex
 		else
 			piece++;
 	}
-	return phrIndex;
+
+	if (m_phraseBarPromptType[currentPlayer])
+		banner(" Phrase Bars Converted ");
+
+	if (m_modchart && phase == SongSection::Phase::CHARGE)
+		// Encapsulate all the phrase bars in the subsection
+		m_modchartNotes[currentPlayer].addStarPower(starPower.first, starPower.second);
 }
 
 //Selecting which controller setup to correspond to
-bool CH_Exporter::getOrientation(const char* sectionName, const size_t player, const size_t chart)
+bool CHC_To_CloneHero::getOrientation(const char* sectionName, const size_t player, const size_t chart)
 {
+	banner(" Clone Hero Export - Guard Orientation Selection ");
 	while (true)
 	{
 		printf("%sChoose orientation for %s", g_global.tabs.c_str(), sectionName);
 		player ? printf(": Player %zu - Chart %zu\n", player + 1, chart) : putchar('\n');
 		printf("%s   ||G|R|Y|B|O||   T - Triangle\n", g_global.tabs.c_str());
-		printf("%s===============    S - Square\n", g_global.tabs.c_str());
+		printf("%s================   S - Square\n", g_global.tabs.c_str());
 		printf("%s 1 ||X|O|S|T| ||   O - Circle\n", g_global.tabs.c_str());
 		printf("%s 2 ||X|O|S| |T||   X - Cross\n", g_global.tabs.c_str());
 		printf("%s 3 ||X|O| |S|T||(Default)\n", g_global.tabs.c_str());
@@ -732,29 +742,29 @@ bool CH_Exporter::getOrientation(const char* sectionName, const size_t player, c
 //32 (Bit 5) - Open Note
 //64 (Bit 6) - Tap Variant
 //128 (Bit 7) - Continue from previous Color || 256 - Extended continuation to note end
-bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t playerIndex,
-													size_t chartIndex, size_t note, size_t piece)
+bool CHC_To_CloneHero::getFrets(unsigned promptType, const size_t currentplayer, size_t note, size_t piece)
 {
-	const unsigned long prevFret = m_strumFret[playerIndex];
-	unsigned long& nextFret = m_strumFret[playerIndex];
-	GlobalFunctions::banner(" Clone Hero Export - Fret Selection ");
+	const unsigned long prevFret = m_strumFret[currentplayer];
+	
 	string choices = "dgrybop";
 	if (promptType == 1)
 		choices += "0123456";
 	else if (promptType == 2)
 		choices += "ce";
 	choices += 'm';
+
 	do		//Ask for the fret color in each iteration
 	{
-		if (playerIndex)
+		if (promptType != 3)
 		{
-			printf("%sSelect the fret for %s: Player %zu - Chart %zu - Note %zu", g_global.tabs.c_str(), sectionName, playerIndex, chartIndex, note);
+			printf("%sSelect the fret for Note %zu", g_global.tabs.c_str(), note);
 			if (piece > 1)
 				printf(" - Piece %zu", piece);
 			printf("\n");
 		}
 		else
-			printf("%sSelect the fret to use for the entire song\n", g_global.tabs.c_str());
+			printf("%sSelect the fret to use\n", g_global.tabs.c_str());
+
 		if (!g_global.multi)
 		{
 			printf("%s==============================================================||\n", g_global.tabs.c_str());
@@ -762,7 +772,7 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 			printf("%s Green (G) || Red (R) || Yellow (Y) || Blue (B) || Orange (O) ||\n", g_global.tabs.c_str());
 			if (promptType == 1)
 			{
-			printf("%s            Tap - Default (0) || Hopo - Open Note (6)         ||\n", g_global.tabs.c_str());
+				printf("%s            Tap - Default (0) || Hopo - Open Note (6)         ||\n", g_global.tabs.c_str());
 				printf("%s   Tap (1) || Tap (2) ||   Tap (3)  ||  Tap (4) ||    Tap (5) ||\n", g_global.tabs.c_str());
 			}
 			else if (promptType == 2)
@@ -771,6 +781,7 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 				printf("%s        Extend previous color to the end of the note (E)      ||\n", g_global.tabs.c_str());
 			}
 			printf("%s         Manually toggle each fret you wish to use (M)        ||\n", g_global.tabs.c_str());
+			printf("%s                 (Use this option for chords)                 ||\n", g_global.tabs.c_str());
 			printf("%s==============================================================||\n", g_global.tabs.c_str());
 		}
 		switch (menuChoices(choices, true))
@@ -788,28 +799,28 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 			{
 			case 'c':
 				printf("%s\n", g_global.tabs.c_str());
-				nextFret = 128;
+				m_strumFret[currentplayer] = 128;
 				g_global.quit = true;
 				break;
 			case 'e':
 				printf("%s\n", g_global.tabs.c_str());
-				nextFret = 256;
+				m_strumFret[currentplayer] = 256;
 				g_global.quit = true;
 				break;
 			case 'm':
 			{
-				nextFret = prevFret;
+				m_strumFret[currentplayer] = prevFret;
 				size_t numColoredFrets = 0;
 				++g_global;
 				choices = "12345pf";
-				if (piece == 1 && playerIndex)
+				if (piece == 1 && currentplayer)
 					choices += 't';
 				banner(" Clone Hero Export - Fret Selection - Toggle Mode ");
 				do
 				{
-					if (playerIndex)
+					if (promptType != 3)
 					{
-						printf("%sColor Toggles for %s: Player %zu - Chart %zu - Note %zu", g_global.tabs.c_str(), sectionName, playerIndex, chartIndex, note);
+						printf("%sColor Toggles for Note %zu", g_global.tabs.c_str(), note);
 						if (piece > 1)
 							printf(" - Piece %zu", piece);
 						printf("\n");
@@ -820,35 +831,39 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 					{
 						printf("%s============================================================================================||\n", g_global.tabs.c_str());
 						printf("%s           You can have a max of 4 different fret *colors* toggled ON at one time           ||\n", g_global.tabs.c_str());
-						if (piece > 1 || playerIndex == 0)
+						if (piece > 1 || promptType != 3)
 						{
-							if (playerIndex == 0)
+							if (promptType != 3)
 								printf("%s                  Using 'P' will cancel out all other frets & vice versa                    ||\n", g_global.tabs.c_str());
 							printf("%s============================================================================================||\n", g_global.tabs.c_str());
-							printf("%s                                     Open Note (P) %s                                    ||\n", g_global.tabs.c_str(), nextFret & 32 ? "[ON] " : "[OFF]");
+							printf("%s                                     Open Note (P) %s                                    ||\n", g_global.tabs.c_str(), m_strumFret[currentplayer] & 32 ? "[ON] " : "[OFF]");
 						}
 						else
 						{
 							printf("%s            Using 'P' on this note will cancel out all other frets & vice versa             ||\n", g_global.tabs.c_str());
 							printf("%s============================================================================================||\n", g_global.tabs.c_str());
-							printf("%s                            Open Note (P) %s || Tap (T) %s                            ||\n", g_global.tabs.c_str(), nextFret & 32 ? "[ON] " : "[OFF]", nextFret & 64 ? "[ON] " : "[OFF]");
+							printf("%s                            Open Note (P) %s || Tap (T) %s                            ||\n", g_global.tabs.c_str()
+								, m_strumFret[currentplayer] & 32 ? "[ON] " : "[OFF]"
+								, m_strumFret[currentplayer] & 64 ? "[ON] " : "[OFF]");
 						}
+
 						if (numColoredFrets < 4)
 						{
-							printf("%s Green (1) %s ||", g_global.tabs.c_str(), nextFret & 1 ? "[ON] " : "[OFF]");
-							printf(" Red (2) %s ||", nextFret & 2 ? "[ON] " : "[OFF]");
-							printf(" Yellow (3) %s ||", nextFret & 4 ? "[ON] " : "[OFF]");
-							printf(" Blue (4) %s ||", nextFret & 8 ? "[ON] " : "[OFF]");
-							printf(" Orange (5) %s ||\n", nextFret & 16 ? "[ON] " : "[OFF]");
+							printf_tab("%s Green (1) %s || Red (2) %s || Yellow (3) %s || Blue (4) %s || Orange (5) %s ||\n"
+								, m_strumFret[currentplayer] & 1  ? "[ON] " : "[OFF]"
+								, m_strumFret[currentplayer] & 2  ? "[ON] " : "[OFF]"
+								, m_strumFret[currentplayer] & 4  ? "[ON] " : "[OFF]"
+								, m_strumFret[currentplayer] & 8  ? "[ON] " : "[OFF]"
+								, m_strumFret[currentplayer] & 16 ? "[ON] " : "[OFF]");
 						}
 						else
 						{
-							printf("%s", g_global.tabs.c_str());
-							printf("%s||", nextFret & 1 ? " Green (1) [ON]  " : "                 ");
-							printf("%s||", nextFret & 2 ? " Red (2) [ON]  " : "               ");
-							printf("%s||", nextFret & 4 ? " Yellow (3) [ON]  " : "                  ");
-							printf("%s||", nextFret & 8 ? " Blue (4) [ON]  " : "                ");
-							printf("%s||\n", nextFret & 16 ? " Orange (5) [ON]  " : "                  ");
+							printf_tab("%s||%s||%s||%s||%s||"
+								, m_strumFret[currentplayer] & 1  ? " Green (1) [ON]  " : "                 "
+								, m_strumFret[currentplayer] & 2  ? " Red (2) [ON]  " : "               "
+								, m_strumFret[currentplayer] & 4  ? " Yellow (3) [ON]  " : "                  "
+								, m_strumFret[currentplayer] & 8  ? " Blue (4) [ON]  " : "                "
+								, m_strumFret[currentplayer] & 16 ? " Orange (5) [ON]  " : "                  ");
 						}
 						printf("%s                        Finish fret selection for this note/piece (F)                       ||\n", g_global.tabs.c_str());
 						printf("%s============================================================================================||\n", g_global.tabs.c_str());
@@ -868,16 +883,16 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 						switch (choices[g_global.answer.index])
 						{
 						case 'f':
-							if ((nextFret & 63) == 0)
-								nextFret |= 31;
+							if ((m_strumFret[currentplayer] & 63) == 0)
+								m_strumFret[currentplayer] |= 31;
 							printf("%s\n", g_global.tabs.c_str());
 							g_global.quit = true;
 							break;
 						case 't':
-							nextFret ^= 64;
+							m_strumFret[currentplayer] ^= 64;
 							break;
 						case 'p':
-							if (!(nextFret & 32) && piece == 1 && numColoredFrets)
+							if (!(m_strumFret[currentplayer] & 32) && piece == 1 && numColoredFrets)
 							{
 								do
 								{
@@ -890,9 +905,10 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 										switch (g_global.answer.character)
 										{
 										case 'y':
-											nextFret &= 64;
-											nextFret += 32;
+											m_strumFret[currentplayer] &= 64;
+											m_strumFret[currentplayer] += 32;
 											numColoredFrets = 0;
+											__fallthrough;
 										case 'n':
 											g_global.quit = true;
 											printf("%s\n", g_global.tabs.c_str());
@@ -908,7 +924,7 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 								for (unsigned color = 0; color < 5; color++)
 								{
 									unsigned long val = 1UL << color;
-									if (nextFret & val && !(prevFret & val))
+									if (m_strumFret[currentplayer] & val && !(prevFret & val))
 									{
 										do
 										{
@@ -925,13 +941,14 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 													for (; color < 5; color++)
 													{
 														val = 1UL << color;
-														if (nextFret & val && !(prevFret & val))
+														if (m_strumFret[currentplayer] & val && !(prevFret & val))
 														{
-															nextFret ^= val;
+															m_strumFret[currentplayer] ^= val;
 															numColoredFrets--;
 														}
 													}
-													nextFret |= 32;
+													m_strumFret[currentplayer] |= 32;
+													__fallthrough;
 												case 'n':
 													toggle = false;
 													g_global.quit = true;
@@ -943,15 +960,15 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 									}
 								}
 								if (toggle)
-									nextFret ^= 32;
+									m_strumFret[currentplayer] ^= 32;
 							}
 							break;
 						default:
 						{
 							unsigned long color = 1UL << g_global.answer.index;
-							if (nextFret & color || numColoredFrets < 4)
+							if (m_strumFret[currentplayer] & color || numColoredFrets < 4)
 							{
-								if (piece == 1 && !(nextFret & color) && nextFret & 32)
+								if (piece == 1 && !(m_strumFret[currentplayer] & color) && m_strumFret[currentplayer] & 32)
 								{
 									do
 									{
@@ -965,9 +982,10 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 											switch (g_global.answer.character)
 											{
 											case 'y':
-												nextFret -= 32;
-												nextFret += color;
+												m_strumFret[currentplayer] -= 32;
+												m_strumFret[currentplayer] += color;
 												numColoredFrets++;
+												__fallthrough;
 											case 'n':
 												g_global.quit = true;
 											}
@@ -977,8 +995,8 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 								}
 								else
 								{
-									nextFret ^= color;
-									if (nextFret & color)
+									m_strumFret[currentplayer] ^= color;
+									if (m_strumFret[currentplayer] & color)
 										numColoredFrets++;
 									else
 										numColoredFrets--;
@@ -992,21 +1010,19 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 				} while (!g_global.quit);
 				--g_global;
 			}
-			break;
+				break;
 			default:
-				if (promptType == 1 && nextFret > 6)
+				if (promptType == 1 && g_global.answer.index > 6)
 				{
-					if (nextFret == 7)
-						nextFret = 95;
+					if (g_global.answer.index == 7)
+						m_strumFret[currentplayer] = 95;
 					else
-						nextFret = 64 + (1UL << (nextFret - 8));
+						m_strumFret[currentplayer] = 64 + (1UL << (g_global.answer.index - 8));
 				}
-				else if (nextFret > 6)
-					nextFret = 1UL << (nextFret + 1);
-				else if (nextFret > 0)
-					nextFret = 1UL << (nextFret - 1);
+				else if (g_global.answer.index > 0)
+					m_strumFret[currentplayer] = 1UL << (g_global.answer.index - 1);
 				else
-					nextFret = 31;
+					m_strumFret[currentplayer] = 31;
 				printf("%s\n", g_global.tabs.c_str());
 				g_global.quit = true;
 			}
@@ -1016,53 +1032,64 @@ bool CH_Exporter::getFrets(const char* sectionName, unsigned promptType, size_t 
 	return true;
 }
 
-ChartFileExporter::ChartFileExporter(std::vector<SyncTrack>& sync, std::vector<Event>& events, NoteTrack notes[2]) : ChartFile()
+ChartFileExporter::ChartFileExporter(std::list<SyncTrack>& sync, std::list<Event>& events, NoteTrack(&notes)[2])
+	: ChartFile()
+	, m_sync(std::move(sync))
+	, m_events(std::move(events))
 {
-	m_sync = sync;
-	m_events = events;
-	std::copy(notes, notes + 2, m_reimportNotes);
+	m_reimportNotes[0] = notes[0];
+	m_reimportNotes[1] = notes[1];
 }
 
 void ChartFileExporter::writeHeader(const bool modchart)
 {
-	fprintf(m_chart, "[Song]\n{\n");
-	fprintf(m_chart, "  Offset = 0\n");
-	fprintf(m_chart, "  Resolution = 480\n");
-	fprintf(m_chart, "  Player2 = bass\n");
-	fprintf(m_chart, "  Difficulty = 0\n");
-	fprintf(m_chart, "  PreviewStart = 0\n");
-	fprintf(m_chart, "  PreviewEnd = 0\n");
-	fprintf(m_chart, "  Genre = \"rock\"\n");
-	fprintf(m_chart, "  MediaType = \"cd\"\n}\n");
-	fprintf(m_chart, "[SyncTrack]\n{\n");
+	fprintf(m_chart,
+		"[Song]\n"
+		"{\n"
+		"  Offset = 0\n"
+		"  Resolution = 480\n"
+		"  Player2 = bass\n"
+		"  Difficulty = 0\n"
+		"  PreviewStart = 0\n"
+		"  PreviewEnd = 0\n"
+		"  Genre = \"rock\"\n"
+		"  MediaType = \"cd\"\n"
+		"}\n"
+		"[SyncTrack]\n"
+		"{\n");
+
 	if (modchart)
 	{
-		for (size_t i = 0; i < m_sync.size();)
+		for (auto iter = m_sync.begin(); iter != m_sync.end();)
 		{
-			m_sync[i].write(m_chart);
-			m_sync[i].m_position -= 2 * s_TICKS_PER_BEAT;
+			iter->write(m_chart);
+			iter->m_position_ticks -= 2 * s_TICKS_PER_BEAT;
 			//Remove the two extra synctracks
-			if (m_sync[i].m_position < 0)
-				m_sync.erase(m_sync.begin() + i);
+			if (iter->m_position_ticks < 0)
+				m_sync.erase(iter++);
 			else
-				++i;
+				++iter;
 		}
 	}
 	else
 	{
 		for (SyncTrack& syn : m_sync)
 		{
-			syn.m_eighth = "";
+			syn.m_timeSigDenomSelection = 2;
 			syn.write(m_chart);
 		}
 	}
-	fprintf(m_chart, "}\n[Events]\n{\n");
+
+	fprintf(m_chart,
+		"}\n"
+		"[Events]\n"
+		"{\n");
 	if (modchart)
 	{
 		for (Event& evt : m_events)
 		{
 			evt.write(m_chart);
-			evt.m_position -= 2 * s_TICKS_PER_BEAT;
+			evt.m_position_ticks -= 2 * s_TICKS_PER_BEAT;
 		}
 	}
 	else
@@ -1093,7 +1120,7 @@ void ChartFileExporter::writeDuetModchart()
 		m_reimportNotes[player].writeDuet(m_chart, player);
 }
 
-void ChartFileExporter::writeIni(const unsigned char stageNumber, const unsigned long totalDuration, const bool jap)
+void ChartFileExporter::writeIni(const int stageNumber, const unsigned long totalDuration, const bool jap)
 {
 	fprintf(m_chart, "[song]\n");
 	switch (stageNumber)

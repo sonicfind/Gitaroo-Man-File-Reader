@@ -15,56 +15,72 @@
  */
 
 constexpr float s_TICKS_PER_BEAT = 480.0f;
-struct CHItem
+struct CHObject
 {
-	float m_position;
-	CHItem() : m_position(0) {}
-	CHItem(float pos) : m_position(pos) {}
-	bool operator==(const CHItem& item) const { return m_position == item.m_position; }
-	auto operator<=>(const CHItem& item) const { return m_position <=> item.m_position; }
+	float m_position_ticks;
+	CHObject();
+	CHObject(float pos_ticks);
+	bool operator==(const CHObject& item) const { return m_position_ticks == item.m_position_ticks; }
+	auto operator<=>(const CHObject& item) const { return m_position_ticks <=> item.m_position_ticks; }
 };
 
-struct SyncTrack : public CHItem
+struct SyncTrack : public CHObject
 {
-	unsigned long m_timeSig;
-	unsigned long m_bpm;
-	std::string m_eighth;
-	SyncTrack() : CHItem(), m_timeSig(4), m_bpm(120), m_eighth("") {}
+	unsigned long m_timeSigNumerator = 4;
+	unsigned long m_timeSigDenomSelection = 2;
+	unsigned long m_bpm = 120;
 	SyncTrack(FILE* inFile);
-	SyncTrack(float pos, unsigned long ts = 4, unsigned long tempo = 120, bool writeTimeSig = true, std::string egth = "");
+	SyncTrack(float pos, unsigned long ts, unsigned long tempo = 0, unsigned long denom = 2);
 	void write(FILE* outFile);
 };
 
-struct Event : public CHItem
+struct Event : public CHObject
 {
 	std::string m_name;
-	Event() : CHItem(), m_name("") {}
 	Event(FILE* inFile);
-	Event(float pos, std::string nam = "") : CHItem(pos), m_name(nam) {}
+	Event(float pos, std::string nam = "") : CHObject(pos), m_name(nam) {}
 	void write(FILE* outFile);
 };
 
-struct CHNote : public CHItem
+class CHNote : public CHObject
 {
-	enum class NoteType { NOTE, STAR, EVENT };
-	enum class Modifier { NORMAL, FORCED, TAP };
+private:
+	// Sets the parents of all the frets
+	CHNote(float pos);
+
+public:
 	struct Fret
 	{
-		unsigned m_lane;
-		float m_sustain;
-		bool m_writeSustain;
-		Fret() : m_lane(0), m_sustain(0), m_writeSustain(true) {}
-		Fret(unsigned lane, float sus = 0, bool write = true) : m_lane(lane), m_sustain(sus), m_writeSustain(write) {}
-		Fret(const Fret& fret) : m_lane(fret.m_lane), m_sustain(fret.m_sustain), m_writeSustain(fret.m_writeSustain) {}
+		bool m_active = false;
+		bool m_writeSustain = true;
+		float m_sustain = 0;
+		CHNote* m_parent = nullptr;
+		Fret& operator=(const Fret& note);
+		void setEndPoint(float endTick, float threshold = 0);
+		bool operator!=(const Fret& fret) const { return *m_parent != *fret.m_parent; }
+		auto operator<(const Fret& fret) const { return m_parent->m_position_ticks < fret.m_parent->m_position_ticks; }
 	};
-	Fret m_fret;
-	Modifier m_mod;
-	NoteType m_type;
-	std::string m_name;
-	CHNote();
+
+	// Order: Green Red Yellow Blue Orange Open
+	Fret m_colors[6];
+	bool m_isForced = false;
+	bool m_isTap = false;
+	Fret m_star;
+	std::vector<std::string> m_events;
+	
+	// Pull values from a .chart file
 	CHNote(FILE* inFile);
-	CHNote(float pos, unsigned lane = 0, float sus = 0, bool write = true, Modifier md = Modifier::NORMAL, NoteType tp = NoteType::NOTE, std::string nam = "");
-	CHNote(const CHNote& note) = default;
-	float setEndPoint(float endTick);
-	void write(FILE* outFile);
+
+	// Note constructor
+	CHNote(float pos, int frets, float sustain = 0, bool write = true);
+
+	// Event constructor
+	CHNote(float pos, std::string& ev);
+
+	// Star Power constructor
+	CHNote(float start, float end);
+	CHNote& operator=(const CHNote& note);
+	CHNote(const CHNote& note);
+	void write(FILE* outFile) const;
+	bool hasColors() const;
 };

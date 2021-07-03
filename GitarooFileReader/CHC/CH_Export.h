@@ -16,27 +16,29 @@
 #include "CHC.h"
 #include "CH_ChartFile.h"
 
-class CH_Exporter
+class CHC_To_CloneHero : public ChartFileExporter
 {
-	CHC& m_song;
 	unsigned m_phraseBarPromptType[2] = { 0, 0 };
 	unsigned long m_strumFret[2] = { 0, 0 };
 	unsigned m_guardPromptType = 0;
 	unsigned m_guardOrientation = 2;
-	float m_position = 0;
+	float m_position_ticks = 0;
 	float m_samepleDuration = 0;
-	bool m_modchart = false;
-	ChartFileExporter m_exporter;
+	bool m_modchart = true;
+	bool m_grdFound = false;
+	bool m_phraseFound[2] = { false, false };
 public:
-	CH_Exporter(CHC& song) : m_song(song) {}
-	bool exportChart();
-	bool convertSong(std::vector<size_t>& sectionIndexes);
+	CHC_To_CloneHero();
+	bool writeChart(CHC* song);
+	bool convertSong(CHC* song, std::vector<size_t>& sectionIndexes);
 
-	size_t convertGuard(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer);
+	bool checkNoteHandling(SongSection& section, const bool multiplayer);
+
+	void convertGuards(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer);
 	bool getOrientation(const char* sectionName, const size_t player = 0, const size_t chart = 0);
 
 	void convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer);
 
-	size_t convertPhrase(SongSection& section, const size_t playerIndex, const size_t chartIndex, const float TICKS_PER_SAMPLE, const size_t currentPlayer);
-	bool getFrets(const char* sectionName, unsigned promptType, size_t playerIndex = 0, size_t chartIndex = 0, size_t note = 1, size_t piece = 1);
+	void convertPhrases(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer, const SongSection::Phase phase);
+	bool getFrets(unsigned promptType, const size_t currentplayer, size_t note = 1, size_t piece = 1);
 };

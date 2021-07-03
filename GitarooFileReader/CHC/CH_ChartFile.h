@@ -29,19 +29,17 @@ public:
 
 class ChartFileExporter : public ChartFile
 {
-	friend class CH_Exporter;
-	friend class ChartFileImporter;
-	std::vector<SyncTrack> m_sync;
-	std::vector<Event> m_events;
+protected:
+	std::list<SyncTrack> m_sync;
+	std::list<Event> m_events;
 	NoteTrack m_modchartNotes[2];
 	NoteTrack m_reimportNotes[2];
 public:
 	ChartFileExporter() : ChartFile() {}
 	ChartFileExporter(std::string filename) : ChartFile(filename, true) {}
-	ChartFileExporter(std::vector<SyncTrack>& sync, std::vector<Event>& events, NoteTrack notes[2]);
-	bool open(std::string filename) { return ChartFile::open(filename, true); }
+	ChartFileExporter(std::list<SyncTrack>& sync, std::list<Event>& events, NoteTrack (&notes)[2]);
 	void writeHeader(const bool modchart);
 	void write(const bool modchart);
 	void writeDuetModchart();
-	void writeIni(const unsigned char stageNumber, const unsigned long totalDuration, const bool jap = true);
+	void writeIni(const int stageNumber, const unsigned long totalDuration, const bool jap = true);
 };

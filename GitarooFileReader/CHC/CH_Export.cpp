@@ -158,16 +158,16 @@ bool CHC_To_CloneHero::convertSong(CHC* song, std::vector<size_t>& sectionIndexe
 {
 	if (m_modchart)
 	{
-		//Set starting position for generating the modchart
+		// Set starting position for generating the modchart
 		m_sync.emplace_back(m_position_ticks, 2, 12632);
 		m_position_ticks += s_TICKS_PER_BEAT;
 
 		if (song->m_filename.find("ST02_HE") != string::npos)
-			m_sync.emplace_back(m_position_ticks, 2, 73983, false);
+			m_sync.emplace_back(m_position_ticks, 0, 73983);
 		else if (0 < song->m_stage && song->m_stage <= 12)
 		{
 			static const unsigned long bpmArray[] = { 77538, 74070, 76473, 79798, 74718, 79658, 73913, 76523, 74219, 75500, 80000, 80000 };
-			m_sync.emplace_back(m_position_ticks, 2, bpmArray[song->m_stage - 1], false);
+			m_sync.emplace_back(m_position_ticks, 0, bpmArray[song->m_stage - 1], false);
 		}
 		m_position_ticks += s_TICKS_PER_BEAT;
 	}
@@ -197,7 +197,7 @@ bool CHC_To_CloneHero::convertSong(CHC* song, std::vector<size_t>& sectionIndexe
 			m_events.push_back({ m_position_ticks, "section FINAL_I - " + string(section.getName()) });
 		}
 
-		if (m_sync.size() == 0 || unsigned long(section.getTempo() * 1000) != m_sync.back().m_bpm)
+		if (m_events.size() == 2 || unsigned long(section.getTempo() * 1000) != m_sync.back().m_bpm)
 		{
 			// Toda Pasion is off by one beat. Yay for rushed development
 			if (song->m_stage == 12 && section.getPhase() == SongSection::Phase::INTRO)
@@ -211,7 +211,7 @@ bool CHC_To_CloneHero::convertSong(CHC* song, std::vector<size_t>& sectionIndexe
 			}
 			else
 				m_sync.push_back({ m_position_ticks
-								 , m_sync.size() == 0 ? 4UL : 0UL
+								 , m_events.size() == 2 ? 4UL : 0UL
 								 , unsigned long(section.getTempo() * 1000)
 								 , section.getTempo() < 80.0f ? 3UL : 2UL });
 		}
@@ -286,8 +286,8 @@ bool CHC_To_CloneHero::convertSong(CHC* song, std::vector<size_t>& sectionIndexe
 							|| (playerIndex >= 2 && song->m_imc[0]))
 						&& (chart.getNumTracelines() > 1 || chart.getNumGuards()))
 					{
-						auto prevIter = markIter++;
-						m_reimportNotes[currentPlayer].addEvent(0.5f * (prevIter->m_position_ticks + markIter->m_position_ticks), "start");
+						markIter++;
+						m_reimportNotes[currentPlayer].addEvent(markIter->m_position_ticks, "start");
 					}
 				}
 			}
@@ -593,11 +593,33 @@ void CHC_To_CloneHero::convertPhrases(Chart& chart, const float TICKS_PER_SAMPLE
 					{
 						if (m_modchart)
 						{
-							m_modchartNotes[currentPlayer].m_allNotes.back().m_colors[color].setEndPoint(endTick, 6200 * TICKS_PER_SAMPLE);
-							m_reimportNotes[currentPlayer].m_allNotes.back().m_colors[color].setEndPoint(endTick - 2 * s_TICKS_PER_BEAT);
+							for (auto colorIter = m_modchartNotes[currentPlayer].m_colors[color].rbegin();
+								colorIter != m_modchartNotes[currentPlayer].m_colors[color].rend();
+								++colorIter)
+								if ((*colorIter)->m_sustain > 0)
+								{
+									(*colorIter)->setEndPoint(endTick, 6200 * TICKS_PER_SAMPLE);
+									break;
+								}
+							
+							for (auto colorIter = m_reimportNotes[currentPlayer].m_colors[color].rbegin();
+								colorIter != m_reimportNotes[currentPlayer].m_colors[color].rend();
+								++colorIter)
+								if ((*colorIter)->m_sustain > 0)
+								{
+									(*colorIter)->setEndPoint(endTick - 2 * s_TICKS_PER_BEAT);
+									break;
+								}
 						}
 						else
-							m_reimportNotes[currentPlayer].m_allNotes.back().m_colors[color].setEndPoint(endTick);
+							for (auto colorIter = m_reimportNotes[currentPlayer].m_colors[color].rbegin();
+								colorIter != m_reimportNotes[currentPlayer].m_colors[color].rend();
+								++colorIter)
+								if ((*colorIter)->m_sustain > 0)
+								{
+									(*colorIter)->setEndPoint(endTick);
+									break;
+								}
 						addedNotes &= ~val; //Removal
 					}
 					else if (prevFret & val)
@@ -605,6 +627,7 @@ void CHC_To_CloneHero::convertPhrases(Chart& chart, const float TICKS_PER_SAMPLE
 				}
 			}
 		}
+
 		if (addedNotes)
 		{
 			float duration = endTick - pos;

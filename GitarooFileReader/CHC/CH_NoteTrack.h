@@ -22,7 +22,8 @@ struct NoteTrack
 
 	// Green-Red-Yellow-Blue-Orange-Open
 	std::vector<CHNote::Fret*> m_colors[6];
-	std::vector<CHNote::Fret*> m_star;
+	std::vector<CHNote::Fret*> m_stars;
+	std::vector<std::list<std::string>*> m_events;
 
 	std::list<CHNote>::iterator addNote(float pos, int frets, float sustain = 0, bool writeSustain = true);
 	std::list<CHNote>::iterator addEvent(float pos, std::string nam);

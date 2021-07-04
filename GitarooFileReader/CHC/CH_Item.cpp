@@ -22,11 +22,11 @@ CHObject::CHObject()
 CHObject::CHObject(float pos_ticks)
 	: m_position_ticks(pos_ticks) {}
 
-SyncTrack::SyncTrack(float pos, unsigned long ts, unsigned long tempo, unsigned long denom)
+SyncTrack::SyncTrack(float pos, unsigned long timeSigNumer, unsigned long tempo, unsigned long timeSigDenom)
 	: CHObject(pos)
-	, m_timeSigNumerator(ts)
+	, m_timeSigNumerator(timeSigNumer)
 	, m_bpm(tempo)
-	, m_timeSigDenomSelection(denom) {}
+	, m_timeSigDenomSelection(timeSigDenom) {}
 
 SyncTrack::SyncTrack(FILE* inFile)
 {

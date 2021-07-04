@@ -50,14 +50,16 @@ std::list<CHNote>::iterator NoteTrack::addNote(float pos, int frets, float susta
 std::list<CHNote>::iterator NoteTrack::addEvent(float pos, std::string name)
 {
 	// Event constructor
-	return GlobalFunctions::emplace_ordered(m_allNotes, pos, name);
+	auto ntIterator = GlobalFunctions::emplace_ordered(m_allNotes, pos, name);
+	m_events.push_back(&ntIterator->m_events);
+	return ntIterator;
 }
 
 std::list<CHNote>::iterator NoteTrack::addStarPower(float pos, float sustain)
 {
 	// Star Power constructor
 	auto ntIterator = GlobalFunctions::emplace_ordered(m_allNotes, pos, sustain);
-	m_star.push_back(&ntIterator->m_star);
+	m_stars.push_back(&ntIterator->m_star);
 	return ntIterator;
 }
 

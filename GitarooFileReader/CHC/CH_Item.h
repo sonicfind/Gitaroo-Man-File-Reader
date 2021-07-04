@@ -66,7 +66,7 @@ public:
 	bool m_isForced = false;
 	bool m_isTap = false;
 	Fret m_star;
-	std::vector<std::string> m_events;
+	std::list<std::string> m_events;
 	
 	// Pull values from a .chart file
 	CHNote(FILE* inFile);

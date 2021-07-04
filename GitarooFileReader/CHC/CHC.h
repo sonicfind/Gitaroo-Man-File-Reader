@@ -91,8 +91,6 @@ public:
 private:
 	// Editor-based functions
 
-	bool quickFix();
-
 	void swapIMC();
 	void audioSettings();
 	void winLossSettings();
@@ -342,9 +340,8 @@ public:
 	bool removePhraseBar(size_t index);
 	bool removeGuardMark(size_t index);
 	void clear();
-	// Takes the notes from the source chart and moves them into
-	// the current chart (replacing any old notes that would overlap)
-	long transferNotes(Chart* source);
+	// Converts all note positioning from songsection space to chart space
+	void finalizeNotes();
 };
 
 class Note

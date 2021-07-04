@@ -42,22 +42,6 @@ bool CHC::applyChanges(const bool fix, const bool swap, const bool save)
 	}
 }
 
-//Applies the note fixing function & reorgarnizes the loaded CHC song given to it
-bool CHC::quickFix()
-{
-	try
-	{
-		fixNotes();
-		organizeAll();
-		return true;
-	}
-	catch (exception e)
-	{
-		printf("%sQuickFix - Exception Caught: %s\n", g_global.tabs.c_str(), e.what());
-		return false;
-	}
-}
-
 void CHC::edit(const bool multi)
 {
 	do

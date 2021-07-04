@@ -16,58 +16,38 @@
 #include "CHC.h"
 #include "CH_ChartFile.h"
 
-struct Section
+struct Section : public CHObject
 {
-	struct Tempo
+	struct Tempo : public CHObject
 	{
+		float m_sample_offset_from_section;
 		unsigned long m_bpm;
-		//In reference to the beginning of the song
-		float m_position_ticks;
-		//In reference to the beginning of the section is resides in
-		float m_position_samples;
-		Tempo(unsigned long bpm = 120, float pos_ticks = 0, float pos_samples = 0) : m_bpm(bpm), m_position_ticks(pos_ticks), m_position_samples(pos_samples) {}
+		Tempo(float pos_ticks, float sample_offset, unsigned long bpm);
 	};
-	std::string m_name = "";
-	//In reference to the beginning of the song
-	float m_position_ticks = 0;
-	//In reference to the beginning of the song, but calculated 
-	//using the previous songsection (if one exists) as a base
-	float m_position_samples = 0;
+
+	float m_position_samples;
+	std::string m_name;
 	std::vector<Tempo> m_tempos;
-	//Two lists for two players
+	// Two lists for two players
 	std::vector<Chart> m_subs[2];
-	Section(std::string nam, float pos_T = 0, float pos_S = 0, unsigned long bpm = 120) : m_name(nam), m_position_ticks(pos_T), m_position_samples(pos_S)
-	{
-		m_tempos.emplace_back(bpm, m_position_ticks);
-	}
+	std::queue<SongSection*> m_insertions;
+
+	Section(std::string nam, float pos_ticks);
+	void replaceNotes(const bool charted[2]);
+	void replaceNotes_Duet(const bool charted[2]);
 };
 
-class CH_Importer;
-
-class ChartFileImporter : public ChartFile
+class CloneHero_To_CHC : public ChartFile
 {
-public:
-	ChartFileImporter() : ChartFile() {}
-	ChartFileImporter(std::string filename) : ChartFile(filename, false) {}
-	bool open(std::string filename) { return ChartFile::open(filename, false); }
-	void read(CH_Importer& importer);
-};
-
-class CH_Importer
-{
-	friend ChartFileImporter;
-	CHC m_song;
 	std::vector<Section> m_sections;
 	NoteTrack m_notes[2];
 public:
 	constexpr static float s_SPT_CONSTANT = s_SAMPLES_PER_MIN * 1000;
-	CH_Importer(CHC& song) : m_song(song) {}
-	CHC& getSong() { return m_song; }
-	bool importChart();
-	void fillSections();
-	void replaceNotes(size_t songSectIndex, const size_t sectIndex, const bool(&charted)[2], const bool duet);
-	void addTraceLine(float pos, std::string name, const size_t sectIndex, const size_t playerIndex);
-	void addPhraseBar(long pos, unsigned long sus, unsigned long lane, Chart* currChart, const long SAMPLES_PER_TICK_ROUNDED);
-	void addGuardMark(const long pos, const unsigned long fret, Chart* currChart);
-	void applyForced(const long pos, const size_t sectIndex, const size_t playerIndex);
+	bool open(std::string filename);
+	CHC* convertNotes(CHC* song);
+
+	// Returns whether the traceline was added to the current chart
+	int addTraceLine(float pos, std::string name, const size_t sectIndex, const size_t playerIndex);
+	void addPhraseBar(Chart* currChart, const CHNote& note, const float position, const float SAMPLES_PER_TICK);
+	bool addGuardMark(Chart* currChart, const CHNote& note, const long position);
 };

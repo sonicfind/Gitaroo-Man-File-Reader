@@ -203,6 +203,11 @@ void CHC::organizeAll()
 			else
 				printf("%s%s: [INTRO, HARMONY, END, & BRK sections are organized by default]\n", g_global.tabs.c_str(), section.m_name);
 		}
+		else if (sectIndex > 0)
+		{
+			std::unique_lock<std::mutex> lk(cv_m);
+			cv.wait(lk, [&] { return results[sectIndex - 1]; });
+		}
 		results[sectIndex] = true;
 		cv.notify_all();
 	};
@@ -1561,7 +1566,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 			Note* note = nullptr;
 			bool operator<(const OrderedNote& note) { return position < note.position; }
 		};
-		std::vector<OrderedNote> notes[4];
+		std::list<OrderedNote> notes[4];
 		std::vector<Chart> newCharts[4];
 		for (size_t pl = 0; pl < 4; pl++)
 		{
@@ -1583,7 +1588,8 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 					chartIndex = chIndex;
 				}
 				Chart& ch = m_charts[(size_t)playerIndex + chartIndex];
-				if (m_swapped >= 4 || ((!(pl & 1)) != (isPs2 && m_swapped & 1)))
+				if (m_swapped >= 4
+					|| ((!(pl & 1)) != (isPs2 && m_swapped & 1)))
 				{
 					for (auto& guard : ch.m_guards)
 					{
@@ -1633,17 +1639,17 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 		}
 		const float SAMPLES_PER_BEAT = s_SAMPLES_PER_MIN / m_tempo;
 
-		for (size_t pl = 0; pl < (isPs2 ? 2U : 4U); pl++)
+		for (size_t player = 0; player < (isPs2 ? 2U : 4U); player++)
 		{
-			size_t currentPlayer = pl;
+			size_t currentPlayer = player;
 			Chart* currentChart = nullptr;
-			bool isPlayer = !(pl & 1) || m_swapped >= 4;
+			bool isPlayer = !(player & 1) || m_swapped >= 4;
 			bool makeNewChart = true;
-			for (auto ntIndex = notes[pl].begin(); ntIndex != notes[pl].end();)
+			for (auto ntIndex = notes[player].begin(); ntIndex != notes[player].end();)
 			{
 				if (makeNewChart)
 				{
-					if (ntIndex != notes[pl].begin()
+					if (ntIndex != notes[player].begin()
 						&& isPs2
 						&& stage != 0)
 						currentPlayer ^= 2;
@@ -1663,7 +1669,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 				currentChart->add(ntIndex->note);
 
 				auto prevIndex = ntIndex++;
-				if (ntIndex != notes[pl].end())
+				if (ntIndex != notes[player].end())
 				{
 					if (dynamic_cast<Path*>(prevIndex->note) != nullptr)
 					{
@@ -1677,21 +1683,18 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 							{
 								prevIndex = ntIndex++;
 								// If there's another note after the guard mark
-								if (ntIndex != notes[pl].end())
+								if (ntIndex != notes[player].end())
 								{
 									// If said note is a Trace line and has a duration of 1, delete it so it can be replaced
 									Traceline* tr2 = dynamic_cast<Traceline*>(ntIndex->note);
 									if (tr2 != nullptr && tr2->m_duration == 1)
-									{
-										notes[pl].erase(ntIndex--);
-										++ntIndex;
-									}
+										notes[player].erase(ntIndex++);
 								}
 
 								// If it's the enemy's original charts
 								// or if the next-next note, if it exists, is a guard mark
 								if ((isPlayer == (isPs2 && m_swapped & 1))
-									|| (ntIndex != notes[pl].end() && dynamic_cast<Guard*>(ntIndex->note) != nullptr))
+									|| (ntIndex != notes[player].end() && dynamic_cast<Guard*>(ntIndex->note) != nullptr))
 								{
 									long endAlpha = ntIndex->position - SongSection::s_SAMPLE_GAP - 1 - currentChart->getPivotTime();
 									float angle = 0;
@@ -1712,8 +1715,10 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 
 										// If the phrase bar is past the trace line
 										while (currentChart->m_phrases.size() && tr.getEndAlpha() <= currentChart->m_phrases.back().m_pivotAlpha)
-											if (currentChart->removePhraseBar(currentChart->getNumPhrases() - 1))
-												printf("%s%s: Phrase bar %zu removed\n", g_global.tabs.c_str(), m_name, currentChart->getNumPhrases());
+										{
+											currentChart->m_phrases.pop_back();
+											printf("%s%s: Phrase bar %zu removed\n", g_global.tabs.c_str(), m_name, currentChart->getNumPhrases());
+										}
 
 										if (currentChart->getNumPhrases())
 										{
@@ -1731,11 +1736,14 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 										currentChart->m_phrases.clear();
 
 									if (isPlayer != (isPs2 && m_swapped & 1))
+									{
 										currentChart->setEndTime(ntIndex->position - SongSection::s_SAMPLE_GAP);
+										makeNewChart = true;
+									}
 									ntIndex = prevIndex;
 								}
 								else
-									notes[pl].erase(prevIndex);
+									notes[player].erase(prevIndex);
 							}
 							else if (isPlayer != (isPs2 && m_swapped & 1))
 							{
@@ -1759,10 +1767,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 							}
 							// If the phrase bar is outside the trace line
 							else if (prevIndex->position + (long)tr->m_duration <= ntIndex->position)
-							{
-								notes[pl].erase(ntIndex--);
-								++ntIndex;
-							}
+								notes[player].erase(ntIndex++);
 						}
 					}
 					// Note is a Guard Mark
@@ -1782,7 +1787,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 								Traceline* tr = static_cast<Traceline*>(prevIndex->note);
 								// ntIndex = next x 2
 								auto next = ntIndex++;
-								if (ntIndex != notes[pl].end())
+								if (ntIndex != notes[player].end())
 								{
 									long newFirst = (next->position + ntIndex->position) >> 1;
 									if (tr->changePivotAlpha(tr->m_pivotAlpha + newFirst - prevIndex->position))
@@ -1791,16 +1796,11 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 										std::iter_swap(prevIndex, next);
 									}
 									else
-									{
-										notes[pl].erase(prevIndex--);
-										++prevIndex;
-									}
+										notes[player].erase(prevIndex++);
 								}
 								else
-								{
-									notes[pl].erase(prevIndex--);
-									++prevIndex;
-								}
+									notes[player].erase(prevIndex++);
+
 								ntIndex = prevIndex--;
 								// Now the next note is confirmed a guard mark, so the next dynamic_cast<Guard*>
 								// will return true
@@ -1830,10 +1830,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 						}
 						// A guard mark followed by a phrase bar is an error
 						else if (dynamic_cast<Phrase*>(ntIndex->note) != nullptr)
-						{
-							notes[pl].erase(ntIndex--);
-							++ntIndex;
-						}
+							notes[player].erase(ntIndex++);
 
 						// If the next note is a guard mark
 						// AND if there is enough distance between these guard marks in a duet or tutorial stage

@@ -179,7 +179,7 @@ public:
 
 	void create(FILE* outFile);
 	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const CHC* const chc);
-
+	unsigned long getIndex() const { return m_index; }
 	// Returns name C-string (size: 16)
 	char* getName() { return m_name; }
 	// Returns audio C-string (size: 16)
@@ -269,19 +269,10 @@ private:
 	long m_endTime = 0;
 public:
 	// Vector of all trace lines
-	//
-	// DO NOT ADD OR REMOVE DIRECTLY FROM THIS LIST!!
-	// USE emplaceTracline()!!
 	std::vector<Traceline> m_tracelines;
 	// Vector of all phrase bars
-	//
-	// DO NOT ADD OR REMOVE DIRECTLY FROM THIS LIST!!
-	// USE emplacePhrase()!!
 	std::vector<Phrase> m_phrases;
 	// Vector of all guard marks
-	//
-	// DO NOT ADD OR REMOVE DIRECTLY FROM THIS LIST!!
-	// USE emplaceGuard()!!
 	std::vector<Guard> m_guards;
 
 	Chart(const bool addTraceline);

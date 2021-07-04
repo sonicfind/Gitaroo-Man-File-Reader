@@ -187,7 +187,7 @@
     <ClCompile Include="CHC\CH_ChartFile.cpp" />
     <ClCompile Include="CHC\CH_Export.cpp" />
     <ClCompile Include="CHC\CH_Import.cpp" />
-    <ClCompile Include="CHC\CH_Item.cpp" />
+    <ClCompile Include="CHC\CH_Object.cpp" />
     <ClCompile Include="CHC\CH_NoteTrack.cpp" />
     <ClCompile Include="Main\FileMain.cpp" />
     <ClCompile Include="Main\FileType.cpp" />
@@ -201,7 +201,7 @@
     <ClInclude Include="CHC\CH_ChartFile.h" />
     <ClInclude Include="CHC\CH_Export.h" />
     <ClInclude Include="CHC\CH_Import.h" />
-    <ClInclude Include="CHC\CH_Item.h" />
+    <ClInclude Include="CHC\CH_Object.h" />
     <ClInclude Include="CHC\CH_NoteTrack.h" />
     <ClInclude Include="Main\FileMain.h" />
     <ClInclude Include="Main\FileType.h" />

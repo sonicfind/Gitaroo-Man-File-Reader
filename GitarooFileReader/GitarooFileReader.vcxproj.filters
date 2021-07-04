@@ -45,9 +45,6 @@
     <ClCompile Include="CHC\CH_Import.cpp">
       <Filter>CHC\Clone Hero</Filter>
     </ClCompile>
-    <ClCompile Include="CHC\CH_Item.cpp">
-      <Filter>CHC\Clone Hero</Filter>
-    </ClCompile>
     <ClCompile Include="CHC\CH_NoteTrack.cpp">
       <Filter>CHC\Clone Hero</Filter>
     </ClCompile>
@@ -62,6 +59,9 @@
     </ClCompile>
     <ClCompile Include="CHC\CHC_Main.cpp">
       <Filter>CHC</Filter>
+    </ClCompile>
+    <ClCompile Include="CHC\CH_Object.cpp">
+      <Filter>CHC\Clone Hero</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,9 +83,6 @@
     <ClInclude Include="CHC\CH_Import.h">
       <Filter>CHC\Clone Hero</Filter>
     </ClInclude>
-    <ClInclude Include="CHC\CH_Item.h">
-      <Filter>CHC\Clone Hero</Filter>
-    </ClInclude>
     <ClInclude Include="CHC\CH_NoteTrack.h">
       <Filter>CHC\Clone Hero</Filter>
     </ClInclude>
@@ -94,6 +91,9 @@
     </ClInclude>
     <ClInclude Include="Main\FileMain.h">
       <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="CHC\CH_Object.h">
+      <Filter>CHC\Clone Hero</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

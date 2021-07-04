@@ -13,7 +13,7 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "CH_Item.h"
+#include "CH_Object.h"
 #include "Global_Functions.h"
 
 struct NoteTrack

@@ -13,7 +13,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "CH_Item.h"
+#include "CH_Object.h"
 using namespace std;
 
 CHObject::CHObject()

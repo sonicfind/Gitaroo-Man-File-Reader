@@ -17,6 +17,7 @@
 #include "CHC.h"
 #include <condition_variable>
 using namespace std;
+using namespace GlobalFunctions;
 
 bool CHC::applyChanges(const bool fix, const bool swap, const bool save)
 {
@@ -46,7 +47,7 @@ bool CHC::edit(const bool multi)
 {
 	while (true)
 	{
-		GlobalFunctions::banner(" " + m_filename + ".CHC - Editor ");
+		banner(" " + m_filename + ".CHC - Editor ");
 		string choices = "vagcd";
 		if (!m_optimized)
 		{
@@ -79,15 +80,16 @@ bool CHC::edit(const bool multi)
 			printf("%sQ - Close this file\n", g_global.tabs.c_str());
 		else
 			printf("%sQ - Exit Detail Editor\n", g_global.tabs.c_str());
-		switch (GlobalFunctions::menuChoices(choices, true))
+
+		switch (menuChoices(choices, true))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			if (!multi
 				|| m_saved
 				|| checkSave(multi))
 				return true;
 			break;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 		{
 			printf("%s\n", g_global.tabs.c_str());
 			printf("%sS - Save File:\n", g_global.tabs.c_str());
@@ -131,7 +133,7 @@ bool CHC::edit(const bool multi)
 			printf("%s(No dealing or receiving damage in charge phases for example).\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 		}
 			__fallthrough;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			break;
 		default:
 			++g_global;
@@ -174,7 +176,7 @@ void CHC::organizeAll()
 	if (!m_unorganized)
 		return;
 
-	GlobalFunctions::banner(" " + m_filename + ".CHC - Complete Reorganization ");
+	banner(" " + m_filename + ".CHC - Complete Reorganization ");
 	std::condition_variable cv;
 	std::mutex cv_m;
 	bool* results = new bool[m_sections.size()]();
@@ -231,7 +233,7 @@ void CHC::organizeAll()
 
 void CHC::fixNotes()
 {
-	GlobalFunctions::banner(" Fixing " + m_filename + ".CHC ");
+	banner(" Fixing " + m_filename + ".CHC ");
 	size_t tracelinesCurved = 0, tracelinesStraightened = 0, tracelinesDeleted = 0, phrasesDeleted = 0, phrasesShortened = 0, guardsDeleted = 0;
 	m_optimized = true;
 	try
@@ -515,7 +517,7 @@ void CHC::fixNotes()
 
 void CHC::PSPToPS2()
 {
-	GlobalFunctions::banner(" " + m_filename + ".CHC - Non-Duet Conversion ");
+	banner(" " + m_filename + ".CHC - Non-Duet Conversion ");
 	bool player2 = false, enemy = false;
 	do
 	{
@@ -523,13 +525,13 @@ void CHC::PSPToPS2()
 		printf("%s1 - Player 1 & Enemy\n", g_global.tabs.c_str());
 		printf("%s2 - Player 1 & Player 2\n", g_global.tabs.c_str());
 		printf("%s3 - Player 2 & Enemy\n", g_global.tabs.c_str());
-		switch (GlobalFunctions::menuChoices("123"))
+		switch (menuChoices("123"))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			return;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 			break;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			switch (g_global.answer.character)
 			{
 			case '3':
@@ -656,22 +658,22 @@ void CHC::swapIMC()
 {
 	while (true)
 	{
-		GlobalFunctions::banner(" " + m_filename + ".CHC - IMC Swap ");
+		banner(" " + m_filename + ".CHC - IMC Swap ");
 		printf("%sProvide the name (without the extension) of the .IMC file you wish to use (Or 'Q' to back out to Modify Menu)\n", g_global.tabs.c_str());
 		printf("%sCurrent IMC File: %s\n", g_global.tabs.c_str(), m_imc);
 		printf("%sInput: ", g_global.tabs.c_str());
 
 		char newIMC[223];
-		if (GlobalFunctions::charArrayInsertion(newIMC, 218) == GlobalFunctions::ResultType::Success)
+		if (charArrayInsertion(newIMC, 218) == ResultType::Success)
 		{
 			do
 			{
 				printf("%sIs this correct?: /PROJECTS/STDATA/STAGE00/SONGDATA/%s [Y/N]\n", g_global.tabs.c_str(), newIMC);
 				if (!strstr(newIMC, ".IMC"))
 					printf("%s\".IMC\" will be added afterwards.\n", g_global.tabs.c_str());
-				switch (GlobalFunctions::menuChoices("yn"))
+				switch (menuChoices("yn"))
 				{
-				case GlobalFunctions::ResultType::Success:
+				case ResultType::Success:
 					if (g_global.answer.character == 'n')
 					{
 						g_global.quit = true;
@@ -687,7 +689,7 @@ void CHC::swapIMC()
 						m_saved = false;
 					}
 					__fallthrough;
-				case GlobalFunctions::ResultType::Quit:
+				case ResultType::Quit:
 					return;
 				}
 			} while (!g_global.quit);
@@ -705,7 +707,7 @@ void CHC::audioSettings()
 		string choices;
 		if (!m_imc[0])
 		{
-			GlobalFunctions::banner(" " + m_filename + ".CHC - Audio Channels ");
+			banner(" " + m_filename + ".CHC - Audio Channels ");
 			printf("%s          ||        Volume        ||        Paning        ||\n", g_global.tabs.c_str());
 			printf("%s Channels ||  Value  ||  Percent  ||   Left   |   Right   ||\n", g_global.tabs.c_str());
 			printf("%s==========================================================||\n", g_global.tabs.c_str());
@@ -727,7 +729,7 @@ void CHC::audioSettings()
 		}
 		else
 		{
-			GlobalFunctions::banner(" " + m_filename + ".CHC - Audio Channels [Duet Stages] ");
+			banner(" " + m_filename + ".CHC - Audio Channels [Duet Stages] ");
 			printf("%s          ||        Volume        ||\n", g_global.tabs.c_str());
 			printf("%s Channels ||  Value  ||  Percent  ||\n", g_global.tabs.c_str());
 			printf("%s==================================||\n", g_global.tabs.c_str());
@@ -741,21 +743,21 @@ void CHC::audioSettings()
 			printf("%sChoose the channel you wish to edit [Type 'Q' to exit audio settings]\n", g_global.tabs.c_str());
 			choices = "345678";
 		}
-		switch (GlobalFunctions::menuChoices(choices, true))
+		switch (menuChoices(choices, true))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			return;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 			printf("%s\n", g_global.tabs.c_str());
 			break;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 		{
 			size_t channel = g_global.answer.index;
 			if (!m_imc[0])
 				channel += 2;
 			do
 			{
-				GlobalFunctions::banner(" " + m_filename + ".CHC - Audio Channel " + to_string(channel + 1));
+				banner(" " + m_filename + ".CHC - Audio Channel " + to_string(channel + 1));
 				string choices = "vb";
 				printf("%sV - Volume\n", g_global.tabs.c_str());
 				if (!m_imc[0])
@@ -765,43 +767,43 @@ void CHC::audioSettings()
 				}
 				printf("%sB - Choose Another Channel\n", g_global.tabs.c_str());
 				printf("%sQ - Exit Audio Settings\n", g_global.tabs.c_str());
-				switch (GlobalFunctions::menuChoices(choices))
+				switch (menuChoices(choices))
 				{
-				case GlobalFunctions::ResultType::Quit:
+				case ResultType::Quit:
 					return;
-				case GlobalFunctions::ResultType::Help:
+				case ResultType::Help:
 					printf("%s\n", g_global.tabs.c_str());
 					break;
-				case GlobalFunctions::ResultType::Success:
+				case ResultType::Success:
 					switch (g_global.answer.character)
 					{
 					case 'v':
 						do
 						{
-							GlobalFunctions::banner(" " + m_filename + ".CHC - Audio Channel " + to_string(channel + 1) + " - Volume");
+							banner(" " + m_filename + ".CHC - Audio Channel " + to_string(channel + 1) + " - Volume");
 							printf("%sProvide value for Volume (0 - 32767[100%%]) ['B' for Volume/Panning Menu | 'Q' to exit audio settings]\n", g_global.tabs.c_str());
 							printf("%sCurrent Volume: %lu (%g%%)\n", g_global.tabs.c_str(), m_audio[channel].volume, 100.0 * m_audio[channel].volume / 32767);
 							printf("%sInput: ", g_global.tabs.c_str());
 							unsigned long oldVol = m_audio[channel].volume;
-							switch (GlobalFunctions::valueInsert(m_audio[channel].volume, false, 0UL, 32767UL, "b"))
+							switch (valueInsert(m_audio[channel].volume, false, 0UL, 32767UL, "b"))
 							{
-							case GlobalFunctions::ResultType::Quit:
+							case ResultType::Quit:
 								return;
-							case GlobalFunctions::ResultType::SpecialCase:
+							case ResultType::SpecialCase:
 								g_global.quit = true;
 								break;
-							case GlobalFunctions::ResultType::Success:
+							case ResultType::Success:
 								if (m_audio[channel].volume != oldVol)
 									m_saved = false;
 								break;
-							case GlobalFunctions::ResultType::InvalidNegative:
-							case GlobalFunctions::ResultType::MaxExceeded:
+							case ResultType::InvalidNegative:
+							case ResultType::MaxExceeded:
 								printf("%sValue must be between 0 & 32767. Not adjusting.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
-								GlobalFunctions::clearIn();
+								clearIn();
 								break;
-							case GlobalFunctions::ResultType::Failed:
+							case ResultType::Failed:
 								printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-								GlobalFunctions::clearIn();
+								clearIn();
 							}
 						} while (!g_global.quit);
 						g_global.quit = false;
@@ -809,7 +811,7 @@ void CHC::audioSettings()
 					case 'p':
 						do
 						{
-							GlobalFunctions::banner(" " + m_filename + ".CHC - Audio Channel " + to_string(channel + 1) + " - Panning");
+							banner(" " + m_filename + ".CHC - Audio Channel " + to_string(channel + 1) + " - Panning");
 							printf("%sProvide value for Panning (Left[0] - Center[16383] - Right[32767]) ['B' for Volume/Panning Menu | 'Q' to exit audio settings]\n", g_global.tabs.c_str());
 							printf("%sCurrent Panning: ", g_global.tabs.c_str());
 							unsigned long oldPan = m_audio[channel].pan;
@@ -821,25 +823,25 @@ void CHC::audioSettings()
 							default: printf("%g%% Left | %g%% Right (%lu)\n", 100.0 - (double(m_audio[channel].pan) * (100.0 / 32767)), double(m_audio[channel].pan) * (100.0 / 32767), m_audio[channel].pan);
 							}
 							printf("%sInput: ", g_global.tabs.c_str());
-							switch (GlobalFunctions::valueInsert(m_audio[channel].pan, false, 0UL, 32767UL, "b"))
+							switch (valueInsert(m_audio[channel].pan, false, 0UL, 32767UL, "b"))
 							{
-							case GlobalFunctions::ResultType::Quit:
+							case ResultType::Quit:
 								return;
-							case GlobalFunctions::ResultType::SpecialCase:
+							case ResultType::SpecialCase:
 								g_global.quit = true;
 								break;
-							case GlobalFunctions::ResultType::Success:
+							case ResultType::Success:
 								if (m_audio[channel].pan != oldPan)
 									m_saved = false;
 								break;
-							case GlobalFunctions::ResultType::InvalidNegative:
-							case GlobalFunctions::ResultType::MaxExceeded:
+							case ResultType::InvalidNegative:
+							case ResultType::MaxExceeded:
 								printf("%sValue must be between 0 & 32767. Not adjusting.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
-								GlobalFunctions::clearIn();
+								clearIn();
 								break;
-							case GlobalFunctions::ResultType::Failed:
+							case ResultType::Failed:
 								printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-								GlobalFunctions::clearIn();
+								clearIn();
 							}
 						} while (!g_global.quit);
 						g_global.quit = false;
@@ -859,7 +861,7 @@ void CHC::winLossSettings()
 {
 	while (true)
 	{
-		GlobalFunctions::banner(" " + m_filename + ".CHC - Win/Loss Animations ");
+		banner(" " + m_filename + ".CHC - Win/Loss Animations ");
 		static const string ssqStrings[] = { "Win A", "Win B", "Lost Pre", "Lost Post" };
 		printf("%s            ||       Frames       ||\n", g_global.tabs.c_str());
 		printf("%s Animations ||  First  ||   Last  ||\n", g_global.tabs.c_str());
@@ -869,29 +871,29 @@ void CHC::winLossSettings()
 		printf("%s3 - Lost Pre||%7g  ||%7g  ||\n", g_global.tabs.c_str(), m_events[2].first, m_events[2].last);
 		printf("%s4 - Lt. Loop||%7g  ||%7g  ||\n", g_global.tabs.c_str(), m_events[3].first, m_events[3].last);
 		printf("%s\n\t\t      ||Select an SSQ event ('1'/'2'/'3'/'4') [Type 'Q' to exit win/loss anim. settings]\n", g_global.tabs.c_str());
-		switch (GlobalFunctions::menuChoices("1234", true))
+		switch (menuChoices("1234", true))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			return;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 			printf("%s\n", g_global.tabs.c_str());
 			break;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			do
 			{
-				GlobalFunctions::banner(" " + m_filename + ".CHC - SSQ Animation:" + ssqStrings[g_global.answer.index]);
+				banner(" " + m_filename + ".CHC - SSQ Animation:" + ssqStrings[g_global.answer.index]);
 				printf("%sF - Adjust first frame: %g\n", g_global.tabs.c_str(), m_events[g_global.answer.index].first );
 				printf("%sL - Adjust last  frame: %g\n", g_global.tabs.c_str(), m_events[g_global.answer.index].last );
 				printf("%sB - Choose different animation\n", g_global.tabs.c_str());
 				printf("%sQ - Exit win/loss animation settings \n", g_global.tabs.c_str());
-				switch (GlobalFunctions::menuChoices("flb"))
+				switch (menuChoices("flb"))
 				{
-				case GlobalFunctions::ResultType::Quit:
+				case ResultType::Quit:
 					return;
-				case GlobalFunctions::ResultType::Help:
+				case ResultType::Help:
 					printf("%s\n", g_global.tabs.c_str());
 					break;
-				case GlobalFunctions::ResultType::Success:
+				case ResultType::Success:
 					switch (g_global.answer.character)
 					{
 					case 'b':
@@ -900,28 +902,28 @@ void CHC::winLossSettings()
 					case 'f':
 						do
 						{
-							GlobalFunctions::banner(" " + m_filename + ".CHC - SSQ Animation: " + ssqStrings[g_global.answer.index] + " - First Frame");
+							banner(" " + m_filename + ".CHC - SSQ Animation: " + ssqStrings[g_global.answer.index] + " - First Frame");
 							printf("%sEnter a positive value to change to [Type 'b' to choose a different frame | 'Q' to exit win/loss anim. settings]\n", g_global.tabs.c_str());
 							printf("%s(Can be a decimal)\n", g_global.tabs.c_str());
 							float oldAnim = m_events[g_global.answer.index].first;
-							switch (GlobalFunctions::valueInsert(m_events[g_global.answer.index].first, false, "b"))
+							switch (valueInsert(m_events[g_global.answer.index].first, false, "b"))
 							{
-							case GlobalFunctions::ResultType::Quit:
+							case ResultType::Quit:
 								return;
-							case GlobalFunctions::ResultType::SpecialCase:
+							case ResultType::SpecialCase:
 								g_global.quit = true;
 								break;
-							case GlobalFunctions::ResultType::Success:
+							case ResultType::Success:
 								if (m_events[g_global.answer.index].first != oldAnim)
 									m_saved = false;
 								break;
-							case GlobalFunctions::ResultType::InvalidNegative:
+							case ResultType::InvalidNegative:
 								printf("%sValue must be positive. Not adjusting.\n", g_global.tabs.c_str());
-								GlobalFunctions::clearIn();
+								clearIn();
 								break;
-							case GlobalFunctions::ResultType::Failed:
+							case ResultType::Failed:
 								printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-								GlobalFunctions::clearIn();
+								clearIn();
 							}
 						} while (!g_global.quit);
 						g_global.quit = false;
@@ -929,27 +931,27 @@ void CHC::winLossSettings()
 					case 'l':
 						do
 						{
-							GlobalFunctions::banner(" " + m_filename + ".CHC - SSQ Animation: " + ssqStrings[g_global.answer.index] + " - Last Frame");
+							banner(" " + m_filename + ".CHC - SSQ Animation: " + ssqStrings[g_global.answer.index] + " - Last Frame");
 							printf("%sEnter a positive value to change to [Type 'b' to choose a different frame | 'Q' to exit win/loss anim. settings]\n", g_global.tabs.c_str());
 							printf("%s(Can be a decimal)\n", g_global.tabs.c_str());
 							float oldAnim = m_events[g_global.answer.index].last;
-							switch (GlobalFunctions::valueInsert(m_events[g_global.answer.index].last, false, "b"))
+							switch (valueInsert(m_events[g_global.answer.index].last, false, "b"))
 							{
-							case GlobalFunctions::ResultType::Quit:
+							case ResultType::Quit:
 								return;
-							case GlobalFunctions::ResultType::SpecialCase:
+							case ResultType::SpecialCase:
 								g_global.quit = true;
 								break;
-							case GlobalFunctions::ResultType::Success:
+							case ResultType::Success:
 								if (m_events[g_global.answer.index].last != oldAnim)
 									m_saved = false;
 								break;
-							case GlobalFunctions::ResultType::InvalidNegative:
-								printf("%sValue must be positive. Not adjusting.\n", g_global.tabs.c_str()); GlobalFunctions::clearIn();
+							case ResultType::InvalidNegative:
+								printf("%sValue must be positive. Not adjusting.\n", g_global.tabs.c_str()); clearIn();
 								break;
-							case GlobalFunctions::ResultType::Failed:
+							case ResultType::Failed:
 								printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-								GlobalFunctions::clearIn();
+								clearIn();
 							}
 						} while (!g_global.quit);
 						g_global.quit = false;
@@ -965,25 +967,25 @@ void CHC::adjustSpeed()
 {
 	while (true)
 	{
-		GlobalFunctions::banner(" " + m_filename + ".CHC - Gameplay Speed Change ");
+		banner(" " + m_filename + ".CHC - Gameplay Speed Change ");
 		printf("%sProvide a value for the change [Type 'Q' to exit speed settings]\n", g_global.tabs.c_str());
 		printf("%sCan be a decimal... and/or negative with weird effects\n", g_global.tabs.c_str());
 		printf("%sCurrent Value: %g\n", g_global.tabs.c_str(), m_speed );
 		printf("%sInput: ", g_global.tabs.c_str());
 		float oldSpeed = m_speed;
-		switch (GlobalFunctions::valueInsert(m_speed, true))
+		switch (valueInsert(m_speed, true))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			return;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			if (m_speed != oldSpeed)
 				m_saved = false;
 			break;
-		case GlobalFunctions::ResultType::MaxExceeded:
+		case ResultType::MaxExceeded:
 			break;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-			GlobalFunctions::clearIn();
+			clearIn();
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
@@ -993,7 +995,7 @@ void CHC::sectionMassMenu()
 {
 	do
 	{
-		GlobalFunctions::banner(" " + m_filename + ".CHC - Sections ");
+		banner(" " + m_filename + ".CHC - Sections ");
 
 		string choices = "psct";
 		printf("%sP - Set Unconditional Play Order\n", g_global.tabs.c_str());
@@ -1006,14 +1008,14 @@ void CHC::sectionMassMenu()
 		printf("%sC - Choose a Single Section to Edit\n", g_global.tabs.c_str());
 		printf("%sT - Test Section Pathing\n", g_global.tabs.c_str());
 		printf("%sQ - Back out to Modify Menu\n", g_global.tabs.c_str());
-		switch (GlobalFunctions::menuChoices("prsct", true))
+		switch (menuChoices("prsct", true))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			return;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 			printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			__fallthrough;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			break;
 		default:
 			++g_global;
@@ -1032,16 +1034,16 @@ void CHC::sectionMassMenu()
 
 void CHC::playerSwapAll()
 {
-	GlobalFunctions::banner(" " + m_filename + ".CHC - Complete Player Swap");
+	banner(" " + m_filename + ".CHC - Complete Player Swap ");
 	for (size_t sectIndex = 0; sectIndex < m_sections.size(); sectIndex++)
-		m_sections[sectIndex].playerSwap(m_imc[0]);
+		m_sections[sectIndex].playerSwap(m_imc[0], true);
 	m_saved = false;
 }
 
 void CHC::playOrder()
 {
-	GlobalFunctions::banner(" " + m_filename + ".CHC - Play Order ");
-	std::vector<size_t> sectionIndexes = GlobalFunctions::indexInsertionDialogue(m_sections
+	banner(" " + m_filename + ".CHC - Play Order ");
+	std::vector<size_t> sectionIndexes = indexInsertionDialogue(m_sections
 			, "Type the index for each section in the order you wish them to be played - w/ spaces in-between."
 			, "Play Order Selection");
 
@@ -1070,7 +1072,7 @@ void CHC::playOrder()
 
 void CHC::rearrange()
 {
-	GlobalFunctions::banner(" " + m_filename + ".CHC - Section Rearrangement ");
+	banner(" " + m_filename + ".CHC - Section Rearrangement ");
 	size_t startIndex = 0, numElements, position;
 	do
 	{
@@ -1078,21 +1080,21 @@ void CHC::rearrange()
 		for (size_t index = 0; index < m_sections.size(); ++index)
 			printf("%s%zu - %s\n", g_global.tabs.c_str(), index, m_sections[index].m_name );
 		printf("%sInput: ", g_global.tabs.c_str());
-		switch (GlobalFunctions::valueInsert(startIndex, false, size_t(0), m_sections.size() - 1))
+		switch (valueInsert(startIndex, false, size_t(0), m_sections.size() - 1))
 		{
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			printf("%sSection rearrangement cancelled.\n", g_global.tabs.c_str());
 			return;
-		case GlobalFunctions::ResultType::InvalidNegative:
+		case ResultType::InvalidNegative:
 			printf("%sGiven value cannot be negative\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			break;
-		case GlobalFunctions::ResultType::MaxExceeded:
+		case ResultType::MaxExceeded:
 			printf("%sGiven value cannot be greater than %zu\n%s\n", g_global.tabs.c_str(), m_sections.size() - 1, g_global.tabs.c_str());
 			break;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
 			break;
 		}
@@ -1106,22 +1108,22 @@ void CHC::rearrange()
 		{
 			printf("%sHow many elements do you want to move? [Max # of movable elements: %zu]\n", g_global.tabs.c_str(), m_sections.size() - startIndex);
 			printf("%sInput: ", g_global.tabs.c_str());
-			switch (GlobalFunctions::valueInsert(numElements, false, size_t(1), m_sections.size() - startIndex))
+			switch (valueInsert(numElements, false, size_t(1), m_sections.size() - startIndex))
 			{
-			case GlobalFunctions::ResultType::Success:
+			case ResultType::Success:
 				g_global.quit = true;
 				break;
-			case GlobalFunctions::ResultType::Quit:
+			case ResultType::Quit:
 				printf("%sSection rearrangement cancelled.\n", g_global.tabs.c_str());
 				return;
-			case GlobalFunctions::ResultType::InvalidNegative:
-			case GlobalFunctions::ResultType::MinExceeded:
+			case ResultType::InvalidNegative:
+			case ResultType::MinExceeded:
 				printf("%sGiven value cannot be less than 1\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 				break;
-			case GlobalFunctions::ResultType::MaxExceeded:
+			case ResultType::MaxExceeded:
 				printf("%sGiven value cannot be greater than %zu\n%s\n", g_global.tabs.c_str(), m_sections.size() - startIndex, g_global.tabs.c_str());
 				break;
-			case GlobalFunctions::ResultType::Failed:
+			case ResultType::Failed:
 				printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
 				break;
 			}
@@ -1170,9 +1172,9 @@ void CHC::rearrange()
 					}
 				}
 				printf("%sInput: ", g_global.tabs.c_str());
-				switch (GlobalFunctions::valueInsert(position, false, size_t(0), m_sections.size()))
+				switch (valueInsert(position, false, size_t(0), m_sections.size()))
 				{
-				case GlobalFunctions::ResultType::Success:
+				case ResultType::Success:
 					if (position < startIndex)
 					{
 						alpha = long(position - startIndex);
@@ -1186,16 +1188,16 @@ void CHC::rearrange()
 					else
 						printf("%sCannot choose a value within the range of sections being moved\n", g_global.tabs.c_str());
 					break;
-				case GlobalFunctions::ResultType::Quit:
+				case ResultType::Quit:
 					printf("%sSection rearrangement cancelled.\n", g_global.tabs.c_str());
 					return;
-				case GlobalFunctions::ResultType::InvalidNegative:
+				case ResultType::InvalidNegative:
 					printf("%sGiven value cannot be negative\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 					break;
-				case GlobalFunctions::ResultType::MaxExceeded:
+				case ResultType::MaxExceeded:
 					printf("%sGiven value cannot be greater than %zu\n%s\n", g_global.tabs.c_str(), m_sections.size(), g_global.tabs.c_str());
 					break;
-				case GlobalFunctions::ResultType::Failed:
+				case ResultType::Failed:
 					printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
 					break;
 				}
@@ -1238,7 +1240,7 @@ void CHC::adjustFactors()
 {
 	do
 	{
-		GlobalFunctions::banner(" " + m_filename + ".CHC - Damage/Energy Factors ", 1.53f);
+		banner(" " + m_filename + ".CHC - Damage/Energy Factors ", 1.53f);
 		static const char* headers[] = { "||    Starting Energy   ||", "|| Initial-Press Energy ||", "|| Initial-Press Damage ||", "||   Guard Energy Gain  ||",
 							 "||  Attack Miss Damage  ||", "||   Guard Miss Damage  ||", "|| Sustain Energy Coef. ||", "|| Sustain Damage Coef. ||" };
 		for (size_t player = 0; player < 4; player += 2)
@@ -1262,21 +1264,21 @@ void CHC::adjustFactors()
 			printf("\n%s%s||\n", g_global.tabs.c_str(), string(158, '=').c_str());
 		}
 		printf("%sSelect a player ('1'/'2'/'3'/'4') [Type 'Q' to exit factor settings]\n", g_global.tabs.c_str());
-		switch (GlobalFunctions::menuChoices("1234", true))
+		switch (menuChoices("1234", true))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 			printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			__fallthrough;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			break;
 		default:
 			const size_t player = g_global.answer.index;
 			do
 			{
-				GlobalFunctions::banner(" " + m_filename + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " ");
+				banner(" " + m_filename + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " ");
 				printf("%s        Player %zu      ||  Intro  ||  Charge ||  Battle || Harmony ||   End   ||\n", g_global.tabs.c_str(), player + 1);
 				printf("%s%s||", g_global.tabs.c_str(), string(77, '=').c_str());
 				for (size_t factor = 0; factor < 8; factor++)
@@ -1291,16 +1293,16 @@ void CHC::adjustFactors()
 				printf("\n%s%s||\n", g_global.tabs.c_str(), string(77, '=').c_str());
 				printf("%sSelect a phase ('I'/'C'/'B'/'H'/'E') [Type 'P' to choose a different player | 'Q' to exit factor settings]\n", g_global.tabs.c_str());
 				const string phaseName[5] = { "Intro", "Charge", "Battle", "Harmony", "End" };
-				switch (GlobalFunctions::menuChoices("icbhep", true))
+				switch (menuChoices("icbhep", true))
 				{
-				case GlobalFunctions::ResultType::Quit:
+				case ResultType::Quit:
 					return;
-				case GlobalFunctions::ResultType::Help:
+				case ResultType::Help:
 					printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 					__fallthrough;
-				case GlobalFunctions::ResultType::Failed:
+				case ResultType::Failed:
 					break;
-				case GlobalFunctions::ResultType::Success:
+				case ResultType::Success:
 					if (g_global.answer.index == 5)
 					{
 						g_global.quit = true;
@@ -1314,7 +1316,7 @@ void CHC::adjustFactors()
 						auto& factors = m_energyDamageFactors[player][g_global.answer.index];
 						do
 						{
-							GlobalFunctions::banner(" " + m_filename + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phase + " ");
+							banner(" " + m_filename + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) + " | " + phase + " ");
 							printf("%s          Player %zu        || %*s ||\n", g_global.tabs.c_str(), player + 1, nameLength + 1, phase.c_str());
 							printf("%s%s||\n", g_global.tabs.c_str(), string(31 + phase.length(), '=').c_str());
 							printf("%s 1 - Starting Energy      || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.initialEnergy * 100.0);
@@ -1327,16 +1329,16 @@ void CHC::adjustFactors()
 							printf("%s 8 - Sustain Damage Coef. || %*g%% ||\n", g_global.tabs.c_str(), nameLength, factors.attackRelease * 100.0);
 							printf("%s%s||\n", g_global.tabs.c_str(), string(31ULL + nameLength, '=').c_str());
 							printf("%sSelect a factor by number [Type 'B' to choose a different phase | 'Q' to exit factor settings]\n", g_global.tabs.c_str());
-							switch (GlobalFunctions::menuChoices("12345678b", true))
+							switch (menuChoices("12345678b", true))
 							{
-							case GlobalFunctions::ResultType::Quit:
+							case ResultType::Quit:
 								return;
-							case GlobalFunctions::ResultType::Help:
+							case ResultType::Help:
 								printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 								__fallthrough;
-							case GlobalFunctions::ResultType::Failed:
+							case ResultType::Failed:
 								break;
-							case GlobalFunctions::ResultType::Success:
+							case ResultType::Success:
 								if (g_global.answer.index == 8)
 								{
 									g_global.quit = true;
@@ -1348,7 +1350,7 @@ void CHC::adjustFactors()
 																		" | Attack Miss Damage ", " | Guard Miss Damage ", " | Sustain Energy Coef. ", " | Sustain Damage Coef. " };
 									do
 									{
-										GlobalFunctions::banner(" " + m_filename + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) +
+										banner(" " + m_filename + ".CHC - Damage/Energy Factors | Player " + to_string(player + 1) +
 											" | " + phase + bannerEnds[g_global.answer.index]);
 										float* val = &factors.initialEnergy + g_global.answer.index;
 
@@ -1360,20 +1362,20 @@ void CHC::adjustFactors()
 										printf("%sCan be a decimal... and/or negative with weird effects\n", g_global.tabs.c_str());
 										printf("%sInput: ", g_global.tabs.c_str());
 										float oldFac = *val;
-										switch (GlobalFunctions::valueInsert(*val, true, 0.0f, 0.0f, "b"))
+										switch (valueInsert(*val, true, 0.0f, 0.0f, "b"))
 										{
-										case GlobalFunctions::ResultType::SpecialCase:
+										case ResultType::SpecialCase:
 											g_global.quit = true;
 											break;
-										case GlobalFunctions::ResultType::Success:
+										case ResultType::Success:
 											if (*val != oldFac)
 												m_saved = false;
 											break;
-										case GlobalFunctions::ResultType::Quit:
+										case ResultType::Quit:
 											return;
-										case GlobalFunctions::ResultType::Failed:
+										case ResultType::Failed:
 											printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-											GlobalFunctions::clearIn();
+											clearIn();
 										}
 									} while (!g_global.quit);
 									g_global.quit = false;
@@ -1392,7 +1394,7 @@ void CHC::adjustFactors()
 
 bool CHC::testPathing(const size_t index)
 {
-	GlobalFunctions::banner(" " + m_filename + ".CHC - Section Transversal ");
+	banner(" " + m_filename + ".CHC - Section Transversal ");
 	const size_t size = m_sections.size();
 	bool* isAccessible = new bool[size]();
 	bool* canReachEnd = new bool[size]();
@@ -1448,13 +1450,13 @@ void CHC::sectionSelector()
 {
 	do
 	{
-		GlobalFunctions::banner(" " + m_filename + ".CHC - Section Selection");
-		switch (GlobalFunctions::indexSelector(m_sections, "section"))
+		banner(" " + m_filename + ".CHC - Section Selection");
+		switch (indexSelector(m_sections, "section"))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			++g_global;
 			m_sections[g_global.answer.index].menu(m_imc[0], m_stage);
 			--g_global;
@@ -1467,7 +1469,7 @@ void SongSection::menu(const bool isPs2, const int stage)
 {
 	do
 	{
-		GlobalFunctions::banner(" " + string(m_name) + " - Modify ");
+		banner(" " + string(m_name) + " - Modify ");
 		string choices = "nafptds"; //ENABLE CONDITION OPTION
 		printf("%sN - Name\n", g_global.tabs.c_str());
 		printf("%sA - Change the section of audio used: %s\n", g_global.tabs.c_str(), m_audio);
@@ -1499,15 +1501,15 @@ void SongSection::menu(const bool isPs2, const int stage)
 		}
 		printf("%sS - Swap players\n", g_global.tabs.c_str());
 		printf("%sQ - Choose another section\n", g_global.tabs.c_str());
-		switch (GlobalFunctions::menuChoices(choices))
+		switch (menuChoices(choices))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 			printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			break;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			++g_global;
 			switch (g_global.answer.character)
 			{
@@ -1533,7 +1535,7 @@ void SongSection::menu(const bool isPs2, const int stage)
 				conditionMenu();
 				break;
 			case 'o':
-				GlobalFunctions::banner(" " + string(m_name) + " - Organize ");
+				banner(" " + string(m_name) + " - Organize ");
 				if (reorganize(isPs2, stage))
 				{
 					printf("%s%s organized - # of charts per player: %lu", g_global.tabs.c_str(), m_name, m_numCharts);
@@ -1900,9 +1902,11 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 	return ret;
 }
 
-void SongSection::playerSwap(const bool isPs2)
+void SongSection::playerSwap(const bool isPs2, bool allSections)
 {
-	GlobalFunctions::banner(" " + string(m_name) + " - Player Swap ");
+	if (!allSections)
+		banner(" " + string(m_name) + " - Player Swap ");
+
 	if (isPs2)
 	{
 		if (m_battlePhase != SongSection::Phase::HARMONY && m_battlePhase != SongSection::Phase::END)
@@ -1936,11 +1940,11 @@ void SongSection::playerSwap(const bool isPs2)
 				case 3: printf("P4/P3/P2/P1\n");
 				}
 
-				switch (GlobalFunctions::menuChoices("ab"))
+				switch (menuChoices("ab"))
 				{
-				case GlobalFunctions::ResultType::Quit:
+				case ResultType::Quit:
 					return;
-				case GlobalFunctions::ResultType::Success:
+				case ResultType::Success:
 					if (g_global.answer.character == 'a')
 					{
 						std::swap_ranges(m_charts.begin(), m_charts.begin() + m_numCharts, m_charts.begin() + m_numCharts);
@@ -1988,11 +1992,11 @@ void SongSection::playerSwap(const bool isPs2)
 
 void SongSection::changeName()
 {
-	GlobalFunctions::banner(" " + string(m_name) + " - Name Change ");
+	banner(" " + string(m_name) + " - Name Change ");
 	printf("%sProvide a new name for this section (16 character max) ('Q' to back out to the Section Menu)\n", g_global.tabs.c_str());
 	printf("%sInput: ", g_global.tabs.c_str());
 	char newName[17];
-	if (GlobalFunctions::charArrayInsertion(newName, 16) == GlobalFunctions::ResultType::Success)
+	if (charArrayInsertion(newName, 16) == ResultType::Success)
 	{
 		if (strcmp(m_name, newName))
 		{
@@ -2004,11 +2008,11 @@ void SongSection::changeName()
 
 void SongSection::changeAudio()
 {
-	GlobalFunctions::banner(" " + string(m_name) + " - Audio Change ");
+	banner(" " + string(m_name) + " - Audio Change ");
 	printf("%sProvide the name for the section of audio you want to use (16 character max) ('Q' to back out to the Section Menu)\n", g_global.tabs.c_str());
 	printf("%sInput: ", g_global.tabs.c_str());
 	char newAudio[17];
-	if (GlobalFunctions::charArrayInsertion(newAudio, 16) == GlobalFunctions::ResultType::Success)
+	if (charArrayInsertion(newAudio, 16) == ResultType::Success)
 	{
 		if (strcmp(m_audio, newAudio))
 		{
@@ -2022,58 +2026,58 @@ void SongSection::changeFrames()
 {
 	do
 	{
-		GlobalFunctions::banner(" " + string(m_name) + " - SSQ Starting Index ");
+		banner(" " + string(m_name) + " - SSQ Starting Index ");
 		printf("%sProvide a value for the starting SSQ index [Type 'U' to leave this value unchanged; 'Q' to back out]\n", g_global.tabs.c_str());
 		printf("%sCan be a decimal\n", g_global.tabs.c_str());
 		printf("%sCurrent Value for Starting Index: %g\n", g_global.tabs.c_str(), m_frames.first );
 		printf("%sInput: ", g_global.tabs.c_str());
 		float oldFirst = m_frames.first;
-		switch (GlobalFunctions::valueInsert(m_frames.first, false, "u"))
+		switch (valueInsert(m_frames.first, false, "u"))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			return;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			if (m_frames.first != oldFirst)
 				m_parent->m_saved = false;
 			__fallthrough;
-		case GlobalFunctions::ResultType::SpecialCase:
+		case ResultType::SpecialCase:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::InvalidNegative:
+		case ResultType::InvalidNegative:
 			printf("%sProvided value *must* be a zero or greater.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			break;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-			GlobalFunctions::clearIn();
+			clearIn();
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
 	printf("%s\n%sStarting index saved.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str(), g_global.tabs.c_str());
 	do
 	{
-		GlobalFunctions::banner(" " + string(m_name) + " - SSQ Ending Index ");
+		banner(" " + string(m_name) + " - SSQ Ending Index ");
 		printf("%sProvide a value for the Ending SSQ index [Type 'U' to leave this value unchanged; 'Q' to back out]\n", g_global.tabs.c_str());
 		printf("%sCan be a decimal\n", g_global.tabs.c_str());
 		printf("%sCurrent Value for Ending Index: %g\n", g_global.tabs.c_str(), m_frames.last );
 		printf("%sInput: ", g_global.tabs.c_str());
 		float oldLast = m_frames.last;
-		switch (GlobalFunctions::valueInsert(m_frames.last, false, "u"))
+		switch (valueInsert(m_frames.last, false, "u"))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			return;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			if (m_frames.last != oldLast)
 				m_parent->m_saved = false;
 			__fallthrough;
-		case GlobalFunctions::ResultType::SpecialCase:
+		case ResultType::SpecialCase:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::InvalidNegative:
+		case ResultType::InvalidNegative:
 			printf("%sProvided value *must* be a zero or greater.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			break;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-			GlobalFunctions::clearIn();
+			clearIn();
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
@@ -2085,7 +2089,7 @@ void SongSection::switchPhase()
 	string choices = "";
 	do
 	{
-		GlobalFunctions::banner(" " + string(m_name) + " - Phase Selection ");
+		banner(" " + string(m_name) + " - Phase Selection ");
 		printf("%sSelect a phase type for this section\n", g_global.tabs.c_str());
 		printf("%sCurrent Phase: ", g_global.tabs.c_str());
 		switch (m_battlePhase)
@@ -2103,14 +2107,14 @@ void SongSection::switchPhase()
 		printf("%sB/2 - Battle\n", g_global.tabs.c_str());
 		printf("%sH/4 - Harmony\n", g_global.tabs.c_str());
 		printf("%sE/5 - End\n", g_global.tabs.c_str());
-		switch (GlobalFunctions::menuChoices("i0c1b2h4e5", true))
+		switch (menuChoices("i0c1b2h4e5", true))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			return;
-		case GlobalFunctions::ResultType::Help:
+		case ResultType::Help:
 			printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			break;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			g_global.quit = true;
 			break;
 		default:
@@ -2132,24 +2136,24 @@ void SongSection::adjustTempo()
 {
 	do
 	{
-		GlobalFunctions::banner(" " + string(m_name) + " - Tempo Change ");
+		banner(" " + string(m_name) + " - Tempo Change ");
 		printf("%sProvide a value for the change [Type 'Q' to exit tempo settings]\n", g_global.tabs.c_str());
 		printf("%sCan be a decimal... and/or negative with weird effects on PSP\n", g_global.tabs.c_str());
 		printf("%sCurrent Value: %g\n", g_global.tabs.c_str(), m_tempo );
 		printf("%sInput: ", g_global.tabs.c_str());
 		float oldTempo = m_tempo;
-		switch (GlobalFunctions::valueInsert(m_tempo, true))
+		switch (valueInsert(m_tempo, true))
 		{
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			if (m_tempo != oldTempo)
 				m_parent->m_saved = false;
 			break;
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-			GlobalFunctions::clearIn();
+			clearIn();
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
@@ -2159,26 +2163,26 @@ void SongSection::adjustDuration()
 {
 	do
 	{
-		GlobalFunctions::banner(" " + string(m_name) + " - Duration Change ");
+		banner(" " + string(m_name) + " - Duration Change ");
 		printf("%sProvide a value for the change [Type 'Q' to exit duration settings]\n", g_global.tabs.c_str());
 		printf("%sCurrent Value: %lu\n", g_global.tabs.c_str(), m_duration );
 		printf("%sInput: ", g_global.tabs.c_str());
 		unsigned long oldDuration = m_duration;
-		switch (GlobalFunctions::valueInsert(m_duration, false))
+		switch (valueInsert(m_duration, false))
 		{
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			if (m_duration != oldDuration)
 				m_parent->m_saved = false;
 			break;
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::InvalidNegative:
+		case ResultType::InvalidNegative:
 			printf("%sProvided value *must* be a zero or greater.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
 			break;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-			GlobalFunctions::clearIn();
+			clearIn();
 		}
 	} while (!g_global.quit);
 	g_global.quit = false;
@@ -2189,7 +2193,7 @@ void SongSection::conditionMenu()
 {
 	do
 	{
-		GlobalFunctions::banner(" " + string(m_name) + " - Condition Selection ", 1.5);
+		banner(" " + string(m_name) + " - Condition Selection ", 1.5);
 		printf(" i ||Condition Type || Argument ||      True Effect      ||      False Effect     ||\n");
 		printf("==================================================================================||\n");
 		for (size_t condIndex = 0; condIndex < m_conditions.size(); condIndex++)
@@ -2222,28 +2226,28 @@ void SongSection::conditionMenu()
 		printf("==================================================================================||\n");
 		printf("%sType the number for the condition that you wish to edit\n", g_global.tabs.c_str());
 		size_t val;
-		switch (GlobalFunctions::valueInsert(val, false, size_t(0), m_conditions.size() - 1))
+		switch (valueInsert(val, false, size_t(0), m_conditions.size() - 1))
 		{
-		case GlobalFunctions::ResultType::Quit:
+		case ResultType::Quit:
 			g_global.quit = true;
 			break;
-		case GlobalFunctions::ResultType::InvalidNegative:
+		case ResultType::InvalidNegative:
 			printf("%sGiven section value must be positive.\n", g_global.tabs.c_str());
-			GlobalFunctions::clearIn();
+			clearIn();
 			break;
-		case GlobalFunctions::ResultType::MaxExceeded:
+		case ResultType::MaxExceeded:
 			printf("%sGiven section value cannot exceed %zu\n", g_global.tabs.c_str(), m_sections.size() - 1 );
-			GlobalFunctions::clearIn();
+			clearIn();
 			break;
-		case GlobalFunctions::ResultType::Failed:
+		case ResultType::Failed:
 			printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-			GlobalFunctions::clearIn();
+			clearIn();
 			break;
-		case GlobalFunctions::ResultType::Success:
+		case ResultType::Success:
 			++g_global;
 			do
 			{
-				GlobalFunctions::banner(" " + string(m_name) + " - Condition " + to_string(val) + ' ', 1.5);
+				banner(" " + string(m_name) + " - Condition " + to_string(val) + ' ', 1.5);
 				string choices = "ct";
 				printf("%sc - Type: ", g_global.tabs.c_str());
 				switch (m_conditions[val].m_type)
@@ -2281,14 +2285,14 @@ void SongSection::conditionMenu()
 					choices += 'd';
 				}
 				printf("%sQ - Choose another condition\n", g_global.tabs.c_str());
-				switch (GlobalFunctions::menuChoices(choices))
+				switch (menuChoices(choices))
 				{
-				case GlobalFunctions::ResultType::Quit:
+				case ResultType::Quit:
 					g_global.quit = true;
 					break;
-				case GlobalFunctions::ResultType::Help:
+				case ResultType::Help:
 					printf("%sHelp: [TBD]\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
-				case GlobalFunctions::ResultType::Failed:
+				case ResultType::Failed:
 					break;
 				default:
 					++g_global;

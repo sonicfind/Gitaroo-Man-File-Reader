@@ -22,25 +22,34 @@ protected:
 	// Pointer to use for reading and writing files of the class type to/from the class
 	FILE* m_filePtr = nullptr;
 
-	bool m_saved = false;
-public:
 	// Directory where the file is located
 	std::string m_directory;
 	// The name of the file
 	std::string m_filename;
+	bool m_saved = false;
+
+public:
 	// Extension string
 	// Should go unused outside of FileType parent functions
 	const std::string m_extension;
+	static const std::string multiChoiceString;
 
-	FileType(const char* extension);
-	FileType(std::string filename, const char* extension);
+	FileType(const char* extension, const bool saved = false);
+	FileType(std::string filename, const char* extension, bool useBanner = true);
 	FileType(const FileType&) = default;
-	bool getSaveStatus() const { return m_saved; }
+	virtual bool create(std::string filename, bool trueSave = true);
+	virtual bool menu(bool nextFile, const std::pair<bool, const char*> nextExtension) = 0;
+	virtual bool functionSelection(const char choice, bool isMulti) = 0;
+	static void displayMultiChoices() {}
+	static void displayMultiHelp() {}
+	std::string getDirectory() { return m_directory; }
+	std::string getFilename() { return m_filename; }
+	bool checkSave(bool toMainMenu);
+	bool fileSavePrompt();
+	
 	virtual bool write_to_txt() = 0;
-	virtual bool create(std::string filename) = 0;
-	virtual void edit(const bool multi = false) = 0;
 
 protected:
-	bool write_to_txt(FILE*& txtFile);
-	bool write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile);
+	virtual bool write_to_txt(FILE*& txtFile);
+	virtual bool write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile);
 };

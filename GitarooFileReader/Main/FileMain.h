@@ -19,16 +19,14 @@ class AbstractMain
 	friend class FileMainList;
 protected:
 	std::queue<std::string> m_filenames;
-	FileType* m_file = nullptr;
 
 public:
 	bool doesContainFiles();
-	bool saveFile(bool onExit = false);
 	/*
 	Main menu prompt used for choosing what action to perform on the loaded CHC file.
 	Returns false if this is used from the multimenu and if the user wants to proceed to the next CHC.
 	*/
-	virtual bool singleFile(const std::pair<bool, const char*>) = 0;
+	virtual bool singleFile() = 0;
 	virtual bool multipleFiles(const std::pair<bool, const char*>) = 0;
 	virtual std::string extension() const = 0;
 	virtual bool compareExtension(const std::string& filename) = 0;
@@ -38,25 +36,26 @@ public:
 template<class T>
 class FileMain : public AbstractMain
 {
-	T* loadFile()
+	FileType* loadFile()
 	{
+		const std::string name = m_filenames.front();
+		m_filenames.pop();
 		try
 		{
-			m_file = new T(m_filenames.front());
+			return new T(name);
 		}
 		catch (std::string str)
 		{
 			printf("%s%s\n", g_global.tabs.c_str(), str.c_str());
-			m_file = nullptr;
+			return nullptr;
 		}
 		catch (const char* str)
 		{
 			printf("%s%s\n", g_global.tabs.c_str(), str);
-			m_file = nullptr;
+			return nullptr;
 		}
-		m_filenames.pop();
-		return (T*)m_file;
 	}
+
 public:
 	std::string extension() const { return std::string(typeid(T).name()).substr(6); }
 
@@ -90,8 +89,18 @@ public:
 		return false;
 	}
 
-	virtual bool singleFile(const std::pair<bool, const char*>) { return false; }
-	virtual bool multipleFiles(const std::pair<bool, const char*>) { return false; }
+	bool singleFile()
+	{
+		if (FileType* object = loadFile())
+		{
+			bool retVal = object->menu(false, std::pair<bool, const char*>(false, ""));
+			delete object;
+			return retVal;
+		}
+		return false;
+	}
+
+	virtual bool multipleFiles(const std::pair<bool, const char*> nextExtension);
 };
 
 class FileMainList

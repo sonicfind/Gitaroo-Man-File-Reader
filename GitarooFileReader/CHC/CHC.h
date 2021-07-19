@@ -75,18 +75,25 @@ public:
 	CHC(std::string filename);
 	CHC(const CHC&);
 	CHC& operator=(const CHC&) = default;
-	bool create(std::string filename);
+	bool create(std::string filename, bool trueSave = true);
+
 	bool write_to_txt();
 	bool applyChanges(const bool fix, const bool swap = false, const bool save = false);
-	void edit(const bool multi = false);
+	bool edit(const bool multi = false);
 	bool buildTAS();
 	bool exportForCloneHero();
-	CHC* importFromCloneHero();
+	bool importFromCloneHero(bool doSave = false);
 	bool colorCheatTemplate();
 	size_t getNumSections() const { return m_sections.size(); }
 	bool isPS2Compatible() const { return m_imc[0] > 0; }
 	bool isOrganized() const { return m_unorganized == 0; }
 	bool isOptimized() const { return m_optimized; }
+
+	bool menu(bool nextFile, const std::pair<bool, const char*> nextExtension);
+	bool functionSelection(const char choice, bool isMulti);
+	static void displayMultiChoices();
+	static void displayMultiHelp();
+	static const std::string multiChoiceString;
 
 private:
 	// Editor-based functions
@@ -178,7 +185,7 @@ public:
 	void continueRead(FILE* inFile, const size_t index, const int stage, bool isDuet);
 
 	void create(FILE* outFile);
-	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const CHC* const chc);
+	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile);
 	unsigned long getIndex() const { return m_index; }
 	// Returns name C-string (size: 16)
 	char* getName() { return m_name; }
@@ -238,7 +245,7 @@ private:
 	// Editor-based functions
 
 	bool reorganize(const bool isPs2, const int stage);
-	void playerSwap(const bool isPs2);
+	void playerSwap(const bool isPs2, const bool allSections = false);
 
 	void menu(const bool isPs2, const int stage);
 	void changeName();

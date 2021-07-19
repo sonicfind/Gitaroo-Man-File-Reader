@@ -14,14 +14,16 @@
  */
 #include "pch.h"
 #include "FileType.h"
+using namespace GlobalFunctions;
+const std::string FileType::multiChoiceString;
 
-FileType::FileType(const char* extension)
-	: m_extension(extension) {}
-
-
-FileType::FileType(std::string filename, const char* extension)
+FileType::FileType(const char* extension, const bool saved)
 	: m_extension(extension)
-	, m_saved(true)
+	, m_saved(saved) {}
+
+
+FileType::FileType(std::string filename, const char* extension, bool useBanner)
+	: FileType(extension, true)
 {
 	size_t pos = filename.find_last_of('\\');
 	if (pos != std::string::npos)
@@ -32,21 +34,110 @@ FileType::FileType(std::string filename, const char* extension)
 	else
 		m_filename = filename;
 
-	GlobalFunctions::banner(" Loading " + m_filename + m_extension + ' ');
+	if (useBanner)
+		banner(" Loading " + m_filename + m_extension + ' ');
 
 	if (fopen_s(&m_filePtr, (filename + m_extension).c_str(), "rb"))
 		throw "Error: " + filename + m_extension + " does not exist.";
 }
 
-bool FileType::create(std::string filename)
+bool FileType::create(std::string filename, bool trueSave)
 {
-	size_t pos = filename.find_last_of('\\');
-	GlobalFunctions::banner(" Saving " + filename.substr(pos != std::string::npos ? pos + 1 : 0) + m_extension + ' ');
+	if (trueSave)
+	{
+		size_t pos = filename.find_last_of('\\');
+		GlobalFunctions::banner(" Saving " + filename.substr(pos != std::string::npos ? pos + 1 : 0) + m_extension + ' ');
+	}
+
 	if (fopen_s(&m_filePtr, (filename + m_extension).c_str(), "wb"))
 		// Add printf later
 		return false;
 	else
 		return true;
+}
+
+bool FileType::checkSave(bool toMainMenu)
+{
+	if (!m_saved)
+	{
+		printf_tab("\n");
+		printf_tab("Recent changes have not been saved externally to a %s file. Which action will you take?\n", m_extension.c_str());
+
+		if (toMainMenu)
+		{
+			printf_tab("S - Save file and Exit\n");
+			printf_tab("Q - Exit without saving\n");
+		}
+		else
+		{
+			printf_tab("S - Save file and Exit\n");
+			printf_tab("Q - Skip to the next file without saving\n");
+		}
+		printf_tab("C - Cancel\n");
+
+		switch (menuChoices("sc"))
+		{
+		case ResultType::Success:
+			if (g_global.answer.character == 'c'
+				|| !fileSavePrompt())
+				return false;
+			__fallthrough;
+		case ResultType::Quit:
+			return true;
+		default:
+			return false;
+		}
+	}
+	return true;
+}
+
+bool FileType::fileSavePrompt()
+{
+	banner(" " + m_filename + m_extension + " - Save Prompt ");
+	std::string ext = "_T";
+	const std::string filename = m_directory + m_filename;
+	do
+	{
+		std::string choices = "a";
+		if (!m_saved)
+		{
+			printf_tab("S - Save & Overwrite %s\n", (m_filename + m_extension).c_str());
+			choices += 's';
+		}
+		printf_tab("A - Save as \"%s\"\n", (m_filename + ext + m_extension).c_str());
+		printf_tab("Q - Back Out\n");
+		switch (menuChoices(choices))
+		{
+		case ResultType::Quit:
+			return false;
+		case ResultType::Success:
+			switch (g_global.answer.character)
+			{
+			case 's':
+				if (create(filename))
+					g_global.quit = true;
+				break;
+			case 'a':
+				do
+				{
+					switch (fileOverwriteCheck(filename + ext + m_extension))
+					{
+					case ResultType::Quit:
+						return false;
+					case ResultType::No:
+						ext += "_T";
+						break;
+					default:
+						create(filename + ext);
+						m_filename += ext;
+						g_global.quit = true;
+					}
+				} while (!g_global.quit);
+			}
+		}
+	} while (!g_global.quit);
+	g_global.quit = false;
+	return m_saved;
 }
 
 bool FileType::write_to_txt(FILE*& txtFile)

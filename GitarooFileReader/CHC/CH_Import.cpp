@@ -20,7 +20,7 @@
 using namespace std;
 using namespace GlobalFunctions;
 
-CHC* CHC::importFromCloneHero()
+bool CHC::importFromCloneHero(bool doSave)
 {
 	banner(" " + m_filename + " - .CHART Note Import/Replacement ");
 	if (m_unorganized != 0)
@@ -39,7 +39,7 @@ CHC* CHC::importFromCloneHero()
 			else if (result != ResultType::Quit && result != ResultType::Failed)
 			{
 				printf("%sCH Chart Import on %s aborted due to not being fully organized.\n", g_global.tabs.c_str(), m_filename.c_str());
-				return nullptr;
+				return false;
 			}
 		} while (!g_global.quit);
 		g_global.quit = false;
@@ -53,7 +53,7 @@ CHC* CHC::importFromCloneHero()
 		switch (stringInsertion(chartName))
 		{
 		case ResultType::Quit:
-			return nullptr;
+			return false;
 		case ResultType::Success:
 			if (chartName.find(".CHART") == string::npos && chartName.find(".chart") == string::npos)
 				chartName += ".CHART";
@@ -85,7 +85,7 @@ CHC* CHC::importFromCloneHero()
 			{
 			case ResultType::Quit:
 				delete song;
-				return nullptr;
+				return false;
 			case ResultType::Failed:
 				break;
 			case ResultType::Success:
@@ -97,18 +97,24 @@ CHC* CHC::importFromCloneHero()
 		} while (!g_global.quit);
 		g_global.quit = false;
 
+		ResultType result = ResultType::Success;
 		do
 		{
 			// Either yes or no will still overwrite the CHC data held
 			// in the FileMain<CHC> object
-			printf("%sSave %s externally? [Y/N]\n", g_global.tabs.c_str(), song->m_filename.c_str());
-			switch (menuChoices("yn"))
+			if (!doSave)
+			{
+				printf("%sSave %s externally? [Y/N]\n", g_global.tabs.c_str(), song->m_filename.c_str());
+				result = menuChoices("yn");
+			}
+			
+			switch (result)
 			{
 			case ResultType::Quit:
 				delete song;
-				return nullptr;
+				return false;
 			case ResultType::Success:
-				if (g_global.answer.character == 'y')
+				if (doSave || g_global.answer.character == 'y')
 				{
 					string filename = song->m_directory + song->m_filename;
 					string ext = "";
@@ -136,13 +142,19 @@ CHC* CHC::importFromCloneHero()
 			}
 		} while (!g_global.quit);
 		g_global.quit = false;
-		return song;
+
+		m_saved = song->m_saved;
+		m_filename = song->m_filename;
+		m_optimized = song->m_optimized;
+		m_sections = std::move(song->m_sections);
+		delete song;
+		return true;
 	}
 	else
 	{
 		printf("%s\n", g_global.tabs.c_str());
 		printf("%sNote import aborted.\n", g_global.tabs.c_str());
-		return nullptr;
+		return false;
 	}
 }
 
@@ -310,9 +322,9 @@ bool CloneHero_To_CHC::open(std::string filename)
 
 			ChartFileExporter converter(tempos, events, m_notes);
 			if (chartVersion == 1)
-				converter.open(m_file.substr(0, m_file.length() - 6) + " v2.0 Convert.chart", true);
+				converter.open(m_filename.substr(0, m_filename.length() - 6) + " v2.0 Convert.chart", true);
 			else
-				converter.open(m_file, true);
+				converter.open(m_filename, true);
 
 			converter.write(false);
 			converter.close();

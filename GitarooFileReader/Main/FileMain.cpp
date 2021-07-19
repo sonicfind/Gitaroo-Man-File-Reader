@@ -14,60 +14,71 @@
  */
 #include "pch.h"
 #include "FileMain.h"
+#include "CHC/CHC.h"
 using namespace GlobalFunctions;
 
 bool AbstractMain::doesContainFiles() { return m_filenames.size() > 0; }
 
-bool AbstractMain::saveFile(bool onExit)
+template<typename T>
+bool FileMain<T>::multipleFiles(const std::pair<bool, const char*> nextExtension)
 {
-	banner(" " + m_file->m_filename + m_file->m_extension + " Save Prompt ");
-	std::string ext = "_T";
-	const std::string filename = m_file->m_directory + m_file->m_filename;
-	do
+	if (m_filenames.size() == 0)
+		return false;
+
+	while (true)
 	{
-		std::string choices = "a";
-		if (!m_file->getSaveStatus())
+		ResultType result = ResultType::Success;
+		if (m_filenames.size() > 1)
 		{
-			printf_tab("S - Save & Overwrite %s\n", (m_file->m_filename + m_file->m_extension).c_str());
-			choices += 's';
+			banner(" " + extension() + " Mode Selection ");
+			T::displayMultiChoices();
+			if (nextExtension.first)
+				printf_tab("N - Proceed to the next filetype (%s)\n", nextExtension.second);
+
+			printf_tab("Q - Quit Program\n");
+			result = menuChoices(T::multiChoiceString);
 		}
-		printf_tab("A - Save as \"%s\"\n", (m_file->m_filename + ext + m_file->m_extension).c_str());
-		printf_tab("Q - Back Out\n");
-		switch (menuChoices(choices))
+		else
+			g_global.answer.character = 'e';
+
+		switch (result)
 		{
 		case ResultType::Quit:
-			return false;
+			return true;
+		case ResultType::Help:
+			T::displayMultiHelp();
+			__fallthrough;
+		case ResultType::Failed:
+			break;
 		case ResultType::Success:
-			switch (g_global.answer.character)
+			if (g_global.answer.character != 'n')
 			{
-			case 's':
-				if (m_file->create(filename))
-					g_global.quit = true;
-				break;
-			case 'a':
-				do
+				const char choice = g_global.answer.character;
+				++g_global;
+				while (m_filenames.size())
 				{
-					switch (fileOverwriteCheck(filename + ext + m_file->m_extension))
+					if (FileType* object = loadFile())
 					{
-					case ResultType::Quit:
-						return false;
-					case ResultType::No:
-						ext += "_T";
-						break;
-					default:
-						m_file->create(filename + ext);
-						m_file->m_filename += ext;
-						g_global.quit = true;
+						if (choice == 'e')
+						{
+							if (object->menu(doesContainFiles(), nextExtension))
+							{
+								delete object;
+								--g_global;
+								return false;
+							}
+						}
+						else
+							object->functionSelection(choice, true);
 					}
-				} while (!g_global.quit);
+				}
+				--g_global;
+				printf_tab("All provided %s files have been evaluated.\n", extension().c_str());
 			}
+			return false;
 		}
-	} while (!g_global.quit);
-	g_global.quit = false;
-	return m_file->getSaveStatus();
+	}
 }
-
-#include "CHC/CHC_Main.cpp"
 
 FileMainList::FileMainList()
 {
@@ -91,7 +102,7 @@ bool FileMainList::compareExtensions(const std::string& filename, const bool ope
 			if (m_mains[index]->compareExtension(filename))
 			{
 				if (openSingleMenu)
-					m_mains[index]->singleFile(std::pair<bool, const char*>(false, ""));
+					m_mains[index]->singleFile();
 				return true;
 			}
 
@@ -114,7 +125,7 @@ bool FileMainList::testAllExtensions(const std::string& filename, const bool ope
 		if (main->testExtension(filename))
 		{
 			if (openSingleMenu)
-				main->singleFile(std::pair<bool, const char*>(false, ""));
+				main->singleFile();
 			found = true;
 		}
 

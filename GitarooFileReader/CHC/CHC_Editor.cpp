@@ -42,9 +42,9 @@ bool CHC::applyChanges(const bool fix, const bool swap, const bool save)
 	}
 }
 
-void CHC::edit(const bool multi)
+bool CHC::edit(const bool multi)
 {
-	do
+	while (true)
 	{
 		GlobalFunctions::banner(" " + m_filename + ".CHC - Editor ");
 		string choices = "vagcd";
@@ -74,6 +74,7 @@ void CHC::edit(const bool multi)
 		printf("%sC - SongSections (%zu)\n", g_global.tabs.c_str(), m_sections.size());
 		printf("%sD - Player Damage/Energy Factors\n", g_global.tabs.c_str());
 		printf("%s? - Help info\n", g_global.tabs.c_str());
+
 		if (multi)
 			printf("%sQ - Close this file\n", g_global.tabs.c_str());
 		else
@@ -81,9 +82,13 @@ void CHC::edit(const bool multi)
 		switch (GlobalFunctions::menuChoices(choices, true))
 		{
 		case GlobalFunctions::ResultType::Quit:
-			g_global.quit = true;
+			if (!multi
+				|| m_saved
+				|| checkSave(multi))
+				return true;
 			break;
 		case GlobalFunctions::ResultType::Help:
+		{
 			printf("%s\n", g_global.tabs.c_str());
 			printf("%sS - Save File:\n", g_global.tabs.c_str());
 			printf("%sPretty self-explanatory - save the file as an overwrite or as a new file.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
@@ -124,6 +129,7 @@ void CHC::edit(const bool multi)
 			printf("%sFor each player separately, each phase type has values pertaining to 8 different HP related factors.\n", g_global.tabs.c_str());
 			printf("%sThis will bring up a series of menus so that you can edit any factors you like - although some factors have no effect in certain phase types.\n", g_global.tabs.c_str());
 			printf("%s(No dealing or receiving damage in charge phases for example).\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+		}
 			__fallthrough;
 		case GlobalFunctions::ResultType::Failed:
 			break;
@@ -160,8 +166,7 @@ void CHC::edit(const bool multi)
 			}
 			--g_global;
 		}
-	} while (!g_global.quit);
-	g_global.quit = false;
+	} 
 }
 
 void CHC::organizeAll()

@@ -45,7 +45,8 @@ CHC::CHC(const CHC& chc)
 //Creates a CHC object using values from the CHC file pointed to by the provided filename.
 //
 //Value names chosen to be kept are based off the CHC tab in the Gitaroo Pals shoutwiki
-CHC::CHC(std::string filename) : FileType(filename, ".CHC")
+CHC::CHC(std::string filename)
+	: FileType(filename, ".CHC")
 {
 	union {
 		char c[4];
@@ -106,9 +107,9 @@ CHC::CHC(std::string filename) : FileType(filename, ".CHC")
 }
 
 //Create or update a CHC file
-bool CHC::create(std::string filename)
+bool CHC::create(std::string filename, bool useBanner)
 {
-	if (FileType::create(filename))
+	if (FileType::create(filename, true))
 	{
 		union {
 			char c[4];
@@ -240,9 +241,7 @@ bool CHC::write_to_txt()
 			dualvfprintf_s(txtFile, simpleTxtFile, "       Song Sections:\n");
 
 			for (auto& section : m_sections) //SongSections
-			{
-				
-			}
+				section.write_to_txt(txtFile, simpleTxtFile);
 
 			dualvfprintf_s(txtFile, simpleTxtFile, "Damage/Energy Factors:\n");
 			for (size_t player = 0; player < 4; player++)
@@ -683,7 +682,7 @@ void SongSection::create(FILE* outFile)
 	fflush(outFile);
 }
 
-void SongSection::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const CHC* const chc)
+void SongSection::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 {
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t       Section %s:\n", m_name);
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t       Organized: %s\n", m_organized & 1 ? "TRUE" : "FALSE");
@@ -702,7 +701,7 @@ void SongSection::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const CHC* 
 			break;
 		case 2:
 			swapped += m_swapped & 4 ? "TRUE (P3/P4D/P1/P2D) [Duet->PS2 Conversion]"
-									 : (chc->isPS2Compatible() ? "TRUE (P3/P4/P1/P2)"
+									 : (m_parent->isPS2Compatible() ? "TRUE (P3/P4/P1/P2)"
 															   : "TRUE (P3/P2/P1/P4) [DUET]");
 			break;
 		default:
@@ -750,7 +749,7 @@ void SongSection::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const CHC* 
 	for (size_t condIndex = 0; condIndex < m_conditions.size(); condIndex++)
 	{
 		dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t   Condition %zu:\n", condIndex + 1);
-		m_conditions[condIndex].write_to_txt(txtFile, simpleTxtFile, chc);
+		m_conditions[condIndex].write_to_txt(txtFile, simpleTxtFile, m_parent);
 	}
 
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t    # of Players: %lu\n", m_numPlayers);

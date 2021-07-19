@@ -17,16 +17,16 @@
 using namespace std;
 
 ChartFile::ChartFile(string filename, bool write)
-	: m_file(filename)
+	: m_filename(filename)
 {
 	if (write)
 	{
-		if (fopen_s(&m_chart, m_file.c_str(), "w"))
+		if (fopen_s(&m_chart, m_filename.c_str(), "w"))
 			throw "File is currently in use by another process and thus could not be opened.";
 	}
 	else
 #pragma warning(suppress : 4996)
-		m_chart = fopen(m_file.c_str(), "r");
+		m_chart = fopen(m_filename.c_str(), "r");
 }
 
 bool ChartFile::open(string filename, const bool write)
@@ -34,13 +34,13 @@ bool ChartFile::open(string filename, const bool write)
 	if (m_chart != nullptr)
 		close();
 
-	m_file = filename;
+	m_filename = filename;
 	if (write)
-		return !fopen_s(&m_chart, m_file.c_str(), "w");
+		return !fopen_s(&m_chart, m_filename.c_str(), "w");
 	else
 	{
 #pragma warning(suppress : 4996)
-		m_chart = fopen(m_file.c_str(), "r");
+		m_chart = fopen(m_filename.c_str(), "r");
 		return m_chart != nullptr;
 	}
 }

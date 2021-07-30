@@ -133,8 +133,6 @@ bool CHC::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 			case 's':
 				fileSavePrompt();
 				break;
-			case 'w':
-				write_to_txt();
 			default:
 				functionSelection(g_global.answer.character, false);
 			}
@@ -147,6 +145,8 @@ bool CHC::functionSelection(const char choice, bool isMulti)
 {
 	switch (choice)
 	{
+	case 'w':
+		return write_to_txt();
 	case 'p':
 		return applyChanges(false, true, isMulti);
 	case 'f':

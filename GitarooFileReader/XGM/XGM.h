@@ -28,6 +28,8 @@ public:
 	bool create(std::string filename, bool trueSave = true);
 
 	bool write_to_txt();
+	bool exportPNGs();
+	bool importPNGs();
 	bool selectTexture();
 	bool selectModel();
 

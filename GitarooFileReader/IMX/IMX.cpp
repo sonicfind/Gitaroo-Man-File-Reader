@@ -14,6 +14,7 @@
  */
 #include "pch.h"
 #include "IMX.h"
+#include <filesystem>
 using namespace std;
 using namespace GlobalFunctions;
 
@@ -241,6 +242,104 @@ void IMX::read(string filename)
 		fclose(inFile);
 		throw str + m_filename + " [File offset: " + to_string(pos) + "].";
 	}
+}
+
+bool IMX::exportPNG()
+{
+	GlobalFunctions::banner(" " + m_filename + " - PNG Export ");
+	string file = m_directory + m_name;
+
+	// If the IMX came from XGM file, we need to create a separate IMX file for gm-imx2png.exe to use.
+	//
+	// One of the places where having direct usage of the python code would make the process simpler as there would be no need
+	// to create a whole new IMX file.
+	if (m_fromXGM)
+		create(file, false);
+
+	// Additonally, direct usage of the python code would optimize these writes to the console
+	printf("%s", g_global.tabs.c_str());
+	if (m_directory.length())
+		system(("gm-imx2png -d \"" + m_directory.substr(0, m_directory.length() - 1) + "\" -v \"" + file + '\"').c_str());
+	else
+		system(("gm-imx2png -v \"" + file + '\"').c_str());
+
+	if (m_fromXGM)
+		remove(file.c_str());
+	return true;
+}
+
+bool IMX::importPNG()
+{
+	GlobalFunctions::banner(" " + m_filename + " - PNG Import ");
+	const string initialName = m_directory + m_filename + ".PNG";
+	string pngName;
+	bool found = false;
+	for (const char* prefix : { "\\XGM_", "\\" })
+	{
+		for (const char* suffix : { "", ".i4", ".i8", ".i24", ".i32" })
+		{
+			if (filesystem::exists(m_directory + '\\' + m_filename + suffix + ".PNG"))
+			{
+				pngName = m_directory + '\\' + m_filename + suffix + ".PNG";
+				found = true;
+			}
+		}
+	}
+
+	if (!found)
+	{
+		do
+		{
+			printf("%sProvide the name of the .PNG file you wish to import (Or 'Q' to exit): ", g_global.tabs.c_str());
+			pngName.clear();
+			switch (GlobalFunctions::stringInsertion(pngName))
+			{
+			case GlobalFunctions::ResultType::Quit:
+				return false;
+			case GlobalFunctions::ResultType::Success:
+				if (pngName.find(".PNG") == string::npos && pngName.find(".png") == string::npos)
+					pngName += ".PNG";
+				if (filesystem::exists(pngName))
+					g_global.quit = true;
+				else
+				{
+					size_t pos = pngName.find_last_of('\\');
+					if (pos != string::npos)
+						printf("%s\"%s\" is not a valid file of extension \".PNG\"\n", g_global.tabs.c_str(), pngName.substr(pos + 1).c_str());
+					else
+						printf("%s\"%s\" is not a valid file of extension \".PNG\"\n", g_global.tabs.c_str(), pngName.c_str());
+				}
+			}
+		} while (!g_global.quit);
+		g_global.quit = false;
+	}
+
+	bool removePNG = initialName.compare(pngName) == 0;
+	// As to NOT overwrite an already in-use IMX file
+	//
+	// +1 to the list of reasons to integrate the python code
+	//
+	// Having to deal with file overwrites instead of being able to provide and recieve
+	// texture data directly through code is a pain.
+	if (removePNG)
+	{
+		pngName.insert(pngName.length() - 4, "-Buffer");
+		filesystem::copy_file(initialName, pngName);
+	}
+
+	size_t slash = pngName.find_last_of('\\');
+	printf("%s", g_global.tabs.c_str());
+	if (slash != string::npos)
+		system(("gm-png2imx -d \"" + pngName.substr(0, slash) + "\" -v \"" + pngName + '\"').c_str());
+	else
+		system(("gm-png2imx -v \"" + pngName).c_str() + '\"');
+
+	if (removePNG)
+		remove(pngName.c_str());
+	pngName.erase(pngName.length() - 3, 3);
+	read(pngName + "IMX");
+	remove((pngName + "IMX").c_str());
+	return true;
 }
 
 IMX_Data::IMX_Data() : m_colorData(make_shared<Image>()) {}

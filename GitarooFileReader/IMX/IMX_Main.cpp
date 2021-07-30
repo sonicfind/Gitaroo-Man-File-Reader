@@ -15,16 +15,18 @@
 #include "pch.h"
 #include "IMX/IMX.h"
 using namespace GlobalFunctions;
-const std::string IMX::multiChoiceString = "ew";
+const std::string IMX::multiChoiceString = "ewpi";
 
 bool IMX::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 {
-	const std::string choices = nextFile ? "swn" : "sw";
+	const std::string choices = nextFile ? "swpin" : "swpi";
 	while (true)
 	{
 		banner(" " + m_filename + ".IMX - Mode Selection ");
 		printf_tab("S - Save\n");
 		printf_tab("W - Write %s_IMX.txt\n", m_filename.c_str());
+		printf_tab("P - Export to an image file [Gitarootools install required]\n");
+		printf_tab("I - Import from an image file [Gitarootools install required]\n");
 		if (nextFile)
 			printf_tab("N - Next .IMX file\n");
 
@@ -70,6 +72,10 @@ bool IMX::functionSelection(const char choice, bool isMulti)
 	{
 	case 'w':
 		return write_to_txt();
+	case 'p':
+		return exportPNG();
+	case 'i':
+		return importPNG();
 	default:
 		return false;
 	}
@@ -79,6 +85,8 @@ void IMX::displayMultiChoices()
 {
 	printf_tab("E - Evaluate each texture individually\n");
 	printf_tab("W - Write out all textures included to readable .txts\n");
+	printf_tab("P - Export textures to image files [Gitarootools install required]\n");
+	printf_tab("I - Import textures from image files [Gitarootools install required]\n");
 }
 
 void IMX::displayMultiHelp()

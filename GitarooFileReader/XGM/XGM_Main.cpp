@@ -16,16 +16,18 @@
 #include "FileMain.h"
 #include "XGM/XGM.h"
 using namespace GlobalFunctions;
-const std::string XGM::multiChoiceString = "ew";
+const std::string XGM::multiChoiceString = "ewpi";
 
 bool XGM::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 {
-	const std::string choices = nextFile ? "swtmn" : "swtm";
+	const std::string choices = nextFile ? "swpitmn" : "swpitm";
 	while (true)
 	{
 		banner(" " + m_filename + ".XGM - Mode Selection ");
 		printf_tab("S - Save\n");
 		printf_tab("W - Write %s_XGM.txt\n", m_filename.c_str());
+		printf_tab("P - Export textures to image files [Gitarootools install required]\n");
+		printf_tab("I - Import textures from image files [Gitarootools install required]\n");
 		printf_tab("T - Select a texture [Count: %zu]\n", m_textures.size());
 		printf_tab("M - Select a model   [Count: %zu]\n", m_models.size());
 
@@ -73,6 +75,10 @@ bool XGM::functionSelection(const char choice, bool isMulti)
 	{
 	case 'w':
 		return write_to_txt();
+	case 'p':
+		return exportPNGs();
+	case 'i':
+		return importPNGs();
 	case 't':
 		return selectTexture();
 	case 'm':
@@ -86,6 +92,8 @@ void XGM::displayMultiChoices()
 {
 	printf_tab("E - Evaluate each XGM individually\n");
 	printf_tab("W - Write all XGMs included to readable .txts\n");
+	printf_tab("P - Export all textures from every XGM to image files [Gitarootools install required]\n");
+	printf_tab("I - Import textures from image files into all XGMs [Gitarootools install required]\n");
 }
 
 void XGM::displayMultiHelp()

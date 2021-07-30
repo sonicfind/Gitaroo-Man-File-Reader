@@ -105,6 +105,150 @@ bool XGM::write_to_txt()
 	return false;
 }
 
+bool XGM::exportPNGs()
+{
+	banner(" " + m_filename + ".XGM - Multi-Texture Export ");
+	const std::string folder = m_directory + m_filename;
+
+	// Creates a new directory with the name of the XGM as the base (if one doesn't already exist)
+	// All the PNGs will be placed in this directory
+	std::filesystem::create_directory(folder);
+
+	// Unlike the single IMX version, we do not use the -v "verbose" command.
+	// Doing so would've made it impossible to add the global tab string to each line created from the exe
+	// +1 to the list of reasons to wanting the native python code intertwinned
+	std::string cmd = "gm-imx2png -d \"" + folder + "\" ";
+	for (IMX& texture : m_textures)
+	{
+		std::string file = folder + '\\' + texture.getName();
+		texture.create(file, false);
+		cmd += '\"' + file + "\" ";
+	}
+	system(cmd.c_str());
+
+	for (IMX& texture : m_textures)
+	{
+		std::string png = texture.getName();
+		png.erase(png.length() - 3, 3);
+		png += "PNG";
+		printf("%sExported %-16s to %s\\%s\n", g_global.tabs.c_str(), texture.getName(), m_filename.c_str(), png.c_str());
+		std::remove((folder + '\\' + texture.getName()).c_str());
+	}
+	return true;
+}
+
+bool XGM::importPNGs()
+{
+	banner(" " + m_filename + ".XGM - Multi-Texture Import ");
+	const std::string folder = m_directory + m_filename;
+
+	std::vector<std::string> imxFiles;
+	std::filesystem::create_directory(folder);
+
+	std::string cmd = "gm-png2imx -d \"" + folder + "\" ";
+	bool convert = false;
+	bool end = false;
+	for (IMX& texture : m_textures)
+	{
+		std::string file(texture.getName());
+		file.erase(file.length() - 4, 4);
+
+		bool found = false;
+		for (const char* prefix : { "\\XGM_", "\\" })
+		{
+			for (const char* suffix : { "", ".i4", ".i8", ".i24", ".i32" })
+			{
+				if (std::filesystem::exists(folder + prefix + file + suffix + ".PNG"))
+				{
+					file = folder + prefix + file + suffix;
+					found = true;
+				}
+			}
+		}
+
+		bool selected = true;
+		if (!found)
+		{
+			std::string specials = "n";
+			if (imxFiles.size())
+				specials += 's';
+			do
+			{
+				banner(" Texture: " + std::string(texture.getName()) + " ");
+				printf("%sProvide the name of the .PNG file you wish to import\n", g_global.tabs.c_str());
+				printf("%sType only 'N' to skip this texture", g_global.tabs.c_str());
+				if (imxFiles.size())
+					printf(" || Type only 'S' to skip all remaining textures\n");
+				else
+					printf("\n");
+
+				printf("%sType only 'Q' to quit this process altogether", g_global.tabs.c_str());
+				printf("%sInput: ", g_global.tabs.c_str());
+				file = "";
+				switch (stringInsertion(file, specials))
+				{
+				case ResultType::Quit:
+					return false;
+				case ResultType::SpecialCase:
+					if (g_global.answer.character == 'n')
+						selected = false;
+					else
+						end = true;
+					g_global.quit = true;
+					break;
+				case ResultType::Success:
+					if (file.find(".PNG") != std::string::npos || file.find(".png") != std::string::npos)
+						file.erase(file.length() - 4, 4);
+
+					if (std::filesystem::exists(file + ".PNG"))
+						g_global.quit = true;
+					else
+					{
+						size_t pos = file.find_last_of('\\');
+						if (pos != std::string::npos)
+							printf("%s\"%s\" is not a valid file of extension \".PNG\"\n", g_global.tabs.c_str(), file.substr(pos + 1).c_str());
+						else
+							printf("%s\"%s\" is not a valid file of extension \".PNG\"\n", g_global.tabs.c_str(), file.c_str());
+					}
+				}
+			} while (!g_global.quit);
+			g_global.quit = false;
+		}
+
+		if (selected)
+		{
+			convert = true;
+			imxFiles.emplace_back(file + ".IMX");
+			cmd += '\"' + file + ".PNG\" ";
+		}
+		else if (!end)
+			imxFiles.emplace_back();
+		else
+			break;
+	}
+
+	if (convert)
+	{
+		system(cmd.c_str());
+
+		for (size_t i = 0; i < imxFiles.size(); ++i)
+		{
+			if (imxFiles[i].length())
+			{
+				std::string file = imxFiles[i];
+				size_t pos = file.find_last_of('\\');
+				std::string shortname = file.substr(pos != std::string::npos ? pos + 1 : 0);
+				printf("%sImported %-16s from %s\n", g_global.tabs.c_str(), m_textures[i].getName(), shortname.c_str());
+				m_textures[i].read(file);
+				std::remove(file.c_str());
+				m_saved = 0;
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
 bool XGM::selectTexture()
 {
 	while (true)

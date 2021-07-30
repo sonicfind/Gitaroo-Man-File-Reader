@@ -43,6 +43,8 @@ public:
 
 	bool write_to_txt();
 	void read(std::string filename);
+	bool exportPNG();
+	bool importPNG();
 	//Returns name C-string (size: 16)
 	char* getName() { return m_name; }
 

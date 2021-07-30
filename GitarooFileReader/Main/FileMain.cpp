@@ -15,70 +15,8 @@
 #include "pch.h"
 #include "FileMain.h"
 #include "CHC/CHC.h"
-using namespace GlobalFunctions;
 
 bool AbstractMain::doesContainFiles() { return m_filenames.size() > 0; }
-
-template<typename T>
-bool FileMain<T>::multipleFiles(const std::pair<bool, const char*> nextExtension)
-{
-	if (m_filenames.size() == 0)
-		return false;
-
-	while (true)
-	{
-		ResultType result = ResultType::Success;
-		if (m_filenames.size() > 1)
-		{
-			banner(" " + extension() + " Mode Selection ");
-			T::displayMultiChoices();
-			if (nextExtension.first)
-				printf_tab("N - Proceed to the next filetype (%s)\n", nextExtension.second);
-
-			printf_tab("Q - Quit Program\n");
-			result = menuChoices(T::multiChoiceString);
-		}
-		else
-			g_global.answer.character = 'e';
-
-		switch (result)
-		{
-		case ResultType::Quit:
-			return true;
-		case ResultType::Help:
-			T::displayMultiHelp();
-			__fallthrough;
-		case ResultType::Failed:
-			break;
-		case ResultType::Success:
-			if (g_global.answer.character != 'n')
-			{
-				const char choice = g_global.answer.character;
-				++g_global;
-				while (m_filenames.size())
-				{
-					if (FileType* object = loadFile())
-					{
-						if (choice == 'e')
-						{
-							if (object->menu(doesContainFiles(), nextExtension))
-							{
-								delete object;
-								--g_global;
-								return false;
-							}
-						}
-						else
-							object->functionSelection(choice, true);
-					}
-				}
-				--g_global;
-				printf_tab("All provided %s files have been evaluated.\n", extension().c_str());
-			}
-			return false;
-		}
-	}
-}
 
 FileMainList::FileMainList()
 {
@@ -106,14 +44,14 @@ bool FileMainList::compareExtensions(const std::string& filename, const bool ope
 				return true;
 			}
 
-		printf_tab("\"%s\" is not a valid extension.\n", filename.substr(filename.find_last_of('.')).c_str());
-		clearIn();
+		GlobalFunctions::printf_tab("\"%s\" is not a valid extension.\n", filename.substr(filename.find_last_of('.')).c_str());
+		GlobalFunctions::clearIn();
 		return false;
 	}
 	else
 	{
 		size_t pos = filename.find_last_of('\\');
-		printf_tab("Could not locate the file \"%s\".\n", filename.substr(pos != std::string::npos ? pos + 1 : 0).c_str());
+		GlobalFunctions::printf_tab("Could not locate the file \"%s\".\n", filename.substr(pos != std::string::npos ? pos + 1 : 0).c_str());
 		return false;
 	}
 }
@@ -132,7 +70,7 @@ bool FileMainList::testAllExtensions(const std::string& filename, const bool ope
 	if (!found)
 	{
 		size_t pos = filename.find_last_of('\\');
-		printf_tab("Could not locate a file with the file name \"%s\" using any of the accepted extensions\n"
+		GlobalFunctions::printf_tab("Could not locate a file with the file name \"%s\" using any of the accepted extensions\n"
 			, filename.substr(pos != std::string::npos ? pos + 1 : 0).c_str());
 	}
 	return found;

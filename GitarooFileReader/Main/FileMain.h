@@ -100,7 +100,65 @@ public:
 		return false;
 	}
 
-	virtual bool multipleFiles(const std::pair<bool, const char*> nextExtension);
+	bool multipleFiles(const std::pair<bool, const char*> nextExtension)
+	{
+		if (m_filenames.size() == 0)
+			return false;
+
+		while (true)
+		{
+			GlobalFunctions::ResultType result = GlobalFunctions::ResultType::Success;
+			if (m_filenames.size() > 1)
+			{
+				GlobalFunctions::banner(" " + extension() + " Mode Selection ");
+				T::displayMultiChoices();
+				if (nextExtension.first)
+					GlobalFunctions::printf_tab("N - Proceed to the next filetype (%s)\n", nextExtension.second);
+
+				GlobalFunctions::printf_tab("Q - Quit Program\n");
+				result = GlobalFunctions::menuChoices(T::multiChoiceString);
+			}
+			else
+				g_global.answer.character = 'e';
+
+			switch (result)
+			{
+			case GlobalFunctions::ResultType::Quit:
+				return true;
+			case GlobalFunctions::ResultType::Help:
+				T::displayMultiHelp();
+				__fallthrough;
+			case GlobalFunctions::ResultType::Failed:
+				break;
+			case GlobalFunctions::ResultType::Success:
+				if (g_global.answer.character != 'n')
+				{
+					const char choice = g_global.answer.character;
+					++g_global;
+					while (m_filenames.size())
+					{
+						if (FileType* object = loadFile())
+						{
+							if (choice == 'e')
+							{
+								if (object->menu(doesContainFiles(), nextExtension))
+								{
+									delete object;
+									--g_global;
+									return false;
+								}
+							}
+							else
+								object->functionSelection(choice, true);
+						}
+					}
+					--g_global;
+					GlobalFunctions::printf_tab("All provided %s files have been evaluated.\n", extension().c_str());
+				}
+				return false;
+			}
+		}
+	}
 };
 
 class FileMainList

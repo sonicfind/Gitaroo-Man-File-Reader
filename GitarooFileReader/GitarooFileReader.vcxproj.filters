@@ -19,6 +19,27 @@
     <Filter Include="Global">
       <UniqueIdentifier>{401c4008-0459-4568-a9bc-35f27b5048e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="XGM">
+      <UniqueIdentifier>{d1bf77bf-3161-40dd-adeb-7cee3d09f228}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XG">
+      <UniqueIdentifier>{7b546305-8cc6-414b-b650-80a74a7de3d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IMX">
+      <UniqueIdentifier>{082920c2-9597-4ed0-b7d1-8346ccb9d28d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PString">
+      <UniqueIdentifier>{85ea0625-7758-4e04-95f9-d307a8f5d83a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XG\Editor">
+      <UniqueIdentifier>{61d5cb45-d56e-4ef2-81d8-5bb0f45a75e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IMX\Editor">
+      <UniqueIdentifier>{95225374-c76f-44e0-8ad8-fb2f26640250}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XG\XGNodes">
+      <UniqueIdentifier>{de74c1c7-0fa3-4614-be08-85c7d92a5e13}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CHC\CHC_Editor.cpp">
@@ -51,6 +72,18 @@
     <ClCompile Include="Main\pch.cpp">
       <Filter>GMFR</Filter>
     </ClCompile>
+    <ClCompile Include="PString\PString.cpp">
+      <Filter>PString</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XG.cpp">
+      <Filter>XG</Filter>
+    </ClCompile>
+    <ClCompile Include="XGM\XGM.cpp">
+      <Filter>XGM</Filter>
+    </ClCompile>
+    <ClCompile Include="IMX\IMX.cpp">
+      <Filter>IMX</Filter>
+    </ClCompile>
     <ClCompile Include="Main\FileType.cpp">
       <Filter>Global</Filter>
     </ClCompile>
@@ -62,6 +95,18 @@
     </ClCompile>
     <ClCompile Include="CHC\CH_Object.cpp">
       <Filter>CHC\Clone Hero</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XG_Main.cpp">
+      <Filter>XG</Filter>
+    </ClCompile>
+    <ClCompile Include="XGM\XGM_Main.cpp">
+      <Filter>XGM</Filter>
+    </ClCompile>
+    <ClCompile Include="IMX\IMX_Main.cpp">
+      <Filter>IMX</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XG_Nodes.cpp">
+      <Filter>XG\XGNodes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +139,21 @@
     </ClInclude>
     <ClInclude Include="CHC\CH_Object.h">
       <Filter>CHC\Clone Hero</Filter>
+    </ClInclude>
+    <ClInclude Include="PString\PString.h">
+      <Filter>PString</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XG.h">
+      <Filter>XG</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\XGM.h">
+      <Filter>XGM</Filter>
+    </ClInclude>
+    <ClInclude Include="IMX\IMX.h">
+      <Filter>IMX</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XG_Nodes.h">
+      <Filter>XG\XGNodes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

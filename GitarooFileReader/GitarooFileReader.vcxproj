@@ -195,9 +195,17 @@
     <ClCompile Include="CHC\CH_NoteTrack.cpp" />
     <ClCompile Include="Main\FileMain.cpp" />
     <ClCompile Include="Main\FileType.cpp" />
+    <ClCompile Include="IMX\IMX.cpp" />
+    <ClCompile Include="IMX\IMX_Main.cpp" />
     <ClCompile Include="Main\GitarooFileReader.cpp" />
     <ClCompile Include="Main\Global_Functions.cpp" />
     <ClCompile Include="Main\pch.cpp" />
+    <ClCompile Include="PString\PString.cpp" />
+    <ClCompile Include="XGM\XGM.cpp" />
+    <ClCompile Include="XGM\XGM_Main.cpp" />
+    <ClCompile Include="XG\XG.cpp" />
+    <ClCompile Include="XG\XG_Main.cpp" />
+    <ClCompile Include="XG\XG_Nodes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CHC\CHC.h" />
@@ -209,9 +217,14 @@
     <ClInclude Include="CHC\CH_NoteTrack.h" />
     <ClInclude Include="Main\FileMain.h" />
     <ClInclude Include="Main\FileType.h" />
+    <ClInclude Include="IMX\IMX.h" />
     <ClInclude Include="Main\Global_Functions.h" />
     <ClInclude Include="Main\pch.h" />
+    <ClInclude Include="PString\PString.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="XGM\XGM.h" />
+    <ClInclude Include="XG\XG.h" />
+    <ClInclude Include="XG\XG_Nodes.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GitarooFileReader.rc" />

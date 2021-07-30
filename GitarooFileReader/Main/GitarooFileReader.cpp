@@ -16,7 +16,7 @@
 #include "Global_Functions.h"
 #include "FileMain.h"
 bool multi(int fileCount, char** files);
-bool single();
+void single();
 FileMainList g_fileMains;
 
 /*---------------------------------------------------------------------\
@@ -33,11 +33,11 @@ The main function has two modes:
 \---------------------------------------------------------------------*/
 int main(int argc, char** argv)
 {
-	GlobalFunctions::banner(" Gitaroo File Reader v1.0 ");
+	GlobalFunctions::banner(" Gitaroo File Reader v1.1.0 ");
 	GlobalFunctions::banner(" 'Q' is the universal \"quit\" option | Use ';' for \"multi-step\" actions ");
 
 	if (!multi(argc, argv))
-		while (single());
+		single();
 
 	return 0;
 }
@@ -70,23 +70,22 @@ bool multi(int fileCount, char** files)
 	return g_fileMains.allFiles() || hadValidFiles;
 }
 
-bool single()
+void single()
 {
-	std::string filename = "";
-	GlobalFunctions::banner(" File Selection ");
-	GlobalFunctions::printf_tab("Accepted File Types: .CHC\n");
-	GlobalFunctions::printf_tab("Provide the name of the file you wish to use (Or 'Q' to exit): ");
-
-	//Breaks the loop if quit character is choosen
-	switch (GlobalFunctions::stringInsertion(filename))
+	while (true)
 	{
-	case GlobalFunctions::ResultType::Quit:
-		return false;
-	case GlobalFunctions::ResultType::Success:
-		if (filename.find('.') == std::string::npos || !g_fileMains.compareExtensions(filename))
-			g_fileMains.testAllExtensions(filename);
-		__fallthrough;
-	default:
-		return true;
+		std::string filename = "";
+		GlobalFunctions::banner(" File Selection ");
+		GlobalFunctions::printf_tab("Accepted File Types: .CHC, .IMX, .XG, .XGM\n");
+		GlobalFunctions::printf_tab("Provide the name of the file you wish to use (Or 'Q' to exit): ");
+
+		switch (GlobalFunctions::stringInsertion(filename))
+		{
+		case GlobalFunctions::ResultType::Quit:
+			return;
+		case GlobalFunctions::ResultType::Success:
+			if (filename.find('.') == std::string::npos || !g_fileMains.compareExtensions(filename))
+				g_fileMains.testAllExtensions(filename);
+		}
 	}
 }

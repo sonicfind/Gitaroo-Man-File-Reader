@@ -163,7 +163,7 @@ public:
 
 class FileMainList
 {
-	AbstractMain* m_mains[1];
+	AbstractMain* m_mains[4];
 
 public:
 	FileMainList();

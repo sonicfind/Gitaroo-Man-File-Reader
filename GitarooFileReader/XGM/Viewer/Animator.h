@@ -45,8 +45,6 @@ class Animator
 public:
 	Timeline m_timeline;
 	operator bool() const { return m_isActive; }
-	static float getBPM() { return s_tempo; }
-	static void setBPM(const float bpm);
 	void load(XG* xg);
 	float getCoefficient() { return m_coefficient; }
 	void setStartTime(const float time);
@@ -60,4 +58,7 @@ public:
 	void mixMatrix(glm::vec3& trn, glm::quat& rot, glm::vec3& scl, const xgBgMatrix* matrix, const unsigned long next);
 	glm::vec3 mixVec3(float* first, float* second);
 	glm::quat mixQuat(float* first, float* second);
+
+	static float getBPM() { return s_tempo; }
+	static bool setBPM();
 };

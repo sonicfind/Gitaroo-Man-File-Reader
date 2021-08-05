@@ -83,12 +83,20 @@ namespace GitarooViewer
 	};
 }
 
+enum class AspectRatioMode
+{
+	SDTV,
+	Widescreen,
+	UltraWide
+};
+
 class Viewer
 {
 	// settings
-	const unsigned int s_SCR_WIDTH = 960;
-	const unsigned int s_SCR_HEIGHT = 720;
-	std::list<GitarooViewer::Model> m_models;
+	static AspectRatioMode s_aspectRatio;
+	static unsigned int s_screenWidth;
+	static unsigned int s_screenHeight;
+
 	GLFWwindow* m_window;
 	bool m_activeMouse = true;
 	unsigned int m_UBO;
@@ -106,9 +114,20 @@ class Viewer
 	float m_lightConstant;
 	float m_lightLinear;
 	float m_lightQuadratic;
+
+	std::list<GitarooViewer::Model> m_models;
+
 public:
 	Viewer();
 	int viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices);
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+	static std::string getAspectRatioString();
+	static unsigned int getScreenHeight() { return s_screenHeight; }
+	static void switchAspectRatio();
+	static bool changeHeight();
+
+private:
+	static void setWidth();
 };

@@ -19,6 +19,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 
+AspectRatioMode Viewer::s_aspectRatio = AspectRatioMode::Widescreen;
+unsigned int Viewer::s_screenWidth = 1280;
+unsigned int Viewer::s_screenHeight = 720;
+
 Viewer::Viewer()
 {
 	glfwInit();
@@ -26,7 +30,7 @@ Viewer::Viewer()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	m_window = glfwCreateWindow(s_SCR_WIDTH, s_SCR_HEIGHT, "XG Viewer", NULL, NULL);
+	m_window = glfwCreateWindow(s_screenWidth, s_screenHeight, "XG Viewer", NULL, NULL);
 	if (!m_window)
 	{
 		glfwTerminate();
@@ -37,7 +41,7 @@ Viewer::Viewer()
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		throw "Failed to initialize GLAD";
 
-	glViewport(0, 0, s_SCR_WIDTH, s_SCR_HEIGHT);
+	glViewport(0, 0, s_screenWidth, s_screenHeight);
 
 	g_baseShader.createProgram("Vertex.glsl", "Fragment.glsl");
 	g_boneShader.createProgram("Vertex - Bones.glsl", "Fragment.glsl");
@@ -138,6 +142,79 @@ Viewer::Viewer()
 	float m_lightQuadratic = 0.0002f;
 }
 
+std::string Viewer::getAspectRatioString()
+{
+	switch (s_aspectRatio)
+	{
+	case AspectRatioMode::SDTV:
+		return "4x3";
+	case AspectRatioMode::Widescreen:
+		return "16x9";
+	case AspectRatioMode::UltraWide:
+		return "21x9";
+	}
+	return "";
+}
+
+void Viewer::switchAspectRatio()
+{
+	switch (s_aspectRatio)
+	{
+	case AspectRatioMode::SDTV:
+		s_aspectRatio = AspectRatioMode::Widescreen;
+		break;
+	case AspectRatioMode::Widescreen:
+		s_aspectRatio = AspectRatioMode::UltraWide;
+		break;
+	case AspectRatioMode::UltraWide:
+		s_aspectRatio = AspectRatioMode::SDTV;
+	}
+	setWidth();
+}
+
+bool Viewer::changeHeight()
+{
+	while(true)
+	{
+		GlobalFunctions::printf_tab("Current Screen Height: %u ['B' to leave unchanged]\n", s_screenHeight);
+		GlobalFunctions::printf_tab("Input: ");
+		switch (GlobalFunctions::valueInsert(s_screenHeight, false, "b"))
+		{
+		case GlobalFunctions::ResultType::Quit:
+			return true;
+		case GlobalFunctions::ResultType::Success:
+			setWidth();
+			__fallthrough;
+		case GlobalFunctions::ResultType::SpecialCase:
+			return false;
+		case GlobalFunctions::ResultType::InvalidNegative:
+			GlobalFunctions::printf_tab("Value must be positive.\n");
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+			break;
+		case GlobalFunctions::ResultType::Failed:
+			GlobalFunctions::printf_tab("\"%s\" is not a valid response.\n", g_global.invalid.c_str());
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+		}
+	}
+}
+
+void Viewer::setWidth()
+{
+	switch (s_aspectRatio)
+	{
+	case AspectRatioMode::SDTV:
+		s_screenWidth = (unsigned int)round((4.0 * s_screenHeight) / 3);
+		break;
+	case AspectRatioMode::Widescreen:
+		s_screenWidth = (unsigned int)round((16.0 * s_screenHeight) / 9);
+		break;
+	case AspectRatioMode::UltraWide:
+		s_screenWidth = (unsigned int)round((21.0 * s_screenHeight) / 9);
+	}
+}
+
 void Viewer::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	g_camera.turnCamera(xpos, ypos);
@@ -193,7 +270,7 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 		glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glm::mat4 view = g_camera.getViewMatrix();
-		glm::mat4 projection = glm::perspective(glm::radians(g_camera.m_fov), float(s_SCR_WIDTH) / s_SCR_HEIGHT, 0.1f, 40000.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(g_camera.m_fov), float(s_screenWidth) / s_screenHeight, 0.1f, 40000.0f);
 
 		glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));

@@ -279,102 +279,87 @@ bool XGM::importOBJs()
 
 bool XGM::viewModel()
 {
+	std::vector<size_t> sectionIndexes;
 	while (true)
 	{
-		std::vector<size_t> sectionIndexes;
-		do
+		banner(" " + m_filename + ".XGM - Model Viewer ");
+		printf_tab("Type the number for each model that you wish to look at w/ spaces in-between\n");
+		for (size_t index = 0; index < m_models.size(); ++index)
+			printf_tab("%zu - %s\n", index, m_models[index].getName());
+
+		if (sectionIndexes.size())
 		{
-			banner(" " + m_filename + ".XGM - Model Viewer ");
-			printf("%sType the number for each model that you wish to look at w/ spaces in-between\n", g_global.tabs.c_str());
-			for (size_t index = 0; index < m_models.size(); ++index)
-				printf("%s%zu - %s\n", g_global.tabs.c_str(), index, m_models[index].getName());
-			
+			printf("%sCurrent List: ", g_global.tabs.c_str());
+			for (const size_t index : sectionIndexes)
+				printf("%s ", m_models[index].getName());
+			putchar('\n');
+		}
+
+		printf_tab("B - Change BPM for tempo-base animations: %g\n", Animator::getBPM());
+		printf_tab("A - Switch aspect ratio: %s\n", Viewer::getAspectRatioString().c_str());
+		printf_tab("H - Change viewer resolution, Height: %u\n", Viewer::getScreenHeight());
+		printf_tab("? - Show list of controls\n");
+		switch (insertIndexValues(sectionIndexes, "bah", m_models.size(), false))
+		{
+		case ResultType::Help:
+			printf_tab("\n");
+			printf_tab("WASD - Move\n");
+			printf_tab("Space/Left Shift - Ascend/Descend\n");
+			printf_tab("Up/Down - Increase/Decrease movement speed\n");
+			printf_tab("Mouse - Camera Aiming\n");
+			printf_tab("Mouse Scroll - Increase/Decrease zoom\n");
+			printf_tab("ESC - exit\n");
+			printf_tab("'M' - Release/Reattach mouse control from/to the window\n");
+			printf_tab("'N' - Toggle displaying vertex normal vectors\n");
+			printf_tab("'O' - Switch between Animation & Pose modes\n");
+			printf_tab("'L' - Toggle animation looping\n");
+			printf_tab("With Animation mode active:\n");
+			printf_tab("\tP - Pause/Play\n");
+			printf_tab("\tR (Press) - Reset current animation to frame 0\n");
+			printf_tab("\tR (Hold) - Reset to first animation\n");
+			printf_tab("\tRight/Left - Switch between adjacent animations\n");
+			printf_tab("\tWhile an animation is paused:\n");
+			printf_tab("\t\t'.'/',' - Increment/decrement keyframe index\n");
+			printf_tab("Press 'Enter' when you're done reading");
+			clearIn();
+			g_global.input = getchar();
+			putchar('\n');
+			ungetc(g_global.input, stdin);
+			testForMulti();
+			break;
+		case ResultType::Quit:
+			return true;
+		case ResultType::SpecialCase:
+			switch (g_global.answer.character)
+			{
+			case 'b':
+				if (Animator::setBPM())
+					return true;
+				break;
+			case 'a':
+				Viewer::switchAspectRatio();
+				break;
+			case 'h':
+				if (Viewer::changeHeight())
+					return true;
+			}
+			break;
+		case ResultType::Success:
 			if (sectionIndexes.size())
 			{
-				printf("%sCurrent List: ", g_global.tabs.c_str());
-				for (const size_t index : sectionIndexes)
-					printf("%s ", m_models[index].getName());
-				putchar('\n');
-			}
-			
-			printf_tab("B - BPM for tempo-base animations: %g\n", Animator::getBPM());
-			printf_tab("? - Show list of controls\n");
-			switch (insertIndexValues(sectionIndexes, "nb", m_models.size()))
-			{
-			case ResultType::Help:
-				printf_tab("\n");
-				printf_tab("WASD - Move\n");
-				printf_tab("Space/Left Shift - Ascend/Descend\n");
-				printf_tab("Up/Down - Increase/Decrease movement speed\n");
-				printf_tab("Mouse - Camera Aiming\n");
-				printf_tab("Mouse Scroll - Increase/Decrease zoom\n");
-				printf_tab("ESC - exit\n");
-				printf_tab("'M' - Release/Reattach mouse control from/to the window\n");
-				printf_tab("'N' - Toggle displaying vertex normal vectors\n");
-				printf_tab("'O' - Switch between Animation & Pose modes\n");
-				printf_tab("'L' - Toggle animation looping\n");
-				printf_tab("With Animation mode active:\n");
-				printf_tab("\tP - Pause/Play\n");
-				printf_tab("\tR (Press) - Reset current animation to frame 0\n");
-				printf_tab("\tR (Hold) - Reset to first animation\n");
-				printf_tab("\tRight/Left - Switch between adjacent animations\n");
-				printf_tab("\tWhile an animation is paused:\n");
-				printf_tab("\t\t'.'/',' - Increment/decrement keyframe index\n");
-				printf_tab("Press 'Enter' when you're done reading");
-				clearIn();
-				g_global.input = getchar();
-				putchar('\n');
-				ungetc(g_global.input, stdin);
-				testForMulti();
-				break;
-			case ResultType::Quit:
-				return true;
-			case ResultType::SpecialCase:
+				try
 				{
-					float bpm = Animator::getBPM();
-					do
-					{
-						printf_tab("Current BPM: %g\n", bpm);
-						printf_tab("B - Keep current BPM\n");
-						printf("%sInput: ", g_global.tabs.c_str());
-						switch (valueInsert(bpm, false, "b"))
-						{
-						case ResultType::Quit:
-							return true;
-						case ResultType::SpecialCase:
-						case ResultType::Success:
-							Animator::setBPM(bpm);
-							g_global.quit = true;
-							break;
-						case ResultType::InvalidNegative:
-							printf("%sValue must be positive.\n%s\n", g_global.tabs.c_str(), g_global.tabs.c_str());
-							clearIn();
-							break;
-						case ResultType::Failed:
-							printf("%s\"%s\" is not a valid response.\n%s\n", g_global.tabs.c_str(), g_global.invalid.c_str(), g_global.tabs.c_str());
-							clearIn();
-						}
-					} while (!g_global.quit);
-					g_global.quit = false;
+					Viewer viewer;
+					viewer.viewXG(this, sectionIndexes);
 				}
-				__fallthrough;
-			case ResultType::Success:
-				if (sectionIndexes.size())
-					g_global.quit = true;
+				catch (char* str)
+				{
+					printf("%s", str);
+				}
+				sectionIndexes.clear();
 			}
-		} while (!g_global.quit);
-		g_global.quit = false;
-
-		try
-		{
-			Viewer viewer;
-			viewer.viewXG(this, sectionIndexes);
 		}
-		catch (char* str)
-		{
-			printf("%s", str);
-		}
-	};
+	}
 }
 
 bool XGM::selectTexture()

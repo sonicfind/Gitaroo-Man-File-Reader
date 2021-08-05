@@ -23,11 +23,32 @@ using namespace InputHandling;
 Slope g_BPM = { 7.5f , 1.0f / 7.5f };
 float Animator::s_tempo = 120;
 
-void Animator::setBPM(const float bpm)
+bool Animator::setBPM()
 {
-	s_tempo = bpm;
-	g_BPM.m_slope = bpm * .0625f;
-	g_BPM.m_recip = 16 / bpm;
+	while (true)
+	{
+		GlobalFunctions::printf_tab("Current BPM: %g ['B' to leave unchanged]\n", s_tempo);
+		GlobalFunctions::printf_tab("Input: ");
+		switch (GlobalFunctions::valueInsert(s_tempo, false, "b"))
+		{
+		case GlobalFunctions::ResultType::Quit:
+			return true;
+		case GlobalFunctions::ResultType::SpecialCase:
+		case GlobalFunctions::ResultType::Success:
+			g_BPM.m_slope = s_tempo * .0625f;
+			g_BPM.m_recip = 16 / s_tempo;
+			return false;
+		case GlobalFunctions::ResultType::InvalidNegative:
+			GlobalFunctions::printf_tab("Value must be positive.\n");
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+			break;
+		case GlobalFunctions::ResultType::Failed:
+			GlobalFunctions::printf_tab("\"%s\" is not a valid response.\n", g_global.invalid.c_str());
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+		}
+	}
 }
 
 void Animator::load(XG* xg)

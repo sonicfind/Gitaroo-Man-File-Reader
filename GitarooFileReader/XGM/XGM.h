@@ -32,6 +32,7 @@ public:
 	bool importPNGs();
 	bool exportOBJs();
 	bool importOBJs();
+	bool viewModel();
 	bool selectTexture();
 	bool selectModel();
 

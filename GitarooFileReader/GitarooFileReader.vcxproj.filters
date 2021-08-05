@@ -43,6 +43,12 @@
     <Filter Include="Visual-Based Types\XGM\Editor">
       <UniqueIdentifier>{acb0c942-a78a-4219-9565-106b7118c6a3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Visual-Based Types\XGM\Viewer">
+      <UniqueIdentifier>{5d8cf73e-d70b-40b4-8de7-fec0ca45a6d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\XG\XGNodes">
+      <UniqueIdentifier>{fe990c9d-ee4f-4b3d-a31e-8a7c0987f8d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main\pch.cpp">
@@ -111,6 +117,12 @@
     <ClCompile Include="Main\GitarooFileReader.cpp">
       <Filter>GMFR</Filter>
     </ClCompile>
+    <ClCompile Include="..\3rdparty\glad\glad.c">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="XGM\Viewer\Viewer.cpp">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\Global_Functions.h">
@@ -157,6 +169,15 @@
     </ClInclude>
     <ClInclude Include="XGM\XGM.h">
       <Filter>Visual-Based Types\XGM</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\Viewer\Viewer.h">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\Viewer\Camera.h">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\Viewer\Shaders.h">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

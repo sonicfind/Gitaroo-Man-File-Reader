@@ -528,18 +528,20 @@ namespace GlobalFunctions
 	}
 	
 	template<typename T>
-	ResultType indexSelector(std::vector<T>& vect, const char* type)
+	ResultType indexSelector(std::vector<T>& vect, const char* type, std::string outCharacters = "")
 	{
 		printf("%sType the index for the %s that you wish to operate with\n", g_global.tabs.c_str(), type);
 		for (size_t i = 0; i < vect.size(); ++i)
 			printf("%s%zu - %s\n", g_global.tabs.c_str(), i, vect[i].getName());
 		printf("%sInput: ", g_global.tabs.c_str());
-		switch (valueInsert(g_global.answer.index, false, size_t(0), vect.size() - 1))
+		switch (valueInsert(g_global.answer.index, false, size_t(0), vect.size() - 1, outCharacters))
 		{
 		case ResultType::Quit:
 			return ResultType::Quit;
 		case ResultType::Success:
 			return ResultType::Success;
+		case ResultType::SpecialCase:
+			return ResultType::SpecialCase;
 		case ResultType::InvalidNegative:
 			printf("%sGiven index value cannot be negative.\n", g_global.tabs.c_str());
 			break;

@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "XGM.h"
+#include "Viewer/Viewer.h"
 #include <filesystem>
 using namespace std;
 using namespace GlobalFunctions;
@@ -274,6 +275,59 @@ bool XGM::importOBJs()
 {
 	banner(" " + m_filename + ".XGM - Multi-Model Import ");
 	return false;
+}
+
+bool XGM::viewModel()
+{
+	while (true)
+	{
+		std::vector<size_t> sectionIndexes;
+		do
+		{
+			banner(" " + m_filename + ".XGM - Model Viewer ");
+			printf("%sType the number for each model that you wish to look at w/ spaces in-between\n", g_global.tabs.c_str());
+			for (size_t index = 0; index < m_models.size(); ++index)
+				printf("%s%zu - %s\n", g_global.tabs.c_str(), index, m_models[index].getName());
+			
+			if (sectionIndexes.size())
+			{
+				printf("%sCurrent List: ", g_global.tabs.c_str());
+				for (const size_t index : sectionIndexes)
+					printf("%s ", m_models[index].getName());
+				putchar('\n');
+			}
+			
+			printf("%sShow Normals: %s [Enter 'S' to toggle this value]\n", g_global.tabs.c_str(), Viewer::s_showNormals ? "TRUE" : "FALSE");
+			printf("%s? - Help\n", g_global.tabs.c_str());
+			switch (insertIndexValues(sectionIndexes, "s", m_models.size()))
+			{
+			case ResultType::Help:
+				printf("%s\n%sMove with WASD\n", g_global.tabs.c_str(), g_global.tabs.c_str());
+				printf("%sSpace to ascend | Left Shift to descend\n", g_global.tabs.c_str());
+				printf("%sUP/DOWN keys to increase or decrease speed respectively\n", g_global.tabs.c_str());
+				printf("%sScroll Wheel to increase or decrease zoom\n", g_global.tabs.c_str());
+				printf("%sESC to exit\n", g_global.tabs.c_str());
+				printf("%sPress 'Enter' when you're done reading", g_global.tabs.c_str());
+				clearIn();
+				g_global.input = getchar();
+				putchar('\n');
+				ungetc(g_global.input, stdin);
+				testForMulti();
+				break;
+			case ResultType::Quit:
+				return true;
+			case ResultType::SpecialCase:
+				Viewer::s_showNormals = !Viewer::s_showNormals;
+				__fallthrough;
+			case ResultType::Success:
+				if (sectionIndexes.size())
+					g_global.quit = true;
+			}
+		} while (!g_global.quit);
+		g_global.quit = false;
+		Viewer viewer;
+		viewer.viewXG(this, sectionIndexes);
+	};
 }
 
 bool XGM::selectTexture()

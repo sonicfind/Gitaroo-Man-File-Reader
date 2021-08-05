@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -115,7 +115,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(IntDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -134,7 +134,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(IntDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -157,7 +157,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(IntDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -180,34 +180,46 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(IntDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\3rdparty\glad\glad.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Main\pch.cpp" />
+    <ClCompile Include="Main\Global_Functions.cpp" />
+    <ClCompile Include="Main\FileType.cpp" />
+    <ClCompile Include="Main\FileMain.cpp" />
     <ClCompile Include="CHC\CHC.cpp" />
     <ClCompile Include="CHC\CHC_Editor.cpp" />
-    <ClCompile Include="CHC\CHC_Main.cpp" />
     <ClCompile Include="CHC\CHC_TAS.cpp" />
+    <ClCompile Include="CHC\CH_Object.cpp" />
+    <ClCompile Include="CHC\CH_NoteTrack.cpp" />
     <ClCompile Include="CHC\CH_ChartFile.cpp" />
     <ClCompile Include="CHC\CH_Export.cpp" />
     <ClCompile Include="CHC\CH_Import.cpp" />
-    <ClCompile Include="CHC\CH_Object.cpp" />
-    <ClCompile Include="CHC\CH_NoteTrack.cpp" />
-    <ClCompile Include="Main\FileMain.cpp" />
-    <ClCompile Include="Main\FileType.cpp" />
+    <ClCompile Include="CHC\CHC_Main.cpp" />
     <ClCompile Include="IMX\IMX.cpp" />
     <ClCompile Include="IMX\IMX_Main.cpp" />
-    <ClCompile Include="Main\GitarooFileReader.cpp" />
-    <ClCompile Include="Main\Global_Functions.cpp" />
-    <ClCompile Include="Main\pch.cpp" />
     <ClCompile Include="PString\PString.cpp" />
-    <ClCompile Include="XGM\XGM.cpp" />
-    <ClCompile Include="XGM\XGM_Main.cpp" />
+    <ClCompile Include="XGM\Viewer\Viewer.cpp" />
+    <ClCompile Include="XG\XG_Nodes.cpp" />
     <ClCompile Include="XG\XG.cpp" />
     <ClCompile Include="XG\XG_Main.cpp" />
-    <ClCompile Include="XG\XG_Nodes.cpp" />
+    <ClCompile Include="XGM\XGM.cpp" />
+    <ClCompile Include="XGM\XGM_Main.cpp" />
+    <ClCompile Include="Main\GitarooFileReader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Main\pch.h" />
+    <ClInclude Include="Main\Global_Functions.h" />
+    <ClInclude Include="Main\FileType.h" />
+    <ClInclude Include="Main\FileMain.h" />
     <ClInclude Include="CHC\CHC.h" />
     <ClInclude Include="CHC\CHC_TAS.h" />
     <ClInclude Include="CHC\CH_ChartFile.h" />
@@ -215,16 +227,14 @@
     <ClInclude Include="CHC\CH_Import.h" />
     <ClInclude Include="CHC\CH_Object.h" />
     <ClInclude Include="CHC\CH_NoteTrack.h" />
-    <ClInclude Include="Main\FileMain.h" />
-    <ClInclude Include="Main\FileType.h" />
-    <ClInclude Include="IMX\IMX.h" />
-    <ClInclude Include="Main\Global_Functions.h" />
-    <ClInclude Include="Main\pch.h" />
     <ClInclude Include="PString\PString.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="XGM\XGM.h" />
-    <ClInclude Include="XG\XG.h" />
+    <ClInclude Include="IMX\IMX.h" />
     <ClInclude Include="XG\XG_Nodes.h" />
+    <ClInclude Include="XG\XG.h" />
+    <ClInclude Include="XGM\XGM.h" />
+    <ClInclude Include="XGM\Viewer\Viewer.h" />
+    <ClInclude Include="XGM\Viewer\Camera.h" />
+    <ClInclude Include="XGM\Viewer\Shaders.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GitarooFileReader.rc" />

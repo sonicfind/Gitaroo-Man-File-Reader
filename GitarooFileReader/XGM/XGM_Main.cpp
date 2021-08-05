@@ -16,11 +16,11 @@
 #include "FileMain.h"
 #include "XGM/XGM.h"
 using namespace GlobalFunctions;
-const std::string XGM::multiChoiceString = "ewpio";
+const std::string XGM::multiChoiceString = "ewpiov";
 
 bool XGM::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 {
-	const std::string choices = nextFile ? "swpiotmn" : "swpiotm";
+	const std::string choices = nextFile ? "swpiovtmn" : "swpiovtm";
 	while (true)
 	{
 		banner(" " + m_filename + ".XGM - Mode Selection ");
@@ -30,6 +30,7 @@ bool XGM::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 		printf_tab("I - Import textures from image files [Gitarootools install required]\n");
 		printf_tab("O - Export models to .obj files\n");
 		//printf_tab("F - Import models from .obj files\n");
+		printf_tab("V - Open model viewer\n");
 		printf_tab("T - Select a texture [Count: %zu]\n", m_textures.size());
 		printf_tab("M - Select a model   [Count: %zu]\n", m_models.size());
 
@@ -85,6 +86,8 @@ bool XGM::functionSelection(const char choice, bool isMulti)
 		return exportOBJs();
 	//case 'f':
 	//	return importOBJs();
+	case 'v':
+		return viewModel();
 	case 't':
 		return selectTexture();
 	case 'm':
@@ -102,6 +105,7 @@ void XGM::displayMultiChoices()
 	printf_tab("I - Import textures from image files into all XGMs [Gitarootools install required]\n");
 	printf_tab("O - Export all models from every XGM to .obj files\n");
 	//printf_tab("F - Import models from .obj files into all XGMs\n");
+	printf_tab("V - View all XGMs through the Model Viewer\n");
 }
 
 void XGM::displayMultiHelp()

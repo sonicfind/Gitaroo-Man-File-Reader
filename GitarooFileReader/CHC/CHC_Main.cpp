@@ -22,7 +22,7 @@ bool CHC::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 	while (true)
 	{
 		banner(" " + m_filename + ".CHC - Mode Selection ");
-		std::string choices = "swpdtei";
+		std::string choices = "swpdei";
 		printf_tab("S - Save\n");
 		printf_tab("W - Write %s_CHC.txt\n", m_filename.c_str());
 		printf_tab("P - Swap players\n");
@@ -34,8 +34,11 @@ bool CHC::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 		}
 		printf_tab("D - Detailed modification\n");
 		if (isPS2Compatible())
+		{
 			printf_tab("T - Convert into a PCSX2 TAS (only works with songs available in the PS2 version)\n");
-		printf_tab("G - Export as \".chart\" for use in Guitar/Clone Hero and chart editing in Moonscraper\n");
+			choices += 't';
+		}
+		printf_tab("E - Export as \".chart\" for use in Guitar/Clone Hero and chart editing in Moonscraper\n");
 		printf_tab("I - Import notes from a Clone/Guitar Hero \".chart\" file\n");
 		if (isPS2Compatible())
 		{

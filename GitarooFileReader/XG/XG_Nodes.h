@@ -354,6 +354,7 @@ struct xgDagMesh : public XGNode
 {
 	struct Data
 	{
+		unsigned long m_elementCount = 0;
 		unsigned long m_arraySize = 0;
 		unsigned long* m_arrayData = nullptr;
 		Data() = default;
@@ -361,14 +362,10 @@ struct xgDagMesh : public XGNode
 		~Data();
 	};
 	unsigned long m_primType = 0;
-	unsigned long m_primCount = 0;
-	Data m_primData; //primDataSize
-	unsigned long m_triFanCount = 0; //number of triFans
-	Data m_triFanData; // triFanSize
-	unsigned long m_triStripCount = 0; //number of triStrips
-	Data m_triStripData; // triStripSize
-	unsigned long m_triListCount = 0; //number of triLists
-	Data m_triListData; // triListsize
+	Data m_primData;
+	Data m_triFanData;
+	Data m_triStripData;
+	Data m_triListData;
 	unsigned long m_cullFunc = 0;
 	std::vector<SharedNode<xgBgGeometry>> m_inputGeometries;
 	std::vector<SharedNode<XGNode>> m_inputMaterials;

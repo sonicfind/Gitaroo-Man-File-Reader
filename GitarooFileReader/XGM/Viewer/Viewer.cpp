@@ -718,21 +718,21 @@ bool GitarooViewer::DagMesh::load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline,
 Bind_Buffers:
 	if (m_mesh->m_primType == 4)
 	{
-		if (m_mesh->m_triFanCount)
+		if (m_mesh->m_triFanData.m_elementCount)
 		{
 			glGenBuffers(1, &m_fanEBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_fanEBO);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned long) * m_mesh->m_triFanData.m_arraySize, m_mesh->m_triFanData.m_arrayData, GL_STATIC_DRAW);
 		}
 
-		if (m_mesh->m_triStripCount)
+		if (m_mesh->m_triStripData.m_elementCount)
 		{
 			glGenBuffers(1, &m_stripEBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_stripEBO);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned long) * m_mesh->m_triStripData.m_arraySize, m_mesh->m_triStripData.m_arrayData, GL_STATIC_DRAW);
 		}
 
-		if (m_mesh->m_triListCount)
+		if (m_mesh->m_triListData.m_elementCount)
 		{
 			glGenBuffers(1, &m_listEBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_listEBO);
@@ -741,7 +741,7 @@ Bind_Buffers:
 	}
 	else if (m_mesh->m_primType == 5)
 	{
-		if (m_mesh->m_triFanCount)
+		if (m_mesh->m_triFanData.m_elementCount)
 		{
 			for (unsigned long valueIndex = 0, index = m_mesh->m_triFanData.m_arrayData[valueIndex++];
 				valueIndex < m_mesh->m_triFanData.m_arraySize;)
@@ -752,7 +752,7 @@ Bind_Buffers:
 			}
 		}
 		
-		if (m_mesh->m_triStripCount)
+		if (m_mesh->m_triStripData.m_elementCount)
 		{
 			for (unsigned long valueIndex = 0, index = m_mesh->m_triStripData.m_arrayData[valueIndex++];
 				valueIndex < m_mesh->m_triStripData.m_arraySize;)
@@ -763,7 +763,7 @@ Bind_Buffers:
 			}
 		}
 		
-		if (m_mesh->m_triListCount)
+		if (m_mesh->m_triListData.m_elementCount)
 		{
 			for (unsigned long valueIndex = 0, index = m_mesh->m_triListData.m_arrayData[valueIndex++];
 				valueIndex < m_mesh->m_triListData.m_arraySize;)
@@ -876,7 +876,6 @@ void GitarooViewer::DagMesh::Material::loadTexture(const IMX& image)
 				}
 			}
 		}
-		
 	}
 }
 

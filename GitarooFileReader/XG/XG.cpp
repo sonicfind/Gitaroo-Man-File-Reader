@@ -248,7 +248,7 @@ bool XG::exportOBJ(std::string newDirectory)
 
 						if (mesh->m_primType == 4)
 						{
-							if (mesh->m_triFanCount)
+							if (mesh->m_triFanData.m_elementCount)
 							{
 								for (unsigned long valueIndex = 0; valueIndex < mesh->m_triFanData.m_arraySize;)
 								{
@@ -333,7 +333,7 @@ bool XG::exportOBJ(std::string newDirectory)
 								}
 							}
 
-							if (mesh->m_triStripCount)
+							if (mesh->m_triStripData.m_elementCount)
 							{
 								for (unsigned long valueIndex = 0; valueIndex < mesh->m_triStripData.m_arraySize;)
 								{
@@ -442,7 +442,7 @@ bool XG::exportOBJ(std::string newDirectory)
 								}
 							}
 
-							if (mesh->m_triListCount)
+							if (mesh->m_triListData.m_elementCount)
 							{
 								for (unsigned long valueIndex = 0; valueIndex < mesh->m_triListData.m_arraySize;)
 								{
@@ -520,7 +520,7 @@ bool XG::exportOBJ(std::string newDirectory)
 						}
 						else if (mesh->m_primType == 5)
 						{
-							if (mesh->m_triFanCount)
+							if (mesh->m_triFanData.m_elementCount)
 							{
 								unsigned long valueIndex = 0;
 								for (unsigned long startIndex = mesh->m_triFanData.m_arrayData[valueIndex++];
@@ -609,7 +609,7 @@ bool XG::exportOBJ(std::string newDirectory)
 								}
 							}
 
-							if (mesh->m_triStripCount)
+							if (mesh->m_triStripData.m_elementCount)
 							{
 								unsigned long valueIndex = 0;
 								for (unsigned long startIndex = mesh->m_triStripData.m_arrayData[valueIndex++]; valueIndex < mesh->m_triStripData.m_arraySize;)
@@ -721,7 +721,7 @@ bool XG::exportOBJ(std::string newDirectory)
 								}
 							}
 
-							if (mesh->m_triListCount)
+							if (mesh->m_triListData.m_elementCount)
 							{
 								unsigned long valueIndex = 0;
 								for (unsigned long startIndex = mesh->m_triListData.m_arrayData[valueIndex++];

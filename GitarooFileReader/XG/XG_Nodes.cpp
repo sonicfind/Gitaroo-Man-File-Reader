@@ -332,7 +332,7 @@ int xgDagMesh::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& no
 	PString::pull(inFile);
 	fread(&m_primType, 4, 1, inFile);
 	PString::pull(inFile);
-	fread(&m_primCount, 4, 1, inFile);
+	fread(&m_primData.m_elementCount, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_primData.m_arraySize, 4, 1, inFile);
 	if (m_primData.m_arraySize > 0)
@@ -342,7 +342,7 @@ int xgDagMesh::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& no
 			throw;
 	}
 	PString::pull(inFile);
-	fread(&m_triFanCount, 4, 1, inFile);
+	fread(&m_triFanData.m_elementCount, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_triFanData.m_arraySize, 4, 1, inFile);
 	if (m_triFanData.m_arraySize > 0)
@@ -352,7 +352,7 @@ int xgDagMesh::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& no
 			throw;
 	}
 	PString::pull(inFile);
-	fread(&m_triStripCount, 4, 1, inFile);
+	fread(&m_triStripData.m_elementCount, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_triStripData.m_arraySize, 4, 1, inFile);
 	if (m_triStripData.m_arraySize > 0)
@@ -362,7 +362,7 @@ int xgDagMesh::read(FILE* inFile, const std::vector<std::shared_ptr<XGNode>>& no
 			throw;
 	}
 	PString::pull(inFile);
-	fread(&m_triListCount, 4, 1, inFile);
+	fread(&m_triListData.m_elementCount, 4, 1, inFile);
 	PString::pull(inFile);
 	fread(&m_triListData.m_arraySize, 4, 1, inFile);
 	if (m_triListData.m_arraySize > 0)
@@ -395,22 +395,22 @@ void xgDagMesh::create(FILE* outFile, bool full)
 		PString::push("primType", outFile);
 		fwrite(&m_primType, 4, 1, outFile);
 		PString::push("primCount", outFile);
-		fwrite(&m_primCount, 4, 1, outFile);
+		fwrite(&m_primData.m_elementCount, 4, 1, outFile);
 		PString::push("primData", outFile);
 		fwrite(&m_primData.m_arraySize, 4, 1, outFile);
 		fwrite(m_primData.m_arrayData, 4, m_primData.m_arraySize, outFile);
 		PString::push("triFanCount", outFile);
-		fwrite(&m_triFanCount, 4, 1, outFile);
+		fwrite(&m_triFanData.m_elementCount, 4, 1, outFile);
 		PString::push("triFanData", outFile);
 		fwrite(&m_triFanData.m_arraySize, 4, 1, outFile);
 		fwrite(m_triFanData.m_arrayData, 4, m_triFanData.m_arraySize, outFile);
 		PString::push("triStripCount", outFile);
-		fwrite(&m_triStripCount, 4, 1, outFile);
+		fwrite(&m_triStripData.m_elementCount, 4, 1, outFile);
 		PString::push("triStripData", outFile);
 		fwrite(&m_triStripData.m_arraySize, 4, 1, outFile);
 		fwrite(m_triStripData.m_arrayData, 4, m_triStripData.m_arraySize, outFile);
 		PString::push("triListCount", outFile);
-		fwrite(&m_triListCount, 4, 1, outFile);
+		fwrite(&m_triListData.m_elementCount, 4, 1, outFile);
 		PString::push("triListData", outFile);
 		fwrite(&m_triListData.m_arraySize, 4, 1, outFile);
 		fwrite(m_triListData.m_arrayData, 4, m_triListData.m_arraySize, outFile);
@@ -446,8 +446,8 @@ void xgDagMesh::writeTXT(FILE* outTXT, const char* tabs)
 		fprintf_s(outTXT, "Who the heck knows\n");
 	if (m_primType == 4)
 	{
-		fprintf_s(outTXT, "\t\t\t%s TriFanCount: %lu\n", tabs, m_triFanCount);
-		for (unsigned long index = 0, valueIndex = 0; valueIndex < m_triFanCount; ++index)
+		fprintf_s(outTXT, "\t\t\t%s TriFanCount: %lu\n", tabs, m_triFanData.m_elementCount);
+		for (unsigned long index = 0, valueIndex = 0; valueIndex < m_triFanData.m_arraySize; ++index)
 		{
 			const unsigned long numIndexes = m_triFanData.m_arrayData[valueIndex++];
 			fprintf_s(outTXT, "\t\t\t%s   TriFan %03lu\n", tabs, index + 1);
@@ -455,8 +455,8 @@ void xgDagMesh::writeTXT(FILE* outTXT, const char* tabs)
 			for (unsigned long vertex = 0; vertex < numIndexes; ++vertex)
 				fprintf_s(outTXT, "\t\t\t\t%s       Index %03lu: %lu\n", tabs, vertex + 1, m_triFanData.m_arrayData[valueIndex++]);
 		}
-		fprintf_s(outTXT, "\t\t%s       TriStripCount: %lu\n", tabs, m_triFanCount);
-		for (unsigned long index = 0, valueIndex = 0; valueIndex < m_triStripCount; ++index)
+		fprintf_s(outTXT, "\t\t%s       TriStripCount: %lu\n", tabs, m_triStripData.m_elementCount);
+		for (unsigned long index = 0, valueIndex = 0; valueIndex < m_triStripData.m_arraySize; ++index)
 		{
 			const unsigned long numIndexes = m_triStripData.m_arrayData[valueIndex++];
 			fprintf_s(outTXT, "\t\t\t%s   TriStrip %03lu\n", tabs, index + 1);
@@ -464,8 +464,8 @@ void xgDagMesh::writeTXT(FILE* outTXT, const char* tabs)
 			for (unsigned long vertex = 0; vertex < numIndexes; ++vertex)
 				fprintf_s(outTXT, "\t\t\t\t%s       Index %03lu: %lu\n", tabs, vertex + 1, m_triStripData.m_arrayData[valueIndex++]);
 		}
-		fprintf_s(outTXT, "\t\t\t%sTriListCount: %lu\n", tabs, m_triFanCount);
-		for (unsigned long index = 0, valueIndex = 0; valueIndex < m_triListCount; ++index)
+		fprintf_s(outTXT, "\t\t\t%sTriListCount: %lu\n", tabs, m_triListData.m_elementCount);
+		for (unsigned long index = 0, valueIndex = 0; valueIndex < m_triListData.m_arraySize; ++index)
 		{
 			const unsigned long numIndexes = m_triListData.m_arrayData[valueIndex++];
 			fprintf_s(outTXT, "\t\t\t%s    TriList %03lu\n", tabs, index + 1);
@@ -476,8 +476,8 @@ void xgDagMesh::writeTXT(FILE* outTXT, const char* tabs)
 	}
 	else if (m_primType == 5)
 	{
-		fprintf_s(outTXT, "\t\t\t%s TriFanCount: %lu\n", tabs, m_triFanCount);
-		if (m_triFanCount)
+		fprintf_s(outTXT, "\t\t\t%s TriFanCount: %lu\n", tabs, m_triFanData.m_elementCount);
+		if (m_triFanData.m_elementCount)
 		{
 			unsigned long valueIndex = 0;
 			unsigned long initialVertex = m_triFanData.m_arrayData[valueIndex++];
@@ -489,8 +489,8 @@ void xgDagMesh::writeTXT(FILE* outTXT, const char* tabs)
 			}
 		}
 
-		fprintf_s(outTXT, "\t\t%s       TriStripCount: %lu\n", tabs, m_triStripCount);
-		if (m_triStripCount)
+		fprintf_s(outTXT, "\t\t%s       TriStripCount: %lu\n", tabs, m_triStripData.m_elementCount);
+		if (m_triStripData.m_elementCount)
 		{
 			unsigned long valueIndex = 0;
 			unsigned long initialVertex = m_triStripData.m_arrayData[valueIndex++];
@@ -502,10 +502,10 @@ void xgDagMesh::writeTXT(FILE* outTXT, const char* tabs)
 			}
 		}
 
-		if (m_triListCount)
+		if (m_triListData.m_elementCount)
 		{
 			unsigned long valueIndex = 0;
-			fprintf_s(outTXT, "\t\t\t%sTriListCount: %lu\n", tabs, m_triListCount);
+			fprintf_s(outTXT, "\t\t\t%sTriListCount: %lu\n", tabs, m_triListData.m_elementCount);
 			unsigned long initialVertex = m_triListData.m_arrayData[valueIndex++];
 			fprintf_s(outTXT, "\t\t%s  Base TriList Index: %03lu\n", tabs, initialVertex);
 			for (unsigned long index = 0; valueIndex < m_triListData.m_arraySize; ++index)

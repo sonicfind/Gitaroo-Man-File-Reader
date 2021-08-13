@@ -340,14 +340,6 @@ GitarooViewer::DagMesh::~DagMesh()
 	glDeleteBuffers(1, &m_transformVBO);
 }
 
-GitarooViewer::DagMesh::Material::~Material()
-{
-	if (texture_24)
-		glDeleteTextures(1, &textureID);
-	else if (texture_32)
-		glDeleteTextures(1, &textureID);
-}
-
 GitarooViewer::Model::Model(XGM* xgm, XG& xg)
 {
 	m_animator.load(&xg);
@@ -453,48 +445,19 @@ bool GitarooViewer::DagMesh::load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline,
 	{
 		XGNode* node = m_mesh->m_inputMaterials.front().m_node;
 		m_materials = std::make_shared<std::list<Material>>();
-		if (dynamic_cast<xgMaterial*>(node))
+		if (const xgMaterial* xgMat = dynamic_cast<xgMaterial*>(node))
 		{
-			xgMaterial* xgMat = (xgMaterial*)node;
-			m_materials->push_back({ xgMat, GL_LESS });
+			m_materials->push_back({ xgMat, xgm->m_textures });
 			if ((xgMat->m_blendType != 0 && xgMat->m_blendType != 4) || xgMat->m_flags & 1)
 				m_transparency = true;
-			for (auto& tex : xgMat->m_inputTextures)
-			{
-				PString textNode = tex->m_imxName;
-				for (int index = 0; index < textNode.m_size; ++index)
-					textNode.m_pstring[index] = toupper(textNode.m_pstring[index]);
-				for (IMX image : xgm->m_textures)
-				{
-					if (strstr(image.getName(), textNode.m_pstring))
-						m_materials->back().loadTexture(image);
-				}
-			}
-			m_materials->back().bindTexture();
 		}
-		else if (dynamic_cast<xgMultiPassMaterial*>(node))
+		else if (const xgMultiPassMaterial* xgMultiMat = dynamic_cast<xgMultiPassMaterial*>(node))
 		{
-			for (auto& shared : ((xgMultiPassMaterial*)node)->m_inputMaterials)
+			for (const xgMaterial* xgMat : xgMultiMat->m_inputMaterials)
 			{
-				xgMaterial* xgMat = (xgMaterial*)shared.m_node;
-				if (!m_materials->size())
-					m_materials->push_back({ xgMat, GL_LESS });
-				else
-					m_materials->push_back({ xgMat, GL_LEQUAL });
-				if (xgMat->m_blendType != 0 && xgMat->m_blendType != 4 || xgMat->m_flags & 1)
+				m_materials->push_back({ xgMat, xgm->m_textures });
+				if ((xgMat->m_blendType != 0 && xgMat->m_blendType != 4) || xgMat->m_flags & 1)
 					m_transparency = true;
-				for (auto& tex : xgMat->m_inputTextures)
-				{
-					PString textNode = tex->m_imxName;
-					for (int index = 0; index < textNode.m_size; ++index)
-						textNode.m_pstring[index] = toupper(textNode.m_pstring[index]);
-					for (IMX image : xgm->m_textures)
-					{
-						if (strstr(image.getName(), textNode.m_pstring))
-							m_materials->back().loadTexture(image);
-					}
-				}
-				m_materials->back().bindTexture();
 			}
 		}
 	}
@@ -735,121 +698,6 @@ Bind_Buffers:
 	return m_transparency;
 }
 
-void GitarooViewer::DagMesh::Material::loadTexture(const IMX& image)
-{
-	if (!textureID)
-	{
-		glGenTextures(1, &textureID);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-	}
-
-	if (image.m_data->m_pixelVal1 == 3 && image.m_data->m_pixelVal2 == 2)
-	{
-		if (!texture_24)
-		{
-			width = image.m_data->m_width;
-			height = image.m_data->m_height;
-			texture_24 = new unsigned char[(size_t)width * height][3];
-			memcpy(texture_24, image.m_data->m_colorData->m_image, 3 * width * height);
-		}
-		else
-		{
-			for (unsigned long p = 0; p < width * height; ++p)
-			{
-				texture_24[p][0] = unsigned char(texture_24[p][0] * (image.m_data->m_colorData->m_image[3 * p] / 255.0f));
-				texture_24[p][1] = unsigned char(texture_24[p][1] * (image.m_data->m_colorData->m_image[3 * p + 1] / 255.0f));
-				texture_24[p][2] = unsigned char(texture_24[p][2] * (image.m_data->m_colorData->m_image[3 * p + 2] / 255.0f));
-			}
-		}
-	}
-	else if (image.m_data->m_pixelVal1 == 4 && image.m_data->m_pixelVal2 == 2)
-	{
-		if (!texture_32)
-		{
-			width = image.m_data->m_width;
-			height = image.m_data->m_height;
-			texture_32 = new unsigned char[(size_t)width * height][4];
-			memcpy(texture_32, image.m_data->m_colorData->m_image, 4 * width * height);
-		}
-		else
-		{
-			for (unsigned long p = 0; p < width * height; ++p)
-			{
-				texture_32[p][0] = unsigned char(texture_32[p][0] * (image.m_data->m_colorData->m_image[4 * p] / 255.0f));
-				texture_32[p][1] = unsigned char(texture_32[p][1] * (image.m_data->m_colorData->m_image[4 * p + 1] / 255.0f));
-				texture_32[p][2] = unsigned char(texture_32[p][2] * (image.m_data->m_colorData->m_image[4 * p + 2] / 255.0f));
-				texture_32[p][3] = unsigned char(texture_32[p][3] * (image.m_data->m_colorData->m_image[4 * p + 3] / 255.0f));
-			}
-		}
-	}
-	else
-	{
-		if (image.m_data->m_pixelVal1 != 0 || image.m_data->m_pixelVal2 != 0)
-		{
-			if (!texture_32)
-			{
-				width = image.m_data->m_width;
-				height = image.m_data->m_height;
-				texture_32 = new unsigned char[(size_t)width * height][4];
-				for (unsigned long p = 0; p < width * height; ++p)
-					memcpy(texture_32[p], image.m_data->m_colorData->m_palette[image.m_data->m_colorData->m_image[p]], 4);
-			}
-			else
-			{
-				for (unsigned long p = 0; p < width * height; ++p)
-				{
-					unsigned char* pixel = image.m_data->m_colorData->m_palette[image.m_data->m_colorData->m_image[p]];
-					texture_32[p][0] = unsigned char(texture_32[p][0] * (pixel[0] / 255.0f));
-					texture_32[p][1] = unsigned char(texture_32[p][1] * (pixel[1] / 255.0f));
-					texture_32[p][2] = unsigned char(texture_32[p][2] * (pixel[2] / 255.0f));
-					texture_32[p][3] = unsigned char(texture_32[p][3] * (pixel[3] / 255.0f));
-				}
-			}
-		}
-		else
-		{
-			if (!texture_32)
-			{
-				width = image.m_data->m_width;
-				height = image.m_data->m_height;
-				texture_32 = new unsigned char[(size_t)width * height][4];
-				for (unsigned long p = 0; p < width * height; ++p)
-				{
-					IMX_Data::Pixel4* pix = (IMX_Data::Pixel4*)&image.m_data->m_colorData->m_image[p >> 1];
-					memcpy(texture_32[p], image.m_data->m_colorData->m_palette[p & 1 ? (size_t)pix->pixel2 : (size_t)pix->pixel1], 4);
-				}
-			}
-			else
-			{
-				for (unsigned long p = 0; p < width * height; ++p)
-				{
-					IMX_Data::Pixel4* pix = (IMX_Data::Pixel4*)&image.m_data->m_colorData->m_image[p >> 1];
-					unsigned char* pixel = image.m_data->m_colorData->m_palette[p & 1 ? (size_t)pix->pixel2 : (size_t)pix->pixel1];
-					texture_32[p][0] = unsigned char(texture_32[p][0] * (pixel[0] / 255.0f));
-					texture_32[p][1] = unsigned char(texture_32[p][1] * (pixel[1] / 255.0f));
-					texture_32[p][2] = unsigned char(texture_32[p][2] * (pixel[2] / 255.0f));
-					texture_32[p][3] = unsigned char(texture_32[p][3] * (pixel[3] / 255.0f));
-				}
-			}
-		}
-	}
-}
-
-void GitarooViewer::DagMesh::Material::bindTexture()
-{
-	if (texture_24)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_24);
-		delete[width * height] texture_24;
-	}
-	else if (texture_32)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_32);
-		delete[width * height] texture_32;
-	}
-	glGenerateMipmap(GL_TEXTURE_2D);
-}
-
 void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool showNormals)
 {
 	for (auto& dag : m_meshes)
@@ -951,82 +799,11 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 		baseShader->setVec3("viewPos", glm::value_ptr(g_camera.m_position));
 		baseShader->setMat4("model", glm::value_ptr(model));
 
+		glDepthFunc(GL_LESS);
 		for (auto& mat : *dag->m_materials)
 		{
-			unsigned int shader = mat.mat->m_shadingType;
-			if (mat.textureID)
-			{
-				// If both a texture and vertex color are applicable
-				if (shader >= 3)
-					baseShader->setInt("shadingType", shader + 2);
-				else
-					baseShader->setInt("shadingType", shader);
-				glBindTexture(GL_TEXTURE_2D, mat.textureID);
-				baseShader->setInt("alphaType", mat.mat->m_flags & 1);
-				baseShader->setInt("alphaMultiplier", mat.mat->m_flags & ~1);
-				baseShader->setInt("textEnv", mat.mat->m_textureEnv);
-			}
-			else
-				baseShader->setInt("shadingType", shader);
-			glBlendColor(mat.mat->m_diffuse.red, mat.mat->m_diffuse.green, mat.mat->m_diffuse.blue, mat.mat->m_diffuse.alpha);
-			baseShader->setVec4("material.color", (float*)&mat.mat->m_diffuse);
-			baseShader->setVec3("material.specular", (float*)&mat.mat->m_specular);
-			baseShader->setFloat("material.shininess", mat.mat->m_specular.exponent);
-
-			baseShader->setInt("blendingType", mat.mat->m_blendType);
-			switch (mat.mat->m_blendType)
-			{
-			case 0:
-				if (mat.mat->m_flags & 1)
-				{
-					glEnable(GL_BLEND);
-					glBlendEquation(GL_FUNC_ADD);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				}
-				else
-					glDisable(GL_BLEND);
-				break;
-			case 1:
-				glEnable(GL_BLEND);
-				glBlendEquation(GL_FUNC_ADD);
-				if (mat.textureID)
-				{
-					if (mat.mat->m_flags & 1)
-						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					else
-						glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				}
-				else
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-				break;
-			case 2:
-				glEnable(GL_BLEND);
-				glBlendEquation(GL_FUNC_ADD);
-				glBlendFunc(GL_DST_COLOR, GL_ZERO);
-				break;
-			case 3:
-				glEnable(GL_BLEND);
-				glBlendEquation(GL_FUNC_ADD);
-				glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
-				break;
-			case 4:
-				if (mat.mat->m_flags & 1)
-				{
-					glEnable(GL_BLEND);
-					glBlendEquation(GL_FUNC_ADD);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				}
-				else
-					glDisable(GL_BLEND);
-				break;
-			case 5:
-				glEnable(GL_BLEND);
-				glBlendEquation(GL_FUNC_ADD);
-				glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
-			}
-
-			glDepthFunc(mat.depth);
-			
+			mat.setShaderValues(baseShader);
+			mat.setBlending();
 			if (dag->m_mesh->m_primType == 4)
 			{
 				dag->m_triFanElements.draw();
@@ -1039,6 +816,7 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 				dag->m_triStripArrays.draw();
 				dag->m_triListArrays.draw();
 			}
+			glDepthFunc(GL_LEQUAL);
 		}
 
 		if (showNormals)

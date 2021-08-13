@@ -17,6 +17,7 @@
 #include "Animator.h"
 #include "Shaders.h"
 #include "Primitives.h"
+#include "Material.h"
 #include <GLFW/glfw3.h>
 
 namespace GitarooViewer
@@ -39,19 +40,6 @@ namespace GitarooViewer
 		Shader m_transformShader;
 		Shader m_transformGeoShader;
 
-		struct Material
-		{
-			xgMaterial* mat;
-			GLenum depth;
-			unsigned int textureID = 0;
-			unsigned long width = 0;
-			unsigned long height = 0;
-			unsigned char(*texture_24)[3] = nullptr;
-			unsigned char(*texture_32)[4] = nullptr;
-			~Material();
-			void loadTexture(const IMX& image);
-			void bindTexture();
-		};
 		std::shared_ptr<std::list<Material>> m_materials;
 		bool m_transparency = false;
 

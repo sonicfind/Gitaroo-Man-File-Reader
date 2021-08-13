@@ -206,12 +206,14 @@
     <ClCompile Include="IMX\IMX.cpp" />
     <ClCompile Include="IMX\IMX_Main.cpp" />
     <ClCompile Include="PString\PString.cpp" />
+    <ClCompile Include="XGM\Viewer\Material.cpp" />
     <ClCompile Include="XGM\Viewer\Primitives.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="XGM\Viewer\Texture.cpp" />
     <ClCompile Include="XG\XG_Nodes.cpp" />
     <ClCompile Include="XG\XG.cpp" />
     <ClCompile Include="XG\XG_Main.cpp" />
@@ -255,7 +257,9 @@
     <ClInclude Include="CHC\CH_NoteTrack.h" />
     <ClInclude Include="PString\PString.h" />
     <ClInclude Include="IMX\IMX.h" />
+    <ClInclude Include="XGM\Viewer\Material.h" />
     <ClInclude Include="XGM\Viewer\Primitives.h" />
+    <ClInclude Include="XGM\Viewer\Texture.h" />
     <ClInclude Include="XG\XG_Nodes.h" />
     <ClInclude Include="XG\XG.h" />
     <ClInclude Include="XGM\XGM.h" />

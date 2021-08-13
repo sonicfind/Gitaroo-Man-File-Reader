@@ -65,6 +65,11 @@ struct SharedNode
 	{
 		return m_node;
 	}
+
+	operator T*() const
+	{
+		return m_node;
+	}
 };
 
 struct xgTime : public XGNode

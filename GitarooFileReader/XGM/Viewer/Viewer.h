@@ -16,7 +16,7 @@
 #include "XGM/XGM.h"
 #include "Animator.h"
 #include "Shaders.h"
-#include <glad/glad.h>
+#include "Primitives.h"
 #include <GLFW/glfw3.h>
 
 namespace GitarooViewer
@@ -39,10 +39,6 @@ namespace GitarooViewer
 		Shader m_transformShader;
 		Shader m_transformGeoShader;
 
-		unsigned int m_fanEBO = 0;
-		unsigned int m_stripEBO = 0;
-		unsigned int m_listEBO = 0;
-
 		struct Material
 		{
 			xgMaterial* mat;
@@ -59,15 +55,16 @@ namespace GitarooViewer
 		std::shared_ptr<std::list<Material>> m_materials;
 		bool m_transparency = false;
 
-		struct TriGroup
-		{
-			unsigned long index;
-			unsigned long numVerts;
-			unsigned int mode;
-		};
-		std::vector<TriGroup> m_groups;
+		TriElements m_triFanElements;
+		TriElements m_triStripElements;
+		TriElements m_triListElements;
+		TriArrays m_triFanArrays;
+		TriArrays m_triStripArrays;
+		TriArrays m_triListArrays;
+
 		static std::list<DagMesh*> s_allMeshes;
 
+		DagMesh();
 		~DagMesh();
 		bool load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, size_t transformIndex);
 	};

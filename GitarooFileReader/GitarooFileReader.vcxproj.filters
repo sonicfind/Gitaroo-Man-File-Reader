@@ -147,6 +147,9 @@
     <ClCompile Include="..\3rdparty\glad\glad.c">
       <Filter>Visual-Based Types\XGM\Viewer\3rd Party</Filter>
     </ClCompile>
+    <ClCompile Include="XGM\Viewer\Primitives.cpp">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\Global_Functions.h">
@@ -211,6 +214,9 @@
     </ClInclude>
     <ClInclude Include="XGM\Viewer\Shaders.h">
       <Filter>Visual-Based Types\XGM\Viewer\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="XGM\Viewer\Primitives.h">
+      <Filter>Visual-Based Types\XGM\Viewer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

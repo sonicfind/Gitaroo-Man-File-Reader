@@ -324,18 +324,20 @@ GitarooViewer::Model::~Model()
 		delete mesh;
 }
 
+GitarooViewer::DagMesh::DagMesh()
+	: m_triFanElements(GL_TRIANGLE_FAN)
+	, m_triFanArrays(GL_TRIANGLE_FAN)
+	, m_triStripElements(GL_TRIANGLE_STRIP)
+	, m_triStripArrays(GL_TRIANGLE_STRIP)
+	, m_triListElements(GL_TRIANGLES)
+	, m_triListArrays(GL_TRIANGLES) {}
+
 GitarooViewer::DagMesh::~DagMesh()
 {
 	glDeleteVertexArrays(1, &m_VAO);
 	glDeleteBuffers(1, &m_VBO);
 	glDeleteVertexArrays(1, &m_transformVAO);
 	glDeleteBuffers(1, &m_transformVBO);
-	if (m_fanEBO)
-		glDeleteBuffers(1, &m_fanEBO);
-	if (m_stripEBO)
-		glDeleteBuffers(1, &m_stripEBO);
-	if (m_listEBO)
-		glDeleteBuffers(1, &m_listEBO);
 }
 
 GitarooViewer::DagMesh::Material::~Material()
@@ -358,7 +360,7 @@ GitarooViewer::Model::Model(XGM* xgm, XG& xg)
 			loadTransform(xgm, xg.m_data->m_dag[dagIndex]);
 		else
 		{
-			DagMesh* mesh = new DagMesh;
+			DagMesh* mesh = new DagMesh();
 			if (mesh->load(xgm, (xgDagMesh*)xg.m_data->m_dag[dagIndex].m_base.m_node, m_animator.m_timeline, 0))
 				m_meshes.push_back(mesh);
 			else
@@ -718,61 +720,15 @@ bool GitarooViewer::DagMesh::load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline,
 Bind_Buffers:
 	if (m_mesh->m_primType == 4)
 	{
-		if (m_mesh->m_triFanData.m_elementCount)
-		{
-			glGenBuffers(1, &m_fanEBO);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_fanEBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned long) * m_mesh->m_triFanData.m_arraySize, m_mesh->m_triFanData.m_arrayData, GL_STATIC_DRAW);
-		}
-
-		if (m_mesh->m_triStripData.m_elementCount)
-		{
-			glGenBuffers(1, &m_stripEBO);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_stripEBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned long) * m_mesh->m_triStripData.m_arraySize, m_mesh->m_triStripData.m_arrayData, GL_STATIC_DRAW);
-		}
-
-		if (m_mesh->m_triListData.m_elementCount)
-		{
-			glGenBuffers(1, &m_listEBO);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_listEBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned long) * m_mesh->m_triListData.m_arraySize, m_mesh->m_triListData.m_arrayData, GL_STATIC_DRAW);
-		}
+		m_triFanElements.set(m_mesh->m_triFanData);
+		m_triStripElements.set(m_mesh->m_triStripData);
+		m_triListElements.set(m_mesh->m_triListData);
 	}
 	else if (m_mesh->m_primType == 5)
 	{
-		if (m_mesh->m_triFanData.m_elementCount)
-		{
-			for (unsigned long valueIndex = 0, index = m_mesh->m_triFanData.m_arrayData[valueIndex++];
-				valueIndex < m_mesh->m_triFanData.m_arraySize;)
-			{
-				const unsigned int numVerts = m_mesh->m_triFanData.m_arrayData[valueIndex++];
-				m_groups.push_back({ index, numVerts, GL_TRIANGLE_FAN });
-				index += numVerts;
-			}
-		}
-		
-		if (m_mesh->m_triStripData.m_elementCount)
-		{
-			for (unsigned long valueIndex = 0, index = m_mesh->m_triStripData.m_arrayData[valueIndex++];
-				valueIndex < m_mesh->m_triStripData.m_arraySize;)
-			{
-				const unsigned int numVerts = m_mesh->m_triStripData.m_arrayData[valueIndex++];
-				m_groups.push_back({ index, numVerts, GL_TRIANGLE_STRIP });
-				index += numVerts;
-			}
-		}
-		
-		if (m_mesh->m_triListData.m_elementCount)
-		{
-			for (unsigned long valueIndex = 0, index = m_mesh->m_triListData.m_arrayData[valueIndex++];
-				valueIndex < m_mesh->m_triListData.m_arraySize;)
-			{
-				const unsigned int numVerts = m_mesh->m_triListData.m_arrayData[valueIndex++];
-				m_groups.push_back({ index, numVerts, GL_TRIANGLES });
-				index += numVerts;
-			}
-		}
+		m_triFanArrays.set(m_mesh->m_triFanData);
+		m_triStripArrays.set(m_mesh->m_triStripData);
+		m_triListArrays.set(m_mesh->m_triListData);
 	}
 
 	s_allMeshes.push_back(this);
@@ -958,38 +914,38 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 			}
 		}
 
-		// Used to sort triangle groups for proper transparency
-		// Not perfect as some groups can be both foreground AND background
-		// Sorting does not take animations into account
-		// That will require custom depth buffer manipulation - an ideal currently out of scope
-		if (dag->m_mesh->m_primType == 5 && dag->m_transparency)
-		{
-			std::sort(dag->m_groups.rbegin(), dag->m_groups.rend(),
-			[&](const DagMesh::TriGroup& group_1, const DagMesh::TriGroup& group_2)
-			{
-				float dist1 = FLT_MAX;
-				for (unsigned long index = 0; index < group_1.numVerts; ++index)
-				{
-					float distance = glm::length(g_camera.m_position -
-						glm::vec3(dag->m_vertices[group_1.index + index].m_position[0],
-							dag->m_vertices[group_1.index + index].m_position[1],
-							-dag->m_vertices[group_1.index + index].m_position[0]));
-					if (distance < dist1)
-						dist1 = distance;
-				}
-				float dist2 = FLT_MAX;
-				for (unsigned long index = 0; index < group_2.numVerts; ++index)
-				{
-					float distance = glm::length(g_camera.m_position -
-						glm::vec3(dag->m_vertices[group_2.index + index].m_position[0],
-							dag->m_vertices[group_2.index + index].m_position[1],
-							-dag->m_vertices[group_2.index + index].m_position[0]));
-					if (distance < dist2)
-						dist2 = distance;
-				}
-				return dist1 < dist2;
-			});
-		}
+		//// Used to sort triangle groups for proper transparency
+		//// Not perfect as some groups can be both foreground AND background
+		//// Sorting does not take animations into account
+		//// That will require custom depth buffer manipulation - an ideal currently out of scope
+		//if (dag->m_mesh->m_primType == 5 && dag->m_transparency)
+		//{
+		//	std::sort(dag->m_groups.rbegin(), dag->m_groups.rend(),
+		//	[&](const DagMesh::TriGroup& group_1, const DagMesh::TriGroup& group_2)
+		//	{
+		//		float dist1 = FLT_MAX;
+		//		for (unsigned long index = 0; index < group_1.numVerts; ++index)
+		//		{
+		//			float distance = glm::length(g_camera.m_position -
+		//				glm::vec3(dag->m_vertices[group_1.index + index].m_position[0],
+		//					dag->m_vertices[group_1.index + index].m_position[1],
+		//					-dag->m_vertices[group_1.index + index].m_position[0]));
+		//			if (distance < dist1)
+		//				dist1 = distance;
+		//		}
+		//		float dist2 = FLT_MAX;
+		//		for (unsigned long index = 0; index < group_2.numVerts; ++index)
+		//		{
+		//			float distance = glm::length(g_camera.m_position -
+		//				glm::vec3(dag->m_vertices[group_2.index + index].m_position[0],
+		//					dag->m_vertices[group_2.index + index].m_position[1],
+		//					-dag->m_vertices[group_2.index + index].m_position[0]));
+		//			if (distance < dist2)
+		//				dist2 = distance;
+		//		}
+		//		return dist1 < dist2;
+		//	});
+		//}
 
 		baseShader->setVec3("lightPosition", glm::value_ptr(g_camera.m_position));
 		baseShader->setVec3("viewPos", glm::value_ptr(g_camera.m_position));
@@ -1073,42 +1029,16 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 			
 			if (dag->m_mesh->m_primType == 4)
 			{
-				if (dag->m_fanEBO)
-				{
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dag->m_fanEBO);
-					for (unsigned long valueIndex = 0; valueIndex < dag->m_mesh->m_triFanData.m_arraySize;)
-					{
-						const unsigned long numIndexes = dag->m_mesh->m_triFanData.m_arrayData[valueIndex++];
-						glDrawElements(GL_TRIANGLE_FAN, numIndexes, GL_UNSIGNED_INT, (void*)(valueIndex * sizeof(unsigned long)));
-						valueIndex += numIndexes;
-					}
-				}
-
-				if (dag->m_stripEBO)
-				{
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dag->m_stripEBO);
-					for (unsigned long valueIndex = 0; valueIndex < dag->m_mesh->m_triStripData.m_arraySize;)
-					{
-						const unsigned long numIndexes = dag->m_mesh->m_triStripData.m_arrayData[valueIndex++];
-						glDrawElements(GL_TRIANGLE_STRIP, numIndexes, GL_UNSIGNED_INT, (void*)(valueIndex * sizeof(unsigned long)));
-						valueIndex += numIndexes;
-					}
-				}
-
-				if (dag->m_listEBO)
-				{
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dag->m_listEBO);
-					for (unsigned long valueIndex = 0; valueIndex < dag->m_mesh->m_triListData.m_arraySize;)
-					{
-						const unsigned long numIndexes = dag->m_mesh->m_triListData.m_arrayData[valueIndex++];
-						glDrawElements(GL_TRIANGLES, numIndexes, GL_UNSIGNED_INT, (void*)(valueIndex * sizeof(unsigned long)));
-						valueIndex += numIndexes;
-					}
-				}
+				dag->m_triFanElements.draw();
+				dag->m_triStripElements.draw();
+				dag->m_triListElements.draw();
 			}
 			else if (dag->m_mesh->m_primType == 5)
-				for (auto& group : dag->m_groups)
-					glDrawArrays(group.mode, group.index, group.numVerts);
+			{
+				dag->m_triFanArrays.draw();
+				dag->m_triStripArrays.draw();
+				dag->m_triListArrays.draw();
+			}
 		}
 
 		if (showNormals)
@@ -1159,42 +1089,16 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 			geoShader->setMat4("model", glm::value_ptr(model));
 			if (dag->m_mesh->m_primType == 4)
 			{
-				if (dag->m_fanEBO)
-				{
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dag->m_fanEBO);
-					for (unsigned long valueIndex = 0; valueIndex < dag->m_mesh->m_triFanData.m_arraySize;)
-					{
-						const unsigned long numIndexes = dag->m_mesh->m_triFanData.m_arrayData[valueIndex++];
-						glDrawElements(GL_TRIANGLE_FAN, numIndexes, GL_UNSIGNED_INT, (void*)(valueIndex * sizeof(unsigned long)));
-						valueIndex += numIndexes;
-					}
-				}
-
-				if (dag->m_stripEBO)
-				{
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dag->m_stripEBO);
-					for (unsigned long valueIndex = 0; valueIndex < dag->m_mesh->m_triStripData.m_arraySize;)
-					{
-						const unsigned long numIndexes = dag->m_mesh->m_triStripData.m_arrayData[valueIndex++];
-						glDrawElements(GL_TRIANGLE_STRIP, numIndexes, GL_UNSIGNED_INT, (void*)(valueIndex * sizeof(unsigned long)));
-						valueIndex += numIndexes;
-					}
-				}
-
-				if (dag->m_listEBO)
-				{
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dag->m_listEBO);
-					for (unsigned long valueIndex = 0; valueIndex < dag->m_mesh->m_triListData.m_arraySize;)
-					{
-						const unsigned long numIndexes = dag->m_mesh->m_triListData.m_arrayData[valueIndex++];
-						glDrawElements(GL_TRIANGLES, numIndexes, GL_UNSIGNED_INT, (void*)(valueIndex * sizeof(unsigned long)));
-						valueIndex += numIndexes;
-					}
-				}
+				dag->m_triFanElements.draw();
+				dag->m_triStripElements.draw();
+				dag->m_triListElements.draw();
 			}
 			else if (dag->m_mesh->m_primType == 5)
-				for (auto& group : dag->m_groups)
-					glDrawArrays(group.mode, group.index, group.numVerts);
+			{
+				dag->m_triFanArrays.draw();
+				dag->m_triStripArrays.draw();
+				dag->m_triListArrays.draw();
+			}
 		}
 	}
 }

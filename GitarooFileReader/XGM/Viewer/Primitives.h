@@ -14,17 +14,16 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "XG/XG_Nodes.h"
-#include <glad/glad.h>
 
 class Primitives
 {
 protected:
-	const GLenum m_mode;
-	GLsizei m_numPrimitives = 0;
-	GLsizei* m_vertCounts = nullptr;
+	const unsigned m_mode;
+	int m_numPrimitives = 0;
+	int* m_vertCounts = nullptr;
 
 public:
-	Primitives(GLenum mode) : m_mode(mode) {}
+	Primitives(unsigned mode) : m_mode(mode) {}
 	~Primitives();
 	operator bool();
 	virtual void set(const xgDagMesh::Data& data) = 0;
@@ -33,11 +32,11 @@ public:
 
 class TriElements : public Primitives
 {
-	GLuint m_EBO = 0;
+	unsigned int m_EBO = 0;
 	unsigned long** m_indices = nullptr;
 
 public:
-	TriElements(GLenum mode) : Primitives(mode) {}
+	TriElements(unsigned mode) : Primitives(mode) {}
 	~TriElements();
 	void set(const xgDagMesh::Data& data);
 	void draw();
@@ -45,10 +44,10 @@ public:
 
 class TriArrays : public Primitives
 {
-	GLint* m_indices = nullptr;
+	int* m_indices = nullptr;
 
 public:
-	TriArrays(GLenum mode) : Primitives(mode) {}
+	TriArrays(unsigned mode) : Primitives(mode) {}
 	~TriArrays();
 	void set(const xgDagMesh::Data& data);
 	void draw();

@@ -13,6 +13,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
+#include <glad/glad.h>
 #include "Viewer.h"
 #include "InputHandler.h"
 #include "Camera.h"

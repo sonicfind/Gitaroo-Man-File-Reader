@@ -12,7 +12,9 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "pch.h"
 #include "Primitives.h"
+#include <glad/glad.h>
 Primitives::operator bool()
 {
 	return m_numPrimitives > 0;

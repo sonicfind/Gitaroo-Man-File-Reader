@@ -839,28 +839,28 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 						xgShapeInterpolator* shape = geo->m_inputShapeInterpolator.m_node;
 						if (!shape->m_type)
 						{
-							baseShader->setInt("interpolation.position", 0);
-							baseShader->setInt("interpolation.normal", 0);
+							geoShader->setInt("interpolation.position", 0);
+							geoShader->setInt("interpolation.normal", 0);
 						}
 						else
 						{
-							baseShader->setInt("interpolation.position", shape->m_keys[0].m_vertexType & 1);
-							baseShader->setInt("interpolation.normal", shape->m_keys[0].m_vertexType & 2);
+							geoShader->setInt("interpolation.position", shape->m_keys[0].m_vertexType & 1);
+							geoShader->setInt("interpolation.normal", shape->m_keys[0].m_vertexType & 2);
 						}
 					}
 					else
 					{
 						if (geo->m_inputVertexInterpolator.isValid())
-							baseShader->setInt("interpolation.position", 1);
+							geoShader->setInt("interpolation.position", 1);
 						else
-							baseShader->setInt("interpolation.position", 0);
+							geoShader->setInt("interpolation.position", 0);
 
 						if (geo->m_inputNormalInterpolator.isValid())
-							baseShader->setInt("interpolation.normal", 1);
+							geoShader->setInt("interpolation.normal", 1);
 						else
-							baseShader->setInt("interpolation.normal", 0);
+							geoShader->setInt("interpolation.normal", 0);
 					}
-					baseShader->setFloat("coefficient", m_animator.getCoefficient());
+					geoShader->setFloat("coefficient", m_animator.getCoefficient());
 				}
 			}
 

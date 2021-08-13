@@ -330,6 +330,7 @@ bool XGM::viewModel()
 		case ResultType::Quit:
 			return true;
 		case ResultType::SpecialCase:
+			testForMulti();
 			switch (g_global.answer.character)
 			{
 			case 'b':

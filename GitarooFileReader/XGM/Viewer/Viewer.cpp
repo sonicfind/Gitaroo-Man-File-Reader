@@ -303,8 +303,8 @@ int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 		m_previousTime = m_currentTime;
 	}
 	
-	m_models.clear();
 	GitarooViewer::DagMesh::s_allMeshes.clear();
+	g_textures.clear();
 	g_baseShader.closeProgram();
 	g_boneShader.closeProgram();
 	g_shapeShader.closeProgram();

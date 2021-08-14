@@ -336,12 +336,12 @@ namespace GlobalFunctions
 				break;
 			case '?':
 			case 'q':
+			{
+				const ResultType result = g_global.input == '?' ? ResultType::Help : ResultType::Quit;
 				printValues(true);
 				testForMulti();
-				if (g_global.input == '?')
-					return ResultType::Help;
-				else
-					return ResultType::Quit;
+				return result;
+			}
 			case '\n':
 				printValues(false);
 				g_global.multi = false;

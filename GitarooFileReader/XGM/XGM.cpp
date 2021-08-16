@@ -350,8 +350,8 @@ bool XGM::viewModel()
 			{
 				try
 				{
-					Viewer viewer;
-					viewer.viewXG(this, sectionIndexes);
+					Viewer viewer(this, sectionIndexes);
+					viewer.viewXG();
 				}
 				catch (char* str)
 				{

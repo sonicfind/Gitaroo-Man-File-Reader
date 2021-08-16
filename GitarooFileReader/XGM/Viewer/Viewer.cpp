@@ -24,7 +24,7 @@ AspectRatioMode Viewer::s_aspectRatio = AspectRatioMode::Widescreen;
 unsigned int Viewer::s_screenWidth = 1280;
 unsigned int Viewer::s_screenHeight = 720;
 
-Viewer::Viewer()
+Viewer::Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -141,6 +141,9 @@ Viewer::Viewer()
 	float m_lightConstant = 1.0f;
 	float m_lightLinear = 0.007f;
 	float m_lightQuadratic = 0.0002f;
+
+	for (size_t modelIndex : xgIndices)
+		m_models.emplace_back(xgmObject, xgmObject->m_models[modelIndex]);
 }
 
 std::string Viewer::getAspectRatioString()
@@ -175,7 +178,7 @@ void Viewer::switchAspectRatio()
 
 bool Viewer::changeHeight()
 {
-	while(true)
+	while (true)
 	{
 		GlobalFunctions::printf_tab("Current Screen Height: %u ['B' to leave unchanged]\n", s_screenHeight);
 		GlobalFunctions::printf_tab("Input: ");
@@ -226,12 +229,9 @@ void Viewer::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	g_camera.zoom(xoffset, yoffset);
 }
 
-int Viewer::viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices)
+int Viewer::viewXG()
 {
 	g_camera.reset();
-	for (size_t modelIndex = 0; modelIndex < xgIndices.size(); ++modelIndex)
-		m_models.emplace_back(xgmObject, xgmObject->m_models[xgIndices[modelIndex]]);
-
 	m_previousTime = (float)glfwGetTime();
 	bool showNormals = false;
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

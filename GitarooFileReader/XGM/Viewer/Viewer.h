@@ -103,8 +103,8 @@ class Viewer
 	std::list<GitarooViewer::Model> m_models;
 
 public:
-	Viewer();
-	int viewXG(XGM* xgmObject, const std::vector<size_t>& xgIndices);
+	Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices);
+	int viewXG();
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 

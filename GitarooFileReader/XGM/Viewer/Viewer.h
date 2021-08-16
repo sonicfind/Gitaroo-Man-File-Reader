@@ -52,19 +52,20 @@ namespace GitarooViewer
 
 		static std::list<DagMesh*> s_allMeshes;
 
-		DagMesh();
+		DagMesh(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, size_t transformIndex);
 		~DagMesh();
-		bool load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, size_t transformIndex);
+		bool hasTransparency() const;
 	};
 
 	struct Model
 	{
-		std::list<DagMesh*> m_meshes;
+		std::list<DagMesh*> m_opaques;
+		std::list<DagMesh*> m_transparents;
 		Animator m_animator;
 		Model(XGM* xgm, XG& xg);
 		~Model();
 		void loadTransform(XGM* xgm, XG_Data::DagBase& dagBase);
-		void draw(const float time, glm::mat4 base, const bool showNormals);
+		void draw(const bool doTransparents, glm::mat4 base, const bool showNormals);
 	};
 }
 

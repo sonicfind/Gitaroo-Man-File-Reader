@@ -284,6 +284,7 @@ int Viewer::viewXG()
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+		// Update animations and draw opaque meshes
 		for (auto& model : m_models)
 		{
 			model.m_animator.update(m_currentTime);
@@ -293,7 +294,19 @@ int Viewer::viewXG()
 				glBufferSubData(GL_UNIFORM_BUFFER, 0, 16 * sizeof(float) * model.m_animator.m_timeline.m_bones.size(), model.m_animator.m_timeline.m_boneMatrices);
 				glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			}
-			model.draw(m_currentTime, glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1)), showNormals);
+			model.draw(false, glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1)), showNormals);
+		}
+
+		// Draw transparent meshes
+		for (auto& model : m_models)
+		{
+			if (model.m_animator && model.m_animator.m_timeline.m_boneMatrices)
+			{
+				glBindBuffer(GL_UNIFORM_BUFFER, m_boneUBO);
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, 16 * sizeof(float) * model.m_animator.m_timeline.m_bones.size(), model.m_animator.m_timeline.m_boneMatrices);
+				glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			}
+			model.draw(true, glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1)), showNormals);
 		}
 		glBindVertexArray(0);
 
@@ -319,92 +332,14 @@ int Viewer::viewXG()
 
 std::list<GitarooViewer::DagMesh*> GitarooViewer::DagMesh::s_allMeshes;
 
-GitarooViewer::Model::~Model()
-{
-	for (auto& mesh : m_meshes)
-		delete mesh;
-}
-
-GitarooViewer::DagMesh::DagMesh()
-	: m_triFanElements(GL_TRIANGLE_FAN)
+GitarooViewer::DagMesh::DagMesh(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, size_t transformIndex)
+	: m_mesh(mesh)
+	, m_triFanElements(GL_TRIANGLE_FAN)
 	, m_triFanArrays(GL_TRIANGLE_FAN)
 	, m_triStripElements(GL_TRIANGLE_STRIP)
 	, m_triStripArrays(GL_TRIANGLE_STRIP)
 	, m_triListElements(GL_TRIANGLES)
-	, m_triListArrays(GL_TRIANGLES) {}
-
-GitarooViewer::DagMesh::~DagMesh()
-{
-	glDeleteVertexArrays(1, &m_VAO);
-	glDeleteBuffers(1, &m_VBO);
-	glDeleteVertexArrays(1, &m_transformVAO);
-	glDeleteBuffers(1, &m_transformVBO);
-}
-
-GitarooViewer::Model::Model(XGM* xgm, XG& xg)
-{
-	m_animator.load(&xg);
-	// Map an identity matrix to the first node
-	m_animator.m_timeline.m_modelTransforms.emplace_back(nullptr);
-
-	for (int dagIndex = 0; dagIndex < xg.m_data->m_dag.size(); ++dagIndex)
-	{
-		if (dynamic_cast<xgDagTransform*>(xg.m_data->m_dag[dagIndex].m_base.m_node))
-			loadTransform(xgm, xg.m_data->m_dag[dagIndex]);
-		else
-		{
-			DagMesh* mesh = new DagMesh();
-			if (mesh->load(xgm, (xgDagMesh*)xg.m_data->m_dag[dagIndex].m_base.m_node, m_animator.m_timeline, 0))
-				m_meshes.push_back(mesh);
-			else
-			{
-				auto iter = m_meshes.begin();
-				while (iter != m_meshes.end() && !(*iter)->m_transparency)
-					++iter;
-				m_meshes.insert(iter, mesh);
-			}
-		}
-	}
-
-	if (m_animator.m_timeline.m_bones.size())
-		m_animator.m_timeline.m_boneMatrices = new float[m_animator.m_timeline.m_bones.size()][16];
-}
-
-void GitarooViewer::Model::loadTransform(XGM* xgm, XG_Data::DagBase& dagBase)
-{
-	xgDagTransform* transformNode = (xgDagTransform*)dagBase.m_base.m_node;
-	size_t transformIndex = 0;
-	if (transformNode->m_inputMatrices.size())
-	{
-		for (; transformIndex < m_animator.m_timeline.m_modelTransforms.size(); ++transformIndex)
-			if (m_animator.m_timeline.m_modelTransforms[transformIndex].m_transform == transformNode)
-				goto Load_Meshes;
-
-		m_animator.m_timeline.m_modelTransforms.emplace_back(transformNode);
-	}
-
-Load_Meshes:
-	for (int dagIndex = 0; dagIndex < dagBase.m_connected.size(); ++dagIndex)
-	{
-		if (dynamic_cast<xgDagTransform*>(dagBase.m_connected[dagIndex].m_base.m_node))
-			loadTransform(xgm, dagBase.m_connected[dagIndex]);
-		else
-		{
-			DagMesh* mesh = new DagMesh;
-			if (mesh->load(xgm, (xgDagMesh*)dagBase.m_connected[dagIndex].m_base.m_node, m_animator.m_timeline, transformIndex))
-				m_meshes.push_back(mesh);
-			else
-			{
-				auto iter = m_meshes.begin();
-				while (iter != m_meshes.end() && !(*iter)->m_transparency)
-					++iter;
-				m_meshes.insert(iter, mesh);
-			}
-		}
-	}
-}
-
-bool GitarooViewer::DagMesh::load(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, size_t transformIndex)
+	, m_triListArrays(GL_TRIANGLES)
 {
 	bool newGeometry = true, newMaterial = true;
 	m_mesh = mesh;
@@ -694,14 +629,86 @@ Bind_Buffers:
 		m_triStripArrays.set(m_mesh->m_triStripData);
 		m_triListArrays.set(m_mesh->m_triListData);
 	}
-
 	s_allMeshes.push_back(this);
+}
+
+bool GitarooViewer::DagMesh::hasTransparency() const
+{
 	return m_transparency;
 }
 
-void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool showNormals)
+GitarooViewer::DagMesh::~DagMesh()
 {
-	for (auto& dag : m_meshes)
+	glDeleteVertexArrays(1, &m_VAO);
+	glDeleteBuffers(1, &m_VBO);
+	glDeleteVertexArrays(1, &m_transformVAO);
+	glDeleteBuffers(1, &m_transformVBO);
+}
+
+GitarooViewer::Model::~Model()
+{
+	for (auto& mesh : m_opaques)
+		delete mesh;
+	for (auto& mesh : m_transparents)
+		delete mesh;
+}
+
+GitarooViewer::Model::Model(XGM* xgm, XG& xg)
+{
+	m_animator.load(&xg);
+	// Map an identity matrix to the first node
+	m_animator.m_timeline.m_modelTransforms.emplace_back(nullptr);
+
+	for (int dagIndex = 0; dagIndex < xg.m_data->m_dag.size(); ++dagIndex)
+	{
+		if (dynamic_cast<xgDagTransform*>(xg.m_data->m_dag[dagIndex].m_base.m_node))
+			loadTransform(xgm, xg.m_data->m_dag[dagIndex]);
+		else
+		{
+			DagMesh* mesh = new DagMesh(xgm, (xgDagMesh*)xg.m_data->m_dag[dagIndex].m_base.m_node, m_animator.m_timeline, 0);
+			if (mesh->hasTransparency())
+				m_transparents.push_back(mesh);
+			else
+				m_opaques.push_back(mesh);
+		}
+	}
+
+	if (m_animator.m_timeline.m_bones.size())
+		m_animator.m_timeline.m_boneMatrices = new float[m_animator.m_timeline.m_bones.size()][16];
+}
+
+void GitarooViewer::Model::loadTransform(XGM* xgm, XG_Data::DagBase& dagBase)
+{
+	xgDagTransform* transformNode = (xgDagTransform*)dagBase.m_base.m_node;
+	size_t transformIndex = 0;
+	if (transformNode->m_inputMatrices.size())
+	{
+		for (; transformIndex < m_animator.m_timeline.m_modelTransforms.size(); ++transformIndex)
+			if (m_animator.m_timeline.m_modelTransforms[transformIndex].m_transform == transformNode)
+				goto Load_Meshes;
+
+		m_animator.m_timeline.m_modelTransforms.emplace_back(transformNode);
+	}
+
+Load_Meshes:
+	for (int dagIndex = 0; dagIndex < dagBase.m_connected.size(); ++dagIndex)
+	{
+		if (dynamic_cast<xgDagTransform*>(dagBase.m_connected[dagIndex].m_base.m_node))
+			loadTransform(xgm, dagBase.m_connected[dagIndex]);
+		else
+		{
+			DagMesh* mesh = new DagMesh(xgm, (xgDagMesh*)dagBase.m_connected[dagIndex].m_base.m_node, m_animator.m_timeline, transformIndex);
+			if (mesh->hasTransparency())
+				m_transparents.push_back(mesh);
+			else
+				m_opaques.push_back(mesh);
+		}
+	}
+}
+
+void GitarooViewer::Model::draw(const bool doTransparents, glm::mat4 base, const bool showNormals)
+{
+	for (auto& dag : (!doTransparents ? m_opaques : m_transparents))
 	{
 		Shader* baseShader;
 		glm::mat4 model;
@@ -762,39 +769,6 @@ void GitarooViewer::Model::draw(const float time, glm::mat4 base, const bool sho
 				baseShader->setFloat("coefficient", m_animator.getCoefficient());
 			}
 		}
-
-		//// Used to sort triangle groups for proper transparency
-		//// Not perfect as some groups can be both foreground AND background
-		//// Sorting does not take animations into account
-		//// That will require custom depth buffer manipulation - an ideal currently out of scope
-		//if (dag->m_mesh->m_primType == 5 && dag->m_transparency)
-		//{
-		//	std::sort(dag->m_groups.rbegin(), dag->m_groups.rend(),
-		//	[&](const DagMesh::TriGroup& group_1, const DagMesh::TriGroup& group_2)
-		//	{
-		//		float dist1 = FLT_MAX;
-		//		for (unsigned long index = 0; index < group_1.numVerts; ++index)
-		//		{
-		//			float distance = glm::length(g_camera.m_position -
-		//				glm::vec3(dag->m_vertices[group_1.index + index].m_position[0],
-		//					dag->m_vertices[group_1.index + index].m_position[1],
-		//					-dag->m_vertices[group_1.index + index].m_position[0]));
-		//			if (distance < dist1)
-		//				dist1 = distance;
-		//		}
-		//		float dist2 = FLT_MAX;
-		//		for (unsigned long index = 0; index < group_2.numVerts; ++index)
-		//		{
-		//			float distance = glm::length(g_camera.m_position -
-		//				glm::vec3(dag->m_vertices[group_2.index + index].m_position[0],
-		//					dag->m_vertices[group_2.index + index].m_position[1],
-		//					-dag->m_vertices[group_2.index + index].m_position[0]));
-		//			if (distance < dist2)
-		//				dist2 = distance;
-		//		}
-		//		return dist1 < dist2;
-		//	});
-		//}
 
 		baseShader->setVec3("lightPosition", glm::value_ptr(g_camera.m_position));
 		baseShader->setVec3("viewPos", glm::value_ptr(g_camera.m_position));

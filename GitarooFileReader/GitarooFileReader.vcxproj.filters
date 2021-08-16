@@ -58,6 +58,9 @@
     <Filter Include="Visual-Based Types\XGM\Viewer\3rd Party">
       <UniqueIdentifier>{902d7889-f0c3-4981-8d3d-40bd6648daaf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Visual-Based Types\IMX\Viewer Files">
+      <UniqueIdentifier>{ebb557f7-1941-4d59-85e4-864dd70cbe7c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main\pch.cpp">
@@ -147,14 +150,14 @@
     <ClCompile Include="..\3rdparty\glad\glad.c">
       <Filter>Visual-Based Types\XGM\Viewer\3rd Party</Filter>
     </ClCompile>
-    <ClCompile Include="XGM\Viewer\Texture.cpp">
-      <Filter>Visual-Based Types\XGM\Viewer</Filter>
-    </ClCompile>
     <ClCompile Include="XGM\Viewer\Primitives.cpp">
       <Filter>Visual-Based Types\XGM\Viewer</Filter>
     </ClCompile>
     <ClCompile Include="XGM\Viewer\Material.cpp">
       <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="IMX\IMX_Viewer.cpp">
+      <Filter>Visual-Based Types\IMX\Viewer Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -220,9 +223,6 @@
     </ClInclude>
     <ClInclude Include="XGM\Viewer\Shaders.h">
       <Filter>Visual-Based Types\XGM\Viewer\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="XGM\Viewer\Texture.h">
-      <Filter>Visual-Based Types\XGM\Viewer</Filter>
     </ClInclude>
     <ClInclude Include="XGM\Viewer\Primitives.h">
       <Filter>Visual-Based Types\XGM\Viewer</Filter>

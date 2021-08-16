@@ -403,6 +403,11 @@ void IMX_Data::create(FILE* outFile)
 	fwrite("\0\0\0\0", 1, 4, outFile);
 }
 
+bool IMX_Data::hasAlpha() const
+{
+	return m_pixelVal1 != 3 || m_pixelVal2 != 2;
+}
+
 IMX_Data::Image::Image(const Image& other)
 {
 	if (other.m_palette)

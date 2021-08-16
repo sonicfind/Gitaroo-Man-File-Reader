@@ -317,7 +317,6 @@ int Viewer::viewXG()
 	}
 	
 	GitarooViewer::DagMesh::s_allMeshes.clear();
-	g_textures.clear();
 	g_baseShader.closeProgram();
 	g_boneShader.closeProgram();
 	g_shapeShader.closeProgram();
@@ -363,18 +362,23 @@ GitarooViewer::DagMesh::DagMesh(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, s
 
 			m_transformShader = prevMesh->m_transformShader;
 			m_transformGeoShader = prevMesh->m_transformGeoShader;
-			newGeometry = false;
+
+			if (newMaterial)
+				newGeometry = false;
+			else
+				goto Bind_Buffers;
 		}
 
 		if (newMaterial && prevMesh->m_mesh->m_inputMaterials.front().m_node == m_mesh->m_inputMaterials.front().m_node)
 		{
 			m_materials = prevMesh->m_materials;
 			m_transparency = prevMesh->m_transparency;
-			newMaterial = false;
-		}
 
-		if (!newGeometry && !newMaterial)
-			goto Bind_Buffers;
+			if (newGeometry)
+				newMaterial = false;
+			else
+				goto Bind_Buffers;
+		}
 	}
 
 	if (newMaterial)

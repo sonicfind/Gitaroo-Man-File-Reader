@@ -25,21 +25,12 @@ Material::Material(const xgMaterial* materialNode, std::vector<IMX>& images)
 		for (int index = 0; index < inputString.m_size; ++index)
 			inputString.m_pstring[index] = toupper(inputString.m_pstring[index]);
 
-		for (auto& texture : g_textures)
+		for (auto& texture : images)
 		{
-			if (strcmp(texture.m_name, inputString.m_pstring) == 0)
+			if (strcmp(texture.getName(), inputString.m_pstring) == 0)
 			{
-				m_texture = &texture;
-				return;
-			}
-		}
-
-		for (IMX& image : images)
-		{
-			if (strcmp(image.getName(), inputString.m_pstring) == 0)
-			{
-				g_textures.emplace_back(image);
-				m_texture = &g_textures.back();
+				m_texture = texture.m_data;
+				m_texture->generateTextureBuffer();
 				return;
 			}
 		}
@@ -48,9 +39,9 @@ Material::Material(const xgMaterial* materialNode, std::vector<IMX>& images)
 
 void Material::setShaderValues(Shader* shader)
 {
-	if (m_texture->m_textureID)
+	if (m_texture)
 	{
-		glBindTexture(GL_TEXTURE_2D, m_texture->m_textureID);
+		glBindTexture(GL_TEXTURE_2D, m_texture->getTextureID());
 		// If both a texture and vertex color are applicable
 		if (m_xgMaterial->m_shadingType >= 3)
 			shader->setInt("shadingType", m_xgMaterial->m_shadingType + 2);
@@ -87,7 +78,7 @@ void Material::setBlending()
 	case 1:
 		glEnable(GL_BLEND);
 		glBlendEquation(GL_FUNC_ADD);
-		if (m_texture->m_textureID)
+		if (m_texture)
 		{
 			if (m_xgMaterial->m_flags & 1)
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

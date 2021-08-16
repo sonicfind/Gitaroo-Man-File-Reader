@@ -13,12 +13,12 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "Texture.h"
+#include "IMX/IMX.h"
 #include "XG/XG_Nodes.h"
 #include "Shaders.h"
 class Material
 {
-	Texture* m_texture = nullptr;
+	std::shared_ptr<IMX_Data> m_texture;
 
 public:
 	const xgMaterial* m_xgMaterial = nullptr;

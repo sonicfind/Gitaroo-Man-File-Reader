@@ -15,7 +15,7 @@
  */
 #include "FileType.h"
 
-struct IMX_Data;
+class IMX_Data;
 
 class IMX
 	: public FileType
@@ -58,8 +58,10 @@ private:
 	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, size_t& sizes);
 };
 
-struct IMX_Data
+class IMX_Data
 {
+	friend IMX;
+
 	struct Pixel4
 	{
 		unsigned char pixel1 : 4, pixel2 : 4;
@@ -76,14 +78,28 @@ struct IMX_Data
 		unsigned char(*m_palette)[4] = nullptr;
 		unsigned long m_imageSize = 0;
 		unsigned char* m_image = nullptr;
+		unsigned char* m_image_uncompressed = nullptr;
 		Image() = default;
 		Image(const Image&);
 		Image(const Image&, bool);
 		~Image();
 	};
 	std::shared_ptr<Image> m_colorData;
+
+public:
 	IMX_Data();
 	IMX_Data(FILE* inFile);
 	IMX_Data(IMX_Data& imx);
 	void create(FILE* outFile);
+	bool hasAlpha() const;
+
+	// IMX/XGM Viewer values and functions
+
+private:
+	unsigned m_textureID = 0;
+
+public:
+	unsigned getTextureID() const;
+	void generateTextureBuffer();
+	void deleteTextureBuffer();
 };

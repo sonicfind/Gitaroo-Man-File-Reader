@@ -5,4 +5,9 @@
       <ExpandedItem>_Ptr</ExpandedItem>
     </Expand>
   </Type>
+  <Type Name="std::unique_ptr&lt;*&gt;">
+    <Expand>
+      <ExpandedItem>_Ptr</ExpandedItem>
+    </Expand>
+  </Type>
 </AutoVisualizer>

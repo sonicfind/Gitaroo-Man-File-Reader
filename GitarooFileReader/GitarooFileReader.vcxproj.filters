@@ -88,6 +88,15 @@
     <Filter Include="Visual-Based Types\SSQ">
       <UniqueIdentifier>{7f99acf0-c594-4f87-918a-cd90adb1005f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Visual-Based Types\SSQ\Sub Types">
+      <UniqueIdentifier>{326c7951-886d-4fa1-9376-438244d6a83d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\SSQ\Sub Types\Sprite Setups">
+      <UniqueIdentifier>{7191fc40-243a-4244-bc6a-3750a69976d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\SSQ\Sub Types\Model Setups">
+      <UniqueIdentifier>{e7dc9633-b013-4e3b-ae5c-4bc5274f84a9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main\pch.cpp">
@@ -252,6 +261,48 @@
     <ClCompile Include="SSQ\SSQ_Main.cpp">
       <Filter>Visual-Based Types\SSQ</Filter>
     </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\AttDefModel_Setup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\Model_Setup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\PlayerModel_Setup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\SnakeModel_Setup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\FixedSprite_Setup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\Sprites_Setup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\FixedSprite.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\TextureAnimation.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\PSetup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\UnkSprite_Setups.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\Light_Setup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\Camera_Setup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\IMXEntry.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\XGEntry.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\Global_Functions.h">
@@ -400,6 +451,51 @@
     </ClInclude>
     <ClInclude Include="XG\Vertex Types\Vertex.h">
       <Filter>Visual-Based Types\XG\Vertex Types</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\SnakeModel_Setup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\AttDefModel_Setup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\Model_Setup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\PlayerModel_Setup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\FixedSprite.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\FixedSprite_Setup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\Sprites_Setup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\TextureAnimation.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\PSetup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\UnkSprite_Setups.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\Light_Setup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\Camera_Setup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\SSQ_BaseStructs.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\IMXEntry.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\XGEntry.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
     </ClInclude>
     <ClInclude Include="SSQ\SSQ.h">
       <Filter>Visual-Based Types\SSQ</Filter>

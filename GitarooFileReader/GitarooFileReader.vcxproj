@@ -208,9 +208,6 @@
     <ClCompile Include="IMX\IMX.cpp" />
     <ClCompile Include="IMX\IMX_Main.cpp" />
     <ClCompile Include="PString\PString.cpp" />
-    <ClCompile Include="XGM\Viewer\Model.cpp" />
-    <ClCompile Include="XG\Animation.cpp" />
-    <ClCompile Include="XG\Dag.cpp" />
     <ClCompile Include="XG\Triangle Types\Triangle_Data.cpp" />
     <ClCompile Include="XG\Triangle Types\Triangle_Fan.cpp" />
     <ClCompile Include="XG\Triangle Types\Triangle_Group.cpp" />
@@ -219,6 +216,7 @@
     <ClCompile Include="XG\Triangle Types\Triangle_Separate.cpp" />
     <ClCompile Include="XG\Triangle Types\Triangle_Strip.cpp" />
     <ClCompile Include="XG\Vertex Types\Vertex.cpp" />
+    <ClCompile Include="XG\XG_Nodes.cpp" />
     <ClCompile Include="XG\XGNodes\xgBgGeometry.cpp" />
     <ClCompile Include="XG\XGNodes\xgBgMatrix.cpp" />
     <ClCompile Include="XG\XGNodes\xgBone.cpp" />
@@ -226,12 +224,14 @@
     <ClCompile Include="XG\XGNodes\xgDagTransform.cpp" />
     <ClCompile Include="XG\XGNodes\xgEnvelope.cpp" />
     <ClCompile Include="XG\XGNodes\xgInterpolator.cpp" />
+    <ClCompile Include="XGM\Viewer\Shaders.cpp" />
     <ClCompile Include="XG\XGNodes\xgMaterial.cpp" />
     <ClCompile Include="XG\XGNodes\xgMultiPassMaterial.cpp" />
     <ClCompile Include="XG\XGNodes\xgTexture.cpp" />
     <ClCompile Include="XG\XGNodes\xgTime.cpp" />
+    <ClCompile Include="XG\Dag.cpp" />
     <ClCompile Include="XG\XG_Data.cpp" />
-    <ClCompile Include="XG\XG_Nodes.cpp" />
+    <ClCompile Include="XG\Animation.cpp" />
     <ClCompile Include="XG\XG.cpp" />
     <ClCompile Include="XG\XG_Main.cpp" />
     <ClCompile Include="XGM\XGM.cpp" />
@@ -248,14 +248,27 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="XGM\Viewer\Shaders.cpp" />
+    <ClCompile Include="XGM\Viewer\Model.cpp" />
     <ClCompile Include="XGM\Viewer\Viewer.cpp" />
+    <ClCompile Include="SSQ\Sub Types\AttDefModel_Setup.cpp" />
+    <ClCompile Include="SSQ\Sub Types\Camera_Setup.cpp" />
+    <ClCompile Include="SSQ\Sub Types\FixedSprite.cpp" />
+    <ClCompile Include="SSQ\Sub Types\FixedSprite_Setup.cpp" />
+    <ClCompile Include="SSQ\Sub Types\IMXEntry.cpp" />
+    <ClCompile Include="SSQ\Sub Types\Light_Setup.cpp" />
+    <ClCompile Include="SSQ\Sub Types\Model_Setup.cpp" />
+    <ClCompile Include="SSQ\Sub Types\PlayerModel_Setup.cpp" />
+    <ClCompile Include="SSQ\Sub Types\PSetup.cpp" />
+    <ClCompile Include="SSQ\Sub Types\SnakeModel_Setup.cpp" />
+    <ClCompile Include="SSQ\Sub Types\Sprites_Setup.cpp" />
+    <ClCompile Include="SSQ\Sub Types\TextureAnimation.cpp" />
+    <ClCompile Include="SSQ\Sub Types\UnkSprite_Setups.cpp" />
+    <ClCompile Include="SSQ\Sub Types\XGEntry.cpp" />
     <ClCompile Include="SSQ\SSQ.cpp" />
     <ClCompile Include="SSQ\SSQ_Main.cpp" />
     <ClCompile Include="Main\GitarooFileReader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IMX\IMX_Data.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Main\pch.h" />
     <ClInclude Include="Main\Global_Functions.h" />
@@ -269,10 +282,9 @@
     <ClInclude Include="CHC\CH_Object.h" />
     <ClInclude Include="CHC\CH_NoteTrack.h" />
     <ClInclude Include="PString\PString.h" />
+	<ClInclude Include="IMX\IMX_Data.h" />
     <ClInclude Include="IMX\IMX.h" />
     <ClInclude Include="XGM\Viewer\Model.h" />
-    <ClInclude Include="XG\Animation.h" />
-    <ClInclude Include="XG\Dag.h" />
     <ClInclude Include="XG\Triangle Types\Triangle_Data.h" />
     <ClInclude Include="XG\Triangle Types\Triangle_Fan.h" />
     <ClInclude Include="XG\Triangle Types\Triangle_Group.h" />
@@ -281,6 +293,7 @@
     <ClInclude Include="XG\Triangle Types\Triangle_Separate.h" />
     <ClInclude Include="XG\Triangle Types\Triangle_Strip.h" />
     <ClInclude Include="XG\Vertex Types\Vertex.h" />
+    <ClInclude Include="XG\XG_Nodes.h" />
     <ClInclude Include="XG\XGNodes\xgBgGeometry.h" />
     <ClInclude Include="XG\XGNodes\xgBgMatrix.h" />
     <ClInclude Include="XG\XGNodes\xgBone.h" />
@@ -298,14 +311,30 @@
     <ClInclude Include="XG\XGNodes\xgTime.h" />
     <ClInclude Include="XG\XGNodes\xgVec3Interpolator.h" />
     <ClInclude Include="XG\XGNodes\xgVertexInterpolator.h" />
+    <ClInclude Include="XG\Dag.h" />
     <ClInclude Include="XG\XG_Data.h" />
-    <ClInclude Include="XG\XG_Nodes.h" />
+    <ClInclude Include="XG\Animation.h" />
     <ClInclude Include="XG\XG.h" />
     <ClInclude Include="XGM\XGM.h" />
     <ClInclude Include="XGM\Viewer\Camera.h" />
     <ClInclude Include="XGM\Viewer\InputHandler.h" />
     <ClInclude Include="XGM\Viewer\Shaders.h" />
     <ClInclude Include="XGM\Viewer\Viewer.h" />
+    <ClInclude Include="SSQ\Sub Types\AttDefModel_Setup.h" />
+    <ClInclude Include="SSQ\Sub Types\Camera_Setup.h" />
+    <ClInclude Include="SSQ\Sub Types\FixedSprite.h" />
+    <ClInclude Include="SSQ\Sub Types\FixedSprite_Setup.h" />
+    <ClInclude Include="SSQ\Sub Types\IMXEntry.h" />
+    <ClInclude Include="SSQ\Sub Types\Light_Setup.h" />
+    <ClInclude Include="SSQ\Sub Types\Model_Setup.h" />
+    <ClInclude Include="SSQ\Sub Types\PlayerModel_Setup.h" />
+    <ClInclude Include="SSQ\Sub Types\PSetup.h" />
+    <ClInclude Include="SSQ\Sub Types\SnakeModel_Setup.h" />
+    <ClInclude Include="SSQ\Sub Types\Sprites_Setup.h" />
+    <ClInclude Include="SSQ\Sub Types\SSQ_BaseStructs.h" />
+    <ClInclude Include="SSQ\Sub Types\TextureAnimation.h" />
+    <ClInclude Include="SSQ\Sub Types\UnkSprite_Setups.h" />
+    <ClInclude Include="SSQ\Sub Types\XGEntry.h" />
     <ClInclude Include="SSQ\SSQ.h" />
   </ItemGroup>
   <ItemGroup>

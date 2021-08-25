@@ -22,9 +22,10 @@ SSQ::SSQ() : FileType(".SSQ") {}
 SSQ::SSQ(std::string filename, bool loadXGM)
 	: FileType(filename, ".SSQ", true)
 {
-	char test[4] = { 0 };
-	fread(test, 1, 4, m_filePtr);
-	if (!strstr(test, "GMSX"))
+	char tmp[5] = { 0 };
+	// Block Tag
+	fread(tmp, 1, 4, m_filePtr);
+	if (!strstr(tmp, "GMSX"))
 	{
 		fclose(m_filePtr);
 		throw "Error: No 'GMSX' Tag at byte 0.";
@@ -48,6 +49,7 @@ SSQ::SSQ(std::string filename, bool loadXGM)
 	for (unsigned long i = 0; i < numXG; ++i)
 		m_XGentries.emplace_back(m_filePtr);
 
+	// Setups listed in same order as Entries
 	for (unsigned long i = 0; i < numXG; ++i)
 	{
 		switch (m_XGentries[i].m_type)
@@ -90,6 +92,7 @@ SSQ::SSQ(std::string filename, bool loadXGM)
 
 bool SSQ::loadXGM()
 {
+	// Note: Gitaroo Man uses Albumdef.txt to specify an XGM
 	if (!m_xgm)
 		m_xgm = std::make_unique<XGM>(m_directory + m_filename);
 	return true;
@@ -99,6 +102,7 @@ bool SSQ::create(std::string filename, bool trueSave)
 {
 	if (FileType::create(filename, true))
 	{
+		// Block Tag
 		fprintf(m_filePtr, "GMSX");
 		fwrite(&m_headerVersion, 4, 1, m_filePtr);
 		fwrite(m_unk, 1, 12, m_filePtr);
@@ -167,7 +171,10 @@ XGEntry::XGEntry(FILE* inFile)
 	fread(&m_cloneID, 4, 1, inFile);
 	fread(&m_unused_1, 4, 1, inFile);
 	fread(&m_type, 4, 1, inFile);
-	fread(m_unused_2, 1, 16, inFile);
+	fread(&m_length, 4, 1, inFile);
+	fread(&m_speed, 4, 1, inFile);
+	fread(&m_framerate, 4, 1, inFile);
+	fread(m_junk, 1, 4, inFile);
 }
 
 void XGEntry::create(FILE* outFile)
@@ -177,14 +184,18 @@ void XGEntry::create(FILE* outFile)
 	fwrite(&m_cloneID, 4, 1, outFile);
 	fwrite(&m_unused_1, 4, 1, outFile);
 	fwrite(&m_type, 4, 1, outFile);
-	fwrite(m_unused_2, 1, 16, outFile);
+	fwrite(&m_length, 4, 1, outFile);
+	fwrite(&m_speed, 4, 1, outFile);
+	fwrite(&m_framerate, 4, 1, outFile);
+	fwrite(m_junk, 1, 4, outFile);
 }
 
 ModelSetup::ModelSetup(FILE* inFile, char(&name)[16]): m_name(name)
 {
-	char test[4] = { 0 };
-	fread(test, 1, 4, inFile);
-	if (!strstr(test, "GMPX"))
+	// Block Tag
+	char tmp[5] = { 0 };
+	fread(tmp, 1, 4, inFile);
+	if (!strstr(tmp, "GMPX"))
 	{
 		int val = ftell(inFile) - 4;
 		fclose(inFile);
@@ -195,51 +206,53 @@ ModelSetup::ModelSetup(FILE* inFile, char(&name)[16]): m_name(name)
 	fread(&m_size, 4, 1, inFile);
 	fread(m_unk, 1, 8, inFile);
 	fread(m_junk, 1, 16, inFile);
-	unsigned long numpositions, numrotations;
-	fread(&numpositions, 4, 1, inFile);
-	fread(&numrotations, 4, 1, inFile);
+	unsigned long numPositions, numRotations;
+	fread(&numPositions, 4, 1, inFile);
+	fread(&numRotations, 4, 1, inFile);
 
-	m_positions.resize(numpositions);
-	fread(&m_positions.front(), sizeof(ModelPosition), numpositions, inFile);
+	m_positions.resize(numPositions);
+	fread(&m_positions.front(), sizeof(Position), numPositions, inFile);
 
-	m_rotations.resize(numrotations);
-	fread(&m_rotations.front(), sizeof(ModelRotation), numrotations, inFile);
+	m_rotations.resize(numRotations);
+	fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
 
-	unsigned long num48;
-	fread(&num48, 4, 1, inFile);
-	if (num48 > 1)
+	unsigned long numAnimations;
+	fread(&numAnimations, 4, 1, inFile);
+	if (numAnimations > 1)
 	{
-		m_animations.resize(num48);
-		fread(&m_animations.front(), sizeof(ModelAnim), num48, inFile);
+		m_animations.resize(numAnimations);
+		fread(&m_animations.front(), sizeof(ModelAnim), numAnimations, inFile);
 	}
 
 	if (m_headerVersion >= 0x1100)
 	{
-		unsigned long num32;
-		fread(&num32, 4, 1, inFile);
-		if (num32 > 1)
+		unsigned long numScalars;
+		fread(&numScalars, 4, 1, inFile);
+		if (numScalars > 1)
 		{
-			m_scalars.resize(num32);
-			fread(&m_scalars.front(), sizeof(ModelScalar), num32, inFile);
+			m_scalars.resize(numScalars);
+			fread(&m_scalars.front(), sizeof(ModelScalar), numScalars, inFile);
 		}
-		fread(&m_64bytes_Opt, sizeof(BaseValues), 1, inFile);
+		fread(&m_baseValues, sizeof(BaseValues), 1, inFile);
 	}
 }
 
 void ModelSetup::create(FILE* outFile)
 {
+	// Block Tag
 	fprintf(outFile, "GMPX");
+
 	fwrite(&m_headerVersion, 4, 1, outFile);
 	fwrite(&m_size, 4, 1, outFile);
 	fwrite(m_unk, 1, 8, outFile);
 	fwrite(m_junk, 1, 16, outFile);
 
-	unsigned long numpositions = (unsigned long)m_positions.size(), numrotations = (unsigned long)m_rotations.size();
+	unsigned long numPositions = (unsigned long)m_positions.size(), numRotations = (unsigned long)m_rotations.size();
 	
-	fwrite(&numpositions, 4, 1, outFile);
-	fwrite(&numrotations, 4, 1, outFile);
-	fwrite(&m_positions.front(), sizeof(ModelPosition), numpositions, outFile);
-	fwrite(&m_rotations.front(), sizeof(ModelRotation), numrotations, outFile);
+	fwrite(&numPositions, 4, 1, outFile);
+	fwrite(&numRotations, 4, 1, outFile);
+	fwrite(&m_positions.front(), sizeof(Position), numPositions, outFile);
+	fwrite(&m_rotations.front(), sizeof(Rotation), numRotations, outFile);
 
 	unsigned long size = (unsigned long)m_animations.size();
 	if (!size)
@@ -258,7 +271,7 @@ void ModelSetup::create(FILE* outFile)
 
 		if (size > 1)
 			fwrite(&m_scalars.front(), sizeof(ModelScalar), size, outFile);
-		fwrite(&m_64bytes_Opt, sizeof(BaseValues), 1, outFile);
+		fwrite(&m_baseValues, sizeof(BaseValues), 1, outFile);
 	}
 }
 
@@ -332,9 +345,10 @@ void SnakeModelSetup::create(FILE* outFile)
 
 void CameraSetup::read(FILE* inFile)
 {
-	char test[4] = { 0 };
-	fread(test, 1, 4, inFile);
-	if (!strstr(test, "GMPX"))
+	// Block Tag
+	char tmp[5] = { 0 };
+	fread(tmp, 1, 4, inFile);
+	if (!strstr(tmp, "GMPX"))
 	{
 		int val = ftell(inFile) - 4;
 		fclose(inFile);
@@ -345,32 +359,32 @@ void CameraSetup::read(FILE* inFile)
 	fread(&m_size, 4, 1, inFile);
 	fread(m_unk, 1, 8, inFile);
 	fread(m_junk, 1, 16, inFile);
-	fread(&m_64bytes, sizeof(Struct64_9f), 1, inFile);
+	fread(&m_baseGlobalValues, sizeof(BaseGlobalValues), 1, inFile);
 
-	unsigned long numpositions, numrotations;
-	fread(&numpositions, 4, 1, inFile);
-	fread(&numrotations, 4, 1, inFile);
+	unsigned long numPositions, numRotations;
+	fread(&numPositions, 4, 1, inFile);
+	fread(&numRotations, 4, 1, inFile);
 
-	m_positions.resize(numpositions);
-	fread(&m_positions.front(), sizeof(CamPosition), numpositions, inFile);
+	m_positions.resize(numPositions);
+	fread(&m_positions.front(), sizeof(Position), numPositions, inFile);
 
-	m_rotations.resize(numrotations);
-	fread(&m_rotations.front(), sizeof(CamRotation), numrotations, inFile);
+	m_rotations.resize(numRotations);
+	fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
 
-	unsigned long unk1;
-	fread(&unk1, 4, 1, inFile);
-	if (unk1 > 1)
+	unsigned long numSettings;
+	fread(&numSettings, 4, 1, inFile);
+	if (numSettings > 1)
 	{
-		m_32bytes_1.resize(unk1);
-		fread(&m_32bytes_1.front(), sizeof(Struct32_6f), unk1, inFile);
+		m_projections.resize(numSettings);
+		fread(&m_projections.front(), sizeof(Projection), numSettings, inFile);
 	}
 
-	unsigned long numShadeColors;
-	fread(&numShadeColors, 4, 1, inFile);
-	if (numShadeColors > 1)
+	unsigned long numAmbientColors;
+	fread(&numAmbientColors, 4, 1, inFile);
+	if (numAmbientColors > 1)
 	{
-		m_shadeColors.resize(numShadeColors);
-		fread(&m_shadeColors.front(), sizeof(ShadeColor), numShadeColors, inFile);
+		m_ambientColors.resize(numAmbientColors);
+		fread(&m_ambientColors.front(), sizeof(AmbientColor), numAmbientColors, inFile);
 	}
 
 	unsigned long numlights;
@@ -398,28 +412,29 @@ void CameraSetup::create(FILE* outFile)
 	fwrite(&m_size, 4, 1, outFile);
 	fwrite(m_unk, 1, 8, outFile);
 	fwrite(m_junk, 1, 16, outFile);
-	fwrite(&m_64bytes, sizeof(Struct64_9f), 1, outFile);
+	fwrite(&m_baseGlobalValues, sizeof(BaseGlobalValues), 1, outFile);
 
-	unsigned long numpositions = (unsigned long)m_positions.size(), numrotations = (unsigned long)m_rotations.size();
+	unsigned long numPositions = (unsigned long)m_positions.size();
+	unsigned long numRotations = (unsigned long)m_rotations.size();
 	
-	fwrite(&numpositions, 4, 1, outFile);
-	fwrite(&numrotations, 4, 1, outFile);
-	fwrite(&m_positions.front(), sizeof(CamPosition), numpositions, outFile);
-	fwrite(&m_rotations.front(), sizeof(CamRotation), numrotations, outFile);
+	fwrite(&numPositions, 4, 1, outFile);
+	fwrite(&numRotations, 4, 1, outFile);
+	fwrite(&m_positions.front(), sizeof(Position), numPositions, outFile);
+	fwrite(&m_rotations.front(), sizeof(Rotation), numRotations, outFile);
 
-	unsigned long size = (unsigned long)m_32bytes_1.size();
+	unsigned long size = (unsigned long)m_projections.size();
 	if (!size)
 		size = 1;
 	fwrite(&size, 4, 1, outFile);
 	if (size > 1)
-		fwrite(&m_32bytes_1.front(), sizeof(Struct32_6f), size, outFile);
+		fwrite(&m_projections.front(), sizeof(Projection), size, outFile);
 
-	size = (unsigned long)m_shadeColors.size();
+	size = (unsigned long)m_ambientColors.size();
 	if (!size)
 		size = 1;
 	fwrite(&size, 4, 1, outFile);
 	if (size > 1)
-		fwrite(&m_shadeColors.front(), sizeof(ShadeColor), size, outFile);
+		fwrite(&m_ambientColors.front(), sizeof(AmbientColor), size, outFile);
 
 	size = (unsigned long)m_lights.size();
 	fwrite(&size, 4, 1, outFile);
@@ -440,11 +455,12 @@ void CameraSetup::create(FILE* outFile)
 
 LightSetup::LightSetup(FILE* inFile)
 {
-	fread(&m_80bytes, sizeof(Struct80_7f), 1, inFile);
-
-	char test[4] = { 0 };
-	fread(test, 1, 4, inFile);
-	if (!strstr(test, "GMLT"))
+	fread(&m_baseValues, sizeof(BaseValues), 1, inFile);
+	
+	// Block Tag
+	char tmp[5] = { 0 };
+	fread(tmp, 1, 4, inFile);
+	if (!strstr(tmp, "GMLT"))
 	{
 		int val = ftell(inFile) - 4;
 		fclose(inFile);
@@ -456,26 +472,26 @@ LightSetup::LightSetup(FILE* inFile)
 	fread(m_unk, 1, 8, inFile);
 	fread(m_junk, 1, 16, inFile);
 
-	unsigned long num32, num48;
-	fread(&num32, 4, 1, inFile);
-	fread(&num48, 4, 1, inFile);
+	unsigned long numRotations, numColors;
+	fread(&numRotations, 4, 1, inFile);
+	fread(&numColors, 4, 1, inFile);
 
-	if (num32 > 1)
+	if (numRotations > 1)
 	{
-		m_32bytes.resize(num32);
-		fread(&m_32bytes.front(), sizeof(Struct32_6f), num32, inFile);
+		m_rotations.resize(numRotations);
+		fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
 	}
 
-	if (num48 > 1)
+	if (numColors > 1)
 	{
-		m_48bytes.resize(num48);
-		fread(&m_48bytes.front(), sizeof(Struct48_8f), num48, inFile);
+		m_colors.resize(numColors);
+		fread(&m_colors.front(), sizeof(LightColors), numColors, inFile);
 	}
 }
 
 void LightSetup::create(FILE* outFile)
 {
-	fwrite(&m_80bytes, sizeof(Struct80_7f), 1, outFile);
+	fwrite(&m_baseValues, sizeof(BaseValues), 1, outFile);
 	fprintf(outFile, "GMLT");
 
 	fwrite(&m_headerVersion, 4, 1, outFile);
@@ -483,28 +499,29 @@ void LightSetup::create(FILE* outFile)
 	fwrite(m_unk, 1, 8, outFile);
 	fwrite(m_junk, 1, 16, outFile);
 
-	unsigned long num32 = (unsigned long)m_32bytes.size(), num48 = (unsigned long)m_48bytes.size();
-	if (!num32)
-		num32 = 1;
+	unsigned long numRotations = (unsigned long)m_rotations.size(), numColors = (unsigned long)m_colors.size();
+	if (!numRotations)
+		numRotations = 1;
 
-	if (!num48)
-		num48 = 1;
+	if (!numColors)
+		numColors = 1;
 
-	fwrite(&num32, 4, 1, outFile);
-	fwrite(&num48, 4, 1, outFile);
+	fwrite(&numRotations, 4, 1, outFile);
+	fwrite(&numColors, 4, 1, outFile);
 
-	if (num32 > 1)
-		fwrite(&m_32bytes.front(), sizeof(Struct32_6f), num32, outFile);
+	if (numRotations > 1)
+		fwrite(&m_rotations.front(), sizeof(Rotation), numRotations, outFile);
 
-	if (num48 > 1)
-		fwrite(&m_48bytes.front(), sizeof(Struct48_8f), num48, outFile);
+	if (numColors > 1)
+		fwrite(&m_colors.front(), sizeof(LightColors), numColors, outFile);
 }
 
 void SpritesSetup::read(FILE* inFile)
 {
-	char test[4] = { 0 };
-	fread(test, 1, 4, inFile);
-	if (!strstr(test, "GMSP"))
+	// Block Tag
+	char tmp[5] = { 0 };
+	fread(tmp, 1, 4, inFile);
+	if (!strstr(tmp, "GMSP"))
 	{
 		int val = ftell(inFile) - 4;
 		fclose(inFile);
@@ -558,9 +575,10 @@ void SpritesSetup::create(FILE* outFile)
 void FixedSpriteSetup::read(FILE* inFile)
 {
 	m_used = true;
-	char test[4] = { 0 };
-	fread(test, 1, 4, inFile);
-	if (!strstr(test, "GMF0"))
+	// Block Tag
+	char tmp[5] = { 0 };
+	fread(tmp, 1, 4, inFile);
+	if (!strstr(tmp, "GMF0"))
 	{
 		int val = ftell(inFile) - 4;
 		fclose(inFile);
@@ -619,9 +637,10 @@ void Unk2SpriteSetup::create(FILE* outFile)
 
 FixedSprite::FixedSprite(FILE* inFile)
 {
-	char test[4] = { 0 };
-	fread(test, 1, 4, inFile);
-	if (!strstr(test, "GMSP"))
+	// Block Tag
+	char tmp[5] = { 0 };
+	fread(tmp, 1, 4, inFile);
+	if (!strstr(tmp, "GMSP"))
 	{
 		int val = ftell(inFile) - 4;
 		fclose(inFile);
@@ -692,9 +711,10 @@ void FixedSprite::create(FILE* outFile)
 
 TexAnim::TexAnim(FILE* inFile)
 {
-	char test[4] = { 0 };
-	fread(test, 1, 4, inFile);
-	if (!strstr(test, "\0\0\0\0"))
+	// Block Tag
+	char tmp[5] = { 0 };
+	fread(tmp, 1, 4, inFile);
+	if (!strstr(tmp, "\0\0\0\0"))
 	{
 		int val = ftell(inFile) - 4;
 		fclose(inFile);
@@ -704,8 +724,8 @@ TexAnim::TexAnim(FILE* inFile)
 	fread(&m_headerVersion, 4, 1, inFile);
 	fread(m_unk1, 1, 12, inFile);
 	fread(m_junk, 1, 16, inFile);
-	fread(&m_unk2, 4, 1, inFile);
-	fread(&m_unk3, 4, 1, inFile);
+	fread(&m_offset_X, 4, 1, inFile);
+	fread(&m_offset_Y, 4, 1, inFile);
 	fread(m_texture, 1, 24, inFile);
 
 	unsigned long numCutOuts, numTexFrames;
@@ -725,8 +745,8 @@ void TexAnim::create(FILE* outFile)
 	fwrite(&m_headerVersion, 4, 1, outFile);
 	fwrite(m_unk1, 1, 12, outFile);
 	fwrite(m_junk, 1, 16, outFile);
-	fwrite(&m_unk2, 4, 1, outFile);
-	fwrite(&m_unk3, 4, 1, outFile);
+	fwrite(&m_offset_X, 4, 1, outFile);
+	fwrite(&m_offset_Y, 4, 1, outFile);
 	fwrite(m_texture, 1, 24, outFile);
 
 	unsigned long numCutOuts = (unsigned long)m_cutOuts.size(), numTexFrames = (unsigned long)m_textureFrames.size();
@@ -739,9 +759,10 @@ void TexAnim::create(FILE* outFile)
 
 void PSetup::read(FILE* inFile)
 {
-	char test[4] = { 0 };
-	fread(test, 1, 4, inFile);
-	if (!strstr(test, "PSTP"))
+	// Block Tag
+	char tmp[5] = { 0 };
+	fread(tmp, 1, 4, inFile);
+	if (!strstr(tmp, "PSTP"))
 	{
 		int val = ftell(inFile) - 4;
 		fclose(inFile);

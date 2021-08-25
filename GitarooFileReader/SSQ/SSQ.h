@@ -16,15 +16,21 @@
 #include "Global_Functions.h"
 #include "XGM/XGM.h"
 
-class IMXEntry
+union Val
 {
-	friend class SSQ;
-private:
+	char c[4];
+	float f;
+	unsigned long ul;
+	long l;
+};
+
+struct IMXEntry
+{
 	char m_name[16] = { 0 };
 	unsigned long m_unused_1;
 	unsigned long m_unused_2;
-	char m_unused_3[8] = { 0 };
-public:
+	Val m_unused_3[2] = { 0 };
+
 	IMXEntry(FILE* inFile);
 	void create(FILE* outFile);
 };
@@ -44,22 +50,40 @@ enum class ModelType
 
 struct XGEntry
 {
-	friend class SSQ;
-private:
 	char m_name[16] = { 0 };
-
 	unsigned long m_isClone;
-
 	unsigned long m_cloneID;
-
 	unsigned long m_unused_1;
-
 	ModelType m_type = ModelType::Normal;
-
-	char m_unused_2[16] = { 0 };
-public:
+	float m_length;
+	float m_speed;
+	float m_framerate;
+	char m_junk[4];
 	XGEntry(FILE* inFile);
 	void create(FILE* outFile);
+};
+
+struct Frame
+{
+	float m_frame;
+	float m_coefficient;
+};
+
+struct Position : public Frame
+{
+	float m_position[3];
+	unsigned long m_doInterpolation;
+	// Essentially m_frame * 160
+	unsigned long m_otherPos;
+	unsigned long ulong_c;
+};
+
+struct Rotation : public Frame
+{
+	float m_rotation[4];
+	unsigned long m_doInterpolation;
+	// Essentially m_frame * 160
+	unsigned long m_otherPos;
 };
 
 class ModelSetup;
@@ -71,99 +95,43 @@ class LightSetup;
 
 class CameraSetup
 {
-	unsigned long m_headerVersion;
-	// Maybe?
-	unsigned long m_size;
-
-	char m_unk[8] = { 0 };
-
-	char m_junk[16] = { 0 };
-
-	struct Struct64_9f
+public:
+	struct BaseGlobalValues
 	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		unsigned long ulong_a;
-		unsigned long ulong_b;
-		unsigned long ulong_c;
-		unsigned long ulong_d;
-		unsigned long ulong_e;
-		unsigned long ulong_f;
-		unsigned long ulong_g;
+		float m_clearColor[4];
+		unsigned long m_baseAmbience[3];
+		unsigned long m_useDiffuse;
+		unsigned long m_vertColorDiffuse[3];
 		float m_fov;
 		float m_aspectRatio;
-		float m_ZNear;
-		float m_ZFar;
-		unsigned long ulong_h;	
-	} m_64bytes;
-
-	struct CamPosition
-	{
-		float m_frame;
-		float m_coefficient;
-		float m_position[3];
-		unsigned long m_doInterpolation;
-		// Essentially m_frame * 160
-		unsigned long m_otherPos;
-		unsigned long ulong_c;
+		float m_zNear;
+		float m_zFar;
+		unsigned long ulong_h;
 	};
 
-	std::vector<CamPosition> m_positions;
-
-	struct CamRotation
+	struct Projection : public Frame
 	{
-		float m_frame;
-		float m_coefficient;
-		float m_rotation[4];
-		unsigned long m_doInterpolation;
-		// Essentially m_frame * 160
-		unsigned long m_otherPos;
-	};
-	std::vector<CamRotation> m_rotations;
-
-	struct Struct32_6f
-	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
+		float m_fov;
+		float m_aspectRatio;
+		float m_zNear;
+		float m_zFar;
 		unsigned long ulong_a;
-		unsigned long ulong_b;
+		unsigned long m_doInterpolation;
 	};
 
-	std::vector<Struct32_6f> m_32bytes_1;
-
-	struct ShadeColor
+	struct AmbientColor : public Frame
 	{
-		float m_frame;
-		float m_coefficient;
-		float m_red;
-		float m_blue;
-		float m_green;
+		float m_color[3];
 		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 		// Seems to match m_otherPos
 		unsigned long ulong_c;
 	};
-	std::vector<ShadeColor> m_shadeColors;
 
-	std::vector<LightSetup> m_lights;
-
-	struct Struct64_7f
+	struct Struct64_7f : public Frame
 	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		float float_g;
-		unsigned long ulong_a;
+		unsigned long m_cameraRelated;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
 		unsigned long ulong_d;
@@ -172,8 +140,31 @@ class CameraSetup
 		unsigned long ulong_g;
 		unsigned long ulong_h;
 		unsigned long ulong_i;
+		unsigned long ulong_j;
+		unsigned long ulong_k;
+		unsigned long ulong_l;
+		unsigned long ulong_m;
+		unsigned long m_doInterpolation;
 	};
+private:
 
+	unsigned long m_headerVersion;
+	// Maybe?
+	unsigned long m_size;
+
+	char m_unk[8] = { 0 };
+
+	Val m_junk[4] = { 0 };
+
+public:
+	BaseGlobalValues m_baseGlobalValues;
+
+private:
+	std::vector<Position> m_positions;
+	std::vector<Rotation> m_rotations;
+	std::vector<Projection> m_projections;
+	std::vector<AmbientColor> m_ambientColors;
+	std::vector<LightSetup> m_lights;
 	std::vector<Struct64_7f> m_64bytes_v;
 
 public:
@@ -183,29 +174,22 @@ public:
 
 class LightSetup
 {
-	struct Struct80_7f
+	struct BaseValues
 	{
-		unsigned long ulong_a;
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		float float_g;
-		float float_h;
-		float float_i;
-		float float_j;
-		unsigned long ulong_b;
-		long l_a;
-		unsigned long ulong_c;
-		unsigned long ulong_d;
-		unsigned long ulong_e;
-		unsigned long ulong_f;
-		unsigned long ulong_g;
-		unsigned long ulong_h;
-		unsigned long ulong_i;
-	} m_80bytes;
+		unsigned long m_isActive;
+		float m_diffuse[3];
+		float m_specular[3];
+		float m_rotation[4];
+		Val ulong_b;
+		Val l_a;
+		Val ulong_c;
+		Val ulong_d;
+		Val ulong_e;
+		Val ulong_f;
+		Val ulong_g;
+		Val ulong_h;
+		Val ulong_i;
+	} m_baseValues;
 
 	unsigned long m_headerVersion;
 	// Maybe?
@@ -213,39 +197,21 @@ class LightSetup
 
 	char m_unk[8] = { 0 };
 
-	char m_junk[16] = { 0 };
+	Val m_junk[4] = { 0 };
 
-	struct Struct32_6f
+	std::vector<Rotation> m_rotations;
+
+	struct LightColors : public Frame
 	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		unsigned long ulong_a;
+		float m_diffuse[3];
+		float m_specular[3];
+		unsigned long m_doInterpolation;
 		unsigned long ulong_b;
-	};
-
-	std::vector<Struct32_6f> m_32bytes;
-
-	struct Struct48_8f
-	{
 		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		float float_g;
-		float float_h;
-		unsigned long ulong_a;
-		unsigned long ulong_b;
-		unsigned long ulong_c;
 		unsigned long ulong_d;
 	};
 
-	std::vector<Struct48_8f> m_48bytes;
+	std::vector<LightColors> m_colors;
 
 public:
 	LightSetup(FILE* inFile);
@@ -281,7 +247,7 @@ class FixedSpriteSetup
 
 	char m_unk[12] = { 0 };
 
-	char m_junk[16] = { 0 };
+	Val m_junk[4] = { 0 };
 
 	struct Struct80_7f
 	{
@@ -301,7 +267,7 @@ class FixedSpriteSetup
 		unsigned long ulong_b;
 		float float_m;
 		unsigned long ulong_c;
-		unsigned long ulong_d;
+		unsigned long m_depthTest;
 		unsigned long ulong_e;
 		unsigned long ulong_f;
 		unsigned long ulong_g;
@@ -324,20 +290,20 @@ class FixedSprite
 
 	char m_unk[12] = { 0 };
 
-	char m_junk[16] = { 0 };
+	Val m_junk[4] = { 0 };
 
 	struct Struct64_7f
 	{
-		unsigned long ulong_a;
+		unsigned long m_IMXEntryIndex;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
 		unsigned long ulong_d;
-		unsigned long ulong_e;
+		unsigned long m_transparent;
 		unsigned long ulong_f;
 		unsigned long ulong_g;
 		unsigned long ulong_h;
-		unsigned long ulong_i;
-		unsigned long ulong_j;
+		unsigned long m_transparent_2;
+		unsigned long m_mipmapDepth;
 		unsigned long ulong_k;
 		unsigned long ulong_l;
 		unsigned long ulong_m;
@@ -346,10 +312,8 @@ class FixedSprite
 		unsigned long ulong_p;
 	} m_64bytes;
 
-	struct Struct48_8f
+	struct Struct48_8f : public Frame
 	{
-		float m_frame;
-		float m_coefficient;
 		float m_position[3];
 		float m_worldScale_X;
 		float m_worldScale_Y;
@@ -363,10 +327,8 @@ class FixedSprite
 
 	std::vector<Struct48_8f> m_48bytes;
 
-	struct Struct32_6f
+	struct Struct32_6f : public Frame
 	{
-		float float_a;
-		float float_b;
 		float float_c;
 		float float_d;
 		float float_e;
@@ -377,10 +339,8 @@ class FixedSprite
 
 	std::vector<Struct32_6f> m_32Pair_1;
 
-	struct SpriteFrame
+	struct SpriteFrame : public Frame
 	{
-		float m_frame;
-		float m_duration;
 		float m_initial_BottmLeft_X;
 		float m_initial_BottmLeft_Y;
 		float m_boxSize_X;
@@ -404,7 +364,7 @@ class SpritesSetup
 
 	char m_unk[12] = { 0 };
 
-	char m_junk[16] = { 0 };
+	Val m_junk[4] = { 0 };
 
 	unsigned long m_unused;
 
@@ -428,7 +388,7 @@ class PSetup
 
 	char m_unk[12] = { 0 };
 
-	char m_junk[16] = { 0 };
+	Val m_junk[4] = { 0 };
 
 	unsigned long m_numMystery;
 
@@ -451,7 +411,7 @@ private:
 	// 
 	unsigned long m_headerVersion;
 	char m_unk[12] = { 0 };
-	char m_junk[16] = { 0 };
+	Val m_junk[4] = { 0 };
 	std::vector<IMXEntry> m_IMXentries;
 	std::vector<XGEntry> m_XGentries;
 	std::vector<std::unique_ptr<ModelSetup>> m_modelSetups;
@@ -486,74 +446,27 @@ public:
 class ModelSetup
 {
 public:
-
-protected:
-	char* m_name;
-
-	unsigned long m_headerVersion;
-	// Maybe?
-	unsigned long m_size;
-
-	char m_unk[8] = { 0 };
-
-	char m_junk[16] = { 0 };
-
-	struct ModelPosition
+	struct ModelAnim : public Frame
 	{
-		float m_frame;
-		float m_coefficient;
-		float m_position[3];
-		unsigned long m_doInterpolation;
-		// Essentially m_frame * 160
-		unsigned long m_otherPos;
-		unsigned long ulong_c;
-	};
-
-	std::vector<ModelPosition> m_positions;
-
-	struct ModelRotation
-	{
-		float m_frame;
-		float m_coefficient;
-		float m_rotation[4];
-		unsigned long m_doInterpolation;
-		// Essentially m_frame * 160
-		unsigned long m_otherPos;
-	};
-
-	std::vector<ModelRotation> m_rotations;
-
-	struct ModelAnim
-	{
-		float m_frame;
-		float m_coefficient;
 		unsigned long m_animIndex;
-		unsigned long ulong_b;
-		unsigned long ulong_c;
-		unsigned long ulong_d;
-		unsigned long ulong_e;
+		unsigned long m_startOverride;
+		unsigned long m_noDrawing;
+		unsigned long m_firstAnimofSection_maybe;
+		unsigned long m_loop;
 		unsigned long ulong_f;
-		unsigned long ulong_g;
+		unsigned long m_holdLastFrame;
 		unsigned long ulong_h;
 		unsigned long m_unknown;
 		unsigned long m_otherPos;
 	};
 
-	std::vector<ModelAnim> m_animations;
-
-	struct ModelScalar
+	struct ModelScalar : public Frame
 	{
-		float m_frame;
-		float m_coefficient;
 		float m_scalar[3];
+		unsigned long m_envMap_maybe;
 		unsigned long m_doInterpolation;
-		// Essentially m_frame * 160
-		// May not get used
-		unsigned long m_otherPos;
-		unsigned long ulong_c;
+		unsigned long ulong_b;
 	};
-
-	std::vector<ModelScalar> m_scalars;
 
 	struct BaseValues
 	{
@@ -561,7 +474,7 @@ protected:
 		float m_baseRotation[4];
 		unsigned long m_baseAnimIndex_maybe;
 		unsigned long ulong_b;
-		unsigned long ulong_c;
+		unsigned long m_depthTest;
 		unsigned long ulong_d;
 		unsigned long ulong_e;
 		unsigned long ulong_f;
@@ -569,7 +482,19 @@ protected:
 		float float_i;
 		unsigned long ulong_g;
 	};
-	BaseValues m_64bytes_Opt;
+protected:
+	char* m_name;
+
+	unsigned long m_headerVersion;
+	// Maybe?
+	unsigned long m_size;
+	char m_unk[8] = { 0 };
+	Val m_junk[4] = { 0 };
+	std::vector<Position> m_positions;
+	std::vector<Rotation> m_rotations;
+	std::vector<ModelAnim> m_animations;
+	std::vector<ModelScalar> m_scalars;
+	BaseValues m_baseValues;
 
 public:
 	ModelSetup(FILE* inFile, char (&name)[16]);
@@ -649,19 +574,7 @@ public:
 
 class TexAnim
 {
-	// 
-	unsigned long m_headerVersion;
-
-	char m_unk1[12] = { 0 };
-
-	char m_junk[16] = { 0 };
-
-	unsigned long m_unk2;
-
-	unsigned long m_unk3;
-
-	char m_texture[24] = { 0 };
-
+public:
 	struct CutOut
 	{
 		float m_topLeft_X;
@@ -670,19 +583,29 @@ class TexAnim
 		float m_bottomRight_Y;
 	};
 
-	std::vector<CutOut> m_cutOuts;
-
-	struct TexFrame
+	struct TexFrame : public Frame
 	{
-		float m_frame;
-		float m_coefficient;
 		unsigned long m_cutOutIndex;
 		unsigned long m_unknown;
 	};
+private:
+	// 
+	unsigned long m_headerVersion;
 
-	std::vector<TexFrame> m_textureFrames;
+	char m_unk1[12] = { 0 };
+
+	Val m_junk[4] = { 0 };
+
+	unsigned long m_offset_X;
+
+	unsigned long m_offset_Y;
+
+	char m_texture[24] = { 0 };
 
 public:
+	std::vector<CutOut> m_cutOuts;
+	std::vector<TexFrame> m_textureFrames;
+
 	TexAnim(FILE* inFile);
 	void create(FILE* outFile);
 };

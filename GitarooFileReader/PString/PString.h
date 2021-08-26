@@ -36,7 +36,7 @@ struct PString
 	static void push(const char character, FILE* outFile);
 	//Prints the given string to the given file stream using the PString format
 	static void push(const std::string& str, FILE* outFile);
-	bool operator==(const PString& str);
-	bool operator!=(const PString& str);
+	bool operator==(const PString& str) const;
+	bool operator!=(const PString& str) const;
 	~PString();
 };

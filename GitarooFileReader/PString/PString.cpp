@@ -56,8 +56,9 @@ void PString::push(FILE* outFile) const
 
 void PString::pull(FILE* inFile)
 {
-	static char buffer[255];
-	fread(buffer, 1, fgetc(inFile), inFile);
+	// Grabs the number of characters to skip
+	const long numCharacters = fgetc(inFile);
+	fseek(inFile, numCharacters, SEEK_CUR);
 }
 
 void PString::push(const char character, FILE* outFile)
@@ -88,12 +89,12 @@ PString& PString::operator=(const PString& str)
 	return *this;
 }
 
-bool PString::operator==(const PString& str)
+bool PString::operator==(const PString& str) const
 {
 	return m_size == str.m_size && strncmp(m_pstring, str.m_pstring, m_size) == 0;
 }
 
-bool PString::operator!=(const PString& str)
+bool PString::operator!=(const PString& str) const
 {
 	return m_size != str.m_size || strncmp(m_pstring, str.m_pstring, m_size) != 0;
 }

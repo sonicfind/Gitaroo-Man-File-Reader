@@ -13,16 +13,13 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include "xgTexCoordInterpolator.h"
+void xgTexCoordInterpolator::create(FILE* outFile, bool full) const
 {
+	PString::push("xgTexCoordInterpolator", outFile);
 	m_name.push(outFile);
-}
-
-const PString& XGNode::getName() const
-{
-	return m_name;
+	if (full)
+		xgTargetedInterpolator::create(outFile, full);
+	else
+		PString::push(';', outFile);
 }

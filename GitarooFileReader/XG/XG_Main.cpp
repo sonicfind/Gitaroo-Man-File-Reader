@@ -76,6 +76,8 @@ bool XG::functionSelection(const char choice, bool isMulti)
 	{
 	case 'w':
 		return write_to_txt();
+	case 'o':
+		return write_to_obj();
 	default:
 		return false;
 	}

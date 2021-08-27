@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,17 +13,15 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include <glad/glad.h>
+class Triangle_Data
 {
-	m_name.push(outFile);
-}
+protected:
+	std::vector<unsigned long> m_counts;
 
-const PString& XGNode::getName() const
-{
-	return m_name;
-}
+public:
+	Triangle_Data(FILE* inFile);
+	virtual void create(FILE* outFile) const;
+	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const;
+	virtual std::vector<std::vector<unsigned long>> extract() const;
+};

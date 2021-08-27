@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,17 +13,15 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include "XGNodes/xgDagMesh.h"
+#include "XGNodes/xgDagTransform.h"
+class Dag
 {
-	m_name.push(outFile);
-}
-
-const PString& XGNode::getName() const
-{
-	return m_name;
-}
+	SharedNode<DagNode> m_base;
+	std::vector<Dag> m_connected;
+public:
+	Dag(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList, bool isRootBranch = false);
+	void create(FILE* outFile, bool isRootBranch = false) const;
+	void queue_for_obj(std::vector<std::pair<size_t, xgBgGeometry*>>&  history) const;
+	void faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;
+};

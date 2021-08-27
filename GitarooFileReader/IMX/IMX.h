@@ -14,9 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "FileType.h"
-
-class IMX_Data;
-
+#include "IMX_Data.h"
 class IMX
 	: public FileType
 {
@@ -32,12 +30,10 @@ class IMX
 
 public:
 	bool m_fromXGM;
-	std::shared_ptr<IMX_Data> m_data;
-	IMX();
+	std::unique_ptr<IMX_Data> m_data;
+
 	IMX(FILE* inFile, const std::string& directory);
 	IMX(std::string filename, bool useBanner = true);
-	IMX(const IMX&) = default;
-	IMX& operator=(IMX& imx);
 	void create(FILE* outFile, unsigned long& sizes);
 	bool create(std::string filename, bool trueSave = true);
 
@@ -56,50 +52,8 @@ public:
 
 private:
 	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, size_t& sizes);
-};
-
-class IMX_Data
-{
-	friend IMX;
-
-	struct Pixel4
-	{
-		unsigned char pixel1 : 4, pixel2 : 4;
-	};
-
-	unsigned long m_width = 0;
-	unsigned long m_height = 0;
-	unsigned long m_pixelVal1 = 0;
-	unsigned long m_pixelVal2 = 0;
-
-	struct Image
-	{
-		unsigned long m_paletteSize = 0;
-		unsigned char(*m_palette)[4] = nullptr;
-		unsigned long m_imageSize = 0;
-		unsigned char* m_image = nullptr;
-		unsigned char* m_image_uncompressed = nullptr;
-		Image() = default;
-		Image(const Image&);
-		Image(const Image&, bool);
-		~Image();
-	};
-	std::shared_ptr<Image> m_colorData;
 
 public:
-	IMX_Data();
-	IMX_Data(FILE* inFile);
-	IMX_Data(IMX_Data& imx);
-	void create(FILE* outFile);
-	bool hasAlpha() const;
-
-	// IMX/XGM Viewer values and functions
-
-private:
-	unsigned m_textureID = 0;
-
-public:
-	unsigned getTextureID() const;
 	void generateTextureBuffer();
 	void deleteTextureBuffer();
 };

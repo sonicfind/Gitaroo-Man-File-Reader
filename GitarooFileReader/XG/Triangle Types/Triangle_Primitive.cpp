@@ -13,16 +13,30 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include "Triangle_Primitive.h"
+#include "PString/PString.h"
+Triangle_Prim::Triangle_Prim(FILE* inFile, unsigned long type)
 {
-	m_name.push(outFile);
+	switch (type)
+	{
+		case 4:
+			m_data = std::make_unique<Triangle_Separate>(inFile);
+			break;
+		case 5:
+			m_data = std::make_unique<Triangle_Group>(inFile);
+			break;
+		default:
+			m_data = std::make_unique<Triangle_Data>(inFile);
+			PString::pull(inFile);
+			// Skips the arraySize variable of 0
+			fseek(inFile, 4, SEEK_CUR);
+	}
 }
 
-const PString& XGNode::getName() const
+void Triangle_Prim::create(FILE* outFile) const
 {
-	return m_name;
+	PString::push("primCount", outFile);
+	m_data->create(outFile);
+	PString::push("primData", outFile);
+	fwrite("\0\0\0\0", 1, 4, outFile);
 }

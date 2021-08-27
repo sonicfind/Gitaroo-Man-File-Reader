@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,17 +13,23 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include "xgVec3Interpolator.h"
+#include "xgQuatInterpolator.h"
+class xgBgMatrix : public XGNode
 {
-	m_name.push(outFile);
-}
+	glm::vec3 m_position;
+	glm::quat m_rotation;
+	glm::vec3 m_scale;
+	SharedNode<xgVec3Interpolator> m_inputPosition;
+	SharedNode<xgQuatInterpolator> m_inputRotation;
+	SharedNode<xgVec3Interpolator> m_inputScale;
+	SharedNode<xgBgMatrix> m_inputParentMatrix;
 
-const PString& XGNode::getName() const
-{
-	return m_name;
-}
+public:
+	using XGNode::XGNode;
+	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile, bool full) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "");
+	const char* getType() { return "xgBgMatrix"; }
+	static bool compare(const PString& str) { return strcmp("xgBgMatrix", str.m_pstring) == 0; }
+};

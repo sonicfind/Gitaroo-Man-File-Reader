@@ -17,7 +17,6 @@
 #include <filesystem>
 using namespace std;
 using namespace GlobalFunctions;
-
 XG::XG()
 	: FileType(".XG")
 	, m_modelIndex(0)
@@ -86,23 +85,6 @@ XG::XG(std::string filename, bool useBanner)
 	}
 }
 
-XG& XG::operator=(const XG& xg)
-{
-	if (m_data != xg.m_data)
-	{
-		m_filename = xg.m_filename;
-		std::copy(xg.m_filepath, xg.m_filepath + 256, m_filepath);
-		std::copy(xg.m_name, xg.m_name + 16, m_name);
-		m_modelIndex = xg.m_modelIndex;
-		m_fileSize = xg.m_fileSize;
-		m_unk = xg.m_unk;
-		m_animations = xg.m_animations;
-		m_data = xg.m_data;
-		m_saved = xg.m_saved;
-	}
-	return *this;
-}
-
 void XG::create(FILE* outFile)
 {
 	fwrite(m_filepath, 1, 256, outFile);
@@ -130,16 +112,6 @@ bool XG::create(string filename, bool useBanner)
 	return false;
 }
 
-XG::Animation::Animation(FILE* inFile)
-{
-	fread(&m_length, 4, 1, inFile);
-	fread(&m_keyframe_interval, 4, 1, inFile);
-	fread(&m_framerate, 4, 1, inFile);
-	fread(&m_starting_keyframe, 4, 1, inFile);
-	fread(&m_non_tempo, 4, 1, inFile);
-	fread(&m_junk, 4, 3, inFile);
-}
-
 bool XG::write_to_txt()
 {
 	FILE* txtFile, * simpleTxtFile;
@@ -160,16 +132,6 @@ bool XG::write_to_txt()
 		return true;
 	}
 	return false;
-}
-
-bool XG::Animation::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
-{
-	fprintf_s(txtFile, "\t\t\t\t      Playback Length: %g\n", m_length);
-	fprintf_s(txtFile, "\t\t\t\t    Keyframe Interval: %g\n", m_keyframe_interval);
-	fprintf_s(txtFile, "\t\t\t\t\t    Framerate: %g\n", m_framerate);
-	fprintf_s(txtFile, "\t\t\t\t    Starting Keyframe: %g\n", m_starting_keyframe);
-	fprintf_s(txtFile, "\t\t\t\t     Not Tempo Linked: %s\n", (m_non_tempo ? "TRUE" : "FALSE"));
-	return true;
 }
 
 bool XG::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
@@ -198,7 +160,7 @@ bool XG::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 	return true;
 }
 
-bool XG::exportOBJ(std::string newDirectory)
+bool XG::write_to_obj(std::string newDirectory)
 {
 	GlobalFunctions::banner(" " + m_filename + " - Model Export ");
 	string file = newDirectory.length() ? newDirectory + m_filename + ".obj" : m_directory + m_filename + ".obj";
@@ -873,190 +835,15 @@ bool XG::importOBJ()
 	return false;
 }
 
-XG_Data::XG_Data(FILE* inFile, unsigned long& filesize)
 {
-	char test[8] = { 0 };
-	static bool(XG_Data:: * types[])(PString&, PString&) =
-	{
-	&XG_Data::addNode<xgBgGeometry>,
-	&XG_Data::addNode<xgBgMatrix>,
-	&XG_Data::addNode<xgBone>,
-	&XG_Data::addNode<xgDagMesh>,
-	&XG_Data::addNode<xgDagTransform>,
-	&XG_Data::addNode<xgEnvelope>,
-	&XG_Data::addNode<xgMaterial>,
-	&XG_Data::addNode<xgMultiPassMaterial>,
-	&XG_Data::addNode<xgNormalInterpolator>,
-	&XG_Data::addNode<xgQuatInterpolator>,
-	&XG_Data::addNode<xgShapeInterpolator>,
-	&XG_Data::addNode<xgTexCoordInterpolator>,
-	&XG_Data::addNode<xgTexture>,
-	&XG_Data::addNode<xgTime>,
-	&XG_Data::addNode<xgVec3Interpolator>,
-	&XG_Data::addNode<xgVertexInterpolator>,
-	nullptr
-	};
-	fread(test, 1, 8, inFile);
-	if (!strstr(test, "XGB"))
-	{
-		fclose(inFile);
-		throw "Error: No 'XGB' tag for model ";
-	}
-
-	PString type(inFile);
-	PString xgName(inFile);
-	PString colonTest(inFile);
-	do
-	{
-		for (bool(XG_Data::* func)(PString&, PString&) : types)
-		{
-			if (!func)
-			{
-				fclose(inFile);
-				throw "Error: Unrecognized xgNode type - " + std::string(type.m_pstring) + " [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
-			}
-			else if ((this->*func)(type, xgName))
-				break;
-		}
-
-		type.fill(inFile);
-		xgName.fill(inFile);
-		colonTest.fill(inFile);
-	} while (strchr(colonTest.m_pstring, ';'));
-
-	for (size_t n = 0; n < m_nodes.size(); n++)
-	{
-		try
-		{
-			filesize -= m_nodes[n]->read(inFile, m_nodes);
-			if (n + 1 != m_nodes.size())
-			{
-				type.fill(inFile);
-				xgName.fill(inFile);
-				colonTest.fill(inFile);
-			}
-		}
-		catch (std::string str)
-		{
-			fclose(inFile);
-			throw str;
-		}
-	}
-
-	type.fill(inFile);		// Grabs the .dag std::string
-	colonTest.fill(inFile); // Grabs the { character
-
-	std::list<std::vector<XG_Data::DagBase>*> dagStack = { &m_dag };
-	xgName.fill(inFile);
-	while (!strchr(xgName.m_pstring, '}'))
-	{
-		if (strchr(xgName.m_pstring, '['))
-			dagStack.push_back(&dagStack.back()->back().m_connected);
-		else if (strchr(xgName.m_pstring, ']'))
-			dagStack.pop_back();
-		else
-		{
-			for (auto& node : m_nodes)
-			{
-				if (node->m_name == xgName)
-				{
-					dagStack.back()->emplace_back(node.get());
-					break;
-				}
-			}
-		}
-		xgName.fill(inFile);
-	}
-}
-XG_Data::XG_Data(XG_Data& xg)
-{
-	static bool(XG_Data:: * types[])(std::shared_ptr<XGNode>&) =
-	{
-	&XG_Data::cloneNode<xgBgGeometry>,
-	&XG_Data::cloneNode<xgBgMatrix>,
-	&XG_Data::cloneNode<xgBone>,
-	&XG_Data::cloneNode<xgDagMesh>,
-	&XG_Data::cloneNode<xgDagTransform>,
-	&XG_Data::cloneNode<xgEnvelope>,
-	&XG_Data::cloneNode<xgMaterial>,
-	&XG_Data::cloneNode<xgMultiPassMaterial>,
-	&XG_Data::cloneNode<xgNormalInterpolator>,
-	&XG_Data::cloneNode<xgQuatInterpolator>,
-	&XG_Data::cloneNode<xgShapeInterpolator>,
-	&XG_Data::cloneNode<xgTexCoordInterpolator>,
-	&XG_Data::cloneNode<xgTexture>,
-	&XG_Data::cloneNode<xgTime>,
-	&XG_Data::cloneNode<xgVec3Interpolator>,
-	&XG_Data::cloneNode<xgVertexInterpolator>,
-	};
-
-	for (std::shared_ptr<XGNode>& node : xg.m_nodes)
-	{
-		for (bool(XG_Data::* func)(std::shared_ptr<XGNode>&) : types)
-			if ((this->*func)(node))
-				break;
-
-		if (m_dag.size() < xg.m_dag.size())
-		{
-			for (DagBase& dag : xg.m_dag)
-			{
-				if (dag.m_base->m_name == m_nodes.back()->m_name)
-				{
-					m_dag.push_back(m_nodes.back().get());
-					break;
-				}
-			}
-		}
-	}
-
-	for (size_t d = 0; d < xg.m_dag.size(); ++d)
-	{
-		for (DagBase& base : xg.m_dag[d].m_connected)
-		{
-			for (std::shared_ptr<XGNode>& node : m_nodes)
-			{
-				if (node->m_name == base.m_base->m_name)
-				{
-					m_dag[d].m_connected.push_back(node.get());
-					break;
-				}
-			}
-		}
-	}
 }
 
-void XG_Data::create(FILE* outFile)
-{
-	fwrite("XGBv1.00", 1, 8, outFile);
-
-	for (std::shared_ptr<XGNode>& node : m_nodes)
-		node->create(outFile, false);
-
-	for (std::shared_ptr<XGNode>& node : m_nodes)
-		node->create(outFile, true);
-
-	PString::push("dag", outFile);
-	PString::push('{', outFile);
-
-	for (DagBase& base : m_dag)
-		base.create(outFile, true);
-
-	PString::push('}', outFile);
 }
 
-XG_Data::DagBase::DagBase() : m_base(nullptr) {}
-
-XG_Data::DagBase::DagBase(XGNode* m_base) : m_base(m_base) {}
-
-void XG_Data::DagBase::create(FILE* outFile, bool braces)
 {
-	m_base->push(outFile);
-	if (braces || m_connected.size())
-		PString::push('[', outFile);
+}
 
-	for (DagBase& dag : m_connected)
-		dag.create(outFile);
+{
 
-	if (braces || m_connected.size())
-		PString::push(']', outFile);
+
 }

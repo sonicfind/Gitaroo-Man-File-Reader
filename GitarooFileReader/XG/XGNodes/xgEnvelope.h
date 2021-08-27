@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,17 +13,26 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include "xgBone.h"
+struct Weight
 {
-	m_name.push(outFile);
-}
+	float values[4];
+};
 
-const PString& XGNode::getName() const
+class xgBgGeometry;
+class xgEnvelope : public XGNode
 {
-	return m_name;
-}
+	unsigned long m_startVertex = 0;
+	std::vector<Weight> m_weights;
+	std::vector<std::vector<unsigned long>> m_vertexTargets;
+	std::vector<SharedNode<xgBone>> m_inputMatrices;
+	SharedNode<xgBgGeometry> m_inputGeometry;
+
+public:
+	using XGNode::XGNode;
+	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile, bool full) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "");
+	const char* getType() { return "xgEnvelope"; }
+	static bool compare(const PString& str) { return strcmp("xgEnvelope", str.m_pstring) == 0; }
+};

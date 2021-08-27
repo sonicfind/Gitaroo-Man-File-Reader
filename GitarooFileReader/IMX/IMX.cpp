@@ -18,14 +18,7 @@
 using namespace std;
 using namespace GlobalFunctions;
 
-IMX::IMX()
-	: FileType(".IMX")
-	, m_textureIndex(0)
-	, m_fileSize(0)
-	, m_non_model(0)
-	, m_unk(0)
-	, m_fromXGM(false) {}
-
+// Used when creating an XGM file
 IMX::IMX(FILE* inFile, const string& directory)
 	: FileType(".IMX", true)
 	, m_fromXGM(true)
@@ -43,7 +36,7 @@ IMX::IMX(FILE* inFile, const string& directory)
 	fread(m_junk, 1, 12, inFile);
 	try
 	{
-		m_data = make_shared<IMX_Data>(inFile);
+		m_data = make_unique<IMX_Data>(inFile);
 		fseek(inFile, 8, SEEK_CUR);
 	}
 	catch (const char* str)
@@ -67,7 +60,7 @@ IMX::IMX(string filename, bool useBanner)
 {
 	try
 	{
-		m_data = make_shared<IMX_Data>(m_filePtr);
+		m_data = make_unique<IMX_Data>(m_filePtr);
 		fclose(m_filePtr);
 		m_fileSize = m_data->m_colorData->m_imageSize + 48;
 		if ((!m_data->m_pixelVal1 && !m_data->m_pixelVal2) || (m_data->m_pixelVal1 == 1 && m_data->m_pixelVal2 == 1))
@@ -87,24 +80,8 @@ IMX::IMX(string filename, bool useBanner)
 	}
 }
 
-IMX& IMX::operator=(IMX& imx)
-{
-	if (m_data != imx.m_data)
-	{
-		m_filename = imx.m_filename;
-		copy(imx.m_filepath, imx.m_filepath + 256, m_filepath);
-		copy(imx.m_name, imx.m_name + 16, m_name);
-		m_textureIndex = imx.m_textureIndex;
-		m_fileSize = imx.m_fileSize;
-		m_non_model = imx.m_non_model;
-		m_unk = imx.m_unk;
-		m_data = imx.m_data;
-		m_saved = imx.m_saved;
-	}
-	return *this;
-}
-
-//Create or update a IMX file
+// Create or update a IMX file
+// Used when creating an XGM file
 void IMX::create(FILE* outFile, unsigned long& sizes)
 {
 	fwrite(m_filepath, 1, 256, outFile);
@@ -136,7 +113,7 @@ bool IMX::create(string filename, bool useBanner)
 
 bool IMX::write_to_txt()
 {
-	FILE* txtFile, * simpleTxtFile;
+	FILE* txtFile, *simpleTxtFile;
 	if (FileType::write_to_txt(txtFile, simpleTxtFile))
 	{
 		fprintf_s(txtFile, "       Image Width: %lu pixels\n"
@@ -224,7 +201,7 @@ void IMX::read(string filename)
 		throw "Error: " + filename + " does not exist.";
 	try
 	{
-		m_data = make_shared<IMX_Data>(inFile);
+		m_data = make_unique<IMX_Data>(inFile);
 		fclose(inFile);
 		m_fileSize = m_data->m_colorData->m_imageSize + 48;
 		if ((!m_data->m_pixelVal1 && !m_data->m_pixelVal2) || (m_data->m_pixelVal1 == 1 && m_data->m_pixelVal2 == 1))
@@ -340,102 +317,4 @@ bool IMX::importPNG()
 	read(pngName + "IMX");
 	remove((pngName + "IMX").c_str());
 	return true;
-}
-
-IMX_Data::IMX_Data() : m_colorData(make_shared<Image>()) {}
-IMX_Data::IMX_Data(FILE* inFile) : m_colorData(make_shared<Image>())
-{
-	char test[4] = { 0 };
-	fread(test, 1, 4, inFile);
-	if (!strstr(test, "IMX"))
-	{
-		fclose(inFile);
-		throw "Error: no 'IMX' tag for texture ";
-	}
-	fseek(inFile, 16, SEEK_CUR);
-	fread(&m_width, 4, 1, inFile);
-	fread(&m_height, 4, 1, inFile);
-	fread(&m_pixelVal1, 4, 1, inFile);
-	fread(&m_pixelVal2, 4, 1, inFile);
-	if ((!m_pixelVal1 && !m_pixelVal2) || (m_pixelVal1 == 1 && m_pixelVal2 == 1))
-	{
-		fread(&m_colorData->m_paletteSize, 4, 1, inFile);
-		m_colorData->m_palette = new unsigned char[m_colorData->m_paletteSize >> 2][4]();
-		fread(m_colorData->m_palette, 4, m_colorData->m_paletteSize >> 2, inFile);
-		fseek(inFile, 4, SEEK_CUR);
-	}
-	else if (m_pixelVal2 != 2 || (m_pixelVal1 != 4 && m_pixelVal1 != 3))
-	{
-		fclose(inFile);
-		throw "Error: Unknown Pixel Storage values (" + to_string(m_pixelVal1) + " | " + to_string(m_pixelVal2) + ") for texture ";
-	}
-	fread(&m_colorData->m_imageSize, 4, 1, inFile);
-	m_colorData->m_image = new unsigned char[m_colorData->m_imageSize];
-	fread(m_colorData->m_image, 1, m_colorData->m_imageSize, inFile);
-}
-IMX_Data::IMX_Data(IMX_Data& imx)
-	: m_width(imx.m_width), m_height(imx.m_height), m_pixelVal1(m_pixelVal1), m_pixelVal2(m_pixelVal2)
-{
-	m_colorData = make_shared<Image>(*imx.m_colorData,
-		m_pixelVal1 != m_pixelVal2 || (m_pixelVal1 != 0 && m_pixelVal1 != 1));
-}
-
-void IMX_Data::create(FILE* outFile)
-{
-	unsigned long value = 0;
-	fwrite("IMX\0", 1, 4, outFile);
-	fwrite("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 1, 16, outFile);
-	fwrite(&m_width, 4, 1, outFile);
-	fwrite(&m_height, 4, 1, outFile);
-	fwrite(&m_pixelVal1, 4, 1, outFile);
-	fwrite(&m_pixelVal2, 4, 1, outFile);
-
-	if (m_pixelVal1 == m_pixelVal2 && (m_pixelVal1 == 0 || m_pixelVal1 == 1))
-	{
-		fwrite(&m_colorData->m_paletteSize, 4, 1, outFile);
-		fwrite(m_colorData->m_palette, 4, m_colorData->m_paletteSize >> 2, outFile);
-		fwrite(&(value = 2), 1, 4, outFile);
-	}
-
-	fwrite(&m_colorData->m_imageSize, 4, 1, outFile);
-	fwrite(m_colorData->m_image, 1, m_colorData->m_imageSize, outFile);
-	fwrite(&(value = 3), 1, 4, outFile);
-	fwrite("\0\0\0\0", 1, 4, outFile);
-}
-
-bool IMX_Data::hasAlpha() const
-{
-	return m_pixelVal1 != 3 || m_pixelVal2 != 2;
-}
-
-IMX_Data::Image::Image(const Image& other)
-{
-	if (other.m_palette)
-	{
-		m_paletteSize = other.m_paletteSize;
-		m_palette = new unsigned char[m_paletteSize >> 2][4];
-		memcpy_s(m_palette, m_paletteSize, other.m_palette, m_paletteSize);
-	}
-	m_imageSize = other.m_imageSize;
-	copy(other.m_image, other.m_image + m_imageSize, m_image);
-}
-
-IMX_Data::Image::Image(const Image& other, bool usePalette)
-{
-	if (usePalette && other.m_palette)
-	{
-		m_paletteSize = other.m_paletteSize;
-		m_palette = new unsigned char[m_paletteSize >> 2][4];
-		memcpy_s(m_palette, m_paletteSize, other.m_palette, m_paletteSize);
-	}
-	m_imageSize = other.m_imageSize;
-	copy(other.m_image, other.m_image + m_imageSize, m_image);
-}
-
-IMX_Data::Image::~Image()
-{
-	if (m_palette != nullptr)
-		delete[m_paletteSize >> 2] m_palette;
-	if (m_image != nullptr)
-		delete[m_imageSize] m_image;
 }

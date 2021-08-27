@@ -190,6 +190,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="IMX\IMX_Data.cpp" />
     <ClCompile Include="IMX\IMX_Viewer.cpp" />
     <ClCompile Include="Main\pch.cpp" />
     <ClCompile Include="Main\Global_Functions.cpp" />
@@ -209,6 +210,35 @@
     <ClCompile Include="PString\PString.cpp" />
     <ClCompile Include="XGM\Viewer\Material.cpp" />
     <ClCompile Include="XGM\Viewer\Primitives.cpp" />
+    <ClCompile Include="XGM\Viewer\Model.cpp" />
+    <ClCompile Include="XG\Animation.cpp" />
+    <ClCompile Include="XG\Dag.cpp" />
+    <ClCompile Include="XG\Triangle Types\Triangle_Data.cpp" />
+    <ClCompile Include="XG\Triangle Types\Triangle_Fan.cpp" />
+    <ClCompile Include="XG\Triangle Types\Triangle_Group.cpp" />
+    <ClCompile Include="XG\Triangle Types\Triangle_List.cpp" />
+    <ClCompile Include="XG\Triangle Types\Triangle_Primitive.cpp" />
+    <ClCompile Include="XG\Triangle Types\Triangle_Separate.cpp" />
+    <ClCompile Include="XG\Triangle Types\Triangle_Strip.cpp" />
+    <ClCompile Include="XG\Vertex Types\Vertex.cpp" />
+    <ClCompile Include="XG\XGNodes\xgBgGeometry.cpp" />
+    <ClCompile Include="XG\XGNodes\xgBgMatrix.cpp" />
+    <ClCompile Include="XG\XGNodes\xgBone.cpp" />
+    <ClCompile Include="XG\XGNodes\xgDagMesh.cpp" />
+    <ClCompile Include="XG\XGNodes\xgDagTransform.cpp" />
+    <ClCompile Include="XG\XGNodes\xgEnvelope.cpp" />
+    <ClCompile Include="XG\XGNodes\xgInterpolator.cpp" />
+    <ClCompile Include="XG\XGNodes\xgMaterial.cpp" />
+    <ClCompile Include="XG\XGNodes\xgMultiPassMaterial.cpp" />
+    <ClCompile Include="XG\XGNodes\xgNormalInterpolator.cpp" />
+    <ClCompile Include="XG\XGNodes\xgQuatInterpolator.cpp" />
+    <ClCompile Include="XG\XGNodes\xgShapeInterpolator.cpp" />
+    <ClCompile Include="XG\XGNodes\xgTexCoordInterpolator.cpp" />
+    <ClCompile Include="XG\XGNodes\xgTexture.cpp" />
+    <ClCompile Include="XG\XGNodes\xgTime.cpp" />
+    <ClCompile Include="XG\XGNodes\xgVec3Interpolator.cpp" />
+    <ClCompile Include="XG\XGNodes\xgVertexInterpolator.cpp" />
+    <ClCompile Include="XG\XG_Data.cpp" />
     <ClCompile Include="XG\XG_Nodes.cpp" />
     <ClCompile Include="XG\XG.cpp" />
     <ClCompile Include="XG\XG_Main.cpp" />
@@ -238,6 +268,7 @@
     <ClCompile Include="Main\GitarooFileReader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IMX\IMX_Data.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Main\pch.h" />
     <ClInclude Include="Main\Global_Functions.h" />
@@ -254,6 +285,37 @@
     <ClInclude Include="IMX\IMX.h" />
     <ClInclude Include="XGM\Viewer\Material.h" />
     <ClInclude Include="XGM\Viewer\Primitives.h" />
+    <ClInclude Include="XGM\Viewer\Model.h" />
+    <ClInclude Include="XG\Animation.h" />
+    <ClInclude Include="XG\Dag.h" />
+    <ClInclude Include="XG\Triangle Types\Triangle_Data.h" />
+    <ClInclude Include="XG\Triangle Types\Triangle_Fan.h" />
+    <ClInclude Include="XG\Triangle Types\Triangle_Group.h" />
+    <ClInclude Include="XG\Triangle Types\Triangle_List.h" />
+    <ClInclude Include="XG\Triangle Types\Triangle_Primitive.h" />
+    <ClInclude Include="XG\Triangle Types\Triangle_Separate.h" />
+    <ClInclude Include="XG\Triangle Types\Triangle_Strip.h" />
+    <ClInclude Include="XG\Vertex Types\Vertex.h" />
+    <ClInclude Include="XG\XGNodes\xgTargetedInterpolator.h" />
+    <ClInclude Include="XG\XGNodes\xgTimedInterpolator.h" />
+    <ClInclude Include="XG\XGNodes\xgBgGeometry.h" />
+    <ClInclude Include="XG\XGNodes\xgBgMatrix.h" />
+    <ClInclude Include="XG\XGNodes\xgBone.h" />
+    <ClInclude Include="XG\XGNodes\xgDagMesh.h" />
+    <ClInclude Include="XG\XGNodes\xgDagTransform.h" />
+    <ClInclude Include="XG\XGNodes\xgEnvelope.h" />
+    <ClInclude Include="XG\XGNodes\xgInterpolator.h" />
+    <ClInclude Include="XG\XGNodes\xgMaterial.h" />
+    <ClInclude Include="XG\XGNodes\xgMultiPassMaterial.h" />
+    <ClInclude Include="XG\XGNodes\xgNormalInterpolator.h" />
+    <ClInclude Include="XG\XGNodes\xgQuatInterpolator.h" />
+    <ClInclude Include="XG\XGNodes\xgShapeInterpolator.h" />
+    <ClInclude Include="XG\XGNodes\xgTexCoordInterpolator.h" />
+    <ClInclude Include="XG\XGNodes\xgTexture.h" />
+    <ClInclude Include="XG\XGNodes\xgTime.h" />
+    <ClInclude Include="XG\XGNodes\xgVec3Interpolator.h" />
+    <ClInclude Include="XG\XGNodes\xgVertexInterpolator.h" />
+    <ClInclude Include="XG\XG_Data.h" />
     <ClInclude Include="XG\XG_Nodes.h" />
     <ClInclude Include="XG\XG.h" />
     <ClInclude Include="XGM\XGM.h" />

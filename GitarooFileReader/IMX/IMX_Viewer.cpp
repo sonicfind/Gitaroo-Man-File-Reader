@@ -15,14 +15,24 @@
 #include "pch.h"
 #include "IMX.h"
 #include <glad/glad.h>
+void IMX::generateTextureBuffer()
+{
+	m_data->generateBuffer();
+}
+
+void IMX::deleteTextureBuffer()
+{
+	m_data->deleteBuffer();
+}
+
 unsigned IMX_Data::getTextureID() const
 {
 	return m_textureID;
 }
 
-void IMX_Data::generateTextureBuffer()
+void IMX_Data::generateBuffer()
 {
-	if (!m_colorData->m_image_uncompressed)
+	if (!m_textureID)
 	{
 		// New texture buffer
 		glGenTextures(1, &m_textureID);
@@ -65,9 +75,9 @@ void IMX_Data::generateTextureBuffer()
 	}
 }
 
-void IMX_Data::deleteTextureBuffer()
+void IMX_Data::deleteBuffer()
 {
-	if (m_colorData->m_image_uncompressed)
+	if (m_textureID)
 	{
 		if (hasAlpha())
 			delete[4 * m_width * m_height] m_colorData->m_image_uncompressed;
@@ -75,5 +85,6 @@ void IMX_Data::deleteTextureBuffer()
 			delete[3 * m_width * m_height] m_colorData->m_image_uncompressed;
 		m_colorData->m_image_uncompressed = nullptr;
 		glDeleteTextures(1, &m_textureID);
+		m_textureID = 0;
 	}
 }

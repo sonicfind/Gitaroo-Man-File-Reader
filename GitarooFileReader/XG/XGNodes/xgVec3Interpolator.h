@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,17 +13,14 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include "xgInterpolator.h"
+class xgVec3Interpolator : public xgInterpolator<glm::vec3>
 {
-	m_name.push(outFile);
-}
-
-const PString& XGNode::getName() const
-{
-	return m_name;
-}
+public:
+	using xgInterpolator<glm::vec3>::xgInterpolator;
+	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile, bool full) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "");
+	const char* getType() { return "xgVec3Interpolator"; }
+	static bool compare(const PString& str) { return strcmp("xgVec3Interpolator", str.m_pstring) == 0; }
+};

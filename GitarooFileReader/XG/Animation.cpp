@@ -13,16 +13,24 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include "Animation.h"
+#include "Global_Functions.h"
+Animation::Animation(FILE* inFile)
 {
-	m_name.push(outFile);
+	fread(&m_length, 4, 1, inFile);
+	fread(&m_keyframe_interval, 4, 1, inFile);
+	fread(&m_framerate, 4, 1, inFile);
+	fread(&m_starting_keyframe, 4, 1, inFile);
+	fread(&m_non_tempo, 4, 1, inFile);
+	fread(&m_junk, 4, 3, inFile);
 }
 
-const PString& XGNode::getName() const
+bool Animation::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 {
-	return m_name;
+	fprintf_s(txtFile, "\t\t\t\t      Playback Length: %g\n", m_length);
+	fprintf_s(txtFile, "\t\t\t\t    Keyframe Interval: %g\n", m_keyframe_interval);
+	fprintf_s(txtFile, "\t\t\t\t\t    Framerate: %g\n", m_framerate);
+	fprintf_s(txtFile, "\t\t\t\t    Starting Keyframe: %g\n", m_starting_keyframe);
+	fprintf_s(txtFile, "\t\t\t\t     Not Tempo Linked: %s\n", (m_non_tempo ? "TRUE" : "FALSE"));
+	return true;
 }

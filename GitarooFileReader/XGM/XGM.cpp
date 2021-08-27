@@ -34,7 +34,8 @@ XGM::XGM(std::string filename, bool useBanner)
 
 	for (size_t m = 0; m < numM; m++)
 	{
-		m_models.emplace_back(m_filePtr, m_directory);
+		m_models.emplace_back(m_filePtr, m_directory, m_textures);
+
 		if (!m_models.back().m_saved)
 			m_saved = false;
 	}
@@ -260,7 +261,7 @@ bool XGM::exportOBJs()
 	std::filesystem::create_directory(folder);
 	for (XG& model : m_models)
 	{
-		if (model.exportOBJ(folder + '\\'))
+		if (model.write_to_obj(folder + '\\'))
 		{
 			std::string obj = model.getName();
 			obj.erase(obj.length() - 2, 2);

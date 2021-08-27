@@ -15,10 +15,9 @@
       <ExpandedItem>*m_node</ExpandedItem>
     </Expand>
   </Type>
-  <Type Name="SharedNode&lt;*&gt;">
-    <DisplayString>{m_node->m_name.m_pstring}</DisplayString>
+  <Type Name="unique_ptr&lt;*&gt;">
     <Expand>
-      <ExpandedItem>*m_node</ExpandedItem>
+      <ExpandedItem>_ptr</ExpandedItem>
     </Expand>
   </Type>
 </AutoVisualizer>

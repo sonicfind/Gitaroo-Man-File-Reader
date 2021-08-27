@@ -13,16 +13,27 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include "Triangle_Data.h"
+#include "PString/PString.h"
+Triangle_Data::Triangle_Data(FILE* inFile)
 {
-	m_name.push(outFile);
+	PString::pull(inFile);
+	unsigned long size;
+	fread(&size, 4, 1, inFile);
+	if (size)
+	{
+		m_counts.reserve(size);
+		m_counts.resize(size);
+	}
 }
 
-const PString& XGNode::getName() const
+void Triangle_Data::create(FILE* outFile) const
 {
-	return m_name;
+	unsigned long size = (unsigned long)m_counts.size();
+	fwrite(&size, 4, 1, outFile);
+}
+
+void Triangle_Data::write_to_txt(FILE* txtFile, const char* tabs) const
+{	
+	fprintf_s(txtFile, "\t\t\t\t%s    Count: %zu\n", tabs, m_counts.size());
 }

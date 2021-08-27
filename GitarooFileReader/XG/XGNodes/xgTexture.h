@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,17 +13,17 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
-
-void XGNode::push(FILE* outFile) const
+#include "XG/XG_Nodes.h"
+class xgTexture : public XGNode
 {
-	m_name.push(outFile);
-}
+	PString m_imxName;
+	unsigned long m_mipmap_depth = 0;
 
-const PString& XGNode::getName() const
-{
-	return m_name;
-}
+public:
+	using XGNode::XGNode;
+	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile, bool full) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "");
+	const char* getType() { return "xgTexture"; }
+	static bool compare(const PString& str) { return strcmp("xgTexture", str.m_pstring) == 0; }
+};

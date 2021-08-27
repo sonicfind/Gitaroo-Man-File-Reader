@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,17 +13,23 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pch.h"
-#include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
 
-void XGNode::push(FILE* outFile) const
+class Animation
 {
-	m_name.push(outFile);
-}
+	float m_length = 0;
+	float m_keyframe_interval = 0;
+	float m_framerate = 60;
+	float m_starting_keyframe = 0;
+	unsigned long m_non_tempo = true;
+	union
+	{
+		char c[4];
+		float f;
+		unsigned long ul;
+		long l;
+	} m_junk[3] = { 0 };
 
-const PString& XGNode::getName() const
-{
-	return m_name;
-}
+public:
+	Animation(FILE* inFile);
+	bool write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile);
+};

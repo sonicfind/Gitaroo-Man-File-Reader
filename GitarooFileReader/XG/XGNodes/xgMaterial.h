@@ -23,6 +23,9 @@ public:
 	void create(FILE* outFile, bool full) const = 0;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") = 0;
 	const char* getType() = 0;
+	virtual bool intializeBuffers() = 0;
+	virtual void deleteBuffers() = 0;
+	virtual void setShaderValues(Shader* shader, const std::string index) const = 0;
 };
 
 class xgMaterial : public MaterialNode
@@ -56,3 +59,9 @@ public:
 	void write_to_txt(FILE* txtFile, const char* tabs = "");
 	const char* getType() { return "xgMaterial"; }
 	static bool compare(const PString& str) { return strcmp("xgMaterial", str.m_pstring) == 0; }
+
+	void connectTexture(std::vector<IMX>& textures);
+	bool intializeBuffers();
+	void deleteBuffers();
+	void setShaderValues(Shader* shader, const std::string index) const;
+};

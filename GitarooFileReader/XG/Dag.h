@@ -18,10 +18,18 @@
 class Dag
 {
 	SharedNode<DagNode> m_base;
+	glm::mat4 m_matrix;
 	std::vector<Dag> m_connected;
 public:
 	Dag(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList, bool isRootBranch = false);
 	void create(FILE* outFile, bool isRootBranch = false) const;
 	void queue_for_obj(std::vector<std::pair<size_t, xgBgGeometry*>>&  history) const;
 	void faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;
+	void connectTextures(std::vector<IMX>& textures);
+
+	void initializeViewerState();
+	void uninitializeViewerState();
+	void restPose();
+	void animate();
+	void draw(const glm::mat4 view, const glm::mat4 model, const bool showNormals, const bool doTransparents) const;
 };

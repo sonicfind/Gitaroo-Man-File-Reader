@@ -18,6 +18,7 @@
 #include "xgNormalInterpolator.h"
 #include "xgTexCoordInterpolator.h"
 #include "xgShapeInterpolator.h"
+#include "XGM/Viewer/Shaders.h"
 class xgBgGeometry : public XGNode
 {
 	float m_density = 0;
@@ -27,6 +28,8 @@ class xgBgGeometry : public XGNode
 	SharedNode<xgNormalInterpolator> m_inputNormalInterpolator;
 	SharedNode<xgTexCoordInterpolator> m_inputTexCoordInterpolator;
 	SharedNode<xgShapeInterpolator> m_inputShapeInterpolator;
+
+	bool m_hasBeenAnimated = false;
 
 public:
 	using XGNode::XGNode;
@@ -41,4 +44,17 @@ public:
 	void positions_to_obj(FILE* objFile) const;
 	void texCoords_to_obj(FILE* objFile) const;
 	void normals_to_obj(FILE* objFile) const;
+	
+
+private:
+	unsigned int m_VAO;
+	unsigned int m_VBO;
+
+public:
+	bool generateVertexBuffer();
+	void bindVertexBuffer() const;
+	void deleteVertexBuffer();
+	ShaderCombo* activateShader() const;
+	void restPose() const;
+	void animate();
 };

@@ -25,4 +25,5 @@ public:
 	void write_to_txt(FILE* txtFile, const char* tabs = "");
 	const char* getType() { return "xgDagTransform"; }
 	static bool compare(const PString& str) { return strcmp("xgDagTransform", str.m_pstring) == 0; }
+	glm::mat4x4 getModelMatrix() const;
 };

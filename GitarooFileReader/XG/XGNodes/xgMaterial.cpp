@@ -148,3 +148,46 @@ void xgMaterial::write_to_txt(FILE* txtFile, const char* tabs)
 	if (m_inputTexture)
 		fprintf_s(txtFile, "\t\t\t%s       Texture: %s\n", tabs, m_inputTexture->getName().m_pstring);
 }
+
+void xgMaterial::connectTexture(std::vector<IMX>& textures)
+{
+	if (m_inputTexture)
+		m_inputTexture->connectTexture(textures);
+}
+
+bool xgMaterial::intializeBuffers()
+{
+	if (m_inputTexture)
+		m_inputTexture->generateTextureBuffer();
+	return (m_blendType != 0 && m_blendType != 4) || m_flags & 1;
+}
+
+void xgMaterial::deleteBuffers()
+{
+	if (m_inputTexture)
+		m_inputTexture->deleteTextureBuffer();
+}
+
+void xgMaterial::setShaderValues(Shader* shader, const std::string index) const
+{
+	if (m_inputTexture)
+	{
+		m_inputTexture->bindTextureBuffer();
+		// If both a texture and vertex color are applicable
+		if (m_shadingType >= 3)
+			shader->setInt("materials" + index + ".shadingType", m_shadingType + 2);
+		else
+			shader->setInt("materials" + index + ".shadingType", m_shadingType);
+		shader->setInt("materials" + index + ".alphaType", m_flags & 1);
+		shader->setInt("materials" + index + ".alphaMultiplier", m_flags & ~1);
+		shader->setInt("textEnv" + index, m_textureEnv);
+	}
+	else
+		shader->setInt("materials" + index + ".shadingType", m_shadingType);
+	glBlendColor(m_diffuse.red, m_diffuse.green, m_diffuse.blue, m_diffuse.alpha);
+	shader->setVec4("materials" + index + ".color", (float*)&m_diffuse);
+	shader->setVec3("materials" + index + ".specular", (float*)&m_specular);
+	shader->setFloat("materials" + index + ".shininess", m_specular.exponent);
+
+	shader->setInt("materials" + index + ".blendingType", m_blendType);
+}

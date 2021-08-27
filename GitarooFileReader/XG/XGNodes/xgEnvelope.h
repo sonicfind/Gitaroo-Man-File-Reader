@@ -28,6 +28,7 @@ class xgEnvelope : public XGNode
 	std::vector<SharedNode<xgBone>> m_inputMatrices;
 	SharedNode<xgBgGeometry> m_inputGeometry;
 
+	glm::mat4 m_matrices[4];
 public:
 	using XGNode::XGNode;
 	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
@@ -35,4 +36,8 @@ public:
 	void write_to_txt(FILE* txtFile, const char* tabs = "");
 	const char* getType() { return "xgEnvelope"; }
 	static bool compare(const PString& str) { return strcmp("xgEnvelope", str.m_pstring) == 0; }
+	void bindBoneWeights(unsigned long envIndex) const;
+	void restPose();
+	void animate();
+	void updateBoneMatrices(unsigned long envIndex) const;
 };

@@ -20,10 +20,18 @@ struct Vertex
 	glm::vec3 m_normal;
 	glm::vec4 m_color;
 	glm::vec2 m_texCoord;
+	Vertex mix(const Vertex& nextVertex, const float coefficient, const unsigned long flags) const;
 	bool operator==(const Vertex&);
 	void position_to_OBJ(FILE* objFile);
 	void texCoord_to_OBJ(FILE* objFile);
 	void normal_to_OBJ(FILE* objFile);
+};
+
+struct BoneVertex
+{
+	Vertex m_vertex;
+	unsigned m_envelope;
+	float m_weights[4];
 };
 
 template<typename T>

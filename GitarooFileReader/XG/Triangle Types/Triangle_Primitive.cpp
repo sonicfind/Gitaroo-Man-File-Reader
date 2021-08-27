@@ -40,3 +40,8 @@ void Triangle_Prim::create(FILE* outFile) const
 	PString::push("primData", outFile);
 	fwrite("\0\0\0\0", 1, 4, outFile);
 }
+
+void Triangle_Prim::draw(GLenum mode) const
+{
+	m_data->draw(mode);
+}

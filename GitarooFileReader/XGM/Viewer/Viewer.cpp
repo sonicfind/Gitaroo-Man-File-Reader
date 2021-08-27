@@ -21,13 +21,21 @@
 #include <algorithm>
 
 AspectRatioMode Viewer::s_aspectRatio = AspectRatioMode::Widescreen;
+bool Model::s_isLooping = false;
 unsigned int Viewer::s_screenWidth = 1280;
 unsigned int Viewer::s_screenHeight = 720;
 
 Viewer::Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices)
+	: m_lightPos(0, 100, 100)
+	, m_lightAmbient(.5, .5, .5)
+	, m_lightDiffuse(1, 1, 1)
+	, m_lightSpecular(.5, .5, .5)
+	, m_lightConstant(1.0f)
+	, m_lightLinear(0.007f)
+	, m_lightQuadratic(0.0002f)
 {
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -44,48 +52,51 @@ Viewer::Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 
 	glViewport(0, 0, s_screenWidth, s_screenHeight);
 
-	g_baseShader.createProgram("Vertex.glsl", "Fragment.glsl");
-	g_boneShader.createProgram("Vertex - Bones.glsl", "Fragment.glsl");
-	g_shapeShader.createProgram("Vertex - Shapes.glsl", "Fragment.glsl");
-	g_baseGeometryShader.createProgram("Geo - Vertex.glsl", "Geo - Geometry.glsl", "Geo - Fragment.glsl");
-	g_boneGeometryShader.createProgram("Geo - Vertex - Bones.glsl", "Geo - Geometry.glsl", "Geo - Fragment.glsl");
-	g_shapeGeometryShader.createProgram("Geo - Vertex - Shapes.glsl", "Geo - Geometry.glsl", "Geo - Fragment.glsl");
+	g_shaders.createPrograms("base.vert", "material.frag", "geometry.vert", "geometry.geo", "geometry.frag");
+	g_boneShaders.createPrograms("bones.vert", "material.frag", "geometry - bones.vert", "geometry.geo", "geometry.frag");
 
 	glfwSetFramebufferSizeCallback(m_window, InputHandling::framebuffer_size_callback);
 
+	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Enable color blending
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	glGenBuffers(1, &m_UBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
-	glBufferData(GL_UNIFORM_BUFFER, 128, NULL, GL_STATIC_DRAW);
+	// Generate view matrix uniform
+	glGenBuffers(1, &m_viewUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_STATIC_DRAW);
 
-	unsigned int uniform_index = glGetUniformBlockIndex(g_baseShader.ID, "Matrices");
-	glUniformBlockBinding(g_baseShader.ID, uniform_index, 0);
+	g_shaders.bindUniformBlock(1, "View");
+	g_boneShaders.bindUniformBlock(1, "View");
 
-	uniform_index = glGetUniformBlockIndex(g_boneShader.ID, "Matrices");
-	glUniformBlockBinding(g_boneShader.ID, uniform_index, 0);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_viewUBO);
 
-	uniform_index = glGetUniformBlockIndex(g_shapeShader.ID, "Matrices");
-	glUniformBlockBinding(g_shapeShader.ID, uniform_index, 0);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_UBO);
+	// Generate projection matrix uniform
+	glGenBuffers(1, &m_projectionUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_STATIC_DRAW);
 
+	g_shaders.bindUniformBlock(2, "Projection");
+	g_boneShaders.bindUniformBlock(2, "Projection");
 
+	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_projectionUBO);
+
+	// Generate light structure uniform
 	glGenBuffers(1, &m_lightUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 56, NULL, GL_STATIC_DRAW);
 
-	uniform_index = glGetUniformBlockIndex(g_baseShader.ID, "Lights");
-	glUniformBlockBinding(g_baseShader.ID, uniform_index, 1);
+	g_shaders.m_base.bindUniformBlock(3, "Lights");
+	g_boneShaders.m_base.bindUniformBlock(3, "Lights");
 
-	uniform_index = glGetUniformBlockIndex(g_boneShader.ID, "Lights");
-	glUniformBlockBinding(g_boneShader.ID, uniform_index, 1);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
 
-	uniform_index = glGetUniformBlockIndex(g_shapeShader.ID, "Lights");
-	glUniformBlockBinding(g_shapeShader.ID, uniform_index, 1);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_lightUBO);
-
+	// Set light values
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, glm::value_ptr(m_lightAmbient));
 	glBufferSubData(GL_UNIFORM_BUFFER, 16, 4, glm::value_ptr(m_lightDiffuse));
 	glBufferSubData(GL_UNIFORM_BUFFER, 32, 4, glm::value_ptr(m_lightSpecular));
@@ -93,57 +104,12 @@ Viewer::Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 	glBufferSubData(GL_UNIFORM_BUFFER, 48, 4, &m_lightLinear);
 	glBufferSubData(GL_UNIFORM_BUFFER, 52, 4, &m_lightQuadratic);
 
-
-	glGenBuffers(1, &m_geoUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_geoUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_STATIC_DRAW);
-
-	uniform_index = glGetUniformBlockIndex(g_baseGeometryShader.ID, "View");
-	glUniformBlockBinding(g_baseGeometryShader.ID, uniform_index, 2);
-
-	uniform_index = glGetUniformBlockIndex(g_boneGeometryShader.ID, "View");
-	glUniformBlockBinding(g_boneGeometryShader.ID, uniform_index, 2);
-
-	uniform_index = glGetUniformBlockIndex(g_shapeGeometryShader.ID, "View");
-	glUniformBlockBinding(g_shapeGeometryShader.ID, uniform_index, 2);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_geoUBO);
-
-
-	glGenBuffers(1, &m_geoLineUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_geoLineUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_STATIC_DRAW);
-
-	uniform_index = glGetUniformBlockIndex(g_baseGeometryShader.ID, "Projection");
-	glUniformBlockBinding(g_baseGeometryShader.ID, uniform_index, 3);
-
-	uniform_index = glGetUniformBlockIndex(g_boneGeometryShader.ID, "Projection");
-	glUniformBlockBinding(g_boneGeometryShader.ID, uniform_index, 3);
-
-	uniform_index = glGetUniformBlockIndex(g_shapeGeometryShader.ID, "Projection");
-	glUniformBlockBinding(g_shapeGeometryShader.ID, uniform_index, 3);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_geoLineUBO);
-
-	glGenBuffers(1, &m_boneUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_boneUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 4096, NULL, GL_STATIC_DRAW);
-	uniform_index = glGetUniformBlockIndex(g_boneShader.ID, "Bones");
-	glUniformBlockBinding(g_boneShader.ID, uniform_index, 4);
-
-	uniform_index = glGetUniformBlockIndex(g_boneGeometryShader.ID, "Bones");
-	glUniformBlockBinding(g_boneGeometryShader.ID, uniform_index, 4);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 4, m_boneUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	glm::vec3 m_lightPos = glm::vec3(0, 100, 100);
-	glm::vec3 m_lightAmbient = glm::vec3(.5, .5, .5);
-	glm::vec3 m_lightDiffuse = glm::vec3(1, 1, 1);
-	glm::vec3 m_lightSpecular = glm::vec3(.5, .5, .5);
-	float m_lightConstant = 1.0f;
-	float m_lightLinear = 0.007f;
-	float m_lightQuadratic = 0.0002f;
+	
 
 	for (size_t modelIndex : xgIndices)
-		m_models.emplace_back(xgmObject, xgmObject->m_models[modelIndex]);
+		m_models.emplace_back(&xgmObject->m_models[modelIndex]);
 }
 
 std::string Viewer::getAspectRatioString()
@@ -232,21 +198,40 @@ void Viewer::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 int Viewer::viewXG()
 {
 	g_camera.reset();
-	m_previousTime = (float)glfwGetTime();
 	bool showNormals = false;
+	bool showAnimation = true;
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
 	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
+
+	float previousTime = (float)glfwGetTime();
+	// Keeps track of the proceed time on the animation timeline.
+	// Not = to actual time.
+	float animationTime = 0;
+
+	double lastFPSTime = glfwGetTime();
+	int nbFrames = 0;
+	
+	bool isMouseActive = true;
+	bool isPaused = false;
 	while (!glfwWindowShouldClose(m_window))
 	{
-		m_currentTime = (float)glfwGetTime();
-		InputHandling::processInputs(m_window, m_currentTime);
+		float currentTime = (float)glfwGetTime();
+		nbFrames++;
+		if (currentTime - lastFPSTime >= 1.0) { // If last prinf() was more than 1 sec ago
+			// printf and reset timer
+			GlobalFunctions::printf_tab("%f ms/frame\n", 1000.0 / double(nbFrames));
+			nbFrames = 0;
+			lastFPSTime += 1.0;
+		}
+		InputHandling::processInputs(m_window, currentTime);
 
 		if (InputHandling::g_input_keyboard.KEY_ESCAPE.isPressed())
 			break;
+
 		if (InputHandling::g_input_keyboard.KEY_M.isPressed())
 		{
-			if (m_activeMouse)
+			if (isMouseActive)
 			{
 				glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 				glfwSetCursorPosCallback(m_window, NULL);
@@ -259,603 +244,115 @@ int Viewer::viewXG()
 				glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
 				g_camera.setFirstMouse();
 			}
-			m_activeMouse = !m_activeMouse;
+			isMouseActive = !isMouseActive;
 		}
 
-		if (m_activeMouse)
-			g_camera.moveCamera(m_currentTime - m_previousTime);
+		if (isMouseActive)
+			g_camera.moveCamera(currentTime - previousTime);
 
 		if (InputHandling::g_input_keyboard.KEY_N.isPressed())
 			showNormals = !showNormals;
 
+		if (InputHandling::g_input_keyboard.KEY_L.isPressed())
+			Model::toggleLoop();
+
+		// Toggling whether to play animations
+		if (InputHandling::g_input_keyboard.KEY_O.isPressed())
+		{
+			showAnimation = !showAnimation;
+			if (!showAnimation)
+				for (auto& model : m_models)
+					model.restPose();
+			else
+			{
+				for (auto& model : m_models)
+					model.reset();
+				animationTime = 0;
+				isPaused = false;
+			}
+		}
+		else if (showAnimation)
+		{
+			if (InputHandling::g_input_keyboard.KEY_P.isPressed())
+				isPaused = !isPaused;
+
+			// Reset current animation
+			if (InputHandling::g_input_keyboard.KEY_R.isPressed())
+			{
+				for (auto& model : m_models)
+					model.setStartTime(0);
+				animationTime = 0;
+			}
+			// Reset to the first animation
+			else if (InputHandling::g_input_keyboard.KEY_R.isHeld())
+			{
+				for (auto& model : m_models)
+					model.reset();
+				animationTime = 0;
+			}
+			// Skip to the next animation
+			else if (InputHandling::g_input_keyboard.KEY_RIGHT.isTicked())
+			{
+				for (auto& model : m_models)
+					model.nextAnimation(0, true);
+				animationTime = 0;
+			}
+			// Skip down to the previous animation
+			else if (InputHandling::g_input_keyboard.KEY_LEFT.isTicked())
+			{
+				for (auto& model : m_models)
+					model.prevAnimation(0, true);
+				animationTime = 0;
+			}
+			// Animates model data as normal
+			else if (!isPaused
+				&& !InputHandling::g_input_keyboard.KEY_R.isDelayed()
+				&& !InputHandling::g_input_keyboard.KEY_LEFT.isHeld()
+				&& !InputHandling::g_input_keyboard.KEY_RIGHT.isHeld())
+			{
+				// Update animations, obviously
+				animationTime += currentTime - previousTime;
+				for (auto& model : m_models)
+					model.update(animationTime);
+			}
+		}
+		previousTime = currentTime;
+
+		// Clear color and depth buffers
 		glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Update view matrix buffer
+		glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
 		glm::mat4 view = g_camera.getViewMatrix();
-		glm::mat4 projection = glm::perspective(glm::radians(g_camera.m_fov), float(s_screenWidth) / s_screenHeight, 0.1f, 40000.0f);
-
-		glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
-		glBufferSubData(GL_UNIFORM_BUFFER, 64, 64, glm::value_ptr(view));
-
-		glBindBuffer(GL_UNIFORM_BUFFER, m_geoUBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(view));
 
-		glBindBuffer(GL_UNIFORM_BUFFER, m_geoLineUBO);
+		// Update projection matrix buffer
+		glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
+		glm::mat4 projection = glm::perspective(glm::radians(g_camera.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		// Update animations and draw opaque meshes
+		// Draw opaque meshes
 		for (auto& model : m_models)
-		{
-			model.m_animator.update(m_currentTime);
-			if (model.m_animator && model.m_animator.m_timeline.m_boneMatrices)
-			{
-				glBindBuffer(GL_UNIFORM_BUFFER, m_boneUBO);
-				glBufferSubData(GL_UNIFORM_BUFFER, 0, 16 * sizeof(float) * model.m_animator.m_timeline.m_bones.size(), model.m_animator.m_timeline.m_boneMatrices);
-				glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			}
-			model.draw(false, glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1)), showNormals);
-		}
+			model.draw(view, showNormals, false);
 
 		// Draw transparent meshes
 		for (auto& model : m_models)
-		{
-			if (model.m_animator && model.m_animator.m_timeline.m_boneMatrices)
-			{
-				glBindBuffer(GL_UNIFORM_BUFFER, m_boneUBO);
-				glBufferSubData(GL_UNIFORM_BUFFER, 0, 16 * sizeof(float) * model.m_animator.m_timeline.m_bones.size(), model.m_animator.m_timeline.m_boneMatrices);
-				glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			}
-			model.draw(true, glm::scale(glm::mat4(1.0f), glm::vec3(1, 1, -1)), showNormals);
-		}
+			model.draw(view, showNormals, true);
 		glBindVertexArray(0);
 
 		// Check calls
 		glfwSwapBuffers(m_window);
 		glfwPollEvents();
-		m_previousTime = m_currentTime;
 	}
+
+
 	
-	GitarooViewer::DagMesh::s_allMeshes.clear();
-	g_baseShader.closeProgram();
-	g_boneShader.closeProgram();
-	g_shapeShader.closeProgram();
-	g_baseGeometryShader.closeProgram();
-	g_boneGeometryShader.closeProgram();
-	g_shapeGeometryShader.closeProgram();
+	g_shaders.closePrograms();
+	g_boneShaders.closePrograms();
 	InputHandling::resetInputs();
 
 	glfwTerminate();
 	return 0;
-}
-
-std::list<GitarooViewer::DagMesh*> GitarooViewer::DagMesh::s_allMeshes;
-
-GitarooViewer::DagMesh::DagMesh(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, size_t transformIndex)
-	: m_mesh(mesh)
-	, m_triFanElements(GL_TRIANGLE_FAN)
-	, m_triFanArrays(GL_TRIANGLE_FAN)
-	, m_triStripElements(GL_TRIANGLE_STRIP)
-	, m_triStripArrays(GL_TRIANGLE_STRIP)
-	, m_triListElements(GL_TRIANGLES)
-	, m_triListArrays(GL_TRIANGLES)
-{
-	bool newGeometry = true, newMaterial = true;
-	m_mesh = mesh;
-
-	// Checks if we can just copy vertex or texture data of another mesh
-	for (auto& prevMesh : s_allMeshes)
-	{
-		if (newGeometry && prevMesh->m_mesh->m_inputGeometries.front().m_node == mesh->m_inputGeometries.front().m_node)
-		{
-			m_dagTransformIndex = prevMesh->m_dagTransformIndex;
-			m_numVerts = prevMesh->m_numVerts;
-
-			m_vertices = prevMesh->m_vertices;
-			m_boneVertices = prevMesh->m_boneVertices;
-			m_shapeVertices = prevMesh->m_shapeVertices;
-
-			m_VAO = prevMesh->m_VAO;
-			m_VBO = prevMesh->m_VBO;
-			m_transformVAO = prevMesh->m_transformVAO;
-			m_transformVBO = prevMesh->m_transformVBO;
-
-			m_transformShader = prevMesh->m_transformShader;
-			m_transformGeoShader = prevMesh->m_transformGeoShader;
-
-			if (newMaterial)
-				newGeometry = false;
-			else
-				goto Bind_Buffers;
-		}
-
-		if (newMaterial && prevMesh->m_mesh->m_inputMaterials.front().m_node == m_mesh->m_inputMaterials.front().m_node)
-		{
-			m_materials = prevMesh->m_materials;
-			m_transparency = prevMesh->m_transparency;
-
-			if (newGeometry)
-				newMaterial = false;
-			else
-				goto Bind_Buffers;
-		}
-	}
-
-	if (newMaterial)
-	{
-		XGNode* node = m_mesh->m_inputMaterials.front().m_node;
-		m_materials = std::make_shared<std::list<Material>>();
-		if (const xgMaterial* xgMat = dynamic_cast<xgMaterial*>(node))
-		{
-			m_materials->push_back({ xgMat, xgm->m_textures });
-			if ((xgMat->m_blendType != 0 && xgMat->m_blendType != 4) || xgMat->m_flags & 1)
-				m_transparency = true;
-		}
-		else if (const xgMultiPassMaterial* xgMultiMat = dynamic_cast<xgMultiPassMaterial*>(node))
-		{
-			for (const xgMaterial* xgMat : xgMultiMat->m_inputMaterials)
-			{
-				m_materials->push_back({ xgMat, xgm->m_textures });
-				if ((xgMat->m_blendType != 0 && xgMat->m_blendType != 4) || xgMat->m_flags & 1)
-					m_transparency = true;
-			}
-		}
-	}
-
-	if (newGeometry)
-	{
-		xgBgGeometry* geo = m_mesh->m_inputGeometries.front().m_node;
-		m_numVerts = geo->m_numVerts;
-		m_dagTransformIndex = transformIndex;
-		size_t size = 0;
-		if (geo->m_vertexFlags & 1)
-			size += 4;
-		if (geo->m_vertexFlags & 2)
-			size += 3;
-		if (geo->m_vertexFlags & 4)
-			size += 4;
-		if (geo->m_vertexFlags & 8)
-			size += 2;
-
-		glGenBuffers(1, &m_VBO);
-		glGenVertexArrays(1, &m_VAO);
-		glBindVertexArray(m_VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-
-		m_vertices = std::make_shared<Vertex[]>(m_numVerts);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(4 * sizeof(float)));
-		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(7 * sizeof(float)));
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(11 * sizeof(float)));
-
-		Vertex* verts = m_vertices.get();
-		switch (geo->m_vertexFlags)
-		{
-		case 15:
-			glEnableVertexAttribArray(3);
-			__fallthrough;
-		case 7:
-			glEnableVertexAttribArray(2);
-			__fallthrough;
-		case 3:
-			glEnableVertexAttribArray(1);
-			__fallthrough;
-		case 1:
-			glEnableVertexAttribArray(0);
-			for (unsigned long index = 0; index < m_numVerts; ++index)
-				memcpy(verts + index, geo->m_vertices + size * index, size * sizeof(float));
-			break;
-		default:
-		{
-			float* data = geo->m_vertices;
-			if (geo->m_vertexFlags & 1)
-			{
-				glEnableVertexAttribArray(0);
-				for (unsigned long index = 0; index < m_numVerts; ++index)
-					memcpy(verts[index].m_position, data + size * index, 4 * sizeof(float));
-				data += 4;
-			}
-
-			if (geo->m_vertexFlags & 2)
-			{
-				glEnableVertexAttribArray(1);
-				for (unsigned long index = 0; index < m_numVerts; ++index)
-					memcpy(verts[index].m_normal, data + size * index, 3 * sizeof(float));
-				data += 3;
-			}
-
-			if (geo->m_vertexFlags & 4)
-			{
-				glEnableVertexAttribArray(2);
-				for (unsigned long index = 0; index < m_numVerts; ++index)
-					memcpy(verts[index].m_color, data + size * index, 4 * sizeof(float));
-				data += 4;
-			}
-
-			if (geo->m_vertexFlags & 8)
-			{
-				glEnableVertexAttribArray(3);
-				for (unsigned long index = 0; index < m_numVerts; ++index)
-					memcpy(verts[index].m_texCoord, data + size * index, 2 * sizeof(float));
-			}
-		}
-		}
-
-		glBufferData(GL_ARRAY_BUFFER, m_numVerts * sizeof(Vertex), m_vertices.get(), GL_STATIC_DRAW);
-
-		if (geo->m_inputEnvelopes.size())
-		{
-			m_transformShader = g_boneShader;
-			m_transformGeoShader = g_boneGeometryShader;
-
-			glGenBuffers(1, &m_transformVBO);
-			glGenVertexArrays(1, &m_transformVAO);
-			glBindVertexArray(m_transformVAO);
-			glBindBuffer(GL_ARRAY_BUFFER, m_transformVBO);
-
-			m_boneVertices = std::make_shared<BoneVertex[]>(m_numVerts);
-			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(4 * sizeof(float)));
-			glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(7 * sizeof(float)));
-			glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(11 * sizeof(float)));
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(13 * sizeof(float)));
-			glVertexAttribIPointer(5, 4, GL_UNSIGNED_INT, sizeof(BoneVertex), (void*)(17 * sizeof(float)));
-
-			if (geo->m_vertexFlags & 1)
-				glEnableVertexAttribArray(0);
-			if (geo->m_vertexFlags & 2)
-				glEnableVertexAttribArray(1);
-			if (geo->m_vertexFlags & 4)
-				glEnableVertexAttribArray(2);
-			if (geo->m_vertexFlags & 8)
-				glEnableVertexAttribArray(3);
-
-			glEnableVertexAttribArray(4);
-			glEnableVertexAttribArray(5);
-
-			for (unsigned long index = 0; index < m_numVerts; ++index)
-				memcpy(m_boneVertices.get() + index, verts + index, sizeof(Vertex));
-
-			for (auto& env : geo->m_inputEnvelopes)
-			{
-				unsigned long indices[4] = { 0 };
-				for (size_t bone = 0; bone < env->m_inputMatrices.size(); ++bone)
-				{
-					xgBone* boneNode = env->m_inputMatrices[bone].m_node;
-					unsigned long index = 0;
-					for (; index < timeline.m_bones.size(); ++index)
-						if (timeline.m_bones[index].m_bone == boneNode)
-							goto Set_Index;
-
-					timeline.m_bones.emplace_back(boneNode);
-
-				Set_Index:
-					indices[bone] = index;
-				}
-
-				for (size_t i = 0, weightIndex = 0; i < env->m_numTargets; ++i, ++weightIndex)
-				{
-					unsigned long target = env->m_vertexTargets[i];
-					do
-					{
-						memcpy(m_boneVertices[target].m_weights, env->m_weights[weightIndex], 4 * sizeof(float));
-						memcpy(m_boneVertices[target].m_boneIDs, indices, 4 * sizeof(unsigned long));
-						target = env->m_vertexTargets[++i];
-					} while (target != -1);
-				}
-			}
-
-			glBufferData(GL_ARRAY_BUFFER, m_numVerts * sizeof(BoneVertex), m_boneVertices.get(), GL_STATIC_DRAW);
-		}
-		else if (geo->m_inputShapeInterpolator.isValid() ||
-				geo->m_inputVertexInterpolator.isValid() ||
-				geo->m_inputNormalInterpolator.isValid() ||
-				geo->m_inputTexCoordInterpolator.isValid())
-		{
-			m_transformShader = g_shapeShader;
-			m_transformGeoShader = g_shapeGeometryShader;
-
-			timeline.m_shapes.emplace_back();
-			Timeline::Shape& shape = timeline.m_shapes.back();
-			shape.m_numVerts = m_numVerts;
-
-			// Now set the buffers for the manipulated vertices
-
-			glGenBuffers(1, &m_transformVBO);
-			glGenVertexArrays(1, &m_transformVAO);
-			glBindVertexArray(m_transformVAO);
-			glBindBuffer(GL_ARRAY_BUFFER, m_transformVBO);
-
-			shape.m_animated = std::make_shared<ShapeVertex[]>(m_numVerts);
-			m_shapeVertices = shape.m_animated;
-			glBufferData(GL_ARRAY_BUFFER, m_numVerts * sizeof(ShapeVertex), m_shapeVertices.get(), GL_DYNAMIC_DRAW);
-
-			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)(4 * sizeof(float)));
-			glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)(7 * sizeof(float)));
-			glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)(11 * sizeof(float)));
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)(13 * sizeof(float)));
-			glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)(17 * sizeof(float)));
-			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)(20 * sizeof(float)));
-			glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)(24 * sizeof(float)));
-
-			if (geo->m_vertexFlags & 1)
-			{
-				glEnableVertexAttribArray(0);
-				glEnableVertexAttribArray(4);
-			}
-
-			if (geo->m_vertexFlags & 2)
-			{
-				glEnableVertexAttribArray(1);
-				glEnableVertexAttribArray(5);
-			}
-
-			if (geo->m_vertexFlags & 4)
-			{
-				glEnableVertexAttribArray(2);
-				glEnableVertexAttribArray(6);
-			}
-
-			if (geo->m_vertexFlags & 8)
-			{
-				glEnableVertexAttribArray(3);
-				glEnableVertexAttribArray(7);
-			}
-
-			if (geo->m_inputShapeInterpolator.isValid())
-				timeline.fillShape(geo->m_inputShapeInterpolator.m_node, verts);
-			else
-			{
-				bool filled = false;
-				if (geo->m_inputVertexInterpolator.isValid())
-					timeline.fillPositions(geo->m_inputVertexInterpolator.m_node, verts, filled);
-
-				if (geo->m_inputNormalInterpolator.isValid())
-					timeline.fillNormals(geo->m_inputNormalInterpolator.m_node, verts, filled);
-
-				if (geo->m_inputTexCoordInterpolator.isValid())
-					timeline.fillTexCoords(geo->m_inputTexCoordInterpolator.m_node, verts, filled);
-			}
-		}
-	}
-
-Bind_Buffers:
-	if (m_mesh->m_primType == 4)
-	{
-		m_triFanElements.set(m_mesh->m_triFanData);
-		m_triStripElements.set(m_mesh->m_triStripData);
-		m_triListElements.set(m_mesh->m_triListData);
-	}
-	else if (m_mesh->m_primType == 5)
-	{
-		m_triFanArrays.set(m_mesh->m_triFanData);
-		m_triStripArrays.set(m_mesh->m_triStripData);
-		m_triListArrays.set(m_mesh->m_triListData);
-	}
-	s_allMeshes.push_back(this);
-}
-
-bool GitarooViewer::DagMesh::hasTransparency() const
-{
-	return m_transparency;
-}
-
-GitarooViewer::DagMesh::~DagMesh()
-{
-	glDeleteVertexArrays(1, &m_VAO);
-	glDeleteBuffers(1, &m_VBO);
-	glDeleteVertexArrays(1, &m_transformVAO);
-	glDeleteBuffers(1, &m_transformVBO);
-}
-
-GitarooViewer::Model::~Model()
-{
-	for (auto& mesh : m_opaques)
-		delete mesh;
-	for (auto& mesh : m_transparents)
-		delete mesh;
-}
-
-GitarooViewer::Model::Model(XGM* xgm, XG& xg)
-{
-	m_animator.load(&xg);
-	// Map an identity matrix to the first node
-	m_animator.m_timeline.m_modelTransforms.emplace_back(nullptr);
-
-	for (int dagIndex = 0; dagIndex < xg.m_data->m_dag.size(); ++dagIndex)
-	{
-		if (dynamic_cast<xgDagTransform*>(xg.m_data->m_dag[dagIndex].m_base.m_node))
-			loadTransform(xgm, xg.m_data->m_dag[dagIndex]);
-		else
-		{
-			DagMesh* mesh = new DagMesh(xgm, (xgDagMesh*)xg.m_data->m_dag[dagIndex].m_base.m_node, m_animator.m_timeline, 0);
-			if (mesh->hasTransparency())
-				m_transparents.push_back(mesh);
-			else
-				m_opaques.push_back(mesh);
-		}
-	}
-
-	if (m_animator.m_timeline.m_bones.size())
-		m_animator.m_timeline.m_boneMatrices = new float[m_animator.m_timeline.m_bones.size()][16];
-}
-
-void GitarooViewer::Model::loadTransform(XGM* xgm, XG_Data::DagBase& dagBase)
-{
-	xgDagTransform* transformNode = (xgDagTransform*)dagBase.m_base.m_node;
-	size_t transformIndex = 0;
-	if (transformNode->m_inputMatrices.size())
-	{
-		for (; transformIndex < m_animator.m_timeline.m_modelTransforms.size(); ++transformIndex)
-			if (m_animator.m_timeline.m_modelTransforms[transformIndex].m_transform == transformNode)
-				goto Load_Meshes;
-
-		m_animator.m_timeline.m_modelTransforms.emplace_back(transformNode);
-	}
-
-Load_Meshes:
-	for (int dagIndex = 0; dagIndex < dagBase.m_connected.size(); ++dagIndex)
-	{
-		if (dynamic_cast<xgDagTransform*>(dagBase.m_connected[dagIndex].m_base.m_node))
-			loadTransform(xgm, dagBase.m_connected[dagIndex]);
-		else
-		{
-			DagMesh* mesh = new DagMesh(xgm, (xgDagMesh*)dagBase.m_connected[dagIndex].m_base.m_node, m_animator.m_timeline, transformIndex);
-			if (mesh->hasTransparency())
-				m_transparents.push_back(mesh);
-			else
-				m_opaques.push_back(mesh);
-		}
-	}
-}
-
-void GitarooViewer::Model::draw(const bool doTransparents, glm::mat4 base, const bool showNormals)
-{
-	for (auto& dag : (!doTransparents ? m_opaques : m_transparents))
-	{
-		Shader* baseShader;
-		glm::mat4 model;
-		// If the animator is not active or if there are no transfromations on this mesh
-		if (!m_animator || !dag->m_transformShader)
-		{
-			if (!m_animator)
-				model = base;
-			else
-				model = base * m_animator.m_timeline.m_modelTransforms[dag->m_dagTransformIndex].m_transformMatrix;
-			glBindBuffer(GL_ARRAY_BUFFER, dag->m_VBO);
-			glBindVertexArray(dag->m_VAO);
-			baseShader = &g_baseShader;
-			baseShader->use();
-		}
-		else
-		{
-			model = base * m_animator.m_timeline.m_modelTransforms[dag->m_dagTransformIndex].m_transformMatrix;
-			glBindBuffer(GL_ARRAY_BUFFER, dag->m_transformVBO);
-			glBindVertexArray(dag->m_transformVAO);
-			baseShader = &dag->m_transformShader;
-			baseShader->use();
-			if (dag->m_shapeVertices)
-			{
-				glBufferSubData(GL_ARRAY_BUFFER, 0, dag->m_numVerts * sizeof(ShapeVertex), dag->m_shapeVertices.get());
-				xgBgGeometry* geo = dag->m_mesh->m_inputGeometries.front().m_node;
-				if (geo->m_inputShapeInterpolator.isValid())
-				{
-					xgShapeInterpolator* shape = geo->m_inputShapeInterpolator.m_node;
-					if (!shape->m_type)
-					{
-						baseShader->setInt("interpolation.position", 0);
-						baseShader->setInt("interpolation.normal", 0);
-						baseShader->setInt("interpolation.color", 0);
-						baseShader->setInt("interpolation.texCoord", 0);
-					}
-					else
-					{
-						baseShader->setInt("interpolation.position", shape->m_keys[0].m_vertexType & 1);
-						baseShader->setInt("interpolation.normal", shape->m_keys[0].m_vertexType & 2);
-						baseShader->setInt("interpolation.color", shape->m_keys[0].m_vertexType & 4);
-						baseShader->setInt("interpolation.texCoord", shape->m_keys[0].m_vertexType & 8);
-					}
-				}
-				else
-				{
-					baseShader->setInt("interpolation.color", 0);
-
-					baseShader->setInt("interpolation.position",
-						geo->m_inputVertexInterpolator.isValid() && geo->m_inputVertexInterpolator->m_type);
-
-					baseShader->setInt("interpolation.normal",
-						geo->m_inputNormalInterpolator.isValid() && geo->m_inputNormalInterpolator->m_type);
-
-					baseShader->setInt("interpolation.texCoord",
-						geo->m_inputTexCoordInterpolator.isValid() && geo->m_inputTexCoordInterpolator->m_type);
-				}
-				baseShader->setFloat("coefficient", m_animator.getCoefficient());
-			}
-		}
-
-		baseShader->setVec3("lightPosition", glm::value_ptr(g_camera.m_position));
-		baseShader->setVec3("viewPos", glm::value_ptr(g_camera.m_position));
-		baseShader->setMat4("model", glm::value_ptr(model));
-
-		glDepthFunc(GL_LESS);
-		for (auto& mat : *dag->m_materials)
-		{
-			mat.setShaderValues(baseShader);
-			mat.setBlending();
-			if (dag->m_mesh->m_primType == 4)
-			{
-				dag->m_triFanElements.draw();
-				dag->m_triStripElements.draw();
-				dag->m_triListElements.draw();
-			}
-			else if (dag->m_mesh->m_primType == 5)
-			{
-				dag->m_triFanArrays.draw();
-				dag->m_triStripArrays.draw();
-				dag->m_triListArrays.draw();
-			}
-			glDepthFunc(GL_LEQUAL);
-		}
-
-		if (showNormals)
-		{
-			Shader* geoShader;
-			if (!m_animator || !dag->m_transformShader)
-			{
-				geoShader = &g_baseGeometryShader;
-				geoShader->use();
-			}
-			else
-			{
-				geoShader = &dag->m_transformGeoShader;
-				geoShader->use();
-				if (dag->m_shapeVertices)
-				{
-					xgBgGeometry* geo = dag->m_mesh->m_inputGeometries.front().m_node;
-					if (geo->m_inputShapeInterpolator.isValid())
-					{
-						xgShapeInterpolator* shape = geo->m_inputShapeInterpolator.m_node;
-						if (!shape->m_type)
-						{
-							geoShader->setInt("interpolation.position", 0);
-							geoShader->setInt("interpolation.normal", 0);
-						}
-						else
-						{
-							geoShader->setInt("interpolation.position", shape->m_keys[0].m_vertexType & 1);
-							geoShader->setInt("interpolation.normal", shape->m_keys[0].m_vertexType & 2);
-						}
-					}
-					else
-					{
-						if (geo->m_inputVertexInterpolator.isValid())
-							geoShader->setInt("interpolation.position", 1);
-						else
-							geoShader->setInt("interpolation.position", 0);
-
-						if (geo->m_inputNormalInterpolator.isValid())
-							geoShader->setInt("interpolation.normal", 1);
-						else
-							geoShader->setInt("interpolation.normal", 0);
-					}
-					geoShader->setFloat("coefficient", m_animator.getCoefficient());
-				}
-			}
-
-			geoShader->setMat4("model", glm::value_ptr(model));
-			if (dag->m_mesh->m_primType == 4)
-			{
-				dag->m_triFanElements.draw();
-				dag->m_triStripElements.draw();
-				dag->m_triListElements.draw();
-			}
-			else if (dag->m_mesh->m_primType == 5)
-			{
-				dag->m_triFanArrays.draw();
-				dag->m_triStripArrays.draw();
-				dag->m_triListArrays.draw();
-			}
-		}
-	}
 }

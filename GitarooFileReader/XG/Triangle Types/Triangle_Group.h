@@ -23,4 +23,5 @@ public:
 	void create(FILE* outFile) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	std::vector<std::vector<unsigned long>> extract() const;
+	void draw(GLenum mode) const;
 };

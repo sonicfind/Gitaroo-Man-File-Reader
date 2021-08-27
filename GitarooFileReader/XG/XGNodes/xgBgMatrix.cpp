@@ -107,3 +107,24 @@ void xgBgMatrix::write_to_txt(FILE* txtFile, const char* tabs)
 	if (m_inputParentMatrix)
 		fprintf_s(txtFile, "\t\t\t%s Parent Input Matrix: %s\n", tabs, m_inputParentMatrix->getName().m_pstring);
 }
+
+void xgBgMatrix::applyTransformations(glm::vec3& pos, glm::quat& rot, glm::vec3& scl)
+{
+	if (m_inputParentMatrix)
+		m_inputParentMatrix->applyTransformations(pos, rot, scl);
+
+	if (m_inputPosition)
+		pos += m_inputPosition->interpolate();
+	else
+		pos += m_position;
+
+	if (m_inputRotation)
+		rot *= m_inputRotation->interpolate();
+	else
+		rot *= m_rotation;
+
+	if (m_inputScale)
+		scl *= m_inputScale->interpolate();
+	else
+		scl *= m_scale;
+}

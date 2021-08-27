@@ -14,6 +14,7 @@
  */
 #include "pch.h"
 #include "xgDagTransform.h"
+#include <glm/gtx/transform.hpp>
 unsigned long xgDagTransform::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString test(inFile);
@@ -51,4 +52,22 @@ void xgDagTransform::write_to_txt(FILE* txtFile, const char* tabs)
 		fprintf_s(txtFile, "\t\t%s      Input Matrix: %s\n", tabs, m_inputMatrix->getName().m_pstring);
 	else
 		fprintf_s(txtFile, "\t\t%s      No Input Matrix\n", tabs);
+}
+
+glm::mat4x4 xgDagTransform::getModelMatrix() const
+{
+	if (m_inputMatrix)
+	{
+		glm::vec3 translation(0);
+		glm::quat rotation(1, 0, 0, 0);
+		glm::vec3 scale(1.0f);
+		if (m_inputMatrix)
+			m_inputMatrix->applyTransformations(translation, rotation, scale);
+		//return glm::translate(translation) * glm::toMat4(conjugate(rotation)) * glm::scale(scale) * m_restMatrix;
+		return glm::translate(translation) * glm::toMat4(conjugate(rotation)) * glm::scale(scale);
+	}
+	else
+	{
+		return glm::mat4x4(1.0f);
+	}
 }

@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "Animation.h"
 #include "Global_Functions.h"
+float Animation::s_tempo = 120;
+
 Animation::Animation(FILE* inFile)
 {
 	fread(&m_length, 4, 1, inFile);
@@ -33,4 +35,58 @@ bool Animation::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 	fprintf_s(txtFile, "\t\t\t\t    Starting Keyframe: %g\n", m_starting_keyframe);
 	fprintf_s(txtFile, "\t\t\t\t     Not Tempo Linked: %s\n", (m_non_tempo ? "TRUE" : "FALSE"));
 	return true;
+}
+
+float Animation::getTempo()
+{
+	return s_tempo;
+}
+
+bool Animation::setTempo()
+{
+	while (true)
+	{
+		GlobalFunctions::printf_tab("Current BPM: %g ['B' to leave unchanged]\n", s_tempo);
+		GlobalFunctions::printf_tab("Input: ");
+		switch (GlobalFunctions::valueInsert(s_tempo, false, "b"))
+		{
+		case GlobalFunctions::ResultType::Quit:
+			return true;
+		case GlobalFunctions::ResultType::SpecialCase:
+		case GlobalFunctions::ResultType::Success:
+			return false;
+		case GlobalFunctions::ResultType::InvalidNegative:
+			GlobalFunctions::printf_tab("Value must be positive.\n");
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+			break;
+		case GlobalFunctions::ResultType::Failed:
+			GlobalFunctions::printf_tab("\"%s\" is not a valid response.\n", g_global.invalid.c_str());
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+		}
+	}
+}
+
+const float Animation::getTotalTime() const
+{
+	if (m_non_tempo)
+		return 2 * m_length / m_framerate;
+	else
+		return (15 * m_length) / (s_tempo * 2);
+}
+
+const float Animation::getTime(const float numSeconds) const
+{
+	float numKeys;
+	if (m_non_tempo)
+		numKeys = numSeconds * m_framerate / (2 * m_keyframe_interval);
+	else
+		numKeys = numSeconds * (2 * s_tempo) / (15 * m_keyframe_interval);
+
+	const float totalKeys = m_length / m_keyframe_interval;
+	while (numKeys >= totalKeys)
+		numKeys -= totalKeys;
+
+	return numKeys + m_starting_keyframe;
 }

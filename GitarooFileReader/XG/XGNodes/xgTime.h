@@ -26,4 +26,8 @@ public:
 	void write_to_txt(FILE* txtFile, const char* tabs = "");
 	const char* getType() { return "xgTime"; }
 	static bool compare(const PString& str) { return strcmp("xgTime", str.m_pstring) == 0; }
+
+	void setTime(float time);
+	size_t getFrame();
+	float getCoefficient();
 };

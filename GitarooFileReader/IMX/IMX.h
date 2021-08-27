@@ -55,5 +55,6 @@ private:
 
 public:
 	void generateTextureBuffer();
+	void bindTextureBuffer() const;
 	void deleteTextureBuffer();
 };

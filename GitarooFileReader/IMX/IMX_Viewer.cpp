@@ -20,6 +20,11 @@ void IMX::generateTextureBuffer()
 	m_data->generateBuffer();
 }
 
+void IMX::bindTextureBuffer() const
+{
+	m_data->bindBuffer();
+}
+
 void IMX::deleteTextureBuffer()
 {
 	m_data->deleteBuffer();
@@ -87,4 +92,9 @@ void IMX_Data::deleteBuffer()
 		glDeleteTextures(1, &m_textureID);
 		m_textureID = 0;
 	}
+}
+
+void IMX_Data::bindBuffer() const
+{
+	glBindTexture(GL_TEXTURE_2D, m_textureID);
 }

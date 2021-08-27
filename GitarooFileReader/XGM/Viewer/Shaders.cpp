@@ -12,19 +12,15 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "pch.h"
 #include "Shaders.h"
 #include <glad/glad.h>
 #include <fstream>
-#include <sstream>
 #include <iostream>
 
-unsigned int Shader::activeID = 0;
-Shader g_baseShader;
-Shader g_boneShader;
-Shader g_shapeShader;
-Shader g_baseGeometryShader;
-Shader g_boneGeometryShader;
-Shader g_shapeGeometryShader;
+unsigned int Shader::s_activeID = 0;
+ShaderCombo g_shaders;
+ShaderCombo g_boneShaders;
 
 void Shader::createProgram(const char* vertexPath, const char* fragmentPath)
 {
@@ -192,10 +188,10 @@ void Shader::createProgram(const char* vertexPath, const char* geometryPath, con
 
 void Shader::use()
 {
-	if (activeID != ID)
+	if (s_activeID != ID)
 	{
 		glUseProgram(ID);
-		activeID = ID;
+		s_activeID = ID;
 	}
 }
 
@@ -203,31 +199,72 @@ void Shader::closeProgram()
 {
 	if (ID)
 		glDeleteProgram(ID);
-	activeID = 0;
+	s_activeID = 0;
+}
+
+void Shader::bindUniformBlock(unsigned int bufferIndex, const char* const blockName)
+{
+	unsigned int uniform_index = glGetUniformBlockIndex(ID, blockName);
+	glUniformBlockBinding(ID, uniform_index, bufferIndex);
+}
+
+void Shader::bindStorageBlock(unsigned int bufferIndex, const char* const blockName)
+{
+	unsigned int uniform_index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, blockName);
+	glShaderStorageBlockBinding(ID, uniform_index, bufferIndex);
 }
 
 // utility uniform functions
 void Shader::setBool(const std::string& name, bool value) const
 {
-	glUniform1i(glGetUniformLocation(activeID, name.c_str()), (int)value);
+	glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
 }
 void Shader::setInt(const std::string& name, int value) const
 {
-	glUniform1i(glGetUniformLocation(activeID, name.c_str()), value);
+	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 }
 void Shader::setFloat(const std::string& name, float value) const
 {
-	glUniform1f(glGetUniformLocation(activeID, name.c_str()), value);
+	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
 void Shader::setVec3(const std::string& name, float* vect, const int size) const
 {
-	glUniform3fv(glGetUniformLocation(activeID, name.c_str()), size, vect);
+	glUniform3fv(glGetUniformLocation(ID, name.c_str()), size, vect);
 }
 void Shader::setVec4(const std::string& name, float* vect, const int size) const
 {
-	glUniform4fv(glGetUniformLocation(activeID, name.c_str()), size, vect);
+	glUniform4fv(glGetUniformLocation(ID, name.c_str()), size, vect);
+}
+void Shader::setMat3(const std::string& name, float* matrix, const int size) const
+{
+	glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), size, GL_FALSE, matrix);
 }
 void Shader::setMat4(const std::string& name, float* matrix, const int size) const
 {
-	glUniformMatrix4fv(glGetUniformLocation(activeID, name.c_str()), size, GL_FALSE, matrix);
+	glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), size, GL_FALSE, matrix);
+}
+
+void ShaderCombo::createPrograms(const char* vertexPath, const char* fragmentPath
+								, const char* geoVertexPath, const char* geoGeometryPath, const char* geoFragmentPath)
+{
+	m_base.createProgram(vertexPath, fragmentPath);
+	m_geometry.createProgram(geoVertexPath, geoGeometryPath, geoFragmentPath);
+}
+
+void ShaderCombo::closePrograms()
+{
+	m_base.closeProgram();
+	m_geometry.closeProgram();
+}
+
+void ShaderCombo::bindUniformBlock(unsigned int bufferIndex, const char* const blockName)
+{
+	m_base.bindUniformBlock(bufferIndex, blockName);
+	m_geometry.bindUniformBlock(bufferIndex, blockName);
+}
+
+void ShaderCombo::bindStorageBlock(unsigned int bufferIndex, const char* const blockName)
+{
+	m_base.bindStorageBlock(bufferIndex, blockName);
+	m_geometry.bindStorageBlock(bufferIndex, blockName);
 }

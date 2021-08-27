@@ -140,3 +140,55 @@ void XG_Data::create(FILE* outFile)
 
 	PString::push('}', outFile);
 }
+
+// Finds all xgMaterial nodes that contain references to a texture
+// and connects each to the respective IMX pointer
+void XG_Data::connectTextures(std::vector<IMX>& textures)
+{
+	for (Dag& dag : m_dagMap)
+		dag.connectTextures(textures);
+}
+
+// Constructs all the vertex and uniform buffers for use in the OpenGL viewer
+void XG_Data::initializeViewerState()
+{
+	for (Dag& dag : m_dagMap)
+		dag.initializeViewerState();
+}
+
+// Deletes all the vertex and uniform buffers created for the OpenGL viewer
+void XG_Data::uninitializeViewerState()
+{
+	for (Dag& dag : m_dagMap)
+		dag.uninitializeViewerState();
+}
+
+// Sets all vertex and bone matrix values to their defaults
+void XG_Data::restPose()
+{
+	for (Dag& dag : m_dagMap)
+		dag.restPose();
+}
+
+// Updates all data to the current frame
+void XG_Data::animate(float frame)
+{
+	if (m_timeNode)
+	{
+		// Sets the xgTime node to the current frame
+		// All interpolators will then be able to pull time values from this node
+		m_timeNode->setTime(frame);
+		for (Dag& dag : m_dagMap)
+			dag.animate();
+	}
+}
+
+#include <glm/gtx/transform.hpp>
+// Draws all vertex data to the current framebuffer
+void XG_Data::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const
+{
+	// Necessary to flip the z value of all coordinates
+	const glm::mat4 base = glm::scale(glm::vec3(1, 1, -1));
+	for (const Dag& dag : m_dagMap)
+		dag.draw(view, base, showNormals, doTransparents);
+}

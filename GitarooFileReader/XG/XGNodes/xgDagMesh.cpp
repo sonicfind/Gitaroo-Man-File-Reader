@@ -14,6 +14,7 @@
  */
 #include "pch.h"
 #include "xgDagMesh.h"
+#include <glad/glad.h>
 unsigned long xgDagMesh::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
@@ -136,6 +137,76 @@ void xgDagMesh::faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGe
 			m_triStrip->write_to_obj(objFile, element.first, texture);
 			m_triList->write_to_obj(objFile, element.first, texture);
 			return;
+		}
+	}
+}
+
+void xgDagMesh::connectTextures(std::vector<IMX>& textures)
+{
+	if (xgMaterial* mat = m_inputMaterial.get<xgMaterial>())
+		mat->connectTexture(textures);
+	else if (xgMultiPassMaterial* mat = m_inputMaterial.get<xgMultiPassMaterial>())
+		mat->connectTextures(textures);
+}
+
+void xgDagMesh::intializeBuffers()
+{
+	// If a buffer was made, then this is an unique geometry node
+	m_doGeometryAnimation = m_inputGeometry->generateVertexBuffer();
+	m_hasTransparency = m_inputMaterial->intializeBuffers();
+}
+
+void xgDagMesh::deleteBuffers()
+{
+	m_inputGeometry->deleteVertexBuffer();
+	m_inputMaterial->deleteBuffers();
+}
+
+void xgDagMesh::restPose() const
+{
+	if (m_doGeometryAnimation)
+		m_inputGeometry->restPose();
+}
+
+void xgDagMesh::animate()
+{
+	if (m_doGeometryAnimation)
+		m_inputGeometry->animate();
+}
+
+#include "XGM/Viewer/Camera.h"
+#include <glm/gtc/type_ptr.hpp>
+void xgDagMesh::draw(const glm::mat4 view, glm::mat4 model, const bool showNormals, const bool doTransparents) const
+{
+	if (doTransparents == m_hasTransparency)
+	{
+		ShaderCombo* active = m_inputGeometry->activateShader();
+		active->m_base.setInt("doMulti", 0);
+		glActiveTexture(GL_TEXTURE0);
+		m_inputMaterial->setShaderValues(&active->m_base, "[0]");
+
+		//glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
+		active->m_base.setVec3("lightPosition", glm::value_ptr(g_camera.m_position));
+		active->m_base.setVec3("viewPos", glm::value_ptr(g_camera.m_position));
+		active->m_base.setMat4("model", glm::value_ptr(model));
+		//active->m_base.setMat3("normalMatrix", glm::value_ptr(normalMatrix));
+		m_inputGeometry->bindVertexBuffer();
+		
+		m_triFan->draw(GL_TRIANGLE_FAN);
+		m_triStrip->draw(GL_TRIANGLE_STRIP);
+		m_triList->draw(GL_TRIANGLES);
+
+		int val = glGetError();
+		glBindTexture(GL_TEXTURE_2D, 0);
+		if (showNormals)
+		{
+			active->m_geometry.use();
+			active->m_geometry.setMat4("model", glm::value_ptr(model));
+			//active->m_geometry.setMat3("normalMatrix", glm::value_ptr(normalMatrix));
+
+			m_triFan->draw(GL_TRIANGLE_FAN);
+			m_triStrip->draw(GL_TRIANGLE_STRIP);
+			m_triList->draw(GL_TRIANGLES);
 		}
 	}
 }

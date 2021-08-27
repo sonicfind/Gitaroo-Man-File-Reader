@@ -44,3 +44,32 @@ void xgTexture::write_to_txt(FILE* txtFile, const char* tabs)
 	fprintf_s(txtFile, "\t\t\t%s    Texture: %s\n", tabs, m_imxName.m_pstring);
 	fprintf_s(txtFile, "\t\t%s      Mip map depth: %lu\n", tabs, m_mipmap_depth);
 }
+
+void xgTexture::connectTexture(std::vector<IMX>& textures)
+{
+	PString compare = m_imxName;
+	for (int index = 0; index < compare.m_size; ++index)
+		compare.m_pstring[index] = toupper(compare.m_pstring[index]);
+
+	for (auto& texture : textures)
+		if (strcmp(texture.getName(), compare.m_pstring) == 0)
+		{
+			m_imxPtr = &texture;
+			return;
+		}
+}
+
+void xgTexture::generateTextureBuffer()
+{
+	m_imxPtr->generateTextureBuffer();
+}
+
+void xgTexture::bindTextureBuffer() const
+{
+	m_imxPtr->bindTextureBuffer();
+}
+
+void xgTexture::deleteTextureBuffer()
+{
+	m_imxPtr->deleteTextureBuffer();
+}

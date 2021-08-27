@@ -57,5 +57,6 @@ private:
 public:
 	unsigned getTextureID() const;
 	void generateBuffer();
+	void bindBuffer() const;
 	void deleteBuffer();
 };

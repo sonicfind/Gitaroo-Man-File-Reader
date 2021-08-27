@@ -46,3 +46,21 @@ void xgTime::write_to_txt(FILE* txtFile, const char* tabs)
 	fprintf_s(txtFile, "\t\t%s   # of Frames: %g\n", tabs, m_numFrames);
 	fprintf_s(txtFile, "\t\t\t%s  Time: %g (Starting point??)\n", tabs, m_time);
 }
+
+void xgTime::setTime(float time)
+{
+	if (time < m_numFrames - 1)
+		m_time = time;
+	else
+		m_time = m_numFrames - 1;
+}
+
+size_t xgTime::getFrame()
+{
+	return (size_t)m_time;
+}
+
+float xgTime::getCoefficient()
+{
+	return m_time - (unsigned)m_time;
+}

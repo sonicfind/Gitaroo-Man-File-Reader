@@ -77,4 +77,25 @@ public:
 
 	const char* getType() { return "xgTimedInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgTimedInterpolator", str.m_pstring) == 0; }
+	ListType<T> interpolate() const
+	{
+		const size_t index = this->m_inputTime->getFrame();
+		const float coefficient = this->m_inputTime->getCoefficient();
+		if (index + 1 < m_times.size())
+		{
+			// If the value given by m_times[nextIndex] is less than the current index,
+			// it can be assumed that the interpolator had enough frames to utilize every key.
+			// Therefore, the values in m_times should not have any decimals.
+			if (m_times[index + 1] - m_times[index] == 1.0f || m_times[index + 1] < m_times[index])
+				return xgInterpolator<ListType<T>>::mix((size_t)m_times[index], (size_t)m_times[index + 1], coefficient);
+			else
+			{
+				float time = m_times[index] + (m_times[index + 1] - m_times[index]) * coefficient;
+				const size_t timedIndex = (size_t)time;
+				return xgInterpolator<ListType<T>>::mix(timedIndex, timedIndex + 1, time - timedIndex);
+			}
+		}
+		else
+			return xgInterpolator<ListType<T>>::mix((size_t)m_times[index], (size_t)m_times[index] + 1, m_times[index] - (size_t)m_times[index]);
+	}
 };

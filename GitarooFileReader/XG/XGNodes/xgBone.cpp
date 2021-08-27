@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "xgBone.h"
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
 unsigned long xgBone::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
@@ -56,4 +57,15 @@ void xgBone::write_to_txt(FILE* txtFile, const char* tabs)
 		fprintf_s(txtFile, "\t\t\t%s      Row %u: %g, %g, %g, %g\n", tabs, row + 1,
 			m_restMatrix[row].x, m_restMatrix[row].y, m_restMatrix[row].z, m_restMatrix[row].w);
 	fprintf_s(txtFile, "\t\t\t%sInput Matrix: %s\n", tabs, m_inputMatrix->getName().m_pstring);
+}
+
+glm::mat4 xgBone::getBoneMatrix() const
+{
+	glm::vec3 translation(0);
+	glm::quat rotation(1, 0, 0, 0);
+	glm::vec3 scale(1.0f);
+	if (m_inputMatrix)
+		m_inputMatrix->applyTransformations(translation, rotation, scale);
+	return glm::translate(translation) * glm::toMat4(conjugate(rotation)) * glm::scale(scale) * m_restMatrix;
+	//return glm::translate(translation) * glm::toMat4(rotation) * glm::scale(scale) * m_restMatrix;
 }

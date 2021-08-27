@@ -14,6 +14,16 @@
  */
 #include "pch.h"
 #include "Vertex.h"
+Vertex Vertex::mix(const Vertex& nextVertex, const float coefficient, const unsigned long flags) const
+{
+	return {
+		flags & 1 ? glm::mix(m_position, nextVertex.m_position, coefficient) : glm::vec4(),
+		flags & 2 ? glm::mix(m_normal, nextVertex.m_normal, coefficient) : glm::vec3(),
+		flags & 4 ? glm::mix(m_color, nextVertex.m_color, coefficient) : glm::vec4(),
+		flags & 8 ? glm::mix(m_texCoord, nextVertex.m_texCoord, coefficient) : glm::vec2()
+	};
+}
+
 void Vertex::position_to_OBJ(FILE* objFile)
 {
 	fprintf(objFile, "v %f %f %f\n", m_position.x, m_position.y, m_position.z);

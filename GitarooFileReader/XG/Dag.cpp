@@ -74,3 +74,66 @@ void Dag::queue_for_obj(std::vector<std::pair<size_t, xgBgGeometry*>>& history) 
 		for (const auto& dag : m_connected)
 			dag.queue_for_obj(history);
 }
+
+void Dag::connectTextures(std::vector<IMX>& textures)
+{
+	if (auto mesh = m_base.get<xgDagMesh>())
+		mesh->connectTextures(textures);
+	else
+		for (auto& dag : m_connected)
+			dag.connectTextures(textures);
+}
+
+void Dag::initializeViewerState()
+{
+	if (auto mesh = m_base.get<xgDagMesh>())
+		mesh->intializeBuffers();
+	else
+		for (auto& dag : m_connected)
+			dag.initializeViewerState();
+}
+
+void Dag::uninitializeViewerState()
+{
+	if (auto mesh = m_base.get<xgDagMesh>())
+		mesh->deleteBuffers();
+	else
+		for (auto& dag : m_connected)
+			dag.uninitializeViewerState();
+}
+
+void Dag::restPose()
+{
+	if (auto mesh = m_base.get<xgDagMesh>())
+		mesh->restPose();
+	else
+	{
+		m_matrix = glm::mat4(1.0f);
+		for (auto& dag : m_connected)
+			dag.restPose();
+	}
+}
+
+void Dag::animate()
+{
+	if (auto mesh = m_base.get<xgDagMesh>())
+		mesh->animate();
+	else
+	{
+		m_matrix = m_base.get<xgDagTransform>()->getModelMatrix();
+		for (auto& dag : m_connected)
+			dag.animate();
+	}
+}
+
+void Dag::draw(const glm::mat4 view, const glm::mat4 model, const bool showNormals, const bool doTransparents) const
+{
+	if (auto mesh = m_base.get<xgDagMesh>())
+		mesh->draw(view, model, showNormals, doTransparents);
+	else
+	{
+		const glm::mat4 transform = model * m_matrix;
+		for (const auto& dag : m_connected)
+			dag.draw(view, transform, showNormals, doTransparents);
+	}
+}

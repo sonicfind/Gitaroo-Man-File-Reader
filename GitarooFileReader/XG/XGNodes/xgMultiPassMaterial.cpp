@@ -63,3 +63,36 @@ void xgMultiPassMaterial::write_to_txt(FILE* txtFile, const char* tabs)
 	for (size_t index = 0; index < m_inputMaterials.size(); ++index)
 		fprintf_s(txtFile, "\t\t%s %zu. %s\n", tabs, index + 1, m_inputMaterials[index]->getName().m_pstring);
 }
+
+void xgMultiPassMaterial::connectTextures(std::vector<IMX>& textures)
+{
+	for (auto& mat : m_inputMaterials)
+		mat->connectTexture(textures);
+}
+
+#include <glad/glad.h>
+bool xgMultiPassMaterial::intializeBuffers()
+{
+	bool transparent = false;
+	for (size_t i = 0; i < m_inputMaterials.size(); ++i)
+		transparent = m_inputMaterials[i]->intializeBuffers();
+	return transparent;
+}
+
+void xgMultiPassMaterial::deleteBuffers()
+{
+	for (auto& mat : m_inputMaterials)
+		mat->deleteBuffers();
+}
+
+void xgMultiPassMaterial::setShaderValues(Shader* shader, const std::string index) const
+{
+	shader->setInt("doMulti", m_inputMaterials.size() > 1 ? 1 : 0);
+	for (size_t i = 0; i < m_inputMaterials.size(); ++i)
+	{
+		glActiveTexture(GL_TEXTURE0 + int(i));
+		std::string index = std::to_string(i);
+		shader->setInt("materials[" + index + "].diffuse", int(i));
+		m_inputMaterials[i]->setShaderValues(shader, "[" + index + ']');
+	}
+}

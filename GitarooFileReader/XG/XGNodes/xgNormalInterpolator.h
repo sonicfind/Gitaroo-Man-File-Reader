@@ -21,4 +21,5 @@ public:
 	void create(FILE* outFile, bool full) const;
 	const char* getType() { return "xgNormalInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgNormalInterpolator", str.m_pstring) == 0; }
+	void replaceVertexData() const;
 };

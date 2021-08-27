@@ -21,4 +21,5 @@ public:
 	void create(FILE* outFile, bool full) const;
 	const char* getType() { return "xgTexCoordInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgTexCoordInterpolator", str.m_pstring) == 0; }
+	void replaceVertexData() const;
 };

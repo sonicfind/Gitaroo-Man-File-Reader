@@ -296,7 +296,7 @@ bool XGM::viewModel()
 			putchar('\n');
 		}
 
-		printf_tab("B - Change BPM for tempo-base animations: %g\n", Animator::getBPM());
+		printf_tab("B - Change BPM for tempo-base animations: %g\n", Animation::getTempo());
 		printf_tab("A - Switch aspect ratio: %s\n", Viewer::getAspectRatioString().c_str());
 		printf_tab("H - Change viewer resolution, Height: %u\n", Viewer::getScreenHeight());
 		printf_tab("? - Show list of controls\n");
@@ -319,9 +319,6 @@ bool XGM::viewModel()
 			printf_tab("\tP - Pause/Play\n");
 			printf_tab("\tR (Press) - Reset current animation to frame 0\n");
 			printf_tab("\tR (Hold) - Reset to first animation\n");
-			printf_tab("\tRight/Left - Switch between adjacent animations\n");
-			printf_tab("    While an animation is paused:\n");
-			printf_tab("\t    '.'/',' - Increment/decrement keyframe index\n");
 			printf_tab("\n");
 			printf_tab("Press 'Enter' when you're done reading\n");
 			printf_tab("");
@@ -335,7 +332,7 @@ bool XGM::viewModel()
 			switch (g_global.answer.character)
 			{
 			case 'b':
-				if (Animator::setBPM())
+				if (Animation::setTempo())
 					return true;
 				break;
 			case 'a':

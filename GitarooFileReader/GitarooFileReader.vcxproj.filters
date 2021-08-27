@@ -252,6 +252,9 @@
     <ClCompile Include="XG\Animation.cpp">
       <Filter>Visual-Based Types\XG</Filter>
     </ClCompile>
+    <ClCompile Include="XGM\Viewer\Model.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\Global_Functions.h">
@@ -404,6 +407,9 @@
     <ClInclude Include="XG\Animation.h">
       <Filter>Visual-Based Types\XG</Filter>
     </ClInclude>
+    <ClInclude Include="XGM\Viewer\Model.h">
+      <Filter>Viewer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\pch.h">
@@ -439,8 +445,31 @@
     <Natvis Include="XG\XG.natvis">
       <Filter>Visual-Based Types\XG</Filter>
     </Natvis>
-    <Natvis Include="XGM\Viewer_DagMesh.natvis">
-      <Filter>Visual-Based Types\XGM\Viewer</Filter>
+    <Natvis Include="Main\SharedPtr.natvis">
+      <Filter>Global</Filter>
     </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="base.vert">
+      <Filter>Viewer\Shaders\Base</Filter>
+    </None>
+    <None Include="material.frag">
+      <Filter>Viewer\Shaders\Base</Filter>
+    </None>
+    <None Include="geometry.frag">
+      <Filter>Viewer\Shaders\Geometry</Filter>
+    </None>
+    <None Include="geometry.geo">
+      <Filter>Viewer\Shaders\Geometry</Filter>
+    </None>
+    <None Include="geometry.vert">
+      <Filter>Viewer\Shaders\Geometry</Filter>
+    </None>
+    <None Include="bones.vert">
+      <Filter>Viewer\Shaders\Base</Filter>
+    </None>
+    <None Include="geometry - bones.vert">
+      <Filter>Viewer\Shaders\Geometry</Filter>
+    </None>
   </ItemGroup>
 </Project>

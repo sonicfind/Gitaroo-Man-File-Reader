@@ -83,4 +83,15 @@ public:
 		for (unsigned long index = 0; index < m_targets.size(); ++index)
 			fprintf_s(txtFile, "\t\t\t%s  Target %lu: %lu\n", tabs, index + 1, m_targets[index]);
 	}
+
+	ListType<T> interpolate() const
+	{
+		ListType<T> mixed = xgTimedInterpolator<T>::interpolate();
+		ListType<T> finalMix;
+		finalMix.m_values = mixed.m_values;
+		for (unsigned long targetIndex = 0; targetIndex < m_targets.size(); ++targetIndex)
+			finalMix.m_values[m_targets[targetIndex]] = mixed.m_values[targetIndex];
+		finalMix.m_values.shrink_to_fit();
+		return finalMix;
+	}
 };

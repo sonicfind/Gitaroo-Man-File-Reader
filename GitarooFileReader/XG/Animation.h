@@ -29,7 +29,14 @@ class Animation
 		long l;
 	} m_junk[3] = { 0 };
 
+	static float s_tempo;
 public:
 	Animation(FILE* inFile);
 	bool write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile);
+	static float getTempo();
+	static bool setTempo();
+
+	const float getTotalTime() const;
+	const float getTotalCoefficient() const;
+	const float getTime(const float numSeconds) const;
 };

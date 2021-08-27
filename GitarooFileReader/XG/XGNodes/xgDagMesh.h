@@ -40,4 +40,15 @@ public:
 	static bool compare(const PString& str) { return strcmp("xgDagMesh", str.m_pstring) == 0; }
 	void queue_for_obj(std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;
 	void faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;
+
+private:
+	bool m_hasTransparency = false;
+
+public:
+	void connectTextures(std::vector<IMX>& textures);
+	void intializeBuffers();
+	void deleteBuffers();
+	void restPose() const;
+	void animate();
+	void draw(const glm::mat4 view, glm::mat4 model, const bool showNormals, const bool doTransparents) const;
 };

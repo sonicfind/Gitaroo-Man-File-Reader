@@ -13,30 +13,36 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "Dag.h"
-class XG_Data
+#include "XG/XG.h"
+class Model
 {
-	friend class XG;
-	void addNode(const PString& type, const PString& name);
-public:
-	std::vector<std::unique_ptr<XGNode>> m_nodes;
-	std::vector<Dag> m_dagMap;
-	SharedNode<xgTime> m_timeNode;
-	XG_Data() = default;
-	XG_Data(FILE* inFile, unsigned long& filesize);
-	void create(FILE* outFile);
+	XG* m_xg;
+	size_t m_animIndex;
+	float m_currAnimStartTime;
+	// The length of the animation in seconds
+	float m_length;
+	static bool s_isLooping;
 
-	// Finds all xgMaterial nodes that contain references to a texture
-	// and connects each to the respective IMX pointer
-	void connectTextures(std::vector<IMX>& textures);
-	// Constructs all the vertex and uniform buffers for use in the OpenGL viewer
-	void initializeViewerState();
-	// Deletes all the vertex and uniform buffers created for the OpenGL viewer
-	void uninitializeViewerState();
+public:
+	Model(XG* xg);
+	~Model();
 	// Sets all vertex and bone matrix values to their defaults
 	void restPose();
-	// Updates all data to the current frame
-	void animate(float frame);
+	// Checks whether to proceed to the next animation (or to loop if that flag is set)
+	// Then updates the model data
+	void update(float time);
+	// Sets the handler to the provided animation index
+	void setAnimation(float time, size_t animIndex);
+	// Skip to next animation
+	void nextAnimation(float time, bool forced = false);
+	// Skip back to the previoes animation
+	void prevAnimation(float time, bool forced = false);
+	// Resets the current animation
+	void setStartTime(float time);
+	// Jumps to the first animation
+	void reset();
+	// This is one isn't obvious at all
+	static void toggleLoop();
 	// Draws all vertex data to the current framebuffer
 	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const;
 };

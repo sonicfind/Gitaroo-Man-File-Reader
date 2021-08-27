@@ -81,3 +81,8 @@ std::vector<std::vector<unsigned long>> Triangle_Group::extract() const
 	}
 	return indexSets;
 }
+
+void Triangle_Group::draw(GLenum mode) const
+{
+	glMultiDrawArrays(mode, (GLint*)m_indices.data(), (GLsizei*)m_counts.data(), (GLsizei)m_counts.size());
+}

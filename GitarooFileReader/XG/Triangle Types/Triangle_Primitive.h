@@ -22,6 +22,7 @@ protected:
 public:
 	Triangle_Prim(FILE* inFile, unsigned long type);
 	void create(FILE* outFile) const;
+	void draw(GLenum mode) const;
 	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const {}
 	virtual void write_to_obj(FILE* objFile, const size_t offset, const bool writeTexture) const {}
 };

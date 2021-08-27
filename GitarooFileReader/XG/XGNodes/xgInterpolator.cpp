@@ -51,3 +51,26 @@ void Interpolation::write_to_txt(FILE* txtFile, const ListType<Vertex>& list, co
 			fprintf_s(txtFile, "\t\t\t\t\t%sTexture Coordinate (ST): %g, %g\n", tabs, vertex.m_texCoord.s, vertex.m_texCoord.t);
 	}
 }
+
+glm::vec2 Interpolation::mix(const glm::vec2 v1, const glm::vec2 v2, const float coefficient)
+{
+	return glm::mix(v1, v2, coefficient);
+}
+
+glm::vec3 Interpolation::mix(const glm::vec3 v1, const glm::vec3 v2, const float coefficient)
+{
+	return glm::mix(v1, v2, coefficient);
+}
+
+glm::quat Interpolation::mix(const glm::quat q1, const glm::quat q2, const float coefficient)
+{
+	return glm::slerp(q1, q2, coefficient);
+}
+
+ListType<Vertex> Interpolation::mix(const ListType<Vertex>& list_1, const ListType<Vertex>& list_2, const float coefficient)
+{
+	ListType<Vertex> mixedList = list_1;
+	for (size_t i = 0; i < mixedList.m_vertices.size(); ++i)
+		mixedList.m_vertices[i] = list_1.m_vertices[i].mix(list_2.m_vertices[i], coefficient, list_1.m_vertexFlags);
+	return mixedList;
+}

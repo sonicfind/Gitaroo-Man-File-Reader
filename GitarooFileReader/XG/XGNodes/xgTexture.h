@@ -14,10 +14,12 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "XG/XG_Nodes.h"
+#include "IMX/IMX.h"
 class xgTexture : public XGNode
 {
 	PString m_imxName;
 	unsigned long m_mipmap_depth = 0;
+	IMX* m_imxPtr = nullptr;
 
 public:
 	using XGNode::XGNode;
@@ -26,4 +28,8 @@ public:
 	void write_to_txt(FILE* txtFile, const char* tabs = "");
 	const char* getType() { return "xgTexture"; }
 	static bool compare(const PString& str) { return strcmp("xgTexture", str.m_pstring) == 0; }
+	void connectTexture(std::vector<IMX>& textures);
+	void generateTextureBuffer();
+	void bindTextureBuffer() const;
+	void deleteTextureBuffer();
 };

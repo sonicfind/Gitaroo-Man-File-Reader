@@ -208,8 +208,6 @@
     <ClCompile Include="IMX\IMX.cpp" />
     <ClCompile Include="IMX\IMX_Main.cpp" />
     <ClCompile Include="PString\PString.cpp" />
-    <ClCompile Include="XGM\Viewer\Material.cpp" />
-    <ClCompile Include="XGM\Viewer\Primitives.cpp" />
     <ClCompile Include="XGM\Viewer\Model.cpp" />
     <ClCompile Include="XG\Animation.cpp" />
     <ClCompile Include="XG\Dag.cpp" />
@@ -244,7 +242,6 @@
     <ClCompile Include="XG\XG_Main.cpp" />
     <ClCompile Include="XGM\XGM.cpp" />
     <ClCompile Include="XGM\XGM_Main.cpp" />
-    <ClCompile Include="XGM\Viewer\Animator.cpp" />
     <ClCompile Include="XGM\Viewer\Camera.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -257,13 +254,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="XGM\Viewer\Shaders.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="XGM\Viewer\Timeline.cpp" />
+    <ClCompile Include="XGM\Viewer\Shaders.cpp" />
     <ClCompile Include="XGM\Viewer\Viewer.cpp" />
     <ClCompile Include="Main\GitarooFileReader.cpp" />
   </ItemGroup>
@@ -283,8 +274,6 @@
     <ClInclude Include="CHC\CH_NoteTrack.h" />
     <ClInclude Include="PString\PString.h" />
     <ClInclude Include="IMX\IMX.h" />
-    <ClInclude Include="XGM\Viewer\Material.h" />
-    <ClInclude Include="XGM\Viewer\Primitives.h" />
     <ClInclude Include="XGM\Viewer\Model.h" />
     <ClInclude Include="XG\Animation.h" />
     <ClInclude Include="XG\Dag.h" />
@@ -319,11 +308,9 @@
     <ClInclude Include="XG\XG_Nodes.h" />
     <ClInclude Include="XG\XG.h" />
     <ClInclude Include="XGM\XGM.h" />
-    <ClInclude Include="XGM\Viewer\Animator.h" />
     <ClInclude Include="XGM\Viewer\Camera.h" />
     <ClInclude Include="XGM\Viewer\InputHandler.h" />
     <ClInclude Include="XGM\Viewer\Shaders.h" />
-    <ClInclude Include="XGM\Viewer\Timeline.h" />
     <ClInclude Include="XGM\Viewer\Viewer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -337,8 +324,16 @@
     <Natvis Include="Main\glm.natvis" />
     <Natvis Include="IMX\IMX.natvis" />
     <Natvis Include="Main\SharedPtr.natvis" />
-    <Natvis Include="XGM\Viewer_DagMesh.natvis" />
     <Natvis Include="XG\XG.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="base.vert" />
+    <None Include="bones.vert" />
+    <None Include="geometry - bones.vert" />
+    <None Include="geometry.frag" />
+    <None Include="geometry.geo" />
+    <None Include="geometry.vert" />
+    <None Include="material.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

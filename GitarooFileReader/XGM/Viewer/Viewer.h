@@ -13,61 +13,9 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "Model.h"
 #include "XGM/XGM.h"
-#include "Animator.h"
-#include "Shaders.h"
-#include "Primitives.h"
-#include "Material.h"
 #include <GLFW/glfw3.h>
-
-namespace GitarooViewer
-{
-	struct DagMesh
-	{
-		xgDagMesh* m_mesh = nullptr;
-		size_t m_dagTransformIndex = 0;
-
-		unsigned int m_numVerts = 0;
-		std::shared_ptr<Vertex[]> m_vertices;
-		std::shared_ptr<BoneVertex[]> m_boneVertices;
-		std::shared_ptr<ShapeVertex[]> m_shapeVertices;
-
-		unsigned int m_VBO = 0;
-		unsigned int m_VAO = 0;
-		unsigned int m_transformVBO = 0;
-		unsigned int m_transformVAO = 0;
-
-		Shader m_transformShader;
-		Shader m_transformGeoShader;
-
-		std::shared_ptr<std::list<Material>> m_materials;
-		bool m_transparency = false;
-
-		TriElements m_triFanElements;
-		TriElements m_triStripElements;
-		TriElements m_triListElements;
-		TriArrays m_triFanArrays;
-		TriArrays m_triStripArrays;
-		TriArrays m_triListArrays;
-
-		static std::list<DagMesh*> s_allMeshes;
-
-		DagMesh(XGM* xgm, xgDagMesh* mesh, Timeline& timeline, size_t transformIndex);
-		~DagMesh();
-		bool hasTransparency() const;
-	};
-
-	struct Model
-	{
-		std::list<DagMesh*> m_opaques;
-		std::list<DagMesh*> m_transparents;
-		Animator m_animator;
-		Model(XGM* xgm, XG& xg);
-		~Model();
-		void loadTransform(XGM* xgm, XG_Data::DagBase& dagBase);
-		void draw(const bool doTransparents, glm::mat4 base, const bool showNormals);
-	};
-}
 
 enum class AspectRatioMode
 {
@@ -84,14 +32,9 @@ class Viewer
 	static unsigned int s_screenHeight;
 
 	GLFWwindow* m_window;
-	bool m_activeMouse = true;
-	unsigned int m_UBO;
 	unsigned int m_lightUBO;
-	unsigned int m_geoUBO;
-	unsigned int m_geoLineUBO;
-	unsigned int m_boneUBO;
-	float m_currentTime = 0;
-	float m_previousTime = 0;
+	unsigned int m_viewUBO;
+	unsigned int m_projectionUBO;
 
 	glm::vec3 m_lightPos;
 	glm::vec3 m_lightAmbient;
@@ -101,7 +44,7 @@ class Viewer
 	float m_lightLinear;
 	float m_lightQuadratic;
 
-	std::list<GitarooViewer::Model> m_models;
+	std::list<Model> m_models;
 
 public:
 	Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices);

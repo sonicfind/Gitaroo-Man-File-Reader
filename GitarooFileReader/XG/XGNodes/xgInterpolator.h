@@ -33,6 +33,19 @@ namespace Interpolation
 		}
 	}
 	void write_to_txt(FILE* txtFile, const ListType<Vertex>&, const char* tabs = "");
+	glm::vec2 mix(const glm::vec2, const glm::vec2, const float coefficient);
+	glm::vec3 mix(const glm::vec3, const glm::vec3, const float coefficient);
+	glm::quat mix(const glm::quat, const glm::quat, const float coefficient);
+
+	template<typename T>
+	ListType<T> mix(const ListType<T>& vect_1, const ListType<T>& vect_2, const float coefficient)
+	{
+		ListType<T> mixedVect = vect_1;
+		for (size_t i = 0; i < mixedVect.m_values.size(); ++i)
+			mixedVect.m_values[i] = glm::mix(vect_1.m_values[i], vect_2.m_values[i], coefficient);
+		return mixedVect;
+	}
+	ListType<Vertex> mix(const ListType<Vertex>&, const ListType<Vertex>&, const float coefficient);
 }
 
 template <class T>
@@ -66,4 +79,17 @@ public:
 
 	const char* getType() { return "xgInterpolator"; }
 	static bool compare(const PString& str) { return strcmp("xgInterpolator", str.m_pstring) == 0; }
+	T interpolate() const
+	{
+		return mix(m_inputTime->getFrame(), m_inputTime->getFrame() + 1, m_inputTime->getCoefficient());
+	}
+
+protected:
+	T mix(const size_t index, const size_t nextIndex, const float coefficient) const
+	{
+		if (m_type && nextIndex < m_keys.size())
+			return Interpolation::mix(m_keys[index], m_keys[nextIndex], coefficient);
+		else
+			return m_keys[index];
+	}
 };

@@ -37,3 +37,8 @@ void Triangle_Data::write_to_txt(FILE* txtFile, const char* tabs) const
 {	
 	fprintf_s(txtFile, "\t\t\t\t%s    Count: %zu\n", tabs, m_counts.size());
 }
+
+std::vector<std::vector<unsigned long>> Triangle_Data::extract() const
+{
+	return std::vector<std::vector<unsigned long>>(m_counts.size());
+}

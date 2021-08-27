@@ -20,6 +20,8 @@ class XG
 	: public FileType
 {
 	friend class XGM;
+	friend class Model;
+
 	char m_filepath[257] = { 0 };
 	char m_name[17] = { 0 };
 	unsigned long m_modelIndex;
@@ -31,6 +33,7 @@ public:
 	std::shared_ptr<XG_Data> m_data;
 	XG();
 	XG(FILE* inFile, const std::string& directory);
+	XG(FILE* inFile, const std::string& directory, std::vector<IMX>& textures);
 	XG(std::string filename, bool useBanner = true);
 	XG(const XG&) = default;
 	void create(FILE* outFile);
@@ -50,4 +53,16 @@ public:
 
 private:
 	bool write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile);
+	// Constructs all the vertex and uniform buffers for use in the OpenGL viewer
+	void initializeViewerState();
+	// Deletes all the vertex and uniform buffers created for the OpenGL viewer
+	void uninitializeViewerState();
+	// Returns the total duration of the chosen animation in seconds 
+	float getAnimationLength(size_t index);
+	// Sets all vertex and bone matrix values to their defaults
+	void restPose();
+	// Updates all data to the current frame
+	void animate(float frame, size_t index);
+	// Draws all vertex data to the current framebuffer
+	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const;
 };

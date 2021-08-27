@@ -13,15 +13,13 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <string>
-
 class Shader
 {
-public:
 	// the program ID
 	unsigned int ID = 0;
-	static unsigned activeID;
+	static unsigned int s_activeID;
 
+public:
 	// constructor reads and builds the shader
 	void createProgram(const char* vertexPath, const char* fragmentPath);
 
@@ -33,18 +31,29 @@ public:
 	void use();
 	void closeProgram();
 
+	void bindUniformBlock(unsigned int bufferIndex, const char* const blockName);
+	void bindStorageBlock(unsigned int bufferIndex, const char* const blockName);
+
 	// utility uniform functions
 	void setBool(const std::string& name, bool value) const;
 	void setInt(const std::string& name, int value) const;
 	void setFloat(const std::string& name, float value) const;
 	void setVec3(const std::string& name, float* vect, const int size = 1) const;
 	void setVec4(const std::string& name, float* vect, const int size = 1) const;
+	void setMat3(const std::string& name, float* matrix, const int size = 1) const;
 	void setMat4(const std::string& name, float* matrix, const int size = 1) const;
 };
 
-extern Shader g_baseShader;
-extern Shader g_boneShader;
-extern Shader g_shapeShader;
-extern Shader g_baseGeometryShader;
-extern Shader g_boneGeometryShader;
-extern Shader g_shapeGeometryShader;
+struct ShaderCombo
+{
+	Shader m_base;
+	Shader m_geometry;
+	void createPrograms(const char* vertexPath, const char* fragmentPath
+						, const char* geoVertexPath, const char* geoGeometryPath, const char* geoFragmentPath);
+	void closePrograms();
+	void bindUniformBlock(unsigned int bufferIndex, const char* const blockName);
+	void bindStorageBlock(unsigned int bufferIndex, const char* const blockName);
+};
+
+extern ShaderCombo g_shaders;
+extern ShaderCombo g_boneShaders;

@@ -25,4 +25,9 @@ public:
 	void write_to_txt(FILE* txtFile, const char* tabs = "");
 	const char* getType() { return "xgMultiPassMaterial"; }
 	static bool compare(const PString& str) { return strcmp("xgMultiPassMaterial", str.m_pstring) == 0; }
+
+	void connectTextures(std::vector<IMX>& textures);
+	bool intializeBuffers();
+	void deleteBuffers();
+	void setShaderValues(Shader* shader, const std::string index) const;
 };

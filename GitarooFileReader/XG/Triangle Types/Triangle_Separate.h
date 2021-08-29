@@ -21,7 +21,7 @@ protected:
 public:
 	Triangle_Separate(FILE* inFile);
 	~Triangle_Separate();
-	void create(FILE* outFile) const;
+	void create(FILE* outFile, bool writeData) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	std::vector<std::vector<unsigned long>> extract() const;
 	void draw(GLenum mode) const;

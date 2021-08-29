@@ -27,10 +27,15 @@ Triangle_Data::Triangle_Data(FILE* inFile)
 	}
 }
 
-void Triangle_Data::create(FILE* outFile) const
+void Triangle_Data::create(FILE* outFile, bool writeData) const
 {
-	unsigned long size = (unsigned long)m_counts.size();
-	fwrite(&size, 4, 1, outFile);
+	if (!writeData)
+	{
+		unsigned long size = (unsigned long)m_counts.size();
+		fwrite(&size, 4, 1, outFile);
+	}
+	else
+		fwrite("\0\0\0\0", 1, 4, outFile);
 }
 
 void Triangle_Data::write_to_txt(FILE* txtFile, const char* tabs) const

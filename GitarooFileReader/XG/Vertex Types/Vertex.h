@@ -51,7 +51,7 @@ struct ListType
 	{
 		unsigned long size = (unsigned long)m_values.size();
 		fwrite(&size, 4, 1, outFile);
-		fwrite(m_values.data(), sizeof(glm::vec2), m_values.size(), outFile);
+		fwrite(m_values.data(), sizeof(T), m_values.size(), outFile);
 	}
 };
 

@@ -98,9 +98,12 @@ void xgMaterial::create(FILE* outFile, bool full) const
 		PString::push("vTile", outFile);
 		fwrite(&m_vTile, 4, 1, outFile);
 
-		PString::push("inputTexture", outFile);
-		m_inputTexture->push(outFile);
-		PString::push("outputTexture", outFile);
+		if (m_inputTexture)
+		{
+			PString::push("inputTexture", outFile);
+			m_inputTexture->push(outFile);
+			PString::push("outputTexture", outFile);
+		}
 		PString::push('}', outFile);
 	}
 	else

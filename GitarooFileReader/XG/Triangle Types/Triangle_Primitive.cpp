@@ -36,9 +36,9 @@ Triangle_Prim::Triangle_Prim(FILE* inFile, unsigned long type)
 void Triangle_Prim::create(FILE* outFile) const
 {
 	PString::push("primCount", outFile);
-	m_data->create(outFile);
+	m_data->create(outFile, false);
 	PString::push("primData", outFile);
-	fwrite("\0\0\0\0", 1, 4, outFile);
+	m_data->create(outFile, true);
 }
 
 void Triangle_Prim::draw(GLenum mode) const

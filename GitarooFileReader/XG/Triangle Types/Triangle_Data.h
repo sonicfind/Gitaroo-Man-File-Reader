@@ -21,7 +21,7 @@ protected:
 
 public:
 	Triangle_Data(FILE* inFile);
-	virtual void create(FILE* outFile) const;
+	virtual void create(FILE* outFile, bool writeData) const;
 	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	virtual std::vector<std::vector<unsigned long>> extract() const;
 	virtual void draw(GLenum mode) const {}

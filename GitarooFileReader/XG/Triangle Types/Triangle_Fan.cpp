@@ -18,8 +18,9 @@
 void Triangle_Fan::create(FILE* outFile) const
 {
 	PString::push("triFanCount", outFile);
-	m_data->create(outFile);
+	m_data->create(outFile, false);
 	PString::push("triFanData", outFile);
+	m_data->create(outFile, true);
 }
 
 void Triangle_Fan::write_to_txt(FILE* txtFile, const char* tabs) const

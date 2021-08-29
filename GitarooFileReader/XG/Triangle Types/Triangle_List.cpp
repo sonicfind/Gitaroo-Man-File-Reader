@@ -18,8 +18,9 @@
 void Triangle_List::create(FILE* outFile) const
 {
 	PString::push("triListCount", outFile);
-	m_data->create(outFile);
+	m_data->create(outFile, false);
 	PString::push("triListData", outFile);
+	m_data->create(outFile, true);
 }
 
 void Triangle_List::write_to_txt(FILE* txtFile, const char* tabs) const

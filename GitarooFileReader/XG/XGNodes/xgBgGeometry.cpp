@@ -56,6 +56,7 @@ void xgBgGeometry::create(FILE* outFile, bool full) const
 		PString::push("density", outFile);
 		fwrite(&m_density, 4, 1, outFile);
 		
+		PString::push("vertices", outFile);
 		m_vertexList.create(outFile);
 
 		for (auto& node : m_inputEnvelopes)

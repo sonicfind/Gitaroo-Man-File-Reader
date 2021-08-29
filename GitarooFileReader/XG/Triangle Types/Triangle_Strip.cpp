@@ -18,8 +18,9 @@
 void Triangle_Strip::create(FILE* outFile) const
 {
 	PString::push("triStripCount", outFile);
-	m_data->create(outFile);
+	m_data->create(outFile, false);
 	PString::push("triStripData", outFile);
+	m_data->create(outFile, true);
 }
 
 void Triangle_Strip::write_to_txt(FILE* txtFile, const char* tabs) const

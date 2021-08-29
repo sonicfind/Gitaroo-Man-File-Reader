@@ -36,20 +36,23 @@ Triangle_Group::Triangle_Group(FILE* inFile)
 	}
 }
 
-void Triangle_Group::create(FILE* outFile) const
+void Triangle_Group::create(FILE* outFile, bool writeData) const
 {
-	Triangle_Data::create(outFile);
-
-	unsigned long size = 0;
-	if (m_counts.size())
-	{
-		size = (unsigned long)m_counts.size() + 1;
-		fwrite(&size, 4, 1, outFile);
-		fwrite(&m_indices.front(), 4, 1, outFile);
-		fwrite(m_counts.data(), 4, m_counts.size(), outFile);
-	}
+	if (!writeData)
+		Triangle_Data::create(outFile, false);
 	else
-		fwrite(&size, 4, 1, outFile);
+	{
+		unsigned long size = 0;
+		if (m_counts.size())
+		{
+			size = (unsigned long)m_counts.size() + 1;
+			fwrite(&size, 4, 1, outFile);
+			fwrite(&m_indices.front(), 4, 1, outFile);
+			fwrite(m_counts.data(), 4, m_counts.size(), outFile);
+		}
+		else
+			fwrite(&size, 4, 1, outFile);
+	}
 }
 
 void Triangle_Group::write_to_txt(FILE* txtFile, const char* tabs) const

@@ -42,8 +42,8 @@ void xgBone::create(FILE* outFile, bool full) const
 
 		PString::push("inputMatrix", outFile);
 		m_inputMatrix->push(outFile);
-
 		PString::push("outputMatrix", outFile);
+
 		PString::push('}', outFile);
 	}
 	else

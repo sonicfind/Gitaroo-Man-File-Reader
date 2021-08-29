@@ -40,20 +40,23 @@ Triangle_Separate::~Triangle_Separate()
 		delete[m_counts[i]] m_indices[i];
 }
 
-void Triangle_Separate::create(FILE* outFile) const
+void Triangle_Separate::create(FILE* outFile, bool writeData) const
 {
-	Triangle_Data::create(outFile);
-
-	// Counting all the "numVert" values
-	unsigned long size = (unsigned long)m_counts.size();
-	for (const auto& count : m_counts)
-		size += count;
-
-	fwrite(&size, 4, 1, outFile);
-	for (size_t i = 0; i < m_counts.size(); ++i)
+	if (!writeData)
+		Triangle_Data::create(outFile, false);
+	else
 	{
-		fwrite(&m_counts[i], 4, 1, outFile);
-		fwrite(m_indices[i], 4, m_counts[i], outFile);
+		// Counting all the "numVert" values
+		unsigned long size = (unsigned long)m_counts.size();
+		for (const auto& count : m_counts)
+			size += count;
+
+		fwrite(&size, 4, 1, outFile);
+		for (size_t i = 0; i < m_counts.size(); ++i)
+		{
+			fwrite(&m_counts[i], 4, 1, outFile);
+			fwrite(m_indices[i], 4, m_counts[i], outFile);
+		}
 	}
 }
 

@@ -4,7 +4,7 @@ layout(location = 1) in vec3 aNorm;
 layout(location = 4) in int aEnvelope;
 layout(location = 5) in vec4 aWeights;
 
-const int MAX_ENVELOPES = 42;
+const int MAX_ENVELOPES = 64;
 const int MAX_BONES = 4;
 
 out VS_OUT

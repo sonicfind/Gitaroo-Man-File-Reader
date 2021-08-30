@@ -92,7 +92,7 @@ void xgEnvelope::create(FILE* outFile, bool full) const
 
 		for (size_t index = 0; index < m_inputMatrices.size(); ++index)
 		{
-			PString::push("inputMatrix" + char(index + 49), outFile);
+			PString::push("inputMatrix" + std::to_string(index + 1), outFile);
 			m_inputMatrices[index]->push(outFile);
 			PString::push("envelopeMatrix", outFile);
 		}

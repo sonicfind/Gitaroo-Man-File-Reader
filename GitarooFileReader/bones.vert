@@ -39,6 +39,7 @@ layout (std430) buffer Envelopes
 };
 
 uniform mat4 model;
+uniform mat3 normalMatrix;
 uniform int textEnv[2];
 uniform int doMulti;
 
@@ -55,8 +56,7 @@ void main()
 		
 	gl_Position = projection * view * model * finalPos;
 	vs_out.fragPos = vec3(model * finalPos);
-	mat3 normalMatrix = mat3(transpose(inverse(view * model)));
-	vs_out.normal = normalize(vec3(vec4(normalMatrix * vec3(finalNorm), 0.0)));
+	vs_out.normal = normalize(normalMatrix * vec3(finalNorm));
 	vs_out.color = aColor;
 
 	if (textEnv[0] == 0)

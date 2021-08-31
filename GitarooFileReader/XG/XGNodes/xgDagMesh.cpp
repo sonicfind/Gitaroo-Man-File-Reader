@@ -185,24 +185,23 @@ void xgDagMesh::draw(const glm::mat4 view, glm::mat4 model, const bool showNorma
 		glActiveTexture(GL_TEXTURE0);
 		m_inputMaterial->setShaderValues(&active->m_base, "[0]");
 
-		//glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
+		glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
 		active->m_base.setVec3("lightPosition", glm::value_ptr(g_camera.m_position));
 		active->m_base.setVec3("viewPos", glm::value_ptr(g_camera.m_position));
 		active->m_base.setMat4("model", glm::value_ptr(model));
-		//active->m_base.setMat3("normalMatrix", glm::value_ptr(normalMatrix));
+		active->m_base.setMat3("normalMatrix", glm::value_ptr(normalMatrix));
 		m_inputGeometry->bindVertexBuffer();
 		
 		m_triFan->draw(GL_TRIANGLE_FAN);
 		m_triStrip->draw(GL_TRIANGLE_STRIP);
 		m_triList->draw(GL_TRIANGLES);
 
-		int val = glGetError();
 		glBindTexture(GL_TEXTURE_2D, 0);
 		if (showNormals)
 		{
 			active->m_geometry.use();
 			active->m_geometry.setMat4("model", glm::value_ptr(model));
-			//active->m_geometry.setMat3("normalMatrix", glm::value_ptr(normalMatrix));
+			active->m_geometry.setMat3("normalMatrix", glm::value_ptr(normalMatrix));
 
 			m_triFan->draw(GL_TRIANGLE_FAN);
 			m_triStrip->draw(GL_TRIANGLE_STRIP);

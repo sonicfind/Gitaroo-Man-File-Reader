@@ -23,6 +23,7 @@ layout (std140) uniform Projection
 };
 
 uniform mat4 model;
+uniform mat3 normalMatrix;
 uniform int textEnv[2];
 uniform int doMulti;
 
@@ -31,8 +32,7 @@ void main()
 	vec4 finalPos = vec4(aPos.xyz, 1);
 	gl_Position = projection * view * model * finalPos;
 	vs_out.fragPos = vec3(model * finalPos);
-	mat3 normalMatrix = mat3(transpose(inverse(view * model)));
-	vs_out.normal = normalize(vec3(vec4(normalMatrix * aNorm, 0.0)));
+	vs_out.normal = normalize(normalMatrix * aNorm);
 	vs_out.color = aColor;
 
 	if (textEnv[0] == 0)

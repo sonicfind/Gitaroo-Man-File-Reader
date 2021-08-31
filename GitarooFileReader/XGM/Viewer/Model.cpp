@@ -15,6 +15,9 @@
 #include "pch.h"
 #include "Model.h"
 #include "Global_Functions.h"
+bool Model::s_isLooping = false;
+float Model::s_currentTime = 0;
+
 Model::Model(XG* xg)
 	: m_xg(xg)
 	, m_animIndex(0)
@@ -38,20 +41,23 @@ void Model::restPose()
 
 // Checks whether to proceed to the next animation (or to loop if that flag is set)
 // Then updates the model data
-void Model::update(float time)
+void Model::update()
 {
-	while (time >= m_length + m_currAnimStartTime)
+	if (m_length > 0)
 	{
-		if (s_isLooping)
+		while (s_currentTime >= m_length + m_currAnimStartTime)
 		{
-			m_currAnimStartTime += m_length;
-			GlobalFunctions::printf_tab("Loop\n");
+			if (s_isLooping)
+			{
+				m_currAnimStartTime += m_length;
+				GlobalFunctions::printf_tab("Loop\n");
+			}
+			else
+				nextAnimation(m_currAnimStartTime + m_length);
 		}
-		else
-			nextAnimation(m_currAnimStartTime + m_length);
-	}
 
-	m_xg->animate(time - m_currAnimStartTime, m_animIndex);
+		m_xg->animate(s_currentTime - m_currAnimStartTime, m_animIndex);
+	}
 }
 
 // Sets the handler to the provided animation index
@@ -78,25 +84,24 @@ void Model::nextAnimation(float time, bool forced)
 }
 
 // Skip back to the previoes animation
-void Model::prevAnimation(float time, bool forced)
+void Model::prevAnimation()
 {
 	if (m_animIndex > 0)
-		setAnimation(time, m_animIndex - 1);
+		setAnimation(0, m_animIndex - 1);
 	else
-		setAnimation(time, m_xg->m_animations.size() - 1);
-	if (forced)
-		m_xg->animate(0, m_animIndex);
+		setAnimation(0, m_xg->m_animations.size() - 1);
+	m_xg->animate(0, m_animIndex);
 }
 
 // Resets the current animation
-void Model::setStartTime(float time)
+void Model::resetStartTime()
 {
-	m_currAnimStartTime = time;
+	m_currAnimStartTime = 0;
 	m_xg->animate(0, m_animIndex);
 }
 
 // Jumps to the first animation
-void Model::reset()
+void Model::resetModel()
 {
 	setAnimation(0, 0);
 	m_xg->animate(0, 0);
@@ -112,4 +117,14 @@ void Model::toggleLoop()
 void Model::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const
 {
 	m_xg->draw(view, showNormals, doTransparents);
+}
+
+void Model::resetTime()
+{
+	s_currentTime = 0;
+}
+
+void Model::adjustTime(float delta)
+{
+	s_currentTime += delta;
 }

@@ -21,7 +21,6 @@
 #include <algorithm>
 
 AspectRatioMode Viewer::s_aspectRatio = AspectRatioMode::Widescreen;
-bool Model::s_isLooping = false;
 unsigned int Viewer::s_screenWidth = 1280;
 unsigned int Viewer::s_screenHeight = 720;
 
@@ -205,15 +204,13 @@ int Viewer::viewXG()
 	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
 
 	float previousTime = (float)glfwGetTime();
-	// Keeps track of the proceed time on the animation timeline.
-	// Not = to actual time.
-	float animationTime = 0;
 
 	double lastFPSTime = glfwGetTime();
 	int nbFrames = 0;
 	
 	bool isMouseActive = true;
 	bool isPaused = false;
+	Model::resetTime();
 	while (!glfwWindowShouldClose(m_window))
 	{
 		float currentTime = (float)glfwGetTime();
@@ -260,14 +257,14 @@ int Viewer::viewXG()
 		if (InputHandling::g_input_keyboard.KEY_O.isPressed())
 		{
 			showAnimation = !showAnimation;
+			Model::resetTime();
 			if (!showAnimation)
 				for (auto& model : m_models)
 					model.restPose();
 			else
 			{
 				for (auto& model : m_models)
-					model.reset();
-				animationTime = 0;
+					model.resetModel();
 				isPaused = false;
 			}
 		}
@@ -276,44 +273,45 @@ int Viewer::viewXG()
 			if (InputHandling::g_input_keyboard.KEY_P.isPressed())
 				isPaused = !isPaused;
 
-			// Reset current animation
-			if (InputHandling::g_input_keyboard.KEY_R.isPressed())
+			if (InputHandling::g_input_keyboard.KEY_R.isActive())
 			{
-				for (auto& model : m_models)
-					model.setStartTime(0);
-				animationTime = 0;
+				Model::resetTime();
+				// Reset current animation
+				if (InputHandling::g_input_keyboard.KEY_R.isPressed())
+					for (auto& model : m_models)
+						model.resetStartTime();
+				// Reset to the first animation
+				else if (InputHandling::g_input_keyboard.KEY_R.isHeld())
+					for (auto& model : m_models)
+						model.resetModel();
 			}
-			// Reset to the first animation
-			else if (InputHandling::g_input_keyboard.KEY_R.isHeld())
+			else if (InputHandling::g_input_keyboard.KEY_RIGHT.isActive())
 			{
-				for (auto& model : m_models)
-					model.reset();
-				animationTime = 0;
+				// Skip to the next animation
+				if (InputHandling::g_input_keyboard.KEY_RIGHT.isTicked())
+				{
+					Model::resetTime();
+					for (auto& model : m_models)
+						model.nextAnimation(0, true);
+				}
 			}
-			// Skip to the next animation
-			else if (InputHandling::g_input_keyboard.KEY_RIGHT.isTicked())
+			else if (InputHandling::g_input_keyboard.KEY_LEFT.isActive())
 			{
-				for (auto& model : m_models)
-					model.nextAnimation(0, true);
-				animationTime = 0;
-			}
-			// Skip down to the previous animation
-			else if (InputHandling::g_input_keyboard.KEY_LEFT.isTicked())
-			{
-				for (auto& model : m_models)
-					model.prevAnimation(0, true);
-				animationTime = 0;
+				// Skip down to the previous animation
+				if (InputHandling::g_input_keyboard.KEY_LEFT.isTicked())
+				{
+					Model::resetTime();
+					for (auto& model : m_models)
+						model.prevAnimation();
+				}
 			}
 			// Animates model data as normal
-			else if (!isPaused
-				&& !InputHandling::g_input_keyboard.KEY_R.isDelayed()
-				&& !InputHandling::g_input_keyboard.KEY_LEFT.isHeld()
-				&& !InputHandling::g_input_keyboard.KEY_RIGHT.isHeld())
+			else if (!isPaused)
 			{
 				// Update animations, obviously
-				animationTime += currentTime - previousTime;
+				Model::adjustTime(currentTime - previousTime);
 				for (auto& model : m_models)
-					model.update(animationTime);
+					model.update();
 			}
 		}
 		previousTime = currentTime;

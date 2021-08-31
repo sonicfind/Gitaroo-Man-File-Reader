@@ -22,6 +22,7 @@ class Model
 	// The length of the animation in seconds
 	float m_length;
 	static bool s_isLooping;
+	static float s_currentTime;
 
 public:
 	Model(XG* xg);
@@ -30,19 +31,22 @@ public:
 	void restPose();
 	// Checks whether to proceed to the next animation (or to loop if that flag is set)
 	// Then updates the model data
-	void update(float time);
+	void update();
 	// Sets the handler to the provided animation index
 	void setAnimation(float time, size_t animIndex);
 	// Skip to next animation
 	void nextAnimation(float time, bool forced = false);
 	// Skip back to the previoes animation
-	void prevAnimation(float time, bool forced = false);
+	void prevAnimation();
 	// Resets the current animation
-	void setStartTime(float time);
+	void resetStartTime();
 	// Jumps to the first animation
-	void reset();
+	void resetModel();
 	// This is one isn't obvious at all
 	static void toggleLoop();
 	// Draws all vertex data to the current framebuffer
 	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const;
+
+	static void resetTime();
+	static void adjustTime(float delta);
 };

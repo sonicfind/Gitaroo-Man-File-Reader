@@ -89,6 +89,41 @@ XG::XG(std::string filename, bool useBanner)
 		fclose(m_filePtr);
 		throw str + m_filename + ".XG [File offset: " + to_string(pos) + "]";
 	}
+
+	if (!m_saved)
+	{
+		while (true)
+		{
+			printf_tab("All poorly constructed/unoptimized XGNodes have been fixed.\n");
+			printf_tab("It is recommended to save these changes to a separate XG file. Do so now? [Y/(N or Q)]\n");
+			switch (menuChoices("yn"))
+			{
+			case ResultType::Success:
+				if (g_global.answer.character == 'y')
+				{
+					string ext = "_Optimized";
+					while (true)
+					{
+						switch (fileOverwriteCheck(filename + ext + m_extension))
+						{
+						case ResultType::No:
+							ext += "_T";
+							break;
+						case ResultType::Yes:
+							create(filename + ext);
+							m_filename += ext;
+						case ResultType::Quit:
+							return;
+						}
+					}
+
+				}
+				__fallthrough;
+			case ResultType::Quit:
+				return;
+			}
+		}
+	}
 }
 
 void XG::create(FILE* outFile)

@@ -59,6 +59,7 @@ Viewer::Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 
+	glFrontFace(GL_CW);
 	// Enable color blending
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);

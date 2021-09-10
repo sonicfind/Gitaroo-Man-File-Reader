@@ -20,14 +20,14 @@ class xgMultiPassMaterial : public MaterialNode
 
 public:
 	using MaterialNode::MaterialNode;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	void write_to_txt(FILE* txtFile, const char* tabs = "");
-	const char* getType() { return "xgMultiPassMaterial"; }
-	static bool compare(const PString& str) { return strcmp("xgMultiPassMaterial", str.m_pstring) == 0; }
+	unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
+	static bool compareType(const PString& str) { return strcmp("xgMultiPassMaterial", str.m_pstring) == 0; }
+	bool hasTransparency() const;
 
 	void connectTextures(std::vector<IMX>& textures);
-	bool intializeBuffers();
+	void intializeBuffers();
 	void deleteBuffers();
 	void setShaderValues(Shader* shader, const std::string index) const;
 };

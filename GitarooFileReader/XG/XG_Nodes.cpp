@@ -14,12 +14,35 @@
  */
 #include "pch.h"
 #include "XG_Nodes.h"
-XGNode::XGNode(const PString& name)
-	: m_name(name) {}
+XGNode::XGNode(const PString& type, const PString& name)
+	: m_nodeType(type)
+	, m_name(name) {}
 
 void XGNode::push(FILE* outFile) const
 {
 	m_name.push(outFile);
+}
+
+void XGNode::write_to_simple_txt(FILE* simpleTxtFile) const
+{
+	fprintf_s(simpleTxtFile, "%-22s: %s\n", m_nodeType.m_pstring, m_name.m_pstring);
+}
+
+void XGNode::write_to_txt(FILE* txtFile, const char* tabs) const
+{
+	fprintf_s(txtFile, "%s: %s\n", m_nodeType.m_pstring, m_name.m_pstring);
+}
+
+void XGNode::create(FILE* outFile) const
+{
+	m_nodeType.push(outFile);
+	m_name.push(outFile);
+}
+
+void XGNode::createPrototype(FILE* outFile) const
+{
+	XGNode::create(outFile);
+	PString::push(";", outFile);
 }
 
 const PString& XGNode::getName() const

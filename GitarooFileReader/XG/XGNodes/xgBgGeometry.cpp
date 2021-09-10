@@ -14,10 +14,8 @@
  */
 #include "pch.h"
 #include "xgBgGeometry.h"
-#include <glad/glad.h>
 unsigned g_boneSSBO = 0;
-
-unsigned long xgBgGeometry::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+unsigned long xgBgGeometry::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_density, 4, 1, inFile);
@@ -46,63 +44,60 @@ unsigned long xgBgGeometry::read(FILE* inFile, const std::vector<std::unique_ptr
 	return 0;
 }
 
-void xgBgGeometry::create(FILE* outFile, bool full) const
+void xgBgGeometry::create(FILE* outFile) const
 {
-	PString::push("xgBgGeometry", outFile);
-	m_name.push(outFile);
-	if (full)
-	{
-		PString::push('{', outFile);
-		PString::push("density", outFile);
-		fwrite(&m_density, 4, 1, outFile);
+	XGNode::create(outFile);
+
+	PString::push('{', outFile);
+	PString::push("density", outFile);
+	fwrite(&m_density, 4, 1, outFile);
 		
-		PString::push("vertices", outFile);
-		m_vertexList.create(outFile);
+	PString::push("vertices", outFile);
+	m_vertexList.create(outFile);
 
-		for (auto& node : m_inputEnvelopes)
-		{
-			PString::push("inputGeometry", outFile);
-			node->push(outFile);
-			PString::push("outputGeometry", outFile);
-		}
-
-		if (m_inputVertexInterpolator)
-		{
-			PString::push("inputGeometry", outFile);
-			m_inputVertexInterpolator->push(outFile);
-			PString::push("outputGeometry", outFile);
-		}
-
-		if (m_inputNormalInterpolator)
-		{
-			PString::push("inputGeometry", outFile);
-			m_inputNormalInterpolator->push(outFile);
-			PString::push("outputGeometry", outFile);
-		}
-
-		if (m_inputTexCoordInterpolator)
-		{
-			PString::push("inputGeometry", outFile);
-			m_inputTexCoordInterpolator->push(outFile);
-			PString::push("outputGeometry", outFile);
-		}
-
-		if (m_inputShapeInterpolator)
-		{
-			PString::push("inputGeometry", outFile);
-			m_inputShapeInterpolator->push(outFile);
-			PString::push("outputGeometry", outFile);
-		}
-		PString::push('}', outFile);
+	for (auto& node : m_inputEnvelopes)
+	{
+		PString::push("inputGeometry", outFile);
+		node->push(outFile);
+		PString::push("outputGeometry", outFile);
 	}
-	else
-		PString::push(';', outFile);
+
+	if (m_inputVertexInterpolator)
+	{
+		PString::push("inputGeometry", outFile);
+		m_inputVertexInterpolator->push(outFile);
+		PString::push("outputGeometry", outFile);
+	}
+
+	if (m_inputNormalInterpolator)
+	{
+		PString::push("inputGeometry", outFile);
+		m_inputNormalInterpolator->push(outFile);
+		PString::push("outputGeometry", outFile);
+	}
+
+	if (m_inputTexCoordInterpolator)
+	{
+		PString::push("inputGeometry", outFile);
+		m_inputTexCoordInterpolator->push(outFile);
+		PString::push("outputGeometry", outFile);
+	}
+
+	if (m_inputShapeInterpolator)
+	{
+		PString::push("inputGeometry", outFile);
+		m_inputShapeInterpolator->push(outFile);
+		PString::push("outputGeometry", outFile);
+	}
+	PString::push('}', outFile);
 }
 
-void xgBgGeometry::write_to_txt(FILE* txtFile, const char* tabs)
+void xgBgGeometry::write_to_txt(FILE* txtFile, const char* tabs) const
 {
+	XGNode::write_to_txt(txtFile, tabs);
+
 	fprintf_s(txtFile, "\t\t\t%s     Density: %g\n", tabs, m_density);
-	Interpolation::write_to_txt(txtFile, m_vertexList, tabs + 1);
+	m_vertexList.write_to_txt(txtFile, "", tabs);
 
 	if (m_inputEnvelopes.size())
 	{
@@ -110,6 +105,8 @@ void xgBgGeometry::write_to_txt(FILE* txtFile, const char* tabs)
 		for (size_t index = 0; index < m_inputEnvelopes.size(); ++index)
 			fprintf_s(txtFile, "\t\t\t%s   %zu. %s\n", tabs, index + 1, m_inputEnvelopes[index]->getName().m_pstring);
 	}
+	else if (m_inputShapeInterpolator)
+		fprintf_s(txtFile, "%s    Input Shape Interpolator: %s\n", tabs, m_inputShapeInterpolator->getName().m_pstring);
 	else
 	{
 		if (m_inputVertexInterpolator)
@@ -121,31 +118,25 @@ void xgBgGeometry::write_to_txt(FILE* txtFile, const char* tabs)
 		if (m_inputTexCoordInterpolator)
 			fprintf_s(txtFile, "%s Input TexCoord Interpolator: %s\n", tabs, m_inputTexCoordInterpolator->getName().m_pstring);
 
-		if (m_inputShapeInterpolator)
-			fprintf_s(txtFile, "%s    Input Shape Interpolator: %s\n", tabs, m_inputShapeInterpolator->getName().m_pstring);
 	}
 }
 
 void xgBgGeometry::positions_to_obj(FILE* objFile) const
 {
-	for (const Vertex& vertex : m_vertexList.m_vertices)
-		fprintf(objFile, "v %f %f %f\n", vertex.m_position.x, vertex.m_position.y, vertex.m_position.z);
+	m_vertexList.positions_to_obj(objFile);
 }
 
 void xgBgGeometry::texCoords_to_obj(FILE* objFile) const
 {
-	if (m_vertexList.m_vertexFlags & 8)
-		for (const Vertex& vertex : m_vertexList.m_vertices)
-			fprintf(objFile, "vt %f %f\n", vertex.m_texCoord.s, vertex.m_texCoord.t);
+	m_vertexList.texCoords_to_obj(objFile);
 }
 
 void xgBgGeometry::normals_to_obj(FILE* objFile) const
 {
-	for (const Vertex& vertex : m_vertexList.m_vertices)
-		fprintf(objFile, "vn %f %f %f\n", vertex.m_normal.x, vertex.m_normal.y, vertex.m_normal.z);
+	m_vertexList.normals_to_obj(objFile);
 }
 
-#include <glm/gtc/type_ptr.hpp>
+#include <glad/glad.h>
 bool xgBgGeometry::generateVertexBuffer()
 {
 	if (!m_VAO)
@@ -287,17 +278,13 @@ void xgBgGeometry::animate()
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 	if (m_inputShapeInterpolator)
-		m_inputShapeInterpolator->replaceVertexData();
-	else
-	{
-		if (m_inputVertexInterpolator)
-			m_inputVertexInterpolator->replaceVertexData();
-
-		if (m_inputNormalInterpolator)
-			m_inputNormalInterpolator->replaceVertexData();
-
-		if (m_inputTexCoordInterpolator)
-			m_inputTexCoordInterpolator->replaceVertexData();
-	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+		m_vertexList.replace(m_inputShapeInterpolator->interpolate());
+
+	else if (m_inputVertexInterpolator || m_inputNormalInterpolator || m_inputTexCoordInterpolator)
+		m_vertexList.replace(
+			m_inputVertexInterpolator ? m_inputVertexInterpolator->interpolate() : std::vector<glm::vec3>(),
+			m_inputNormalInterpolator ? m_inputNormalInterpolator->interpolate() : std::vector<glm::vec3>(),
+			m_inputTexCoordInterpolator ? m_inputTexCoordInterpolator->interpolate() : std::vector<glm::vec2>()
+		);
 }

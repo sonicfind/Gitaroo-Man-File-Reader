@@ -22,7 +22,7 @@
 class xgBgGeometry : public XGNode
 {
 	float m_density = 0;
-	ListType<Vertex> m_vertexList;
+	VertexList m_vertexList;
 	std::vector<SharedNode<xgEnvelope>> m_inputEnvelopes;
 	SharedNode<xgVertexInterpolator> m_inputVertexInterpolator;
 	SharedNode<xgNormalInterpolator> m_inputNormalInterpolator;
@@ -33,13 +33,11 @@ class xgBgGeometry : public XGNode
 
 public:
 	using XGNode::XGNode;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	void write_to_txt(FILE* txtFile, const char* tabs = "");
-	const char* getType() { return "xgBgGeometry"; }
-	static bool compare(const PString& str) { return strcmp("xgBgGeometry", str.m_pstring) == 0; }
-	unsigned long getVertexFlags() const { return m_vertexList.m_vertexFlags; }
-	size_t getNumVertices() const { return m_vertexList.m_vertices.size(); }
+	unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
+	static bool compareType(const PString& str) { return strcmp("xgBgGeometry", str.m_pstring) == 0; }
+	auto& getVertices() { return m_vertexList; }
 
 	void positions_to_obj(FILE* objFile) const;
 	void texCoords_to_obj(FILE* objFile) const;

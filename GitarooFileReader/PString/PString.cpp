@@ -89,6 +89,11 @@ PString& PString::operator=(const PString& str)
 	return *this;
 }
 
+PString PString::operator+(const std::string& str) const
+{
+	return PString(m_pstring + str);
+}
+
 bool PString::operator==(const PString& str) const
 {
 	return m_size == str.m_size && strncmp(m_pstring, str.m_pstring, m_size) == 0;

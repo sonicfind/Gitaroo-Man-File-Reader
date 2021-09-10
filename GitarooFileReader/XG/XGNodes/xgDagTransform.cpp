@@ -15,7 +15,7 @@
 #include "pch.h"
 #include "xgDagTransform.h"
 #include <glm/gtx/transform.hpp>
-unsigned long xgDagTransform::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+unsigned long xgDagTransform::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString test(inFile);
 	if (!strchr(test.m_pstring, '}'))
@@ -27,47 +27,43 @@ unsigned long xgDagTransform::read(FILE* inFile, const std::vector<std::unique_p
 	return 0;
 }
 
-void xgDagTransform::create(FILE* outFile, bool full) const
+void xgDagTransform::create(FILE* outFile) const
 {
-	PString::push("xgDagTransform", outFile);
-	m_name.push(outFile);
-	if (full)
+	XGNode::create(outFile);
+
+	PString::push('{', outFile);
+	if (m_inputMatrix)
 	{
-		PString::push('{', outFile);
-		if (m_inputMatrix)
-		{
-			PString::push("inputMatrix", outFile);
-			m_inputMatrix->push(outFile);
-			PString::push("outputMatrix", outFile);
-		}
-		PString::push('}', outFile);
+		PString::push("inputMatrix", outFile);
+		m_inputMatrix->push(outFile);
+		PString::push("outputMatrix", outFile);
 	}
-	else
-		PString::push(';', outFile);
+	PString::push('}', outFile);
 }
 
-void xgDagTransform::write_to_txt(FILE* txtFile, const char* tabs)
+void xgDagTransform::write_to_txt(FILE* txtFile, const char* tabs) const
 {
+	XGNode::write_to_txt(txtFile, tabs);
+
 	if (m_inputMatrix)
 		fprintf_s(txtFile, "\t\t%s      Input Matrix: %s\n", tabs, m_inputMatrix->getName().m_pstring);
 	else
 		fprintf_s(txtFile, "\t\t%s      No Input Matrix\n", tabs);
 }
 
-glm::mat4x4 xgDagTransform::getModelMatrix() const
+#include <glm/gtx/transform.hpp>
+glm::mat4 xgDagTransform::getModelMatrix() const
 {
 	if (m_inputMatrix)
 	{
-		glm::vec3 translation(0);
+		glm::vec3 translation(0.0f);
 		glm::quat rotation(1, 0, 0, 0);
 		glm::vec3 scale(1.0f);
 		if (m_inputMatrix)
 			m_inputMatrix->applyTransformations(translation, rotation, scale);
-		//return glm::translate(translation) * glm::toMat4(conjugate(rotation)) * glm::scale(scale) * m_restMatrix;
-		return glm::translate(translation) * glm::toMat4(conjugate(rotation)) * glm::scale(scale);
+
+		return glm::translate(translation) * glm::toMat4(glm::conjugate(rotation)) * glm::scale(scale);
 	}
 	else
-	{
-		return glm::mat4x4(1.0f);
-	}
+		return glm::identity<glm::mat4>();
 }

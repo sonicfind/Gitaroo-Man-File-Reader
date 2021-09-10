@@ -14,7 +14,7 @@
  */
 #include "pch.h"
 #include "xgBgGeometry.h"
-unsigned long xgEnvelope::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+unsigned long xgEnvelope::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_startVertex, 4, 1, inFile);
@@ -61,53 +61,50 @@ unsigned long xgEnvelope::read(FILE* inFile, const std::vector<std::unique_ptr<X
 	return 0;
 }
 
-void xgEnvelope::create(FILE* outFile, bool full) const
+void xgEnvelope::create(FILE* outFile) const
 {
-	PString::push("xgEnvelope", outFile);
-	m_name.push(outFile);
-	if (full)
+	XGNode::create(outFile);
+
+	PString::push('{', outFile);
+	PString::push("startVertex", outFile);
+	fwrite(&m_startVertex, 4, 1, outFile);
+
+	PString::push("weights", outFile);
+	unsigned long size = (unsigned long)m_weights.size();
+	fwrite(&size, 4, 1, outFile);
+	fwrite(m_weights.data(), sizeof(Weight), size, outFile);
+
+	PString::push("vertexTargets", outFile);
+	size = (unsigned long)m_vertexTargets.size();
+	for (const auto& vect : m_vertexTargets)
+		size += (unsigned long)vect.size();
+	fwrite(&size, 4, 1, outFile);
+
+	const long end = -1;
+	for (const auto& vect : m_vertexTargets)
 	{
-		PString::push('{', outFile);
-		PString::push("startVertex", outFile);
-		fwrite(&m_startVertex, 4, 1, outFile);
-
-		PString::push("weights", outFile);
-		unsigned long size = (unsigned long)m_weights.size();
-		fwrite(&size, 4, 1, outFile);
-		fwrite(m_weights.data(), sizeof(Weight), size, outFile);
-
-		PString::push("vertexTargets", outFile);
-		size = (unsigned long)m_vertexTargets.size();
-		for (const auto& vect : m_vertexTargets)
-			size += (unsigned long)vect.size();
-		fwrite(&size, 4, 1, outFile);
-
-		const long end = -1;
-		for (const auto& vect : m_vertexTargets)
-		{
-			for (const auto target : vect)
-				fwrite(&target, 4, 1, outFile);
-			fwrite(&end, 4, 1, outFile);
-		}
-
-		for (size_t index = 0; index < m_inputMatrices.size(); ++index)
-		{
-			PString::push("inputMatrix" + std::to_string(index + 1), outFile);
-			m_inputMatrices[index]->push(outFile);
-			PString::push("envelopeMatrix", outFile);
-		}
-
-		PString::push("inputGeometry", outFile);
-		m_inputGeometry->push(outFile);
-		PString::push("outputGeometry", outFile);
-		PString::push('}', outFile);
+		for (const auto target : vect)
+			fwrite(&target, 4, 1, outFile);
+		fwrite(&end, 4, 1, outFile);
 	}
-	else
-		PString::push(';', outFile);
+
+	for (size_t index = 0; index < m_inputMatrices.size(); ++index)
+	{
+		PString::push("inputMatrix" + std::to_string(index + 1), outFile);
+		m_inputMatrices[index]->push(outFile);
+		PString::push("envelopeMatrix", outFile);
+	}
+
+	PString::push("inputGeometry", outFile);
+	m_inputGeometry->push(outFile);
+	PString::push("outputGeometry", outFile);
+	PString::push('}', outFile);
 }
 
-void xgEnvelope::write_to_txt(FILE* txtFile, const char* tabs)
+void xgEnvelope::write_to_txt(FILE* txtFile, const char* tabs) const
 {
+	XGNode::write_to_txt(txtFile, tabs);
+
 	fprintf_s(txtFile, "\t\t%s   Starting Vertex: %lu\n", tabs, m_startVertex);
 	fprintf_s(txtFile, "\t\t%s      # of Weights: %zu\n", tabs, m_weights.size());
 	for (unsigned long index = 0; index < m_weights.size(); ++index)
@@ -133,7 +130,6 @@ void xgEnvelope::write_to_txt(FILE* txtFile, const char* tabs)
 }
 
 #include <glad/glad.h>
-#include <glm/gtc/type_ptr.hpp>
 void xgEnvelope::bindBoneWeights(unsigned long envIndex) const
 {
 	for (size_t i = 0; i < m_vertexTargets.size(); ++i)
@@ -147,7 +143,7 @@ void xgEnvelope::bindBoneWeights(unsigned long envIndex) const
 void xgEnvelope::restPose()
 {
 	for (size_t i = 0; i < m_inputMatrices.size(); ++i)
-		m_matrices[i] = glm::mat4(1.0f);
+		m_matrices[i] = glm::identity<glm::mat4>();
 }
 
 void xgEnvelope::animate()
@@ -156,6 +152,7 @@ void xgEnvelope::animate()
 		m_matrices[i] = m_inputMatrices[i]->getBoneMatrix();
 }
 
+#include <glm/gtc/type_ptr.hpp>
 void xgEnvelope::updateBoneMatrices(unsigned long envIndex) const
 {
 	size_t offset = (4 * sizeof(glm::mat4) + sizeof(glm::vec4)) * envIndex;

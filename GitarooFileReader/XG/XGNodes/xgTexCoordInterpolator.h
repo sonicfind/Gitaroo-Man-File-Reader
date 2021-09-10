@@ -13,13 +13,16 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "xgTargetedInterpolator.h"
-class xgTexCoordInterpolator : public xgTargetedInterpolator<glm::vec2>
+#include "xgInterpolator.h"
+class xgTexCoordInterpolator
+	: public xgTargetedInterpolator<glm::vec2, Interpolation::texStrings>
+	, public xgTimedInterpolator<std::vector<glm::vec2>, Interpolation::texStrings>
 {
 public:
-	using xgTargetedInterpolator::xgTargetedInterpolator;
-	void create(FILE* outFile, bool full) const;
-	const char* getType() { return "xgTexCoordInterpolator"; }
-	static bool compare(const PString& str) { return strcmp("xgTexCoordInterpolator", str.m_pstring) == 0; }
-	void replaceVertexData() const;
+	xgTexCoordInterpolator(const PString& type, const PString& name)
+		: xgTargetedInterpolator(type, name)
+		, xgTimedInterpolator(type, name)
+		, xgInterpolator(type, name) {}
+	static bool compareType(const PString& str) { return strcmp("xgTexCoordInterpolator", str.m_pstring) == 0; }
+#pragma warning(suppress : 4250)
 };

@@ -15,7 +15,7 @@
 #include "pch.h"
 #include "xgDagMesh.h"
 #include <glad/glad.h>
-unsigned long xgDagMesh::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+unsigned long xgDagMesh::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_primType, 4, 1, inFile);
@@ -52,39 +52,36 @@ unsigned long xgDagMesh::read(FILE* inFile, const std::vector<std::unique_ptr<XG
 	return sizechange;
 }
 
-void xgDagMesh::create(FILE* outFile, bool full) const
+void xgDagMesh::create(FILE* outFile) const
 {
-	PString::push("xgDagMesh", outFile);
-	m_name.push(outFile);
-	if (full)
-	{
-		PString::push('{', outFile);
-		PString::push("primType", outFile);
-		fwrite(&m_primType, 4, 1, outFile);
+	XGNode::create(outFile);
 
-		m_prim->create(outFile);
-		m_triFan->create(outFile);
-		m_triStrip->create(outFile);
-		m_triList->create(outFile);
+	PString::push('{', outFile);
+	PString::push("primType", outFile);
+	fwrite(&m_primType, 4, 1, outFile);
 
-		PString::push("cullFunc", outFile);
-		fwrite(&m_cullFunc, 4, 1, outFile);
+	m_prim->create(outFile);
+	m_triFan->create(outFile);
+	m_triStrip->create(outFile);
+	m_triList->create(outFile);
 
-		PString::push("inputGeometry", outFile);
-		m_inputGeometry->push(outFile);
-		PString::push("outputGeometry", outFile);
+	PString::push("cullFunc", outFile);
+	fwrite(&m_cullFunc, 4, 1, outFile);
 
-		PString::push("inputMaterial", outFile);
-		m_inputMaterial->push(outFile);
-		PString::push("outputMaterial", outFile);
-		PString::push('}', outFile);
-	}
-	else
-		PString::push(';', outFile);
+	PString::push("inputGeometry", outFile);
+	m_inputGeometry->push(outFile);
+	PString::push("outputGeometry", outFile);
+
+	PString::push("inputMaterial", outFile);
+	m_inputMaterial->push(outFile);
+	PString::push("outputMaterial", outFile);
+	PString::push('}', outFile);
 }
 
-void xgDagMesh::write_to_txt(FILE* txtFile, const char* tabs)
+void xgDagMesh::write_to_txt(FILE* txtFile, const char* tabs) const
 {
+	XGNode::write_to_txt(txtFile, tabs);
+
 	fprintf_s(txtFile, "\t\t\t%s     PrimType: ", tabs);
 	if (m_primType == 4)
 		fprintf_s(txtFile, "Kick vertices separately\n");
@@ -123,7 +120,7 @@ void xgDagMesh::queue_for_obj(std::vector<std::pair<size_t, xgBgGeometry*>>& his
 			return;
 
 	history.back().second = m_inputGeometry.get();
-	history.push_back({ history.back().first + m_inputGeometry->getNumVertices(), nullptr });
+	history.push_back({ history.back().first + m_inputGeometry->getVertices().size(), nullptr });
 }
 
 void xgDagMesh::faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGeometry*>>& history) const
@@ -132,7 +129,7 @@ void xgDagMesh::faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGe
 	{
 		if (element.second == m_inputGeometry.get())
 		{
-			const bool texture = m_inputGeometry->getVertexFlags() & 8;
+			const bool texture = m_inputGeometry->getVertices().containsTexCoords();
 			m_triFan->write_to_obj(objFile, element.first, texture);
 			m_triStrip->write_to_obj(objFile, element.first, texture);
 			m_triList->write_to_obj(objFile, element.first, texture);
@@ -151,9 +148,9 @@ void xgDagMesh::connectTextures(std::vector<IMX>& textures)
 
 void xgDagMesh::intializeBuffers()
 {
-	// If a buffer was made, then this is an unique geometry node
+	// If a buffer was made, then this is a unique geometry node
 	m_doGeometryAnimation = m_inputGeometry->generateVertexBuffer();
-	m_hasTransparency = m_inputMaterial->intializeBuffers();
+	m_inputMaterial->intializeBuffers();
 }
 
 void xgDagMesh::deleteBuffers()
@@ -178,7 +175,7 @@ void xgDagMesh::animate()
 #include <glm/gtc/type_ptr.hpp>
 void xgDagMesh::draw(const glm::mat4 view, glm::mat4 model, const bool showNormals, const bool doTransparents) const
 {
-	if (doTransparents == m_hasTransparency)
+	if (doTransparents == m_inputMaterial->hasTransparency())
 	{
 		ShaderCombo* active = m_inputGeometry->activateShader();
 		active->m_base.setInt("doMulti", 0);

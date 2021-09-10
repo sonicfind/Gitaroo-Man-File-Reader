@@ -38,5 +38,6 @@ struct PString
 	static void push(const std::string& str, FILE* outFile);
 	bool operator==(const PString& str) const;
 	bool operator!=(const PString& str) const;
+	PString operator+(const std::string& str) const;
 	~PString();
 };

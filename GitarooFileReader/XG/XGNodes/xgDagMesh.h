@@ -33,16 +33,15 @@ class xgDagMesh : public DagNode
 	bool m_doGeometryAnimation = true;
 public:
 	using DagNode::DagNode;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	void write_to_txt(FILE* txtFile, const char* tabs = "");
-	const char* getType() { return "xgDagMesh"; }
-	static bool compare(const PString& str) { return strcmp("xgDagMesh", str.m_pstring) == 0; }
+	unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
+	static bool compareType(const PString& str) { return strcmp("xgDagMesh", str.m_pstring) == 0; }
+
 	void queue_for_obj(std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;
 	void faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;
 
 private:
-	bool m_hasTransparency = false;
 
 public:
 	void connectTextures(std::vector<IMX>& textures);

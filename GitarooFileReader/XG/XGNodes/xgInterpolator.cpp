@@ -24,53 +24,61 @@ void Interpolation::write_to_txt(FILE* txtFile, const glm::vec3 vec)
 	fprintf_s(txtFile, "%g, %g, %g\n", vec.x, vec.y, vec.z);
 }
 
-void Interpolation::write_to_txt(FILE* txtFile, const glm::quat quat)
+void Interpolation::write_to_txt(FILE* txtFile, const glm::quat qua)
 {
-	fprintf_s(txtFile, "%g, %g, %g, %g\n", quat.x, quat.y, quat.z, quat.w);
+	fprintf_s(txtFile, "%g, %g\n", qua.x, qua.y);
 }
 
-void Interpolation::write_to_txt(FILE* txtFile, const ListType<Vertex>& list, const char* tabs)
+template<>
+void Interpolation::write_to_txt<VertexList, Interpolation::shapeStrings>(FILE* txtFile, const std::vector<VertexList>& vect, const char* tabs)
 {
-	fprintf_s(txtFile, "\t\t\t\t%sVertex Flags: %lu\n", tabs, list.m_vertexFlags);
-	fprintf_s(txtFile, "\t\t\t%s       # of Vertices: %zu\n", tabs, list.m_vertices.size());
-	for (unsigned long index = 0; index < list.m_vertices.size(); ++index)
+	fprintf_s(txtFile, "\t\t%s     # of %s: %zu\n", tabs, Interpolation::shapeStrings::plural, vect.size());
+	for (size_t i = 0; i < vect.size(); ++i)
 	{
-		fprintf_s(txtFile, "\t\t\t\t%s    Vertex %03lu\n", tabs, index + 1);
-		const Vertex& vertex = list.m_vertices[index];
-		// Position
-		if (list.m_vertexFlags & 1)
-			fprintf_s(txtFile, "\t\t\t\t\t\t%sPosition (XYZW): %g, %g, %g, %g\n", tabs, vertex.m_position.x, vertex.m_position.y, vertex.m_position.z, vertex.m_position.w);
-		// Normal
-		if (list.m_vertexFlags & 2)
-			fprintf_s(txtFile, "\t\t\t\t\t\t%s   Normal (XYZ): %g, %g, %g\n", tabs, vertex.m_normal.x, vertex.m_normal.y, vertex.m_normal.z);
-		// Color
-		if (list.m_vertexFlags & 4)
-			fprintf_s(txtFile, "\t\t\t\t\t\t%s   Color (RGBA): %g, %g, %g, %g\n", tabs, vertex.m_color.r, vertex.m_color.g, vertex.m_color.b, vertex.m_color.a);
-		// Texture Coordinate
-		if (list.m_vertexFlags & 8)
-			fprintf_s(txtFile, "\t\t\t\t\t%sTexture Coordinate (ST): %g, %g\n", tabs, vertex.m_texCoord.s, vertex.m_texCoord.t);
+		fprintf_s(txtFile, "\t\t\t%s   %s %zu:\n", tabs, Interpolation::shapeStrings::singular, i + 1);
+		vect[i].write_to_txt(txtFile, "\t\t\t", tabs);
 	}
 }
 
-glm::vec2 Interpolation::mix(const glm::vec2 v1, const glm::vec2 v2, const float coefficient)
+template<>
+void Interpolation::write_to_txt<std::vector<glm::vec2>, Interpolation::texStrings>(FILE* txtFile, const std::vector<std::vector<glm::vec2>>& vect, const char* tabs)
 {
-	return glm::mix(v1, v2, coefficient);
+	write_to_txt_vect<glm::vec2, texStrings>(txtFile, vect, tabs);
 }
 
-glm::vec3 Interpolation::mix(const glm::vec3 v1, const glm::vec3 v2, const float coefficient)
+template<>
+void Interpolation::write_to_txt<std::vector<glm::vec3>, Interpolation::vertStrings>(FILE* txtFile, const std::vector<std::vector<glm::vec3>>& vect, const char* tabs)
 {
-	return glm::mix(v1, v2, coefficient);
+	write_to_txt_vect<glm::vec3, vertStrings>(txtFile, vect, tabs);
 }
 
-glm::quat Interpolation::mix(const glm::quat q1, const glm::quat q2, const float coefficient)
+template<>
+void Interpolation::write_to_txt<std::vector<glm::vec3>, Interpolation::normStrings>(FILE* txtFile, const std::vector<std::vector<glm::vec3>>& vect, const char* tabs)
 {
-	return glm::slerp(q1, q2, coefficient);
+	write_to_txt_vect<glm::vec3, normStrings>(txtFile, vect, tabs);
 }
 
-ListType<Vertex> Interpolation::mix(const ListType<Vertex>& list_1, const ListType<Vertex>& list_2, const float coefficient)
+template<>
+glm::quat Interpolation::mix(const glm::quat& a, const glm::quat& b, const float coefficient)
 {
-	ListType<Vertex> mixedList = list_1;
-	for (size_t i = 0; i < mixedList.m_vertices.size(); ++i)
-		mixedList.m_vertices[i] = list_1.m_vertices[i].mix(list_2.m_vertices[i], coefficient, list_1.m_vertexFlags);
-	return mixedList;
+	return glm::slerp(a, b, coefficient);
 }
+
+template<>
+VertexList Interpolation::mix(const VertexList& a, const VertexList& b, const float coefficient)
+{
+	return VertexList(a, b, coefficient);
+}
+
+const char* Interpolation::vec3Strings::singular = "Vec3";
+const char* Interpolation::vec3Strings::plural = "Vec3s";
+const char* Interpolation::quatStrings::singular = "Quat";
+const char* Interpolation::quatStrings::plural = "Quats";
+const char* Interpolation::vertStrings::singular = "Position";
+const char* Interpolation::vertStrings::plural = "Positions";
+const char* Interpolation::normStrings::singular = "Normal";
+const char* Interpolation::normStrings::plural = "Normals";
+const char* Interpolation::texStrings::singular = "TexCoord";
+const char* Interpolation::texStrings::plural = "TexCoords";
+const char* Interpolation::shapeStrings::singular = "Geometry";
+const char* Interpolation::shapeStrings::plural = "Geometries";

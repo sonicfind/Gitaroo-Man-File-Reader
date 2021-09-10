@@ -46,12 +46,6 @@
     <Filter Include="Visual-Based Types\IMX\Viewer Files">
       <UniqueIdentifier>{ebb557f7-1941-4d59-85e4-864dd70cbe7c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Visual-Based Types\XG\XGNodes\Header Files">
-      <UniqueIdentifier>{6ae99539-627b-4b01-8531-dcd942de6adb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Visual-Based Types\XG\XGNodes\Source Files">
-      <UniqueIdentifier>{189a0513-5e88-4b7e-a6f8-c8abcbb5b535}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Visual-Based Types\XG\Triangle Types">
       <UniqueIdentifier>{8e86a2de-0a8b-4e02-ae76-a57518755b12}</UniqueIdentifier>
     </Filter>
@@ -78,6 +72,18 @@
     </Filter>
     <Filter Include="Viewer\Shaders\Geometry">
       <UniqueIdentifier>{e81d4f40-cb7a-4954-8e39-d393b5c8aa66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\XG\XGNodes\Interpolators">
+      <UniqueIdentifier>{1375a5aa-c774-4341-9ff2-d52d96dad3b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\XG\XGNodes\Dag">
+      <UniqueIdentifier>{7110a676-d91a-4683-906b-9192b35676a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\XG\XGNodes\Bg">
+      <UniqueIdentifier>{ed41f00d-32f1-46b3-8266-f1520025f04f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visual-Based Types\XG\XGNodes\Materials">
+      <UniqueIdentifier>{f1313f1d-4531-402b-8c8a-00b6f97ad972}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -162,62 +168,8 @@
     <ClCompile Include="IMX\IMX_Viewer.cpp">
       <Filter>Visual-Based Types\IMX\Viewer Files</Filter>
     </ClCompile>
-    <ClCompile Include="XG\XG_Nodes.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgTime.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgBgGeometry.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgBgMatrix.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgBone.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgDagMesh.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgEnvelope.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgInterpolator.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgMaterial.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgMultiPassMaterial.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgNormalInterpolator.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgQuatInterpolator.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgShapeInterpolator.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgTexCoordInterpolator.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgTexture.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgVec3Interpolator.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgVertexInterpolator.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="IMX\IMX_Data.cpp">
       <Filter>Visual-Based Types\IMX</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\XGNodes\xgDagTransform.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="XG\XG_Data.cpp">
       <Filter>Visual-Based Types\XG</Filter>
@@ -243,17 +195,53 @@
     <ClCompile Include="XG\Triangle Types\Triangle_Separate.cpp">
       <Filter>Visual-Based Types\XG\Triangle Types\Data</Filter>
     </ClCompile>
-    <ClCompile Include="XG\Dag.cpp">
-      <Filter>Visual-Based Types\XG\XGNodes</Filter>
-    </ClCompile>
-    <ClCompile Include="XG\Vertex Types\Vertex.cpp">
-      <Filter>Visual-Based Types\XG\Vertex Types</Filter>
-    </ClCompile>
     <ClCompile Include="XG\Animation.cpp">
       <Filter>Visual-Based Types\XG</Filter>
     </ClCompile>
     <ClCompile Include="XGM\Viewer\Model.cpp">
       <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XG_Nodes.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\Dag.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Dag</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgBgGeometry.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Bg</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgBgMatrix.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Bg</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgBone.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Bg</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgEnvelope.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Bg</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgDagMesh.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Dag</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgDagTransform.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Dag</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgMultiPassMaterial.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgMaterial.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgTexture.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgTime.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\XGNodes\xgInterpolator.cpp">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClCompile>
+    <ClCompile Include="XG\Vertex Types\Vertex.cpp">
+      <Filter>Visual-Based Types\XG\Vertex Types</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -314,66 +302,6 @@
     <ClInclude Include="IMX\IMX_Data.h">
       <Filter>Visual-Based Types\IMX</Filter>
     </ClInclude>
-    <ClInclude Include="XG\XG_Nodes.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgTime.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgBgGeometry.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgBgMatrix.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgBone.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgDagMesh.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgEnvelope.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgInterpolator.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgMaterial.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgMultiPassMaterial.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgNormalInterpolator.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgQuatInterpolator.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgShapeInterpolator.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgTexCoordInterpolator.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgTexture.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgVec3Interpolator.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgVertexInterpolator.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgTimedInterpolator.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgTargetedInterpolator.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\XGNodes\xgDagTransform.h">
-      <Filter>Visual-Based Types\XG\XGNodes\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="XG\XG_Data.h">
       <Filter>Visual-Based Types\XG</Filter>
     </ClInclude>
@@ -398,17 +326,71 @@
     <ClInclude Include="XG\Triangle Types\Triangle_Separate.h">
       <Filter>Visual-Based Types\XG\Triangle Types\Data</Filter>
     </ClInclude>
-    <ClInclude Include="XG\Dag.h">
-      <Filter>Visual-Based Types\XG\XGNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="XG\Vertex Types\Vertex.h">
-      <Filter>Visual-Based Types\XG\Vertex Types</Filter>
-    </ClInclude>
     <ClInclude Include="XG\Animation.h">
       <Filter>Visual-Based Types\XG</Filter>
     </ClInclude>
     <ClInclude Include="XGM\Viewer\Model.h">
       <Filter>Viewer</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XG_Nodes.h">
+      <Filter>Visual-Based Types\XG\XGNodes</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgInterpolator.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgNormalInterpolator.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgQuatInterpolator.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgShapeInterpolator.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgTexCoordInterpolator.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgVertexInterpolator.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgVec3Interpolator.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\Dag.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Dag</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgDagTransform.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Dag</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgDagMesh.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Dag</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgBgGeometry.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Bg</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgBgMatrix.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Bg</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgBone.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Bg</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgEnvelope.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Bg</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgMaterial.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgMultiPassMaterial.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgTexture.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\XGNodes\xgTime.h">
+      <Filter>Visual-Based Types\XG\XGNodes\Interpolators</Filter>
+    </ClInclude>
+    <ClInclude Include="XG\Vertex Types\Vertex.h">
+      <Filter>Visual-Based Types\XG\Vertex Types</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -453,9 +435,6 @@
     <None Include="base.vert">
       <Filter>Viewer\Shaders\Base</Filter>
     </None>
-    <None Include="material.frag">
-      <Filter>Viewer\Shaders\Base</Filter>
-    </None>
     <None Include="geometry.frag">
       <Filter>Viewer\Shaders\Geometry</Filter>
     </None>
@@ -470,6 +449,9 @@
     </None>
     <None Include="geometry - bones.vert">
       <Filter>Viewer\Shaders\Geometry</Filter>
+    </None>
+    <None Include="material.frag">
+      <Filter>Viewer\Shaders\Base</Filter>
     </None>
   </ItemGroup>
 </Project>

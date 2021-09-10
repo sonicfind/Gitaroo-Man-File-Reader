@@ -19,7 +19,7 @@ class XG_Data
 	friend class XG;
 	void addNode(const PString& type, const PString& name);
 public:
-	std::vector<std::unique_ptr<XGNode>> m_nodes;
+	std::list<std::unique_ptr<XGNode>> m_nodes;
 	std::vector<Dag> m_dagMap;
 	SharedNode<xgTime> m_timeNode;
 	XG_Data() = default;

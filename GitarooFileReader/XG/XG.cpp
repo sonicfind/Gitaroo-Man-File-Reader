@@ -160,13 +160,15 @@ bool XG::write_to_txt()
 	{
 		fprintf_s(txtFile, "# of Nodes: %zu\n", m_data->m_nodes.size());
 		fprintf_s(simpleTxtFile, "# of Nodes: %zu\n", m_data->m_nodes.size());
-		for (size_t index = 0; index < m_data->m_nodes.size(); ++index)
+		size_t index = 0;
+		for (const auto& node : m_data->m_nodes)
 		{
-			const auto& node = m_data->m_nodes[index];
-			fprintf_s(txtFile, "\t Node %03zu - %s: %s\n", index + 1, node->getType(), node->getName().m_pstring);
-			fprintf_s(simpleTxtFile, "\t Node %03zu - %-22s: %s\n", index + 1, node->getType(), node->getName().m_pstring);
+			fprintf_s(txtFile, "\t Node %03zu - ", index + 1);
+			fprintf_s(simpleTxtFile, "\t Node %03zu - ", index + 1);
+			node->write_to_simple_txt(simpleTxtFile);
 			node->write_to_txt(txtFile);
 			fflush(txtFile);
+			++index;
 		}
 		fclose(txtFile);
 		fclose(simpleTxtFile);
@@ -190,13 +192,15 @@ bool XG::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 
 	fprintf_s(txtFile, "\t\t            # of Nodes: %zu\n", m_data->m_nodes.size());
 	fprintf_s(simpleTxtFile, "\t\t       # of Nodes: %zu\n", m_data->m_nodes.size());
-	for (size_t index = 0; index < m_data->m_nodes.size(); index++)
+	size_t index = 0;
+	for (const auto& node : m_data->m_nodes)
 	{
-		const auto& node = m_data->m_nodes[index];
-		fprintf_s(txtFile, "\t\t\t\t     Node %03zu - %s: %s\n", index + 1, node->getType(), node->getName().m_pstring);
-		fprintf_s(simpleTxtFile, "\t\t\t\t Node %03zu - %-22s: %s\n", index + 1, node->getType(), node->getName().m_pstring);
+		fprintf_s(txtFile, "\t\t\t\t     Node %03zu - ", index + 1);
+		fprintf_s(simpleTxtFile, "\t\t\t\t Node %03zu - ", index + 1);
+		node->write_to_simple_txt(simpleTxtFile);
 		node->write_to_txt(txtFile, "\t\t\t    ");
 		fflush(txtFile);
+		++index;
 	}
 	return true;
 }

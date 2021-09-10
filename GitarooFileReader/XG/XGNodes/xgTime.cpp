@@ -14,7 +14,7 @@
  */
 #include "pch.h"
 #include "xgTime.h"
-unsigned long xgTime::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+unsigned long xgTime::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_numFrames, 4, 1, inFile);
@@ -24,25 +24,22 @@ unsigned long xgTime::read(FILE* inFile, const std::vector<std::unique_ptr<XGNod
 	return 0;
 }
 
-void xgTime::create(FILE* outFile, bool full) const
+void xgTime::create(FILE* outFile) const
 {
-	PString::push("xgTime", outFile);
-	m_name.push(outFile);
-	if (full)
-	{
-		PString::push('{', outFile);
-		PString::push("numFrames", outFile);
-		fwrite(&m_numFrames, 4, 1, outFile);
-		PString::push("time", outFile);
-		fwrite(&m_time, 4, 1, outFile);
-		PString::push('}', outFile);
-	}
-	else
-		PString::push(';', outFile);
+	XGNode::create(outFile);
+
+	PString::push('{', outFile);
+	PString::push("numFrames", outFile);
+	fwrite(&m_numFrames, 4, 1, outFile);
+	PString::push("time", outFile);
+	fwrite(&m_time, 4, 1, outFile);
+	PString::push('}', outFile);
 }
 
-void xgTime::write_to_txt(FILE* txtFile, const char* tabs)
+void xgTime::write_to_txt(FILE* txtFile, const char* tabs) const
 {
+	XGNode::write_to_txt(txtFile, tabs);
+
 	fprintf_s(txtFile, "\t\t%s   # of Frames: %g\n", tabs, m_numFrames);
 	fprintf_s(txtFile, "\t\t\t%s  Time: %g (Starting point??)\n", tabs, m_time);
 }

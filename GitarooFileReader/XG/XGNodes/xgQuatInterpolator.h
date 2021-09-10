@@ -14,13 +14,9 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "xgInterpolator.h"
-class xgQuatInterpolator : public xgInterpolator<glm::quat>
+class xgQuatInterpolator : public xgInterpolator<glm::quat, Interpolation::quatStrings>
 {
 public:
-	using xgInterpolator<glm::quat>::xgInterpolator;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	void write_to_txt(FILE* txtFile, const char* tabs = "");
-	const char* getType() { return "xgQuatInterpolator"; }
-	static bool compare(const PString& str) { return strcmp("xgQuatInterpolator", str.m_pstring) == 0; }
+	using xgInterpolator::xgInterpolator;
+	static bool compareType(const PString& str) { return strcmp("xgQuatInterpolator", str.m_pstring) == 0; }
 };

@@ -14,7 +14,7 @@
  */
 #include "pch.h"
 #include "xgTexture.h"
-unsigned long xgTexture::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+unsigned long xgTexture::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	m_imxName.fill(inFile);
@@ -23,24 +23,23 @@ unsigned long xgTexture::read(FILE* inFile, const std::vector<std::unique_ptr<XG
 	PString::pull(inFile);
 	return 0;
 }
-void xgTexture::create(FILE* outFile, bool full) const
+
+void xgTexture::create(FILE* outFile) const
 {
-	PString::push("xgTexture", outFile);
-	m_name.push(outFile);
-	if (full)
-	{
-		PString::push('{', outFile);
-		PString::push("url", outFile);
-		m_imxName.push(outFile);
-		PString::push("mipmap_depth", outFile);
-		fwrite(&m_mipmap_depth, 4, 1, outFile);
-		PString::push('}', outFile);
-	}
-	else
-		PString::push(';', outFile);
+	XGNode::create(outFile);
+
+	PString::push('{', outFile);
+	PString::push("url", outFile);
+	m_imxName.push(outFile);
+	PString::push("mipmap_depth", outFile);
+	fwrite(&m_mipmap_depth, 4, 1, outFile);
+	PString::push('}', outFile);
 }
-void xgTexture::write_to_txt(FILE* txtFile, const char* tabs)
+
+void xgTexture::write_to_txt(FILE* txtFile, const char* tabs) const
 {
+	XGNode::write_to_txt(txtFile, tabs);
+
 	fprintf_s(txtFile, "\t\t\t%s    Texture: %s\n", tabs, m_imxName.m_pstring);
 	fprintf_s(txtFile, "\t\t%s      Mip map depth: %lu\n", tabs, m_mipmap_depth);
 }

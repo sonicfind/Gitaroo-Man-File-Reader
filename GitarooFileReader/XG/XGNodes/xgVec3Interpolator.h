@@ -14,13 +14,9 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "xgInterpolator.h"
-class xgVec3Interpolator : public xgInterpolator<glm::vec3>
+class xgVec3Interpolator : public xgInterpolator<glm::vec3, Interpolation::vec3Strings>
 {
 public:
-	using xgInterpolator<glm::vec3>::xgInterpolator;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	void write_to_txt(FILE* txtFile, const char* tabs = "");
-	const char* getType() { return "xgVec3Interpolator"; }
-	static bool compare(const PString& str) { return strcmp("xgVec3Interpolator", str.m_pstring) == 0; }
+	using xgInterpolator::xgInterpolator;
+	static bool compareType(const PString& str) { return strcmp("xgVec3Interpolator", str.m_pstring) == 0; }
 };

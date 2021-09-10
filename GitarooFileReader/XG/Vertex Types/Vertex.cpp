@@ -14,40 +14,42 @@
  */
 #include "pch.h"
 #include "Vertex.h"
-Vertex Vertex::mix(const Vertex& nextVertex, const float coefficient, const unsigned long flags) const
+VertexList::VertexList(const VertexList& a, const VertexList& b, float coefficient)
+	: m_vertexFlags(a.m_vertexFlags)
+	, m_vertices(a.m_vertices.size())
 {
-	return {
-		flags & 1 ? glm::mix(m_position, nextVertex.m_position, coefficient) : glm::vec4(),
-		flags & 2 ? glm::mix(m_normal, nextVertex.m_normal, coefficient) : glm::vec3(),
-		flags & 4 ? glm::mix(m_color, nextVertex.m_color, coefficient) : glm::vec4(),
-		flags & 8 ? glm::mix(m_texCoord, nextVertex.m_texCoord, coefficient) : glm::vec2()
-	};
+	if (m_vertexFlags & 1)
+		for (size_t i = 0; i < a.size(); ++i)
+			m_vertices[i].m_position = glm::mix(a[i].m_position, b[i].m_position, coefficient);
+	if (m_vertexFlags & 2)
+		for (size_t i = 0; i < a.size(); ++i)
+			m_vertices[i].m_normal = glm::mix(a[i].m_normal, b[i].m_normal, coefficient);
+	if (m_vertexFlags & 4)
+		for (size_t i = 0; i < a.size(); ++i)
+			m_vertices[i].m_color = glm::mix(a[i].m_color, b[i].m_color, coefficient);
+	if (m_vertexFlags & 8)
+		for (size_t i = 0; i < a.size(); ++i)
+			m_vertices[i].m_texCoord = glm::mix(a[i].m_texCoord, b[i].m_texCoord, coefficient);
 }
 
-void Vertex::position_to_OBJ(FILE* objFile)
+Vertex& VertexList::operator[](size_t i)
 {
-	fprintf(objFile, "v %f %f %f\n", m_position.x, m_position.y, m_position.z);
+	assert(i < m_vertices.size());
+	return m_vertices[i];
 }
 
-void Vertex::texCoord_to_OBJ(FILE* objFile)
+const Vertex& VertexList::operator[](size_t i) const
 {
-	fprintf(objFile, "vt %f %f\n", m_texCoord.s, m_texCoord.t);
+	assert(i < m_vertices.size());
+	return m_vertices[i];
 }
 
-void Vertex::normal_to_OBJ(FILE* objFile)
-{
-	fprintf(objFile, "vn %f %f %f\n", m_normal.x, m_normal.y, m_normal.z);
-}
+size_t VertexList::size() const { return m_vertices.size(); }
 
-bool Vertex::operator==(const Vertex& vert)
-{
-	return m_position == vert.m_position;
-}
-
-void ListType<Vertex>::read(FILE* inFile)
+void VertexList::read(FILE* inFile)
 {
 	fread(&m_vertexFlags, 4, 1, inFile);
-	
+
 	unsigned long size;
 	fread(&size, 4, 1, inFile);
 	m_vertices.reserve(size);
@@ -70,7 +72,7 @@ void ListType<Vertex>::read(FILE* inFile)
 	}
 }
 
-void ListType<Vertex>::create(FILE* outFile) const
+void VertexList::create(FILE* outFile) const
 {
 	fwrite(&m_vertexFlags, 4, 1, outFile);
 
@@ -91,4 +93,46 @@ void ListType<Vertex>::create(FILE* outFile) const
 		if (m_vertexFlags & 8)
 			fwrite(&vertex.m_texCoord, sizeof(float), 2, outFile);
 	}
+}
+
+void VertexList::write_to_txt(FILE* txtFile, const char* tabs_1, const char* tabs_2) const
+{
+	fprintf_s(txtFile, "\t%s%sVertex Flags: %lu\n", tabs_1, tabs_2, m_vertexFlags);
+	fprintf_s(txtFile, "%s%s       # of Vertices: %zu\n", tabs_1, tabs_2, m_vertices.size());
+	for (unsigned long index = 0; index < m_vertices.size(); ++index)
+	{
+		fprintf_s(txtFile, "\t%s%s    Vertex %03lu\n", tabs_1, tabs_2, index + 1);
+		const Vertex& vertex = m_vertices[index];
+		// Position
+		if (m_vertexFlags & 1)
+			fprintf_s(txtFile, "\t\t\t%s%sPosition (XYZW): %g, %g, %g, %g\n", tabs_1, tabs_2, vertex.m_position.x, vertex.m_position.y, vertex.m_position.z, vertex.m_position.w);
+		// Normal
+		if (m_vertexFlags & 2)
+			fprintf_s(txtFile, "\t\t\t%s%s   Normal (XYZ): %g, %g, %g\n", tabs_1, tabs_2, vertex.m_normal.x, vertex.m_normal.y, vertex.m_normal.z);
+		// Color
+		if (m_vertexFlags & 4)
+			fprintf_s(txtFile, "\t\t\t%s%s   Color (RGBA): %g, %g, %g, %g\n", tabs_1, tabs_2, vertex.m_color.x, vertex.m_color.y, vertex.m_color.z, vertex.m_color.w);
+		// Texture Coordinate
+		if (m_vertexFlags & 8)
+			fprintf_s(txtFile, "\t\t%s%sTexture Coordinate (ST): %g, %g\n", tabs_1, tabs_2, vertex.m_texCoord.x, vertex.m_texCoord.y);
+	}
+}
+
+void VertexList::positions_to_obj(FILE* objFile) const
+{
+	for (const auto& vertex : m_vertices)
+		fprintf(objFile, "v %f %f %f\n", vertex.m_position.x, vertex.m_position.y, vertex.m_position.z);
+}
+
+void VertexList::texCoords_to_obj(FILE* objFile) const
+{
+	if (m_vertexFlags & 8)
+		for (const auto& vertex : m_vertices)
+			fprintf(objFile, "vt %f %f\n", vertex.m_texCoord.x, vertex.m_texCoord.y);
+}
+
+void VertexList::normals_to_obj(FILE* objFile) const
+{
+	for (const auto& vertex : m_vertices)
+		fprintf(objFile, "vn %f %f %f\n", vertex.m_normal.x, vertex.m_normal.y, vertex.m_normal.z);
 }

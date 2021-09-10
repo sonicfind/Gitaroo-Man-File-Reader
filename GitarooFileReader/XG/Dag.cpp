@@ -14,7 +14,8 @@
  */
 #include "pch.h"
 #include "Dag.h"
-Dag::Dag(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList, bool isRootBranch)
+Dag::Dag(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList, bool isRootBranch)
+	: m_matrix(1.0f)
 {
 	PString pstr(inFile);
 	if (pstr.m_pstring[0] == '}' || pstr.m_pstring[0] == ']')
@@ -108,7 +109,7 @@ void Dag::restPose()
 		mesh->restPose();
 	else
 	{
-		m_matrix = glm::mat4(1.0f);
+		m_matrix = glm::identity<glm::mat4>();
 		for (auto& dag : m_connected)
 			dag.restPose();
 	}

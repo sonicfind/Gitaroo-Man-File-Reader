@@ -19,11 +19,8 @@ class MaterialNode : public XGNode
 {
 public:
 	using XGNode::XGNode;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList) = 0;
-	void create(FILE* outFile, bool full) const = 0;
-	void write_to_txt(FILE* txtFile, const char* tabs = "") = 0;
-	const char* getType() = 0;
-	virtual bool intializeBuffers() = 0;
+	virtual bool hasTransparency() const = 0;
+	virtual void intializeBuffers() = 0;
 	virtual void deleteBuffers() = 0;
 	virtual void setShaderValues(Shader* shader, const std::string index) const = 0;
 };
@@ -54,14 +51,14 @@ class xgMaterial : public MaterialNode
 
 public:
 	using MaterialNode::MaterialNode;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	void write_to_txt(FILE* txtFile, const char* tabs = "");
-	const char* getType() { return "xgMaterial"; }
-	static bool compare(const PString& str) { return strcmp("xgMaterial", str.m_pstring) == 0; }
+	unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
+	static bool compareType(const PString& str) { return strcmp("xgMaterial", str.m_pstring) == 0; }
+	bool hasTransparency() const;
 
 	void connectTexture(std::vector<IMX>& textures);
-	bool intializeBuffers();
+	void intializeBuffers();
 	void deleteBuffers();
 	void setShaderValues(Shader* shader, const std::string index) const;
 };

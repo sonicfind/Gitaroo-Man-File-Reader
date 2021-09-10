@@ -13,53 +13,44 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 struct Vertex
 {
 	glm::vec4 m_position;
 	glm::vec3 m_normal;
 	glm::vec4 m_color;
 	glm::vec2 m_texCoord;
-	Vertex mix(const Vertex& nextVertex, const float coefficient, const unsigned long flags) const;
-	bool operator==(const Vertex&);
-	void position_to_OBJ(FILE* objFile);
-	void texCoord_to_OBJ(FILE* objFile);
-	void normal_to_OBJ(FILE* objFile);
 };
 
-struct BoneVertex
+struct BoneVertex : public Vertex
 {
-	Vertex m_vertex;
-	unsigned m_envelope;
+	unsigned long m_envelopeIndex;
 	float m_weights[4];
 };
 
-template<typename T>
-struct ListType
+class VertexList
 {
-	std::vector<T> m_values;
-	void read(FILE* inFile)
-	{
-		unsigned long size;
-		fread(&size, 4, 1, inFile);
-		m_values.reserve(size);
-		m_values.resize(size);
-		fread(m_values.data(), sizeof(T), m_values.size(), inFile);
-	}
-
-	void create(FILE* outFile) const
-	{
-		unsigned long size = (unsigned long)m_values.size();
-		fwrite(&size, 4, 1, outFile);
-		fwrite(m_values.data(), sizeof(T), m_values.size(), outFile);
-	}
-};
-
-template<>
-struct ListType<Vertex>
-{
-	unsigned long m_vertexFlags = 0;
+	unsigned long m_vertexFlags;
 	std::vector<Vertex> m_vertices;
+
+public:
+	VertexList() = default;
+	VertexList(const VertexList& a, const VertexList& b, float coefficient);
+	Vertex& operator[](size_t i);
+	const Vertex& operator[](size_t i) const;
+	bool containsPositions() const { return m_vertexFlags & 1; }
+	bool containsNormals() const { return m_vertexFlags & 2; }
+	bool containsColors() const { return m_vertexFlags & 4; }
+	bool containsTexCoords() const { return m_vertexFlags & 8; }
+
+	size_t size() const;
 	void read(FILE* inFile);
 	void create(FILE* outFile) const;
+	void write_to_txt(FILE* txtFile, const char* tabs_1, const char* tabs_2) const;
+
+	void positions_to_obj(FILE* objFile) const;
+	void texCoords_to_obj(FILE* objFile) const;
+	void normals_to_obj(FILE* objFile) const;
+
 };
+

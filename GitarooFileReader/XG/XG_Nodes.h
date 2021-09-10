@@ -22,15 +22,17 @@ class SharedNode;
 class XGNode
 {
 protected:
-	PString m_name;
+	const PString m_nodeType;
+	const PString m_name;
 
 public:
-	XGNode(const PString& name);
-	virtual unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList) = 0;
-	virtual void create(FILE* outFile, bool full) const = 0;
+	XGNode(const PString& type, const PString& name);
+	virtual unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList) = 0;
+	virtual void create(FILE* outFile) const;
+	void createPrototype(FILE* outFile) const;
 	void push(FILE* outFile) const;
-	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") = 0;
-	virtual const char* getType() = 0;
+	void write_to_simple_txt(FILE* simpleTxtFile) const;
+	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	const PString& getName() const;
 };
 
@@ -45,12 +47,12 @@ public:
 	SharedNode(XGNode* ptr) : m_node(ptr) {}
 	template<typename U>
 	SharedNode(const SharedNode<U>& other) : m_node(dynamic_cast<T*>(other.m_node)) {}
-	SharedNode(const PString& name, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+	SharedNode(const PString& name, const std::list<std::unique_ptr<XGNode>>& nodeList)
 	{
 		fill(name, nodeList);
 	}
 
-	void fill(const PString& name, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+	void fill(const PString& name, const std::list<std::unique_ptr<XGNode>>& nodeList)
 	{
 		for (const auto& node : nodeList)
 		{
@@ -90,12 +92,12 @@ public:
 
 	T* operator->() const
 	{
-		return static_cast<T*>(m_node);
+		return dynamic_cast<T*>(m_node);
 	}
 
 	T& operator*() const
 	{
-		return *static_cast<T*>(m_node);
+		return *dynamic_cast<T*>(m_node);
 	}
 
 	bool operator==(const SharedNode& other)
@@ -108,8 +110,4 @@ class DagNode : public XGNode
 {
 public:
 	using XGNode::XGNode;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList) = 0;
-	void create(FILE* outFile, bool full) const = 0;
-	void write_to_txt(FILE* txtFile, const char* tabs = "") = 0;
-	const char* getType() = 0;
 };

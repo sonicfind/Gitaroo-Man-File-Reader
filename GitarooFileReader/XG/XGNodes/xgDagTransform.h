@@ -20,10 +20,10 @@ class xgDagTransform : public DagNode
 
 public:
 	using DagNode::DagNode;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	void write_to_txt(FILE* txtFile, const char* tabs = "");
-	const char* getType() { return "xgDagTransform"; }
-	static bool compare(const PString& str) { return strcmp("xgDagTransform", str.m_pstring) == 0; }
-	glm::mat4x4 getModelMatrix() const;
+	unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
+	static bool compareType(const PString& str) { return strcmp("xgDagTransform", str.m_pstring) == 0; }
+
+	glm::mat4 getModelMatrix() const;
 };

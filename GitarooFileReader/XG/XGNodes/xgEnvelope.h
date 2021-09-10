@@ -29,13 +29,15 @@ class xgEnvelope : public XGNode
 	SharedNode<xgBgGeometry> m_inputGeometry;
 
 	glm::mat4 m_matrices[4];
+	static unsigned int s_BoneSSBU;
 public:
 	using XGNode::XGNode;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	void write_to_txt(FILE* txtFile, const char* tabs = "");
+	unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	const char* getType() { return "xgEnvelope"; }
-	static bool compare(const PString& str) { return strcmp("xgEnvelope", str.m_pstring) == 0; }
+	static bool compareType(const PString& str) { return strcmp("xgEnvelope", str.m_pstring) == 0; }
+
 	void bindBoneWeights(unsigned long envIndex) const;
 	void restPose();
 	void animate();

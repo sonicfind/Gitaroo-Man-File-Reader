@@ -228,14 +228,8 @@
     <ClCompile Include="XG\XGNodes\xgInterpolator.cpp" />
     <ClCompile Include="XG\XGNodes\xgMaterial.cpp" />
     <ClCompile Include="XG\XGNodes\xgMultiPassMaterial.cpp" />
-    <ClCompile Include="XG\XGNodes\xgNormalInterpolator.cpp" />
-    <ClCompile Include="XG\XGNodes\xgQuatInterpolator.cpp" />
-    <ClCompile Include="XG\XGNodes\xgShapeInterpolator.cpp" />
-    <ClCompile Include="XG\XGNodes\xgTexCoordInterpolator.cpp" />
     <ClCompile Include="XG\XGNodes\xgTexture.cpp" />
     <ClCompile Include="XG\XGNodes\xgTime.cpp" />
-    <ClCompile Include="XG\XGNodes\xgVec3Interpolator.cpp" />
-    <ClCompile Include="XG\XGNodes\xgVertexInterpolator.cpp" />
     <ClCompile Include="XG\XG_Data.cpp" />
     <ClCompile Include="XG\XG_Nodes.cpp" />
     <ClCompile Include="XG\XG.cpp" />
@@ -285,8 +279,6 @@
     <ClInclude Include="XG\Triangle Types\Triangle_Separate.h" />
     <ClInclude Include="XG\Triangle Types\Triangle_Strip.h" />
     <ClInclude Include="XG\Vertex Types\Vertex.h" />
-    <ClInclude Include="XG\XGNodes\xgTargetedInterpolator.h" />
-    <ClInclude Include="XG\XGNodes\xgTimedInterpolator.h" />
     <ClInclude Include="XG\XGNodes\xgBgGeometry.h" />
     <ClInclude Include="XG\XGNodes\xgBgMatrix.h" />
     <ClInclude Include="XG\XGNodes\xgBone.h" />

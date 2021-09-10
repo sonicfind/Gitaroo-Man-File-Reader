@@ -50,12 +50,12 @@ XG_Data::XG_Data(FILE* inFile, unsigned long& filesize)
 		colonTest.fill(inFile);
 	} while (strchr(colonTest.m_pstring, ';'));
 
-	for (size_t n = 0; n < m_nodes.size(); n++)
+	for (auto iter = m_nodes.begin(); iter != m_nodes.end();)
 	{
 		try
 		{
 			// If a node is found to be un-optimized, it will optimize it and decrement the total filesize accordingly
-			filesize -= m_nodes[n]->read(inFile, m_nodes);
+			filesize -= (*(iter++))->read(inFile, m_nodes);
 		}
 		catch (std::string str)
 		{
@@ -63,7 +63,7 @@ XG_Data::XG_Data(FILE* inFile, unsigned long& filesize)
 			throw str;
 		}
 
-		if (n + 1 != m_nodes.size())
+		if (iter != m_nodes.end())
 		{
 			type.fill(inFile);
 			xgName.fill(inFile);
@@ -95,24 +95,24 @@ XG_Data::XG_Data(FILE* inFile, unsigned long& filesize)
 void XG_Data::addNode(const PString& type, const PString& name)
 {
 	// Ordered in likelihood of occurance
-	if		(xgVec3Interpolator::compare(type))		m_nodes.push_back(std::make_unique<xgVec3Interpolator>(name));
-	else if	(xgQuatInterpolator::compare(type))		m_nodes.push_back(std::make_unique<xgQuatInterpolator>(name));
-	else if (xgBone::compare(type))					m_nodes.push_back(std::make_unique<xgBone>(name));
-	else if (xgBgMatrix::compare(type))				m_nodes.push_back(std::make_unique<xgBgMatrix>(name));
-	else if (xgEnvelope::compare(type))				m_nodes.push_back(std::make_unique<xgEnvelope>(name));
-	else if (xgMaterial::compare(type))				m_nodes.push_back(std::make_unique<xgMaterial>(name));
-	else if (xgTexture::compare(type))				m_nodes.push_back(std::make_unique<xgTexture>(name));
-	else if (xgDagMesh::compare(type))				m_nodes.push_back(std::make_unique<xgDagMesh>(name));
-	else if (xgBgGeometry::compare(type))			m_nodes.push_back(std::make_unique<xgBgGeometry>(name));
-	else if (xgDagTransform::compare(type))			m_nodes.push_back(std::make_unique<xgDagTransform>(name));
-	else if (xgMultiPassMaterial::compare(type))	m_nodes.push_back(std::make_unique<xgMultiPassMaterial>(name));
-	else if (xgVertexInterpolator::compare(type))	m_nodes.push_back(std::make_unique<xgVertexInterpolator>(name));
-	else if (xgNormalInterpolator::compare(type))	m_nodes.push_back(std::make_unique<xgNormalInterpolator>(name));
-	else if (xgShapeInterpolator::compare(type))	m_nodes.push_back(std::make_unique<xgShapeInterpolator>(name));
-	else if (xgTexCoordInterpolator::compare(type)) m_nodes.push_back(std::make_unique<xgTexCoordInterpolator>(name));
-	else if (xgTime::compare(type))
+	if		(xgVec3Interpolator::compareType(type))		m_nodes.push_back(std::make_unique<xgVec3Interpolator>(type, name));
+	else if	(xgQuatInterpolator::compareType(type))		m_nodes.push_back(std::make_unique<xgQuatInterpolator>(type, name));
+	else if (xgBone::compareType(type))					m_nodes.push_back(std::make_unique<xgBone>(type, name));
+	else if (xgBgMatrix::compareType(type))				m_nodes.push_back(std::make_unique<xgBgMatrix>(type, name));
+	else if (xgEnvelope::compareType(type))				m_nodes.push_back(std::make_unique<xgEnvelope>(type, name));
+	else if (xgMaterial::compareType(type))				m_nodes.push_back(std::make_unique<xgMaterial>(type, name));
+	else if (xgTexture::compareType(type))				m_nodes.push_back(std::make_unique<xgTexture>(type, name));
+	else if (xgDagMesh::compareType(type))				m_nodes.push_back(std::make_unique<xgDagMesh>(type, name));
+	else if (xgBgGeometry::compareType(type))			m_nodes.push_back(std::make_unique<xgBgGeometry>(type, name));
+	else if (xgDagTransform::compareType(type))			m_nodes.push_back(std::make_unique<xgDagTransform>(type, name));
+	else if (xgMultiPassMaterial::compareType(type))	m_nodes.push_back(std::make_unique<xgMultiPassMaterial>(type, name));
+	else if (xgVertexInterpolator::compareType(type))	m_nodes.push_back(std::make_unique<xgVertexInterpolator>(type, name));
+	else if (xgNormalInterpolator::compareType(type))	m_nodes.push_back(std::make_unique<xgNormalInterpolator>(type, name));
+	else if (xgShapeInterpolator::compareType(type))	m_nodes.push_back(std::make_unique<xgShapeInterpolator>(type, name));
+	else if (xgTexCoordInterpolator::compareType(type)) m_nodes.push_back(std::make_unique<xgTexCoordInterpolator>(type, name));
+	else if (xgTime::compareType(type))
 	{
-		m_nodes.push_back(std::make_unique<xgTime>(name));
+		m_nodes.push_back(std::make_unique<xgTime>(type, name));
 		m_timeNode = m_nodes.back().get();
 	}
 	else
@@ -125,11 +125,11 @@ void XG_Data::create(FILE* outFile)
 
 	// Write node prototypes
 	for (auto& node : m_nodes)
-		node->create(outFile, false);
+		node->createPrototype(outFile);
 
 	// Write actual node data
 	for (auto& node : m_nodes)
-		node->create(outFile, true);
+		node->create(outFile);
 
 	PString::push("dag", outFile);
 	PString::push('{', outFile);

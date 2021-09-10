@@ -14,7 +14,7 @@
  */
 #include "pch.h"
 #include "xgMultiPassMaterial.h"
-unsigned long xgMultiPassMaterial::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+unsigned long xgMultiPassMaterial::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	PString test;
@@ -26,7 +26,7 @@ unsigned long xgMultiPassMaterial::read(FILE* inFile, const std::vector<std::uni
 		for (size_t i = 0; i < m_inputMaterials.size(); ++i)
 			if (m_inputMaterials[i] == compare)
 			{
-				sizechange += 30 + compare->getName().m_size;
+				sizechange += 29 + compare->getName().getSize();
 				goto Grab_Characters;
 			}
 		m_inputMaterials.push_back(compare);
@@ -38,27 +38,24 @@ unsigned long xgMultiPassMaterial::read(FILE* inFile, const std::vector<std::uni
 	return sizechange;
 }
 
-void xgMultiPassMaterial::create(FILE* outFile, bool full) const
+void xgMultiPassMaterial::create(FILE* outFile) const
 {
-	PString::push("xgMultiPassMaterial", outFile);
-	m_name.push(outFile);
-	if (full)
+	XGNode::create(outFile);
+
+	PString::push('{', outFile);
+	for (auto& node : m_inputMaterials)
 	{
-		PString::push('{', outFile);
-		for (auto& node : m_inputMaterials)
-		{
-			PString::push("inputMaterial", outFile);
-			node->push(outFile);
-			PString::push("outputMaterial", outFile);
-		}
-		PString::push('}', outFile);
+		PString::push("inputMaterial", outFile);
+		node->push(outFile);
+		PString::push("outputMaterial", outFile);
 	}
-	else
-		PString::push(';', outFile);
+	PString::push('}', outFile);
 }
 
-void xgMultiPassMaterial::write_to_txt(FILE* txtFile, const char* tabs)
+void xgMultiPassMaterial::write_to_txt(FILE* txtFile, const char* tabs) const
 {
+	XGNode::write_to_txt(txtFile, tabs);
+
 	fprintf_s(txtFile, "\t%s     # of Materials: %zu\n", tabs, m_inputMaterials.size());
 	for (size_t index = 0; index < m_inputMaterials.size(); ++index)
 		fprintf_s(txtFile, "\t\t%s %zu. %s\n", tabs, index + 1, m_inputMaterials[index]->getName().m_pstring);
@@ -70,13 +67,19 @@ void xgMultiPassMaterial::connectTextures(std::vector<IMX>& textures)
 		mat->connectTexture(textures);
 }
 
-#include <glad/glad.h>
-bool xgMultiPassMaterial::intializeBuffers()
+bool xgMultiPassMaterial::hasTransparency() const
 {
-	bool transparent = false;
+	for (const auto& mat : m_inputMaterials)
+		if (mat->hasTransparency())
+			return true;
+	return false;
+}
+
+#include <glad/glad.h>
+void xgMultiPassMaterial::intializeBuffers()
+{
 	for (size_t i = 0; i < m_inputMaterials.size(); ++i)
-		transparent = m_inputMaterials[i]->intializeBuffers();
-	return transparent;
+		m_inputMaterials[i]->intializeBuffers();
 }
 
 void xgMultiPassMaterial::deleteBuffers()
@@ -92,7 +95,7 @@ void xgMultiPassMaterial::setShaderValues(Shader* shader, const std::string inde
 	{
 		glActiveTexture(GL_TEXTURE0 + int(i));
 		std::string index = std::to_string(i);
-		shader->setInt("materials[" + index + "].diffuse", int(i));
+		shader->setInt("materials[" + index + "].tex", int(i));
 		m_inputMaterials[i]->setShaderValues(shader, "[" + index + ']');
 	}
 }

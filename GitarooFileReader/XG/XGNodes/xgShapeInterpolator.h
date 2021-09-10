@@ -13,14 +13,30 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "xgTimedInterpolator.h"
-class xgShapeInterpolator : public xgTimedInterpolator<Vertex>
+#include "xgInterpolator.h"
+class xgShapeInterpolator
+	: public xgTimedInterpolator<VertexList, Interpolation::shapeStrings>
 {
 public:
 	using xgTimedInterpolator::xgTimedInterpolator;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	const char* getType() { return "xgShapeInterpolator"; }
-	static bool compare(const PString& str) { return strcmp("xgShapeInterpolator", str.m_pstring) == 0; }
-	void replaceVertexData() const;
+	void read_keys(FILE* inFile)
+	{
+		PString::pull(inFile);
+		unsigned long size;
+		fread(&size, 4, 1, inFile);
+		m_keys.reserve(size);
+		m_keys.resize(size);
+		for (auto& key : m_keys)
+			key.read(inFile);
+	}
+
+	void create_keys(FILE* outFile) const
+	{
+		PString::push("keys", outFile);
+		unsigned long size = (unsigned long)m_keys.size();
+		fwrite(&size, 4, 1, outFile);
+		for (auto& key : m_keys)
+			key.create(outFile);
+	}
+	static bool compareType(const PString& str) { return strcmp("xgShapeInterpolator", str.m_pstring) == 0; }
 };

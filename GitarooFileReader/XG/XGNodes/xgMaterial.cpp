@@ -15,7 +15,7 @@
 #include "pch.h"
 #include "xgMaterial.h"
 #include <glad/glad.h>
-unsigned long xgMaterial::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+unsigned long xgMaterial::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(&m_blendType, 4, 1, inFile);
@@ -48,12 +48,12 @@ unsigned long xgMaterial::read(FILE* inFile, const std::vector<std::unique_ptr<X
 	fread(&m_vTile, 4, 1, inFile);
 
 	PString test(inFile);
-	int sizechange = 0;
+	unsigned long sizechange = 0;
 	while (!strchr(test.m_pstring, '}'))
 	{
 		// Removes duplicate textures
 		if (m_inputTexture)
-			sizechange += 28 + m_inputTexture->getName().m_size;
+			sizechange += 27 + m_inputTexture->getName().getSize();
 		m_inputTexture.fill(inFile, nodeList);
 		PString::pull(inFile);
 		test.fill(inFile);
@@ -61,57 +61,54 @@ unsigned long xgMaterial::read(FILE* inFile, const std::vector<std::unique_ptr<X
 	return sizechange;
 }
 
-void xgMaterial::create(FILE* outFile, bool full) const
+void xgMaterial::create(FILE* outFile) const
 {
-	PString::push("xgMaterial", outFile);
-	m_name.push(outFile);
-	if (full)
+	XGNode::create(outFile);
+
+	PString::push('{', outFile);
+	PString::push("blendType", outFile);
+	fwrite(&m_blendType, 4, 1, outFile);
+
+	PString::push("shadingType", outFile);
+	fwrite(&m_shadingType, 4, 1, outFile);
+
+	PString::push("diffuse", outFile);
+	fwrite(&m_diffuse.red, 4, 1, outFile);
+	fwrite(&m_diffuse.green, 4, 1, outFile);
+	fwrite(&m_diffuse.blue, 4, 1, outFile);
+	fwrite(&m_diffuse.alpha, 4, 1, outFile);
+
+	PString::push("specular", outFile);
+	fwrite(&m_specular.red, 4, 1, outFile);
+	fwrite(&m_specular.green, 4, 1, outFile);
+	fwrite(&m_specular.blue, 4, 1, outFile);
+	fwrite(&m_specular.exponent, 4, 1, outFile);
+
+	PString::push("flags", outFile);
+	fwrite(&m_flags, 4, 1, outFile);
+
+	PString::push("textureEnv", outFile);
+	fwrite(&m_textureEnv, 4, 1, outFile);
+
+	PString::push("uTile", outFile);
+	fwrite(&m_uTile, 4, 1, outFile);
+
+	PString::push("vTile", outFile);
+	fwrite(&m_vTile, 4, 1, outFile);
+
+	if (m_inputTexture)
 	{
-		PString::push('{', outFile);
-		PString::push("blendType", outFile);
-		fwrite(&m_blendType, 4, 1, outFile);
-
-		PString::push("shadingType", outFile);
-		fwrite(&m_shadingType, 4, 1, outFile);
-
-		PString::push("diffuse", outFile);
-		fwrite(&m_diffuse.red, 4, 1, outFile);
-		fwrite(&m_diffuse.green, 4, 1, outFile);
-		fwrite(&m_diffuse.blue, 4, 1, outFile);
-		fwrite(&m_diffuse.alpha, 4, 1, outFile);
-
-		PString::push("specular", outFile);
-		fwrite(&m_specular.red, 4, 1, outFile);
-		fwrite(&m_specular.green, 4, 1, outFile);
-		fwrite(&m_specular.blue, 4, 1, outFile);
-		fwrite(&m_specular.exponent, 4, 1, outFile);
-
-		PString::push("flags", outFile);
-		fwrite(&m_flags, 4, 1, outFile);
-
-		PString::push("textureEnv", outFile);
-		fwrite(&m_textureEnv, 4, 1, outFile);
-
-		PString::push("uTile", outFile);
-		fwrite(&m_uTile, 4, 1, outFile);
-
-		PString::push("vTile", outFile);
-		fwrite(&m_vTile, 4, 1, outFile);
-
-		if (m_inputTexture)
-		{
-			PString::push("inputTexture", outFile);
-			m_inputTexture->push(outFile);
-			PString::push("outputTexture", outFile);
-		}
-		PString::push('}', outFile);
+		PString::push("inputTexture", outFile);
+		m_inputTexture->push(outFile);
+		PString::push("outputTexture", outFile);
 	}
-	else
-		PString::push(';', outFile);
+	PString::push('}', outFile);
 }
 
-void xgMaterial::write_to_txt(FILE* txtFile, const char* tabs)
+void xgMaterial::write_to_txt(FILE* txtFile, const char* tabs) const
 {
+	XGNode::write_to_txt(txtFile, tabs);
+
 	switch (m_blendType)
 	{
 	case 1:
@@ -158,11 +155,15 @@ void xgMaterial::connectTexture(std::vector<IMX>& textures)
 		m_inputTexture->connectTexture(textures);
 }
 
-bool xgMaterial::intializeBuffers()
+bool xgMaterial::hasTransparency() const
+{
+	return (m_blendType != 0 && m_blendType != 4) || m_flags & 1;
+}
+
+void xgMaterial::intializeBuffers()
 {
 	if (m_inputTexture)
 		m_inputTexture->generateTextureBuffer();
-	return (m_blendType != 0 && m_blendType != 4) || m_flags & 1;
 }
 
 void xgMaterial::deleteBuffers()

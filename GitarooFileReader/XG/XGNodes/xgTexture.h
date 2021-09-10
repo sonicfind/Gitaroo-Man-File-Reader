@@ -23,11 +23,11 @@ class xgTexture : public XGNode
 
 public:
 	using XGNode::XGNode;
-	unsigned long read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList);
-	void create(FILE* outFile, bool full) const;
-	void write_to_txt(FILE* txtFile, const char* tabs = "");
-	const char* getType() { return "xgTexture"; }
-	static bool compare(const PString& str) { return strcmp("xgTexture", str.m_pstring) == 0; }
+	unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList);
+	void create(FILE* outFile) const;
+	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
+	static bool compareType(const PString& str) { return strcmp("xgTexture", str.m_pstring) == 0; }
+
 	void connectTexture(std::vector<IMX>& textures);
 	void generateTextureBuffer();
 	void bindTextureBuffer() const;

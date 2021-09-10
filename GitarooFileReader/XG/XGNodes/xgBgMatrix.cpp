@@ -15,7 +15,7 @@
 #include "pch.h"
 #include "xgBgMatrix.h"
 #include <glm/gtc/type_ptr.hpp>
-unsigned long xgBgMatrix::read(FILE* inFile, const std::vector<std::unique_ptr<XGNode>>& nodeList)
+unsigned long xgBgMatrix::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
 	fread(glm::value_ptr(m_position), sizeof(m_position), 1, inFile);
@@ -43,58 +43,55 @@ unsigned long xgBgMatrix::read(FILE* inFile, const std::vector<std::unique_ptr<X
 	return 0;
 }
 
-void xgBgMatrix::create(FILE* outFile, bool full) const
+void xgBgMatrix::create(FILE* outFile) const
 {
-	PString::push("xgBgMatrix", outFile);
-	m_name.push(outFile);
-	if (full)
+	XGNode::create(outFile);
+
+	PString::push('{', outFile);
+	PString::push("position", outFile);
+	fwrite(glm::value_ptr(m_position), sizeof(m_position), 1, outFile);
+
+	PString::push("rotation", outFile);
+	fwrite(glm::value_ptr(m_rotation), sizeof(m_rotation), 1, outFile);
+
+	PString::push("scale", outFile);
+	fwrite(glm::value_ptr(m_scale), sizeof(m_scale), 1, outFile);
+
+	if (m_inputPosition)
 	{
-		PString::push('{', outFile);
-		PString::push("position", outFile);
-		fwrite(glm::value_ptr(m_position), sizeof(m_position), 1, outFile);
-
-		PString::push("rotation", outFile);
-		fwrite(glm::value_ptr(m_rotation), sizeof(m_rotation), 1, outFile);
-
-		PString::push("scale", outFile);
-		fwrite(glm::value_ptr(m_scale), sizeof(m_scale), 1, outFile);
-
-		if (m_inputPosition)
-		{
-			PString::push("inputPosition", outFile);
-			m_inputPosition->push(outFile);
-			PString::push("outputVec3", outFile);
-		}
-
-		if (m_inputRotation)
-		{
-			PString::push("inputRotation", outFile);
-			m_inputRotation->push(outFile);
-			PString::push("outputQuat", outFile);
-		}
-
-		if (m_inputScale)
-		{
-			PString::push("inputScale", outFile);
-			m_inputScale->push(outFile);
-			PString::push("outputVec3", outFile);
-		}
-
-		if (m_inputParentMatrix)
-		{
-			PString::push("inputParentMatrix", outFile);
-			m_inputParentMatrix->push(outFile);
-			PString::push("outputMatrix", outFile);
-		}
-
-		PString::push('}', outFile);
+		PString::push("inputPosition", outFile);
+		m_inputPosition->push(outFile);
+		PString::push("outputVec3", outFile);
 	}
-	else
-		PString::push(';', outFile);
+
+	if (m_inputRotation)
+	{
+		PString::push("inputRotation", outFile);
+		m_inputRotation->push(outFile);
+		PString::push("outputQuat", outFile);
+	}
+
+	if (m_inputScale)
+	{
+		PString::push("inputScale", outFile);
+		m_inputScale->push(outFile);
+		PString::push("outputVec3", outFile);
+	}
+
+	if (m_inputParentMatrix)
+	{
+		PString::push("inputParentMatrix", outFile);
+		m_inputParentMatrix->push(outFile);
+		PString::push("outputMatrix", outFile);
+	}
+
+	PString::push('}', outFile);
 }
 
-void xgBgMatrix::write_to_txt(FILE* txtFile, const char* tabs)
+void xgBgMatrix::write_to_txt(FILE* txtFile, const char* tabs) const
 {
+	XGNode::write_to_txt(txtFile, tabs);
+
 	fprintf_s(txtFile, "\t\t\t%s Grid Position (XYZ): %g, %g, %g\n", tabs, m_position[0], m_position[1], m_position[2]);
 	fprintf_s(txtFile, "\t\t\t%sGrid Rotation (XYZW): %g, %g, %g, %g\n", tabs, m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
 	fprintf_s(txtFile, "\t\t\t%s    Grid Scale (XYZ): %g, %g, %g\n", tabs, m_scale[0], m_scale[1], m_scale[2]);

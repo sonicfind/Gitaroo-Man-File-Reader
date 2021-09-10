@@ -149,6 +149,23 @@ void xgMaterial::write_to_txt(FILE* txtFile, const char* tabs) const
 		fprintf_s(txtFile, "\t\t\t%s       Texture: %s\n", tabs, m_inputTexture->getName().m_pstring);
 }
 
+const size_t xgMaterial::getSize() const
+{
+	size_t size = XGNode::getSize()
+		+ PSTRING_LEN_VAR("blendType", m_blendType)
+		+ PSTRING_LEN_VAR("shadingType", m_shadingType)
+		+ PSTRING_LEN_VAR("diffuse", m_diffuse)
+		+ PSTRING_LEN_VAR("specular", m_specular)
+		+ PSTRING_LEN_VAR("flags", m_flags)
+		+ PSTRING_LEN_VAR("textureEnv", m_textureEnv)
+		+ PSTRING_LEN_VAR("uTile", m_uTile)
+		+ PSTRING_LEN_VAR("vTile", m_vTile);
+
+	if (m_inputTexture)
+		size += m_inputTexture->getName().getSize() + PSTRING_LEN("inputTexture") + PSTRING_LEN("outputTexture");
+	return size;
+}
+
 void xgMaterial::connectTexture(std::vector<IMX>& textures)
 {
 	if (m_inputTexture)
@@ -189,7 +206,7 @@ void xgMaterial::setShaderValues(Shader* shader, const std::string index) const
 	else
 		shader->setInt("materials" + index + ".shadingType", m_shadingType);
 	glBlendColor(m_diffuse.red, m_diffuse.green, m_diffuse.blue, m_diffuse.alpha);
-	shader->setVec4("materials" + index + ".color", (float*)&m_diffuse);
+	shader->setVec4("materials" + index + ".diffuse", (float*)&m_diffuse);
 	shader->setVec3("materials" + index + ".specular", (float*)&m_specular);
 	shader->setFloat("materials" + index + ".shininess", m_specular.exponent);
 

@@ -13,8 +13,8 @@ struct Material
 {
 	int blendingType;
 	int shadingType;
-	vec4 color;
-	sampler2D diffuse;
+	sampler2D tex;
+	vec4 diffuse;
 	vec3 specular;
 	float shininess;
 	int alphaType;
@@ -43,21 +43,25 @@ uniform vec3 viewPos;
 uniform vec3 lightPosition;
 
 vec4 doStuff(const Material material, vec2 texCoord);
-vec4 blend(vec4 baseColor, vec4 algoColor, int blendType, int alphaType);
-vec4 blendColor(const Material material);
+vec4 getBlendColor(const int blend, const float multiplier, const vec4 color);
 vec4 applyShading(const Material material, vec4 baseColor);
 vec3 applySpecular(const Material material, vec3 lightDir, float attenuation);
 
 void main()
 {
+	//if (gl_FrontFacing)
+	//	FragColor = vec4(0, 1, 0, 1);
+	//else
+	//	FragColor = vec4(1, 0, 0, 1);
+	//return;
 	vec4 result = doStuff(materials[0], vs_in.texCoord[0]);
 	if (result.a < 0.01)
 		discard;
 
-	if (false)//(doMulti == 1)
+	if (doMulti == 1)
 	{
 		vec4 col2 = doStuff(materials[1], vs_in.texCoord[1]);
-		FragColor = vec4(result.rgb * col2.a + col2.rgb * (1 - col2.a), result.a);
+		FragColor = vec4(result.rgb * (1 - col2.a) + col2.rgb * col2.a, result.a + col2.a - result.a * col2.a);
 	}
 	else
 		FragColor = result;
@@ -65,95 +69,53 @@ void main()
 
 vec4 doStuff(const Material material, vec2 texCoord)
 {
-	bool shade;
-	vec4 result;
-	if (material.shadingType == 3 || material.shadingType == 4)
+	vec4 result = vec4(1.0f);
+	if (material.shadingType < 3 || 5 <= material.shadingType)
 	{
-		result = blendColor(material);
-		shade = false;//material.shadingType == 4;
-	}
-	else
-	{
-		vec4 texColor = texture(material.diffuse, texCoord);
-		if (material.shadingType < 3)
-			result = blend(texColor, material.color, material.blendingType, material.alphaType);
+		vec4 texColor = texture(material.tex, texCoord);
+		if (material.shadingType != 1)
+			result = getBlendColor(material.blendingType, material.diffuse.a, texColor);
 		else
-			result = blend(texColor, vs_in.color, material.blendingType, material.alphaType);
-	}
+			result = getBlendColor(material.blendingType, 1, texColor);
 
-	if (FragColor.a < 0.01)
-		discard;
+		if (material.alphaType == 1)
+			result.a *= 2 * texColor.a;
+	}
 	
-	if (shade)
-		return applyShading(material, result);
-	else
+	if (material.shadingType >= 3)
+		result *= getBlendColor(material.blendingType, material.diffuse.a, vs_in.color);
+
+	switch (material.shadingType)
+	{
+	//case 1:
+	//case 2:
+	//case 4:
+	//case 6:
+	//	return applyShading(material, result);
+	default:
 		return result;
+	}
 };
 
-vec4 blend(vec4 baseColor, vec4 algoColor, int blendType, int alphaType)
+vec4 getBlendColor(const int blend, const float multiplier, const vec4 color)
 {
-	vec4 combo = baseColor * algoColor;
-	vec4 result = vec4(1);
-	switch (blendType)
+	switch (blend)
 	{
 	case 0:
-		result.rgb = combo.rgb;
-		if (alphaType == 1)
-			result.a = 2 * baseColor.a;
-		break;
+		return vec4(color.rgb, 1);
 	case 1:
-		result = combo;
-		if (alphaType == 1)
-			result.a *= 2;
-		break;
+		return vec4(color.rgb, multiplier * (color.r + color.g + color.b) / 3);
 	case 2:
-		result = baseColor;
-		break;
+		return vec4(color.rgb, color.r * color.g * color.b);
 	case 3:
-		result.r = max(algoColor.r - baseColor.r, 0);
-		result.g = max(algoColor.g - baseColor.g, 0);
-		result.b = max(algoColor.b - baseColor.b, 0);
-		result.a = 1 -  min(algoColor.a * (baseColor.r + baseColor.g + baseColor.b) / 3, 1);
-		break;
+		vec3 sub = vec3(1.0f) - color.rgb;
+		return vec4(sub, 1 - min(multiplier * sub.r * sub.g * sub.b, 1));
 	case 4:
-		result.rgb = combo.rgb * .5;
-		break;
+		return vec4(color.rgb * .5, 1);
 	case 5:
-		result.rgb = baseColor.rgb;
-		result.a = baseColor.a * algoColor.a;
-		if (alphaType == 1)
-			result.a *= 2;
+		return vec4(color.rgb, multiplier);
 	}
-	return result;
-};
-
-vec4 blendColor(const Material material)
-{
-	vec4 combo = vs_in.color * material.color;
-	vec4 result;
-	switch (material.blendingType)
-	{
-	case 0:
-		result = vec4(vs_in.color.rgb, 1);
-		break;
-	case 1:
-		result = vec4(vs_in.color.rgb, (vs_in.color.r + vs_in.color.g + vs_in.color.b) / 3);
-		break;
-	case 2:
-		result = vec4(vs_in.color.rgb, (combo.r * combo.g * combo.b));
-		break;
-	case 3:
-		result = material.color - vs_in.color;
-		result.a = max(1 - (material.color.a * (FragColor.r + FragColor.g + FragColor.b) / 3), 0);
-		break;
-	case 4:
-		result = vec4(vs_in.color.rgb * material.color.rgb, 1);
-		break;
-	case 5:
-		result = vec4(combo.rgb, 1 - material.color.a);
-	}
-	return result;
-};
+}
 
 vec4 applyShading(const Material material, vec4 baseColor)
 {

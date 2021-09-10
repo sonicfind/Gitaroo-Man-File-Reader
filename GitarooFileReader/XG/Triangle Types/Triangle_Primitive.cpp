@@ -49,9 +49,9 @@ void Triangle_Prim::create(FILE* outFile) const
 
 const size_t Triangle_Prim::getSize() const
 {
-	return PSTRING_LEN("primCount", unsigned long)
-		+ m_data->getSize()
-		+ PSTRING_LEN("primData", unsigned long);
+	return PSTRING_LEN_VAR("primCount", unsigned long)
+		+ PSTRING_LEN_VAR("primData", unsigned long)
+		+ m_data->getSize();
 }
 
 void Triangle_Prim::draw(GLenum mode) const

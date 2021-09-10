@@ -46,7 +46,7 @@ void Triangle_List::write_to_obj(FILE* objFile, const size_t offset, const bool 
 
 const size_t Triangle_List::getSize() const
 {
-	return PSTRING_LEN("triListCount", unsigned long)
-		+ m_data->getSize()
-		+ PSTRING_LEN("triListData", unsigned long);
+	return PSTRING_LEN_VAR("triListCount", unsigned long)
+		+ PSTRING_LEN_VAR("triListData", unsigned long)
+		+ m_data->getSize();
 }

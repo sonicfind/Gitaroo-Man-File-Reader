@@ -50,6 +50,6 @@ void Triangle_Fan::write_to_obj(FILE* objFile, const size_t offset, const bool w
 const size_t Triangle_Fan::getSize() const
 {
 	return PSTRING_LEN_VAR("triFanCount", unsigned long)
-		+ PSTRING_LEN("triFanData", unsigned long)
+		+ PSTRING_LEN_VAR("triFanData", unsigned long)
 		+ m_data->getSize();
 }

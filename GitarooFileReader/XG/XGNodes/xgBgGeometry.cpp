@@ -14,7 +14,6 @@
  */
 #include "pch.h"
 #include "xgBgGeometry.h"
-unsigned g_boneSSBO = 0;
 unsigned long xgBgGeometry::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
@@ -139,73 +138,12 @@ void xgBgGeometry::normals_to_obj(FILE* objFile) const
 #include <glad/glad.h>
 bool xgBgGeometry::generateVertexBuffer()
 {
-	if (!m_VAO)
+	bool dynamic = m_inputShapeInterpolator || m_inputVertexInterpolator || m_inputNormalInterpolator || m_inputTexCoordInterpolator;
+	if (m_vertexList.generateVertexBuffer(m_inputEnvelopes.size() > 0, dynamic))
 	{
-		glGenBuffers(1, &m_VBO);
-		glGenVertexArrays(1, &m_VAO);
-		glBindVertexArray(m_VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-
-		if (m_inputEnvelopes.size() == 0)
-		{
-			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(4 * sizeof(float)));
-			glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(7 * sizeof(float)));
-			glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(11 * sizeof(float)));
-
-			if (m_vertexList.m_vertexFlags & 1)
-				glEnableVertexAttribArray(0);
-			if (m_vertexList.m_vertexFlags & 2)
-				glEnableVertexAttribArray(1);
-			if (m_vertexList.m_vertexFlags & 4)
-				glEnableVertexAttribArray(2);
-			if (m_vertexList.m_vertexFlags & 8)
-				glEnableVertexAttribArray(3);
-
-			glBufferData(GL_ARRAY_BUFFER, m_vertexList.m_vertices.size() * sizeof(Vertex), m_vertexList.m_vertices.data(), GL_STATIC_DRAW);
-		}
-		else
-		{
-			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(4 * sizeof(float)));
-			glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(7 * sizeof(float)));
-			glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(11 * sizeof(float)));
-			glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, sizeof(BoneVertex), (void*)(13 * sizeof(float)));
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(14 * sizeof(float)));
-
-			if (m_vertexList.m_vertexFlags & 1)
-				glEnableVertexAttribArray(0);
-			if (m_vertexList.m_vertexFlags & 2)
-				glEnableVertexAttribArray(1);
-			if (m_vertexList.m_vertexFlags & 4)
-				glEnableVertexAttribArray(2);
-			if (m_vertexList.m_vertexFlags & 8)
-				glEnableVertexAttribArray(3);
-
-			glEnableVertexAttribArray(4);
-			glEnableVertexAttribArray(5);
-
-			glBufferData(GL_ARRAY_BUFFER, m_vertexList.m_vertices.size() * sizeof(BoneVertex), NULL, GL_STATIC_DRAW);
-
-			for (unsigned long index = 0; index < m_vertexList.m_vertices.size(); ++index)
-				glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(BoneVertex), sizeof(Vertex), &m_vertexList.m_vertices[index]);
-
-			for (unsigned long index = 0; index < m_inputEnvelopes.size(); ++index)
-				m_inputEnvelopes[index]->bindBoneWeights(index);
-
-			if (!g_boneSSBO)
-			{
-				glGenBuffers(1, &g_boneSSBO);
-				glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_boneSSBO);
-				glBufferData(GL_SHADER_STORAGE_BUFFER, 17408, NULL, GL_DYNAMIC_COPY);
-
-				g_boneShaders.bindStorageBlock(4, "Envelopes");
-
-				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, g_boneSSBO);
-
-				glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-			}
-		}
+		// Does nothing if bones aren't used
+		for (unsigned long index = 0; index < m_inputEnvelopes.size(); ++index)
+			m_inputEnvelopes[index]->bindBoneWeights(index);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		return true;
@@ -215,33 +153,19 @@ bool xgBgGeometry::generateVertexBuffer()
 
 void xgBgGeometry::bindVertexBuffer() const
 {
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBindVertexArray(m_VAO);
-
+	m_vertexList.bind();
 	if (m_inputEnvelopes.size())
 	{
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_boneSSBO);
+		xgEnvelope::bindBoneUniform();
 		for (unsigned long i = 0; i < m_inputEnvelopes.size(); ++i)
 			m_inputEnvelopes[i]->updateBoneMatrices(i);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+		xgEnvelope::unbindBoneUniform();
 	}
 }
 
 void xgBgGeometry::deleteVertexBuffer()
 {
-	if (g_boneSSBO)
-	{
-		glDeleteBuffers(1, &g_boneSSBO);
-		g_boneSSBO = 0;
-	}
-
-	if (m_VAO)
-	{
-		glDeleteVertexArrays(1, &m_VAO);
-		glDeleteBuffers(1, &m_VBO);
-		m_VAO = 0;
-		m_VBO = 0;
-	}
+	m_vertexList.deleteVertexBuffer();
 }
 
 ShaderCombo* xgBgGeometry::activateShader() const
@@ -261,11 +185,7 @@ ShaderCombo* xgBgGeometry::activateShader() const
 void xgBgGeometry::restPose() const
 {
 	if (m_inputEnvelopes.size() == 0)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, m_vertexList.m_vertices.size() * sizeof(Vertex), m_vertexList.m_vertices.data());
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
+		m_vertexList.restPose();
 	else
 		for (auto& env : m_inputEnvelopes)
 			env->restPose();
@@ -276,9 +196,7 @@ void xgBgGeometry::animate()
 	for (const auto& env : m_inputEnvelopes)
 		env->animate();
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 	if (m_inputShapeInterpolator)
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_vertexList.replace(m_inputShapeInterpolator->interpolate());
 
 	else if (m_inputVertexInterpolator || m_inputNormalInterpolator || m_inputTexCoordInterpolator)

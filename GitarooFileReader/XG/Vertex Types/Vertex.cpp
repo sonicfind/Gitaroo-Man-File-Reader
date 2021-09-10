@@ -136,3 +136,100 @@ void VertexList::normals_to_obj(FILE* objFile) const
 	for (const auto& vertex : m_vertices)
 		fprintf(objFile, "vn %f %f %f\n", vertex.m_normal.x, vertex.m_normal.y, vertex.m_normal.z);
 }
+
+#include <glad/glad.h>
+bool VertexList::generateVertexBuffer(const bool bones, const bool dynamic)
+{
+	if (!m_VAO)
+	{
+		glGenBuffers(1, &m_VBO);
+		glGenVertexArrays(1, &m_VAO);
+		glBindVertexArray(m_VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+
+		if (bones)
+		{
+			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(4 * sizeof(float)));
+			glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(7 * sizeof(float)));
+			glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(11 * sizeof(float)));
+			glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, sizeof(BoneVertex), (void*)(13 * sizeof(float)));
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(BoneVertex), (void*)(14 * sizeof(float)));
+
+			glEnableVertexAttribArray(4);
+			glEnableVertexAttribArray(5);
+
+			glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(BoneVertex), NULL, GL_STATIC_DRAW);
+
+			for (unsigned long index = 0; index < m_vertices.size(); ++index)
+				glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(BoneVertex), sizeof(Vertex), &m_vertices[index]);
+		}
+		else
+		{
+			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(4 * sizeof(float)));
+			glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(7 * sizeof(float)));
+			glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(11 * sizeof(float)));
+			glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+		}
+
+		if (m_vertexFlags & 1)
+			glEnableVertexAttribArray(0);
+		if (m_vertexFlags & 2)
+			glEnableVertexAttribArray(1);
+		if (m_vertexFlags & 4)
+			glEnableVertexAttribArray(2);
+		if (m_vertexFlags & 8)
+			glEnableVertexAttribArray(3);
+		return true;
+	}
+	return false;
+}
+
+void VertexList::deleteVertexBuffer()
+{
+	if (m_VAO)
+	{
+		glDeleteVertexArrays(1, &m_VAO);
+		glDeleteBuffers(1, &m_VBO);
+		m_VAO = 0;
+		m_VBO = 0;
+	}
+}
+
+void VertexList::bind() const
+{
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	glBindVertexArray(m_VAO);
+}
+
+void VertexList::restPose() const
+{
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, m_vertices.size() * sizeof(Vertex), m_vertices.data());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void VertexList::replace(const VertexList& list) const
+{
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, list.m_vertices.size() * sizeof(Vertex), list.m_vertices.data());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void VertexList::replace(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords) const
+{
+	std::vector<Vertex> vect(m_vertices);
+	for (size_t i = 0; i < m_vertices.size(); ++i)
+		vect[i].m_position = glm::vec4(positions[i], 1);
+
+	for (size_t i = 0; i < m_vertices.size(); ++i)
+		vect[i].m_normal = normals[i];
+
+	for (size_t i = 0; i < m_vertices.size(); ++i)
+		vect[i].m_texCoord = texCoords[i];
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, vect.size() * sizeof(Vertex), vect.data());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}

@@ -130,6 +130,34 @@ void xgEnvelope::write_to_txt(FILE* txtFile, const char* tabs) const
 }
 
 #include <glad/glad.h>
+unsigned int xgEnvelope::s_BoneSSBU = 0;
+void xgEnvelope::generateBoneUniform()
+{
+	glGenBuffers(1, &s_BoneSSBU);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_BoneSSBU);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 17408, NULL, GL_DYNAMIC_COPY);
+
+	g_boneShaders.bindStorageBlock(4, "Envelopes");
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, s_BoneSSBU);
+}
+
+void xgEnvelope::deleteBoneUniform()
+{
+	glDeleteBuffers(1, &s_BoneSSBU);
+	s_BoneSSBU = 0;
+}
+
+void xgEnvelope::bindBoneUniform()
+{
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_BoneSSBU);
+}
+
+void xgEnvelope::unbindBoneUniform()
+{
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+}
+
 void xgEnvelope::bindBoneWeights(unsigned long envIndex) const
 {
 	for (size_t i = 0; i < m_vertexTargets.size(); ++i)

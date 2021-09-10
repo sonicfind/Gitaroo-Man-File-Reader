@@ -106,7 +106,7 @@ Viewer::Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	
-
+	xgEnvelope::generateBoneUniform();
 	for (size_t modelIndex : xgIndices)
 		m_models.emplace_back(&xgmObject->m_models[modelIndex]);
 }
@@ -346,7 +346,7 @@ int Viewer::viewXG()
 	}
 
 
-	
+	xgEnvelope::deleteBoneUniform();
 	g_shaders.closePrograms();
 	g_boneShaders.closePrograms();
 	InputHandling::resetInputs();

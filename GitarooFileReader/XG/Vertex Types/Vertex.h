@@ -33,6 +33,8 @@ class VertexList
 	unsigned long m_vertexFlags;
 	std::vector<Vertex> m_vertices;
 
+	unsigned int m_VAO;
+	unsigned int m_VBO;
 public:
 	VertexList() = default;
 	VertexList(const VertexList& a, const VertexList& b, float coefficient);
@@ -52,5 +54,11 @@ public:
 	void texCoords_to_obj(FILE* objFile) const;
 	void normals_to_obj(FILE* objFile) const;
 
+	bool generateVertexBuffer(const bool bones, const bool dynamic);
+	void deleteVertexBuffer();
+	void bind() const;
+	void restPose() const;
+	void replace(const VertexList& list) const;
+	void replace(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords) const;
 };
 

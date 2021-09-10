@@ -38,6 +38,10 @@ public:
 	const char* getType() { return "xgEnvelope"; }
 	static bool compareType(const PString& str) { return strcmp("xgEnvelope", str.m_pstring) == 0; }
 
+	static void generateBoneUniform();
+	static void deleteBoneUniform();
+	static void bindBoneUniform();
+	static void unbindBoneUniform();
 	void bindBoneWeights(unsigned long envIndex) const;
 	void restPose();
 	void animate();

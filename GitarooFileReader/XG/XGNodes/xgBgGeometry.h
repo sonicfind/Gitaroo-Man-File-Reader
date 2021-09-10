@@ -43,12 +43,6 @@ public:
 	void texCoords_to_obj(FILE* objFile) const;
 	void normals_to_obj(FILE* objFile) const;
 	
-
-private:
-	unsigned int m_VAO;
-	unsigned int m_VBO;
-
-public:
 	bool generateVertexBuffer();
 	void bindVertexBuffer() const;
 	void deleteVertexBuffer();

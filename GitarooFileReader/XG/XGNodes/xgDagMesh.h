@@ -42,6 +42,7 @@ public:
 	void faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;
 
 private:
+	static unsigned long s_currentCulling;
 
 public:
 	void connectTextures(std::vector<IMX>& textures);

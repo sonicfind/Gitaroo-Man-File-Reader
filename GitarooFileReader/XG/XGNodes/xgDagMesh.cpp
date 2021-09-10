@@ -173,6 +173,7 @@ void xgDagMesh::animate()
 
 #include "XGM/Viewer/Camera.h"
 #include <glm/gtc/type_ptr.hpp>
+unsigned long xgDagMesh::s_currentCulling = 0;
 void xgDagMesh::draw(const glm::mat4 view, glm::mat4 model, const bool showNormals, const bool doTransparents) const
 {
 	if (doTransparents == m_inputMaterial->hasTransparency())
@@ -188,6 +189,26 @@ void xgDagMesh::draw(const glm::mat4 view, glm::mat4 model, const bool showNorma
 		active->m_base.setMat4("model", glm::value_ptr(model));
 		active->m_base.setMat3("normalMatrix", glm::value_ptr(normalMatrix));
 		m_inputGeometry->bindVertexBuffer();
+
+		if (m_cullFunc != s_currentCulling)
+		{
+			switch (m_cullFunc)
+			{
+			case 0:
+				glDisable(GL_CULL_FACE);
+				break;
+			case 1:
+				if (s_currentCulling == 0)
+					glEnable(GL_CULL_FACE);
+				glCullFace(GL_BACK);
+				break;
+			case 2:
+				if (s_currentCulling == 0)
+					glEnable(GL_CULL_FACE);
+				glCullFace(GL_FRONT);
+			}
+			s_currentCulling = m_cullFunc;
+		}
 		
 		m_triFan->draw(GL_TRIANGLE_FAN);
 		m_triStrip->draw(GL_TRIANGLE_STRIP);

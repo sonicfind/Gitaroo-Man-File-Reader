@@ -27,6 +27,9 @@ Triangle_Data::Triangle_Data(FILE* inFile)
 	}
 }
 
+Triangle_Data::Triangle_Data(const std::vector<unsigned long>& counts)
+	: m_counts(counts) {}
+
 void Triangle_Data::create(FILE* outFile, bool writeData) const
 {
 	if (!writeData)
@@ -46,4 +49,9 @@ void Triangle_Data::write_to_txt(FILE* txtFile, const char* tabs) const
 std::vector<std::vector<unsigned long>> Triangle_Data::extract() const
 {
 	return std::vector<std::vector<unsigned long>>(m_counts.size());
+}
+
+const size_t Triangle_Data::getSize() const
+{
+	return sizeof(unsigned long) * m_counts.size();
 }

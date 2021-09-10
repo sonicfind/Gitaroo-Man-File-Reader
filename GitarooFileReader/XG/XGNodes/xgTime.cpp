@@ -44,6 +44,13 @@ void xgTime::write_to_txt(FILE* txtFile, const char* tabs) const
 	fprintf_s(txtFile, "\t\t\t%s  Time: %g (Starting point??)\n", tabs, m_time);
 }
 
+const size_t xgTime::getSize() const
+{
+	return XGNode::getSize()
+			+ PSTRING_LEN_VAR("numFrames", m_numFrames)
+			+ PSTRING_LEN_VAR("time", m_time);
+}
+
 void xgTime::setTime(float time)
 {
 	if (time < m_numFrames - 1)

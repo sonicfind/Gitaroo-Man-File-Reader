@@ -21,4 +21,5 @@ public:
 	void create(FILE* outFile) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	void write_to_obj(FILE* objFile, const size_t offset, const bool writeTexture) const;
+	const size_t getSize() const;
 };

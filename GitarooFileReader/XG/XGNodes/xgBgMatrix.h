@@ -31,6 +31,7 @@ public:
 	void create(FILE* outFile) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	static bool compareType(const PString& str) { return strcmp("xgBgMatrix", str.m_pstring) == 0; }
+	const size_t getSize() const;
 
 	void applyTransformations(glm::vec3& pos, glm::quat& rot, glm::vec3& scl);
 };

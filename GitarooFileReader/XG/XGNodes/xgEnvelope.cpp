@@ -129,6 +129,26 @@ void xgEnvelope::write_to_txt(FILE* txtFile, const char* tabs) const
 	fprintf_s(txtFile, "\t\t%s    Input Geometry: %s\n", tabs, m_inputGeometry->getName().m_pstring);
 }
 
+const size_t xgEnvelope::getSize() const
+{
+	size_t size = XGNode::getSize()
+		+ PSTRING_LEN_VAR("startVertex", m_startVertex)
+		+ PSTRING_LEN_VAR("weights", unsigned long)
+		+ m_weights.size() * sizeof(Weight)
+		+ PSTRING_LEN_VAR("vertexTargets", unsigned long);
+
+	for (const auto& target : m_vertexTargets)
+		size += (target.size() + 1) * sizeof(unsigned long);
+
+	for (const auto& matrix : m_inputMatrices)
+		size += matrix->getName().getSize() + PSTRING_LEN("inputMatrix") + PSTRING_LEN("envelopeMatrix");
+
+	if (m_inputGeometry)
+		size += m_inputGeometry->getName().getSize() + PSTRING_LEN("inputGeometry") + PSTRING_LEN("outputGeometry");
+
+	return size;
+}
+
 #include <glad/glad.h>
 unsigned int xgEnvelope::s_BoneSSBU = 0;
 void xgEnvelope::generateBoneUniform()

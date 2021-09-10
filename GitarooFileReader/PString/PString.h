@@ -14,6 +14,8 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define PSTRING_LEN(str) sizeof(str)
+#define PSTRING_LEN_VAR(str, var) sizeof(str) + sizeof(var)
 struct PString
 {
 	char m_size;
@@ -30,6 +32,8 @@ struct PString
 	void fill(FILE* inFile);
 	//Prints values into a file stream
 	void push(FILE* outFile) const;
+	// Gets the total size value INCLUDING the preceding count character
+	const unsigned long getSize() const;
 	//Pulls and discards data of the PString format from the given file stream
 	static void pull(FILE* inFile);
 	//Prints the given character to the given file stream using the PString format

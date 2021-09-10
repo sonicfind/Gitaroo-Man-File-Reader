@@ -20,9 +20,12 @@ protected:
 	std::vector<unsigned long> m_counts;
 
 public:
+	Triangle_Data() = default;
 	Triangle_Data(FILE* inFile);
+	Triangle_Data(const std::vector<unsigned long>& counts);
 	virtual void create(FILE* outFile, bool writeData) const;
 	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	virtual std::vector<std::vector<unsigned long>> extract() const;
 	virtual void draw(GLenum mode) const {}
+	virtual const size_t getSize() const;
 };

@@ -125,6 +125,13 @@ public:
 		write_postKey_to_txt(txtFile, tabs);
 	}
 
+	const size_t getSize() const
+	{
+		return getSize_preKey()
+			+ getSize_keys()
+			+ getSize_postKey();
+	}
+
 	const auto interpolate()
 	{
 		setFrame();
@@ -167,6 +174,12 @@ protected:
 		fprintf_s(txtFile, "\t\t%s Interpolation: %s (%lu)\n", tabs, m_type ? "TRUE" : "FALSE", m_type);
 	}
 
+	virtual const size_t getSize_preKey() const
+	{
+		return XGNode::getSize()
+			+ PSTRING_LEN_VAR("type", m_type);
+	}
+
 	virtual void read_keys(FILE* inFile)
 	{
 		PString::pull(inFile);
@@ -183,6 +196,12 @@ protected:
 		unsigned long size = (unsigned long)m_keys.size();
 		fwrite(&size, 4, 1, outFile);
 		fwrite(m_keys.data(), sizeof(T), size, outFile);
+	}
+
+	virtual const size_t getSize_keys() const
+	{
+		return PSTRING_LEN_VAR("keys", unsigned long)
+			+ m_keys.size() * sizeof(T);
 	}
 
 	virtual unsigned long read_postKey(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
@@ -214,7 +233,10 @@ protected:
 		fprintf_s(txtFile, "\t\t%s    Input Time: %s\n", tabs, m_inputTime->getName().m_pstring);
 	}
 
+	virtual const size_t getSize_postKey() const
 	{
+		return PSTRING_LEN("inputTime") + PSTRING_LEN("outputTime")
+			+ m_inputTime->getName().getSize();
 	}
 };
 
@@ -254,6 +276,14 @@ protected:
 			fwrite(&size, 4, 1, outFile);
 			fwrite(key.data(), sizeof(T), size, outFile);
 		}
+	}
+
+	const size_t getSize_keys() const
+	{
+		size_t size = 0;
+		for (const auto& vect : this->m_keys)
+			size += sizeof(unsigned long) + sizeof(T) * vect.size();
+		return size;
 	}
 };
 
@@ -324,6 +354,13 @@ protected:
 		for (unsigned long index = 0; index < m_times.size(); ++index)
 			fprintf_s(txtFile, "\t\t\t%s     Time %lu: %g\n", tabs, index + 1, m_times[index]);
 	}
+
+	const size_t getSize_preKey() const
+	{
+		return xgInterpolator<T, S>::getSize_preKey() +
+			+PSTRING_LEN_VAR("times", unsigned long)
+			+ sizeof(float) * m_times.size();
+	}
 };
 
 template <class T, class S>
@@ -369,5 +406,12 @@ protected:
 		for (unsigned long index = 0; index < m_targets.size(); ++index)
 			fprintf_s(txtFile, "\t\t\t%s   Target %lu: %lu\n", tabs, index + 1, m_targets[index]);
 		xgListInterpolator<T, S>::write_postKey_to_txt(txtFile, tabs);
+	}
+
+	const size_t getSize_postKey() const
+	{
+		return xgListInterpolator<T, S>::getSize_postKey()
+			+ PSTRING_LEN_VAR("targets", unsigned long)
+			+ sizeof(unsigned long) * m_targets.size();
 	}
 };

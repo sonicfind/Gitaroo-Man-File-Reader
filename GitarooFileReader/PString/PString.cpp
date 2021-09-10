@@ -54,6 +54,11 @@ void PString::push(FILE* outFile) const
 	fwrite(m_pstring, 1, m_size, outFile);
 }
 
+const unsigned long PString::getSize() const
+{
+	return m_size + 1ULL;
+}
+
 void PString::pull(FILE* inFile)
 {
 	// Grabs the number of characters to skip

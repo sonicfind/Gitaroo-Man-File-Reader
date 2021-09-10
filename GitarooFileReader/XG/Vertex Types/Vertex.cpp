@@ -118,6 +118,26 @@ void VertexList::write_to_txt(FILE* txtFile, const char* tabs_1, const char* tab
 	}
 }
 
+const size_t VertexList::getFileSize() const
+{
+	size_t vert = 0;
+	// Position
+	if (m_vertexFlags & 1)
+		vert += 4;
+	// Normal
+	if (m_vertexFlags & 1)
+		vert += 3;
+	// Color
+	if (m_vertexFlags & 1)
+		vert += 4;
+	// Texture Coordinate
+	if (m_vertexFlags & 1)
+		vert += 2;
+
+	return sizeof(m_vertexFlags)
+		+ sizeof(unsigned long) + vert * m_vertices.size();
+}
+
 void VertexList::positions_to_obj(FILE* objFile) const
 {
 	for (const auto& vertex : m_vertices)

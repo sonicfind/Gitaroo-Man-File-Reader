@@ -44,6 +44,13 @@ void xgTexture::write_to_txt(FILE* txtFile, const char* tabs) const
 	fprintf_s(txtFile, "\t\t%s      Mip map depth: %lu\n", tabs, m_mipmap_depth);
 }
 
+const size_t xgTexture::getSize() const
+{
+	return XGNode::getSize()
+		+ PSTRING_LEN_VAR("url", m_imxName)
+		+ PSTRING_LEN_VAR("mipmap_depth", m_mipmap_depth);
+}
+
 void xgTexture::connectTexture(std::vector<IMX>& textures)
 {
 	PString compare = m_imxName;

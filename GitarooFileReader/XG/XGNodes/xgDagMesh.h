@@ -37,6 +37,7 @@ public:
 	void create(FILE* outFile) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	static bool compareType(const PString& str) { return strcmp("xgDagMesh", str.m_pstring) == 0; }
+	const size_t getSize() const;
 
 	void queue_for_obj(std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;
 	void faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;

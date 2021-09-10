@@ -20,9 +20,12 @@ class Triangle_Prim
 protected:
 	std::unique_ptr<Triangle_Data> m_data;
 public:
+	Triangle_Prim();
 	Triangle_Prim(FILE* inFile, unsigned long type);
+	Triangle_Prim(unsigned long index, const std::vector<unsigned long>& counts);
 	void create(FILE* outFile) const;
 	void draw(GLenum mode) const;
 	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const {}
 	virtual void write_to_obj(FILE* objFile, const size_t offset, const bool writeTexture) const {}
+	virtual const size_t getSize() const;
 };

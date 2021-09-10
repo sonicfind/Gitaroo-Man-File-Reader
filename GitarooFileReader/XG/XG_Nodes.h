@@ -33,6 +33,7 @@ public:
 	void push(FILE* outFile) const;
 	void write_to_simple_txt(FILE* simpleTxtFile) const;
 	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const;
+	virtual const size_t getSize() const;
 	const PString& getName() const;
 };
 

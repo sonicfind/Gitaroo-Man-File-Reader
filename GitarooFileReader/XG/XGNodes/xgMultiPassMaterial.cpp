@@ -67,6 +67,14 @@ void xgMultiPassMaterial::connectTextures(std::vector<IMX>& textures)
 		mat->connectTexture(textures);
 }
 
+const size_t xgMultiPassMaterial::getSize() const
+{
+	size_t size = XGNode::getSize();
+	for (const auto& mat : m_inputMaterials)
+		size += mat->getName().getSize() + PSTRING_LEN("inputMaterial") + PSTRING_LEN("outputMaterial");
+	return size;
+}
+
 bool xgMultiPassMaterial::hasTransparency() const
 {
 	for (const auto& mat : m_inputMaterials)

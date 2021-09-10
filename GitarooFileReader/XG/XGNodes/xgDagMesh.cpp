@@ -113,6 +113,23 @@ void xgDagMesh::write_to_txt(FILE* txtFile, const char* tabs) const
 		fprintf_s(txtFile, "\t\t%s      Input Material: %s\n", tabs, m_inputMaterial->getName().m_pstring);
 }
 
+const size_t xgDagMesh::getSize() const
+{
+	size_t size = XGNode::getSize()
+		+ PSTRING_LEN_VAR("primType", m_primType)
+		+ m_prim->getSize()
+		+ m_triFan->getSize()
+		+ m_triStrip->getSize()
+		+ m_triList->getSize()
+		+ PSTRING_LEN_VAR("cullFunc", m_cullFunc);
+
+	if (m_inputGeometry)
+		size += m_inputGeometry->getName().getSize() + PSTRING_LEN("inputGeometry") + PSTRING_LEN("outputGeometry");
+	if (m_inputMaterial)
+		size += m_inputMaterial->getName().getSize() + PSTRING_LEN("inputMaterial") + PSTRING_LEN("outputMaterial");
+	return size;
+}
+
 void xgDagMesh::queue_for_obj(std::vector<std::pair<size_t, xgBgGeometry*>>& history) const
 {
 	for (const auto& geo : history)

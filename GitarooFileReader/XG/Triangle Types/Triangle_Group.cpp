@@ -36,6 +36,18 @@ Triangle_Group::Triangle_Group(FILE* inFile)
 	}
 }
 
+Triangle_Group::Triangle_Group(unsigned long index, const std::vector<unsigned long>& counts)
+	: Triangle_Data(counts)
+{
+	m_indices.reserve(m_counts.size());
+	m_indices.resize(m_counts.size());
+	for (size_t i = 0; i < m_counts.size(); ++i)
+	{
+		m_indices[i] = index;
+		index += m_counts[i];
+	}
+}
+
 void Triangle_Group::create(FILE* outFile, bool writeData) const
 {
 	if (!writeData)
@@ -83,6 +95,14 @@ std::vector<std::vector<unsigned long>> Triangle_Group::extract() const
 			indexSets[vectIndex][i] = m_indices[vectIndex] + i;
 	}
 	return indexSets;
+}
+
+const size_t Triangle_Group::getSize() const
+{
+	size_t size = Triangle_Data::getSize();
+	if (m_counts.size() > 0)
+		size += sizeof(unsigned long);
+	return size;
 }
 
 void Triangle_Group::draw(GLenum mode) const

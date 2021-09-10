@@ -37,6 +37,7 @@ public:
 	void create(FILE* outFile) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	static bool compareType(const PString& str) { return strcmp("xgBgGeometry", str.m_pstring) == 0; }
+	const size_t getSize() const;
 	auto& getVertices() { return m_vertexList; }
 
 	void positions_to_obj(FILE* objFile) const;

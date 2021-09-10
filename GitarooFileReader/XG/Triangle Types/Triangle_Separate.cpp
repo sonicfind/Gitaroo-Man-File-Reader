@@ -87,6 +87,14 @@ std::vector<std::vector<unsigned long>> Triangle_Separate::extract() const
 	return indexSets;
 }
 
+const size_t Triangle_Separate::getSize() const
+{
+	size_t size = Triangle_Data::getSize();
+	for (const auto count : m_counts)
+		size += count * sizeof(unsigned long);
+	return size;
+}
+
 void Triangle_Separate::draw(GLenum mode) const
 {
 	glMultiDrawElements(mode, (GLsizei*)m_counts.data(), GL_UNSIGNED_INT, (void* const*)m_indices.data(), (GLsizei)m_counts.size());

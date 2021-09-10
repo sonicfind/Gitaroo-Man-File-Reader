@@ -37,6 +37,7 @@ public:
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	const char* getType() { return "xgEnvelope"; }
 	static bool compareType(const PString& str) { return strcmp("xgEnvelope", str.m_pstring) == 0; }
+	const size_t getSize() const;
 
 	static void generateBoneUniform();
 	static void deleteBoneUniform();

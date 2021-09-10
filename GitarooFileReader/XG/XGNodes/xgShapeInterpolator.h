@@ -38,5 +38,13 @@ public:
 		for (auto& key : m_keys)
 			key.create(outFile);
 	}
+
+	const size_t getSize_keys() const
+	{
+		size_t size = 0;
+		for (const auto& list : this->m_keys)
+			size += list.getFileSize();
+		return size;
+	}
 	static bool compareType(const PString& str) { return strcmp("xgShapeInterpolator", str.m_pstring) == 0; }
 };

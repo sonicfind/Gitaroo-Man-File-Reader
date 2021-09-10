@@ -51,6 +51,15 @@ void xgDagTransform::write_to_txt(FILE* txtFile, const char* tabs) const
 		fprintf_s(txtFile, "\t\t%s      No Input Matrix\n", tabs);
 }
 
+const size_t xgDagTransform::getSize() const
+{
+	size_t size = XGNode::getSize();
+	if (m_inputMatrix)
+		size += PSTRING_LEN("inputMatrix") + PSTRING_LEN("outPutMatrix")
+			+ m_inputMatrix->getName().getSize();
+	return size;
+}
+
 #include <glm/gtx/transform.hpp>
 glm::mat4 xgDagTransform::getModelMatrix() const
 {

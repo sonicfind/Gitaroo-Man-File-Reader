@@ -15,6 +15,9 @@
 #include "pch.h"
 #include "Triangle_Primitive.h"
 #include "PString/PString.h"
+Triangle_Prim::Triangle_Prim()
+	: m_data(std::make_unique<Triangle_Data>()) {}
+
 Triangle_Prim::Triangle_Prim(FILE* inFile, unsigned long type)
 {
 	switch (type)
@@ -33,12 +36,22 @@ Triangle_Prim::Triangle_Prim(FILE* inFile, unsigned long type)
 	}
 }
 
+Triangle_Prim::Triangle_Prim(unsigned long index, const std::vector<unsigned long>& counts)
+	: m_data(std::make_unique<Triangle_Group>(index, counts)) {}
+
 void Triangle_Prim::create(FILE* outFile) const
 {
 	PString::push("primCount", outFile);
 	m_data->create(outFile, false);
 	PString::push("primData", outFile);
 	m_data->create(outFile, true);
+}
+
+const size_t Triangle_Prim::getSize() const
+{
+	return PSTRING_LEN("primCount", unsigned long)
+		+ m_data->getSize()
+		+ PSTRING_LEN("primData", unsigned long);
 }
 
 void Triangle_Prim::draw(GLenum mode) const

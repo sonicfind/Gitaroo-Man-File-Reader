@@ -116,8 +116,34 @@ void xgBgGeometry::write_to_txt(FILE* txtFile, const char* tabs) const
 
 		if (m_inputTexCoordInterpolator)
 			fprintf_s(txtFile, "%s Input TexCoord Interpolator: %s\n", tabs, m_inputTexCoordInterpolator->getName().m_pstring);
-
 	}
+}
+
+const size_t xgBgGeometry::getSize() const
+{
+	size_t size = XGNode::getSize()
+		+ PSTRING_LEN_VAR("density", m_density)
+		+ PSTRING_LEN("vertices")
+		+ m_vertexList.getFileSize();
+
+	const size_t inputSize = PSTRING_LEN("inputGeometry") + PSTRING_LEN("outputGeometry");
+	for (auto& node : m_inputEnvelopes)
+		size += inputSize + node->getName().getSize();
+
+	if (m_inputShapeInterpolator)
+		size += inputSize + m_inputShapeInterpolator->getName().getSize();
+	else
+	{
+		if (m_inputVertexInterpolator)
+			size += inputSize + m_inputVertexInterpolator->getName().getSize();
+
+		if (m_inputNormalInterpolator)
+			size += inputSize + m_inputNormalInterpolator->getName().getSize();
+
+		if (m_inputTexCoordInterpolator)
+			size += inputSize + m_inputTexCoordInterpolator->getName().getSize();
+	}
+	return size;
 }
 
 void xgBgGeometry::positions_to_obj(FILE* objFile) const

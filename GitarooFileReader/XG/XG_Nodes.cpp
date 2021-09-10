@@ -45,6 +45,14 @@ void XGNode::createPrototype(FILE* outFile) const
 	PString::push(";", outFile);
 }
 
+const size_t XGNode::getSize() const
+{
+	return 2ULL * (m_name.getSize() + m_nodeType.getSize())
+			+ PSTRING_LEN(";")
+			+ PSTRING_LEN("{")
+			+ PSTRING_LEN("}");
+}
+
 const PString& XGNode::getName() const
 {
 	return m_name;

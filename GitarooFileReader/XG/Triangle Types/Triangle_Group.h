@@ -19,9 +19,13 @@ protected:
 	std::vector<unsigned long> m_indices;
 
 public:
+	Triangle_Group() = default;
 	Triangle_Group(FILE* inFile);
+	Triangle_Group(unsigned long index, const std::vector<unsigned long>& counts);
 	void create(FILE* outFile, bool writeData) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	std::vector<std::vector<unsigned long>> extract() const;
+	const size_t getSize() const;
+
 	void draw(GLenum mode) const;
 };

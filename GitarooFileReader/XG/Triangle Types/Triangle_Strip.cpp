@@ -53,3 +53,10 @@ void Triangle_Strip::write_to_obj(FILE* objFile, const size_t offset, const bool
 																		vect[index + 2] + offset, vect[index + 2] + offset,
 																		vect[index + 1] + offset, vect[index + 1] + offset);
 }
+
+const size_t Triangle_Strip::getSize() const
+{
+	return PSTRING_LEN("triStripCount", unsigned long)
+		+ m_data->getSize()
+		+ PSTRING_LEN("triStripData", unsigned long);
+}

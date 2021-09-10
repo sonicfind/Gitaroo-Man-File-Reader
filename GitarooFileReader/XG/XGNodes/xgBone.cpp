@@ -54,6 +54,14 @@ void xgBone::write_to_txt(FILE* txtFile, const char* tabs) const
 	fprintf_s(txtFile, "\t\t\t%sInput Matrix: %s\n", tabs, m_inputMatrix->getName().m_pstring);
 }
 
+const size_t xgBone::getSize() const
+{
+	return XGNode::getSize()
+		+ PSTRING_LEN_VAR("restMatrix", m_restMatrix)
+		+ PSTRING_LEN("inputMatrix") + PSTRING_LEN("outPutMatrix")
+		+ m_inputMatrix->getName().getSize();
+}
+
 #include <glm/gtx/transform.hpp>
 glm::mat4 xgBone::getBoneMatrix() const
 {

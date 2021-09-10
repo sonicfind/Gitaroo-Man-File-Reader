@@ -105,6 +105,40 @@ void xgBgMatrix::write_to_txt(FILE* txtFile, const char* tabs) const
 		fprintf_s(txtFile, "\t\t\t%s Parent Input Matrix: %s\n", tabs, m_inputParentMatrix->getName().m_pstring);
 }
 
+const size_t xgBgMatrix::getSize() const
+{
+	size_t size = XGNode::getSize()
+		+ PSTRING_LEN_VAR("position", m_position)
+		+ PSTRING_LEN_VAR("rotation", m_position)
+		+ PSTRING_LEN_VAR("scale", m_position);
+
+	if (m_inputPosition)
+	{
+		size += PSTRING_LEN("inputPosition") + PSTRING_LEN("outputVec3")
+			+ m_inputPosition->getName().getSize();
+	}
+
+	if (m_inputRotation)
+	{
+		size += PSTRING_LEN("inputRotation") + PSTRING_LEN("outputQuat")
+			+ m_inputRotation->getName().getSize();
+	}
+
+	if (m_inputScale)
+	{
+		size += PSTRING_LEN("inputScale") + PSTRING_LEN("outputVec3")
+			+ m_inputScale->getName().getSize();
+	}
+
+	if (m_inputParentMatrix)
+	{
+		size += PSTRING_LEN("inputParentMatrix") + PSTRING_LEN("outputMatrix")
+			+ m_inputParentMatrix->getName().getSize();
+	}
+
+	return size;
+}
+
 void xgBgMatrix::applyTransformations(glm::vec3& pos, glm::quat& rot, glm::vec3& scl)
 {
 	if (m_inputParentMatrix)

@@ -49,6 +49,7 @@ public:
 	void read(FILE* inFile);
 	void create(FILE* outFile) const;
 	void write_to_txt(FILE* txtFile, const char* tabs_1, const char* tabs_2) const;
+	const size_t getFileSize() const;
 
 	void positions_to_obj(FILE* objFile) const;
 	void texCoords_to_obj(FILE* objFile) const;
@@ -61,4 +62,5 @@ public:
 	void replace(const VertexList& list) const;
 	void replace(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords) const;
 };
+
 

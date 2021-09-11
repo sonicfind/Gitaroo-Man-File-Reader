@@ -19,9 +19,10 @@
 class XGM
 	: public FileType
 {
-public:
 	std::vector<IMX> m_textures;
 	std::vector<XG> m_models;
+
+public:
 	XGM();
 	XGM(std::string filename, bool useBanner = true);
 	XGM(const XGM&) = default;

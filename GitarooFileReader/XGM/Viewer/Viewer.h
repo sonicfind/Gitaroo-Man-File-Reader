@@ -47,7 +47,7 @@ class Viewer
 	std::list<Model> m_models;
 
 public:
-	Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices);
+	Viewer(const std::vector<XG*>& models);
 	int viewXG();
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);

@@ -381,9 +381,13 @@ bool XGM::viewModel()
 		case ResultType::Success:
 			if (sectionIndexes.size())
 			{
+				std::vector<XG*> viewer_models;
+				for (const size_t index : sectionIndexes)
+					viewer_models.push_back(&m_models[index]);
+
 				try
 				{
-					Viewer viewer(this, sectionIndexes);
+					Viewer viewer(viewer_models);
 					viewer.viewXG();
 				}
 				catch (char* str)

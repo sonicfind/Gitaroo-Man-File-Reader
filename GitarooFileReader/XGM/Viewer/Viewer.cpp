@@ -24,7 +24,7 @@ AspectRatioMode Viewer::s_aspectRatio = AspectRatioMode::Widescreen;
 unsigned int Viewer::s_screenWidth = 1280;
 unsigned int Viewer::s_screenHeight = 720;
 
-Viewer::Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices)
+Viewer::Viewer(const std::vector<XG*>& models)
 	: m_lightPos(0, 100, 100)
 	, m_lightAmbient(.5, .5, .5)
 	, m_lightDiffuse(1, 1, 1)
@@ -108,8 +108,8 @@ Viewer::Viewer(XGM* xgmObject, const std::vector<size_t>& xgIndices)
 
 	
 	xgEnvelope::generateBoneUniform();
-	for (size_t modelIndex : xgIndices)
-		m_models.emplace_back(&xgmObject->m_models[modelIndex]);
+	for (auto model : models)
+		m_models.emplace_back(model);
 }
 
 std::string Viewer::getAspectRatioString()

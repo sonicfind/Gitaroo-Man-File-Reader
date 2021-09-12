@@ -80,6 +80,18 @@ bool IMX_Data::hasAlpha() const
 	return m_pixelVal1 != 3 || m_pixelVal2 != 2;
 }
 
+unsigned char* IMX_Data::getSubImage(unsigned long bytes_per_pixel, float topLeft_X, float topLeft_Y, float bottomRight_X, float bottomRight_Y) const
+{
+	const size_t offset_x = (size_t)roundf(bytes_per_pixel * topLeft_X);
+	const size_t width = (size_t)roundf(bytes_per_pixel * (bottomRight_X - topLeft_X));
+	const size_t height = (size_t)roundf(bottomRight_Y - topLeft_Y);
+	unsigned char* subImage = new unsigned char[width * height];
+	unsigned char* pos = m_colorData->m_image_uncompressed + offset_x;
+	for (size_t i = (size_t)roundf(topLeft_Y); i < (size_t)roundf(bottomRight_Y); ++i, pos += size_t(bytes_per_pixel) * m_width)
+		memcpy(subImage + i * width, pos, width);
+	return subImage;
+}
+
 IMX_Data::Image::Image(const Image& other)
 {
 	if (other.m_palette)

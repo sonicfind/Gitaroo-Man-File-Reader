@@ -48,6 +48,7 @@ public:
 	IMX_Data(IMX_Data& imx);
 	void create(FILE* outFile);
 	bool hasAlpha() const;
+	unsigned char* getSubImage(unsigned long bytes_per_pixel, float topLeft_X, float topLeft_Y, float bottomRight_X, float bottomRight_Y) const;
 
 	// IMX/XGM Viewer values and functions
 

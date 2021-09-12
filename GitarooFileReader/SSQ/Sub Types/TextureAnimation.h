@@ -14,6 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "SSQ_BaseStructs.h"
+#include "IMX/IMX.h"
 class TexAnim
 {
 public:
@@ -21,6 +22,7 @@ public:
 	{
 		glm::vec2 m_topLeft;
 		glm::vec2 m_bottomRight;
+		unsigned char* m_subImage;
 	};
 
 	struct TexFrame : public Frame
@@ -38,12 +40,23 @@ private:
 
 	glm::u32vec2 m_offset;
 
-	char m_texture[24] = { 0 };
+	char m_textureName[24] = { 0 };
+	
+	IMX* m_imxPtr = nullptr;
+	unsigned long m_bytesPerPixel = 0;
 
-public:
 	std::vector<CutOut> m_cutOuts;
+	size_t m_cutOutIndex = 0;
 	std::vector<TexFrame> m_textureFrames;
-
+public:
+	
 	TexAnim(FILE* inFile);
 	void create(FILE* outFile);
+	const char* getTextureName() { return m_textureName; }
+	void connectTexture(IMX* imx);
+	// It's imperative that the subImages are re-loaded on each viewer session
+	// since the actual image data held in the IMX object can be swapped out
+	void loadCuts();
+	void unloadCuts();
+	void substitute(const float time);
 };

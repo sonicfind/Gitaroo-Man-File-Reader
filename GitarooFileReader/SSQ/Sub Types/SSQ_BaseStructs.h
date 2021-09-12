@@ -44,3 +44,9 @@ struct Rotation : public Frame
 	// Essentially m_frame * 160
 	unsigned long m_otherPos;
 };
+
+template <typename T>
+auto getIter(const std::vector<T>& vect, const float time)
+{
+	return std::lower_bound(vect.begin(), vect.end(), time, [](const T& a, const float b) { return a.m_frame < b; });
+}

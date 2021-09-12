@@ -13,22 +13,15 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "AttDefModel_Setup.h"
-AttDefModelSetup::AttDefModelSetup(FILE* inFile, char(&name)[16]) : ModelSetup(inFile, name)
+#include "Model_Setup.h"
+AttDefModelSetup::AttDefModelSetup(FILE* inFile)
 {
-	if (m_headerVersion >= 0x1200)
-	{
-		fread(&m_attdef_float32, 4, 1, inFile);
-		fread(&m_attdef_64bytes, sizeof(Struct64_9f), 1, inFile);
-	}
+	fread(&m_attdef_float32, 4, 1, inFile);
+	fread(&m_attdef_64bytes, sizeof(Struct64_9f), 1, inFile);
 }
 
-void AttDefModelSetup::create(FILE* outFile)
+void AttDefModelSetup::create(FILE* outFile) const
 {
-	ModelSetup::create(outFile);
-	if (m_headerVersion >= 0x1200)
-	{
-		fwrite(&m_attdef_float32, 4, 1, outFile);
-		fwrite(&m_attdef_64bytes, sizeof(Struct64_9f), 1, outFile);
-	}
+	fwrite(&m_attdef_float32, 4, 1, outFile);
+	fwrite(&m_attdef_64bytes, sizeof(Struct64_9f), 1, outFile);
 }

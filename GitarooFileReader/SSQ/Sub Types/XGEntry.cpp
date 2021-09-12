@@ -13,13 +13,17 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "XGEntry.h"
-XGEntry::XGEntry(FILE* inFile)
+#include "Model_Setup.h"
+void ModelSetup::XGEntry::read(FILE* inFile, unsigned long& instance)
 {
 	fread(m_name, 1, 16, inFile);
 	fread(&m_isClone, 4, 1, inFile);
 	fread(&m_cloneID, 4, 1, inFile);
-	fread(&m_unused_1, 4, 1, inFile);
+	fread(&m_instanceIndex, 4, 1, inFile);
+	if (m_isClone)
+		m_instanceIndex = ++instance;
+	else
+		m_instanceIndex = instance = 0;
 	fread(&m_type, 4, 1, inFile);
 	fread(&m_length, 4, 1, inFile);
 	fread(&m_speed, 4, 1, inFile);
@@ -27,12 +31,13 @@ XGEntry::XGEntry(FILE* inFile)
 	fread(m_junk, 1, 4, inFile);
 }
 
-void XGEntry::create(FILE* outFile)
+void ModelSetup::XGEntry::create(FILE* outFile) const
 {
 	fwrite(m_name, 1, 16, outFile);
 	fwrite(&m_isClone, 4, 1, outFile);
 	fwrite(&m_cloneID, 4, 1, outFile);
-	fwrite(&m_unused_1, 4, 1, outFile);
+	const unsigned long zero = 0;
+	fwrite(&zero, 4, 1, outFile);
 	fwrite(&m_type, 4, 1, outFile);
 	fwrite(&m_length, 4, 1, outFile);
 	fwrite(&m_speed, 4, 1, outFile);

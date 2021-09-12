@@ -13,9 +13,6 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "pch.h"
-#include "SnakeModel_Setup.h"
-SnakeModelSetup::SnakeModelSetup(FILE* inFile, char(&name)[16]) : ModelSetup(inFile, name) {}
-void SnakeModelSetup::create(FILE* outFile)
-{
-	ModelSetup::create(outFile);
-}
+#include "Model_Setup.h"
+SnakeModelSetup::SnakeModelSetup(FILE* inFile) {}
+void SnakeModelSetup::create(FILE* outFile)  const {}

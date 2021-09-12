@@ -452,16 +452,7 @@
     <ClInclude Include="XG\Vertex Types\Vertex.h">
       <Filter>Visual-Based Types\XG\Vertex Types</Filter>
     </ClInclude>
-    <ClInclude Include="SSQ\Sub Types\SnakeModel_Setup.h">
-      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
-    </ClInclude>
-    <ClInclude Include="SSQ\Sub Types\AttDefModel_Setup.h">
-      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
-    </ClInclude>
     <ClInclude Include="SSQ\Sub Types\Model_Setup.h">
-      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
-    </ClInclude>
-    <ClInclude Include="SSQ\Sub Types\PlayerModel_Setup.h">
       <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
     </ClInclude>
     <ClInclude Include="SSQ\Sub Types\FixedSprite.h">
@@ -492,9 +483,6 @@
       <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
     </ClInclude>
     <ClInclude Include="SSQ\Sub Types\IMXEntry.h">
-      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
-    </ClInclude>
-    <ClInclude Include="SSQ\Sub Types\XGEntry.h">
       <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
     </ClInclude>
     <ClInclude Include="SSQ\SSQ.h">

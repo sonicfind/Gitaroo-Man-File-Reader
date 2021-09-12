@@ -282,7 +282,7 @@
     <ClInclude Include="CHC\CH_Object.h" />
     <ClInclude Include="CHC\CH_NoteTrack.h" />
     <ClInclude Include="PString\PString.h" />
-	<ClInclude Include="IMX\IMX_Data.h" />
+    <ClInclude Include="IMX\IMX_Data.h" />
     <ClInclude Include="IMX\IMX.h" />
     <ClInclude Include="XGM\Viewer\Model.h" />
     <ClInclude Include="XG\Triangle Types\Triangle_Data.h" />
@@ -320,21 +320,17 @@
     <ClInclude Include="XGM\Viewer\InputHandler.h" />
     <ClInclude Include="XGM\Viewer\Shaders.h" />
     <ClInclude Include="XGM\Viewer\Viewer.h" />
-    <ClInclude Include="SSQ\Sub Types\AttDefModel_Setup.h" />
     <ClInclude Include="SSQ\Sub Types\Camera_Setup.h" />
     <ClInclude Include="SSQ\Sub Types\FixedSprite.h" />
     <ClInclude Include="SSQ\Sub Types\FixedSprite_Setup.h" />
     <ClInclude Include="SSQ\Sub Types\IMXEntry.h" />
     <ClInclude Include="SSQ\Sub Types\Light_Setup.h" />
     <ClInclude Include="SSQ\Sub Types\Model_Setup.h" />
-    <ClInclude Include="SSQ\Sub Types\PlayerModel_Setup.h" />
     <ClInclude Include="SSQ\Sub Types\PSetup.h" />
-    <ClInclude Include="SSQ\Sub Types\SnakeModel_Setup.h" />
     <ClInclude Include="SSQ\Sub Types\Sprites_Setup.h" />
     <ClInclude Include="SSQ\Sub Types\SSQ_BaseStructs.h" />
     <ClInclude Include="SSQ\Sub Types\TextureAnimation.h" />
     <ClInclude Include="SSQ\Sub Types\UnkSprite_Setups.h" />
-    <ClInclude Include="SSQ\Sub Types\XGEntry.h" />
     <ClInclude Include="SSQ\SSQ.h" />
   </ItemGroup>
   <ItemGroup>

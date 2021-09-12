@@ -14,10 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Sub Types/IMXEntry.h"
-#include "Sub Types/XGEntry.h"
-#include "Sub Types/PlayerModel_Setup.h"
-#include "Sub Types/AttDefModel_Setup.h"
-#include "Sub Types/SnakeModel_Setup.h"
+#include "Sub Types/Model_Setup.h"
 #include "Sub Types/Camera_Setup.h"
 #include "Sub Types/Sprites_Setup.h"
 #include "Sub Types/TextureAnimation.h"
@@ -38,8 +35,7 @@ private:
 	char m_unk[12] = { 0 };
 	Val m_junk[4] = { 0 };
 	std::vector<IMXEntry> m_IMXentries;
-	std::vector<XGEntry> m_XGentries;
-	std::vector<std::unique_ptr<ModelSetup>> m_modelSetups;
+	std::vector<ModelSetup> m_modelSetups;
 	CameraSetup m_camera;
 	SpritesSetup m_sprites;
 	std::vector<TexAnim> m_texAnimations;

@@ -51,8 +51,8 @@ IMX::IMX(FILE* inFile, const string& directory)
 	}
 }
 
-IMX::IMX(string filename, bool useBanner)
-	: FileType(filename, ".IMX", useBanner)
+IMX::IMX(string filename)
+	: FileType(filename, ".IMX")
 	, m_textureIndex(0)
 	, m_non_model(false)
 	, m_unk(false)
@@ -98,14 +98,25 @@ void IMX::create(FILE* outFile, unsigned long& sizes)
 }
 
 //Create or update a IMX file
-bool IMX::create(string filename, bool useBanner)
+bool IMX::create(string filename)
 {
-	if (FileType::create(filename, useBanner))
+	if (FileType::create(filename))
 	{
 		m_data->create(m_filePtr);
 		fclose(m_filePtr);
-		if (useBanner)
-			m_saved = true;
+		m_saved = true;
+		return true;
+	}
+	return false;
+}
+
+//Create or update a IMX file
+bool IMX::create_bannerless(string filename)
+{
+	if (FileType::create_bannerless(filename))
+	{
+		m_data->create(m_filePtr);
+		fclose(m_filePtr);
 		return true;
 	}
 	return false;
@@ -231,7 +242,7 @@ bool IMX::exportPNG()
 	// One of the places where having direct usage of the python code would make the process simpler as there would be no need
 	// to create a whole new IMX file.
 	if (m_fromXGM)
-		create(file, false);
+		create_bannerless(file);
 
 	// Additonally, direct usage of the python code would optimize these writes to the console
 	printf("%s", g_global.tabs.c_str());

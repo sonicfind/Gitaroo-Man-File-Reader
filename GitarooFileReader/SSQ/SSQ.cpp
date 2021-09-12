@@ -19,8 +19,8 @@
 
 SSQ::SSQ() : FileType(".SSQ") {}
 
-SSQ::SSQ(std::string filename, bool loadXGM)
-	: FileType(filename, ".SSQ", true)
+SSQ::SSQ(std::string filename, bool unused)
+	: FileType(filename, ".SSQ")
 {
 	char tmp[5] = { 0 };
 	// Block Tag
@@ -77,9 +77,9 @@ bool SSQ::loadXGM()
 	return true;
 }
 
-bool SSQ::create(std::string filename, bool trueSave)
+bool SSQ::create(std::string filename)
 {
-	if (FileType::create(filename, true))
+	if (FileType::create(filename))
 	{
 		// Block Tag
 		fprintf(m_filePtr, "GMSX");
@@ -120,8 +120,7 @@ bool SSQ::create(std::string filename, bool trueSave)
 		m_pSetup.create(m_filePtr);
 		fclose(m_filePtr);
 
-		if (trueSave)
-			m_saved = true;
+		m_saved = true;
 		return true;
 	}
 	return false;

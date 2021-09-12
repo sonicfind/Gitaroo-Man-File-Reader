@@ -24,9 +24,9 @@ class XGM
 
 public:
 	XGM();
-	XGM(std::string filename, bool useBanner = true);
+	XGM(std::string filename);
 	XGM(const XGM&) = default;
-	bool create(std::string filename, bool trueSave = true);
+	bool create(std::string filename);
 
 	bool write_to_txt();
 	bool exportPNGs();

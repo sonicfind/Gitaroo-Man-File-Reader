@@ -24,7 +24,7 @@ XG::XG()
 	, m_unk(0)
 	, m_fromXGM(false) {}
 
-XG::XG(FILE* inFile, const std::string& directory)
+XG::XG(FILE* inFile, const std::string& directory, std::vector<IMX>& textures)
 	: FileType(".XG", true)
 	, m_fromXGM(true)
 {
@@ -56,16 +56,11 @@ XG::XG(FILE* inFile, const std::string& directory)
 	{
 		throw str + std::string(m_name) + " [File offset: " + std::to_string(ftell(inFile) - 4) + "].";
 	}
-}
-
-XG::XG(FILE* inFile, const std::string& directory, std::vector<IMX>& textures)
-	: XG(inFile, directory)
-{
 	m_data->connectTextures(textures);
 }
 
-XG::XG(std::string filename, bool useBanner)
-	: FileType(filename, ".XG", useBanner)
+XG::XG(std::string filename)
+	: FileType(filename, ".XG")
 	, m_modelIndex(0)
 	, m_unk(false)
 {
@@ -140,14 +135,13 @@ void XG::create(FILE* outFile)
 	m_saved = 1;
 }
 
-bool XG::create(string filename, bool useBanner)
+bool XG::create(string filename)
 {
-	if (FileType::create(filename, true))
+	if (FileType::create(filename))
 	{
 		m_data->create(m_filePtr);
 		fclose(m_filePtr);
-		if (useBanner)
-			m_saved = true;
+		m_saved = true;
 		return true;
 	}
 	return false;

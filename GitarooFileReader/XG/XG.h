@@ -32,12 +32,11 @@ public:
 	std::vector<Animation> m_animations;
 	std::shared_ptr<XG_Data> m_data;
 	XG();
-	XG(FILE* inFile, const std::string& directory);
 	XG(FILE* inFile, const std::string& directory, std::vector<IMX>& textures);
-	XG(std::string filename, bool useBanner = true);
+	XG(std::string filename);
 	XG(const XG&) = default;
 	void create(FILE* outFile);
-	bool create(std::string filename, bool trueSave = true);
+	bool create(std::string filename);
 
 	bool write_to_txt();
 	bool write_to_obj(std::string newDirectory = "");

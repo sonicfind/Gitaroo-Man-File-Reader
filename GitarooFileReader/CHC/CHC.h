@@ -75,7 +75,7 @@ public:
 	CHC(std::string filename);
 	CHC(const CHC&);
 	CHC& operator=(const CHC&) = default;
-	bool create(std::string filename, bool trueSave = true);
+	bool create(std::string filename);
 
 	bool write_to_txt();
 	bool applyChanges(const bool fix, const bool swap = false, const bool save = false);

@@ -22,7 +22,7 @@ FileType::FileType(const char* extension, const bool saved)
 	, m_saved(saved) {}
 
 
-FileType::FileType(std::string filename, const char* extension, bool useBanner)
+FileType::FileType(std::string filename, const char* extension)
 	: FileType(extension, true)
 {
 	size_t pos = filename.find_last_of('\\');
@@ -34,21 +34,26 @@ FileType::FileType(std::string filename, const char* extension, bool useBanner)
 	else
 		m_filename = filename;
 
-	if (useBanner)
-		banner(" Loading " + m_filename + m_extension + ' ');
+	banner(" Loading " + m_filename + m_extension + ' ');
 
 	if (fopen_s(&m_filePtr, (filename + m_extension).c_str(), "rb"))
 		throw "Error: " + filename + m_extension + " does not exist.";
 }
 
-bool FileType::create(std::string filename, bool trueSave)
+bool FileType::create(std::string filename)
 {
-	if (trueSave)
-	{
-		size_t pos = filename.find_last_of('\\');
-		GlobalFunctions::banner(" Saving " + filename.substr(pos != std::string::npos ? pos + 1 : 0) + m_extension + ' ');
-	}
+	size_t pos = filename.find_last_of('\\');
+	GlobalFunctions::banner(" Saving " + filename.substr(pos != std::string::npos ? pos + 1 : 0) + m_extension + ' ');
 
+	if (fopen_s(&m_filePtr, (filename + m_extension).c_str(), "wb"))
+		// Add printf later
+		return false;
+	else
+		return true;
+}
+
+bool FileType::create_bannerless(std::string filename)
+{
 	if (fopen_s(&m_filePtr, (filename + m_extension).c_str(), "wb"))
 		// Add printf later
 		return false;

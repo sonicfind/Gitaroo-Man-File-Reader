@@ -33,9 +33,9 @@ public:
 	std::unique_ptr<IMX_Data> m_data;
 
 	IMX(FILE* inFile, const std::string& directory);
-	IMX(std::string filename, bool useBanner = true);
+	IMX(std::string filename);
 	void create(FILE* outFile, unsigned long& sizes);
-	bool create(std::string filename, bool trueSave = true);
+	bool create(std::string filename);
 
 	bool write_to_txt();
 	void read(std::string filename);
@@ -51,5 +51,6 @@ public:
 	static const std::string multiChoiceString;
 
 private:
+	bool create_bannerless(std::string filename);
 	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, size_t& sizes);
 };

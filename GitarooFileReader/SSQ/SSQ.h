@@ -53,7 +53,7 @@ public:
 	SSQ(std::string filename, bool loadXGM = true);
 	SSQ(const SSQ&) = default;
 	bool loadXGM();
-	bool create(std::string filename, bool trueSave = true);
+	bool create(std::string filename);
 
 	bool write_to_txt() { return false; }
 

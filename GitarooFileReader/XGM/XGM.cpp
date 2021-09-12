@@ -22,8 +22,8 @@ using namespace GlobalFunctions;
 
 XGM::XGM() : FileType(".XGM") {}
 
-XGM::XGM(std::string filename, bool useBanner)
-	: FileType(filename, ".XGM", useBanner)
+XGM::XGM(std::string filename)
+	: FileType(filename, ".XGM")
 {
 	unsigned long numT, numM;
 	if (fread(&numT, 4, 1, m_filePtr) != 1 || fread(&numM, 4, 1, m_filePtr) != 1)
@@ -63,6 +63,7 @@ XGM::XGM(std::string filename, bool useBanner)
 						case ResultType::Yes:
 							create(filename + ext);
 							m_filename += ext;
+							__fallthrough;
 						case ResultType::Quit:
 							return;
 						}
@@ -78,9 +79,9 @@ XGM::XGM(std::string filename, bool useBanner)
 }
 
 //Create or update a XGM file
-bool XGM::create(string filename, bool trueSave)
+bool XGM::create(string filename)
 {
-	if (FileType::create(filename, true))
+	if (FileType::create(filename))
 	{
 		unsigned long sizes = (unsigned long)m_textures.size();
 		fwrite(&sizes, 4, 1, m_filePtr);
@@ -101,9 +102,7 @@ bool XGM::create(string filename, bool trueSave)
 		}
 
 		fclose(m_filePtr);
-
-		if (trueSave)
-			m_saved = true;
+		m_saved = true;
 		return true;
 	}
 	return false;
@@ -158,7 +157,7 @@ bool XGM::exportPNGs()
 	for (IMX& texture : m_textures)
 	{
 		std::string file = folder + '\\' + texture.getName();
-		texture.create(file, false);
+		texture.create_bannerless(file);
 		cmd += '\"' + file + "\" ";
 	}
 	system(cmd.c_str());

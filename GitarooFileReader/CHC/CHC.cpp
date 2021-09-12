@@ -107,9 +107,9 @@ CHC::CHC(std::string filename)
 }
 
 //Create or update a CHC file
-bool CHC::create(std::string filename, bool useBanner)
+bool CHC::create(std::string filename)
 {
-	if (FileType::create(filename, true))
+	if (FileType::create(filename))
 	{
 		union {
 			char c[4];

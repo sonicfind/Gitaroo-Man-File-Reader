@@ -24,14 +24,11 @@ AspectRatioMode Viewer::s_aspectRatio = AspectRatioMode::Widescreen;
 unsigned int Viewer::s_screenWidth = 1280;
 unsigned int Viewer::s_screenHeight = 720;
 
-Viewer::Viewer(const std::vector<XG*>& models)
-	: m_lightPos(0, 100, 100)
-	, m_lightAmbient(.5, .5, .5)
-	, m_lightDiffuse(1, 1, 1)
-	, m_lightSpecular(.5, .5, .5)
-	, m_lightConstant(1.0f)
-	, m_lightLinear(0.007f)
-	, m_lightQuadratic(0.0002f)
+Viewer::Viewer()
+	: m_previous(0)
+	, m_isPaused(false)
+	, m_showNormals(false)
+	, m_view(glm::identity<glm::mat4>())
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -55,6 +52,10 @@ Viewer::Viewer(const std::vector<XG*>& models)
 	g_boneShaders.createPrograms("bones.vert", "material.frag", "geometry - bones.vert", "geometry.geo", "geometry.frag");
 
 	glfwSetFramebufferSizeCallback(m_window, InputHandling::framebuffer_size_callback);
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
+	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
+	g_camera.reset();
 
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -95,6 +96,35 @@ Viewer::Viewer(const std::vector<XG*>& models)
 	g_boneShaders.m_base.bindUniformBlock(3, "Lights");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	xgEnvelope::generateBoneUniform();
+	Model::resetTime();
+}
+
+Viewer::~Viewer()
+{
+	xgEnvelope::deleteBoneUniform();
+	g_shaders.closePrograms();
+	g_boneShaders.closePrograms();
+	InputHandling::resetInputs();
+	glfwTerminate();
+}
+
+Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
+	: m_showAnimation(true)
+	, m_lightPos(0, 100, 100)
+	, m_lightAmbient(.5, .5, .5)
+	, m_lightDiffuse(1, 1, 1)
+	, m_lightSpecular(.5, .5, .5)
+	, m_lightConstant(1.0f)
+	, m_lightLinear(0.007f)
+	, m_lightQuadratic(0.0002f)
+{
+	for (auto model : models)
+		m_models.emplace_back(model);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
 
 	// Set light values
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, glm::value_ptr(m_lightAmbient));
@@ -105,11 +135,12 @@ Viewer::Viewer(const std::vector<XG*>& models)
 	glBufferSubData(GL_UNIFORM_BUFFER, 52, 4, &m_lightQuadratic);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
 
-	
-	xgEnvelope::generateBoneUniform();
-	for (auto model : models)
-		m_models.emplace_back(model);
+Viewer_XGM::~Viewer_XGM()
+{
+	Model::resetLoop();
+	Model::resetTime();
 }
 
 std::string Viewer::getAspectRatioString()
@@ -195,23 +226,13 @@ void Viewer::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	g_camera.zoom(xoffset, yoffset);
 }
 
-int Viewer::viewXG()
+int Viewer::view()
 {
-	g_camera.reset();
-	bool showNormals = false;
-	bool showAnimation = true;
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
-	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
-
-	float previousTime = (float)glfwGetTime();
-
+	m_previous = (float)glfwGetTime();
 	double lastFPSTime = glfwGetTime();
 	int nbFrames = 0;
 	
 	bool isMouseActive = true;
-	bool isPaused = false;
-	Model::resetTime();
 	while (!glfwWindowShouldClose(m_window))
 	{
 		float currentTime = (float)glfwGetTime();
@@ -229,7 +250,8 @@ int Viewer::viewXG()
 
 		if (InputHandling::g_input_keyboard.KEY_M.isPressed())
 		{
-			if (isMouseActive)
+			isMouseActive = !isMouseActive;
+			if (!isMouseActive)
 			{
 				glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 				glfwSetCursorPosCallback(m_window, NULL);
@@ -242,116 +264,116 @@ int Viewer::viewXG()
 				glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
 				g_camera.setFirstMouse();
 			}
-			isMouseActive = !isMouseActive;
 		}
 
 		if (isMouseActive)
-			g_camera.moveCamera(currentTime - previousTime);
+			g_camera.moveCamera(currentTime - m_previous);
 
 		if (InputHandling::g_input_keyboard.KEY_N.isPressed())
-			showNormals = !showNormals;
+			m_showNormals = !m_showNormals;
 
-		if (InputHandling::g_input_keyboard.KEY_L.isPressed())
-			Model::toggleLoop();
-
-		// Toggling whether to play animations
-		if (InputHandling::g_input_keyboard.KEY_O.isPressed())
-		{
-			showAnimation = !showAnimation;
-			Model::resetTime();
-			if (!showAnimation)
-				for (auto& model : m_models)
-					model.restPose();
-			else
-			{
-				for (auto& model : m_models)
-					model.resetModel();
-				isPaused = false;
-			}
-		}
-		else if (showAnimation)
-		{
-			if (InputHandling::g_input_keyboard.KEY_P.isPressed())
-				isPaused = !isPaused;
-
-			if (InputHandling::g_input_keyboard.KEY_R.isActive())
-			{
-				Model::resetTime();
-				// Reset current animation
-				if (InputHandling::g_input_keyboard.KEY_R.isPressed())
-					for (auto& model : m_models)
-						model.resetStartTime();
-				// Reset to the first animation
-				else if (InputHandling::g_input_keyboard.KEY_R.isHeld())
-					for (auto& model : m_models)
-						model.resetModel();
-			}
-			else if (InputHandling::g_input_keyboard.KEY_RIGHT.isActive())
-			{
-				// Skip to the next animation
-				if (InputHandling::g_input_keyboard.KEY_RIGHT.isTicked())
-				{
-					Model::resetTime();
-					for (auto& model : m_models)
-						model.nextAnimation(0, true);
-				}
-			}
-			else if (InputHandling::g_input_keyboard.KEY_LEFT.isActive())
-			{
-				// Skip down to the previous animation
-				if (InputHandling::g_input_keyboard.KEY_LEFT.isTicked())
-				{
-					Model::resetTime();
-					for (auto& model : m_models)
-						model.prevAnimation();
-				}
-			}
-			// Animates model data as normal
-			else if (!isPaused)
-			{
-				// Update animations, obviously
-				Model::adjustTime(currentTime - previousTime);
-				for (auto& model : m_models)
-					model.update();
-			}
-		}
-		previousTime = currentTime;
-
-		// Clear color and depth buffers
-		glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// Update view matrix buffer
-		glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
-		glm::mat4 view = g_camera.getViewMatrix();
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(view));
-
-		// Update projection matrix buffer
-		glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
-		glm::mat4 projection = glm::perspective(glm::radians(g_camera.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-		// Draw opaque meshes
-		for (auto& model : m_models)
-			model.draw(view, showNormals, false);
-
-		// Draw transparent meshes
-		for (auto& model : m_models)
-			model.draw(view, showNormals, true);
-		glBindVertexArray(0);
+		update(currentTime);
+		draw();
 
 		// Check calls
 		glfwSwapBuffers(m_window);
 		glfwPollEvents();
+		m_previous = currentTime;
+	}
+	return 0;
+}
+
+void Viewer_XGM::update(float current)
+{
+	if (InputHandling::g_input_keyboard.KEY_L.isPressed())
+		Model::toggleLoop();
+
+	// Toggling whether to play animations
+	if (InputHandling::g_input_keyboard.KEY_O.isPressed())
+	{
+		m_showAnimation = !m_showAnimation;
+		Model::resetTime();
+		if (!m_showAnimation)
+			for (auto& model : m_models)
+				model.restPose();
+		else
+		{
+			for (auto& model : m_models)
+				model.resetModel();
+			m_isPaused = false;
+		}
+	}
+	else if (m_showAnimation)
+	{
+		if (InputHandling::g_input_keyboard.KEY_P.isPressed())
+			m_isPaused = !m_isPaused;
+
+		if (InputHandling::g_input_keyboard.KEY_R.isActive())
+		{
+			// Reset current animation
+			if (InputHandling::g_input_keyboard.KEY_R.isPressed())
+				for (auto& model : m_models)
+					model.resetStartTime();
+			// Reset to the first animation
+			else if (InputHandling::g_input_keyboard.KEY_R.isHeld())
+			{
+				Model::resetTime();
+				for (auto& model : m_models)
+					model.resetModel();
+			}
+		}
+		else if (InputHandling::g_input_keyboard.KEY_RIGHT.isActive())
+		{
+			// Skip to the next animation
+			if (InputHandling::g_input_keyboard.KEY_RIGHT.isTicked())
+			{
+				for (auto& model : m_models)
+					model.nextAnimation();
+			}
+		}
+		else if (InputHandling::g_input_keyboard.KEY_LEFT.isActive())
+		{
+			// Skip down to the previous animation
+			if (InputHandling::g_input_keyboard.KEY_LEFT.isTicked())
+			{
+				for (auto& model : m_models)
+					model.prevAnimation();
+			}
+		}
+		// Animates model data as normal
+		else if (!m_isPaused)
+		{
+			// Update animations, obviously
+			Model::adjustTime(current - m_previous);
+			for (auto& model : m_models)
+				model.update();
+		}
 	}
 
+	// Update view matrix buffer
+	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
+	m_view = g_camera.getViewMatrix();
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(m_view));
 
-	xgEnvelope::deleteBoneUniform();
-	g_shaders.closePrograms();
-	g_boneShaders.closePrograms();
-	InputHandling::resetInputs();
+	// Update projection matrix buffer
+	glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
+	glm::mat4 projection = glm::perspective(glm::radians(g_camera.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
 
-	glfwTerminate();
-	return 0;
+void Viewer_XGM::draw()
+{
+	// Clear color and depth buffers
+	glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Draw opaque meshes
+	for (auto& model : m_models)
+		model.draw(m_view, m_showNormals, false, m_showAnimation);
+
+	// Draw transparent meshes
+	for (auto& model : m_models)
+		model.draw(m_view, m_showNormals, true, m_showAnimation);
+	glBindVertexArray(0);
 }

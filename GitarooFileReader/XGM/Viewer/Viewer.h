@@ -26,6 +26,7 @@ enum class AspectRatioMode
 
 class Viewer
 {
+protected:
 	// settings
 	static AspectRatioMode s_aspectRatio;
 	static unsigned int s_screenWidth;
@@ -36,6 +37,35 @@ class Viewer
 	unsigned int m_viewUBO;
 	unsigned int m_projectionUBO;
 
+	float m_previous;
+	bool m_isPaused;
+	bool m_showNormals;
+	glm::mat4 m_view;
+
+	std::list<Model> m_models;
+
+public:
+	Viewer();
+	virtual ~Viewer();
+	int view();
+	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+	static std::string getAspectRatioString();
+	static unsigned int getScreenHeight() { return s_screenHeight; }
+	static void switchAspectRatio();
+	static bool changeHeight();
+
+protected:
+	virtual void update(float current) = 0;
+	virtual void draw() = 0;
+	static void setWidth();
+};
+
+class Viewer_XGM : public Viewer
+{
+	bool m_showAnimation;
+
 	glm::vec3 m_lightPos;
 	glm::vec3 m_lightAmbient;
 	glm::vec3 m_lightDiffuse;
@@ -45,18 +75,11 @@ class Viewer
 	float m_lightQuadratic;
 
 	std::list<Model> m_models;
-
 public:
-	Viewer(const std::vector<XG*>& models);
-	int viewXG();
-	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-
-	static std::string getAspectRatioString();
-	static unsigned int getScreenHeight() { return s_screenHeight; }
-	static void switchAspectRatio();
-	static bool changeHeight();
+	Viewer_XGM(const std::vector<XG*>& models);
+	~Viewer_XGM();
 
 private:
-	static void setWidth();
+	void update(float current);
+	void draw();
 };

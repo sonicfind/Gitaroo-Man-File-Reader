@@ -49,4 +49,5 @@ public:
 	static void adjustTime(float delta);
 	// This is one isn't obvious at all
 	static void toggleLoop();
+	static void resetLoop();
 };

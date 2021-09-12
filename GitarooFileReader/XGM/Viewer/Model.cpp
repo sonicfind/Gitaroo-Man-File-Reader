@@ -25,7 +25,6 @@ Model::Model(XG* xg)
 	, m_length(xg->getAnimationLength(m_animIndex))
 {
 	m_xg->initializeViewerState();
-	s_isLooping = false;
 }
 
 Model::~Model()
@@ -102,10 +101,6 @@ void Model::resetStartTime()
 // Jumps to the first animation
 void Model::resetModel()
 {
-// This is one isn't obvious at all
-void Model::toggleLoop()
-{
-	s_isLooping = !s_isLooping;
 	setAnimation(0);
 }
 
@@ -123,4 +118,15 @@ void Model::resetTime()
 void Model::adjustTime(float delta)
 {
 	s_currentTime += delta;
+}
+
+void Model::resetLoop()
+{
+	s_isLooping = false;
+}
+
+// This is one isn't obvious at all
+void Model::toggleLoop()
+{
+	s_isLooping = !s_isLooping;
 }

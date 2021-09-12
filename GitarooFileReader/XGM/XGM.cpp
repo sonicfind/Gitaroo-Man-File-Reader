@@ -387,8 +387,7 @@ bool XGM::viewModel()
 
 				try
 				{
-					Viewer viewer(viewer_models);
-					viewer.viewXG();
+					Viewer_XGM(viewer_models).view();
 				}
 				catch (char* str)
 				{

@@ -75,3 +75,43 @@ void LightSetup::create(FILE* outFile)
 	if (numColors > 1)
 		fwrite(&m_colors.front(), sizeof(LightColors), numColors, outFile);
 }
+
+glm::vec3 LightSetup::getDirection(const float time) const
+{
+	// The actual direction of the light can not yet be determined at this point,
+	// so we're going with these basic returns for now
+	if (m_rotations.empty())
+		return glm::rotate(m_baseValues.m_rotation, glm::vec3(0, 0, -1));
+	else
+	{
+		glm::quat rotation;
+		auto iter = getIter(m_rotations, time);
+		if (!iter->m_doInterpolation || iter + 1 == m_rotations.end())
+			return glm::rotate(iter->m_rotation, glm::vec3(0, 0, -1));
+		else
+			return glm::rotate(glm::slerp(iter->m_rotation, (iter + 1)->m_rotation, (time - iter->m_frame) * iter->m_coefficient), glm::vec3(0, 0, -1));
+	}
+}
+
+void LightSetup::getColors(const float time, glm::vec3& diffuse, glm::vec3& specular) const
+{
+	if (m_colors.empty())
+	{
+		diffuse = m_baseValues.m_diffuse;
+		specular = m_baseValues.m_specular;
+	}
+	else
+	{
+		auto iter = getIter(m_colors, time);
+		if (!iter->m_doInterpolation || iter + 1 == m_colors.end())
+		{
+			diffuse = iter->m_diffuse;
+			specular = iter->m_specular;
+		}
+		else
+		{
+			diffuse = glm::mix(iter->m_diffuse, (iter + 1)->m_diffuse, (time - iter->m_frame) * iter->m_coefficient);
+			specular = glm::mix(iter->m_specular, (iter + 1)->m_specular, (time - iter->m_frame) * iter->m_coefficient);
+		}
+	}
+}

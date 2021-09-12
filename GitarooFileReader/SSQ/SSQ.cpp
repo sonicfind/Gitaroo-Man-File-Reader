@@ -15,7 +15,10 @@
  */
 #include "pch.h"
 #include "SSQ.h"
-#include <algorithm>
+float mixFloat(const float a, const float b, const float coefficient)
+{
+	return a + (b - a) * coefficient;
+}
 
 SSQ::SSQ() : FileType(".SSQ") {}
 

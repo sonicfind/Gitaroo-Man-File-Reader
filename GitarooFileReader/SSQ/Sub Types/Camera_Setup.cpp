@@ -123,3 +123,72 @@ void CameraSetup::create(FILE* outFile)
 			fwrite(&m_64bytes_v.front(), sizeof(Struct64_7f), size, outFile);
 	}
 }
+
+glm::vec4 CameraSetup::getClearColor(const float time) const
+{
+	// Temporary as I am so sure that something must control the clear color mid-stage
+	return m_baseGlobalValues.m_clearColor;
+}
+
+glm::mat4 CameraSetup::getProjectionMatrix(const float time) const
+{
+	if (m_projections.empty())
+		return glm::perspective(m_baseGlobalValues.m_fov, m_baseGlobalValues.m_aspectRatio, m_baseGlobalValues.m_zNear, m_baseGlobalValues.m_zFar);
+	else
+	{
+		auto iter = getIter(m_projections, time);
+		if (!iter->m_doInterpolation || iter + 1 == m_projections.end())
+			return glm::perspective(iter->m_fov, iter->m_aspectRatio, iter->m_zNear, iter->m_zFar);
+		else
+		{
+			const float coefficient = (time - iter->m_frame) * iter->m_coefficient;
+			return glm::perspective(mixFloat(iter->m_fov, (iter + 1)->m_fov, coefficient),
+									mixFloat(iter->m_aspectRatio, (iter + 1)->m_aspectRatio, coefficient),
+									mixFloat(iter->m_zNear, (iter + 1)->m_zNear, coefficient),
+									mixFloat(iter->m_zFar, (iter + 1)->m_zFar, coefficient));
+		}
+	}
+}
+
+glm::mat4 CameraSetup::getViewMatrix(const float time) const
+{
+	auto posIter = getIter(m_positions, time);
+	glm::vec3 position;
+	if (!posIter->m_doInterpolation || posIter + 1 == m_positions.end())
+		position = posIter->m_position;
+	else
+		position = glm::mix(posIter->m_position, (posIter + 1)->m_position, (time - posIter->m_frame) * posIter->m_coefficient);
+
+	auto rotIter = getIter(m_rotations, time);
+	glm::quat rotation;
+	if (!rotIter->m_doInterpolation || rotIter + 1 == m_rotations.end())
+		rotation = rotIter->m_rotation;
+	else
+		rotation = glm::slerp(rotIter->m_rotation, (rotIter + 1)->m_rotation, (time - rotIter->m_frame) * rotIter->m_coefficient);
+
+	return glm::lookAt(position, position + glm::rotate(rotation, glm::vec3(0, 0, -1)), glm::rotate(rotation, glm::vec3(0, 1, 0)));
+}
+
+glm::vec3 CameraSetup::setAmbientColor(const float time) const
+{
+	auto iter = getIter(m_ambientColors, time);
+	if (!iter->m_doInterpolation || iter + 1 == m_ambientColors.end())
+		return iter->m_color;
+	else
+		return glm::mix(iter->m_color, (iter + 1)->m_color, (time - iter->m_frame) * iter->m_coefficient);
+}
+
+bool CameraSetup::getLightSettings(const size_t index, const float time, glm::vec3& direction, glm::vec3& diffuse, glm::vec3& specular) const
+{
+	if (index >= m_lights.size())
+		return false;
+	else
+	{
+		// It is very possible that there is more to lights than just these
+		// Further testing will be required
+		m_lights[index].getColors(time, diffuse, specular);
+		direction = m_lights[index].getDirection(time);
+		
+		return true;
+	}
+}

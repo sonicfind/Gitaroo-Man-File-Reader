@@ -50,3 +50,5 @@ auto getIter(const std::vector<T>& vect, const float time)
 {
 	return std::lower_bound(vect.begin(), vect.end(), time, [](const T& a, const float b) { return a.m_frame < b; });
 }
+
+float mixFloat(const float a, const float b, const float coefficient);

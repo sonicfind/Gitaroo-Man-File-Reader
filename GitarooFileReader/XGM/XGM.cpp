@@ -443,3 +443,19 @@ bool XGM::selectModel()
 		}
 	}
 }
+
+IMX* XGM::getTexture(const char* name)
+{
+	for (auto& texture : m_textures)
+		if (strcmp(texture.getName(), name) == 0)
+			return &texture;
+	return nullptr;
+}
+
+XG* XGM::getModel(const char* name)
+{
+	for (auto& model : m_models)
+		if (strcmp(model.getName(), name) == 0)
+			return &model;
+	return nullptr;
+}

@@ -36,6 +36,8 @@ public:
 	bool viewModel();
 	bool selectTexture();
 	bool selectModel();
+	IMX* getTexture(const char* name);
+	XG* getModel(const char* name);
 
 	bool menu(bool nextFile, const std::pair<bool, const char*> nextExtension);
 	bool functionSelection(const char choice, bool isMulti);

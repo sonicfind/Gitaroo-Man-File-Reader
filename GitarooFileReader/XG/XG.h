@@ -61,6 +61,7 @@ private:
 	// Sets all vertex and bone matrix values to their defaults
 	void restPose() const;
 	// Updates all data to the current frame
+	// @param frame - The current time in terms of frames
 	void animate(float frame, size_t index);
 	// Draws all vertex data to the current framebuffer
 	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;

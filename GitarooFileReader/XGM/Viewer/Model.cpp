@@ -55,7 +55,7 @@ void Model::update()
 				nextAnimation(m_currAnimStartTime + m_length, false);
 		}
 
-		m_xg->animate(s_currentTime - m_currAnimStartTime, m_animIndex);
+		m_xg->animate(30 * (s_currentTime - m_currAnimStartTime), m_animIndex);
 	}
 }
 

@@ -68,18 +68,22 @@ bool Animation::setTempo()
 	}
 }
 
+// Returns the total length in seconds
 const float Animation::getTotalTime() const
 {
 	if (m_non_tempo)
-		return 2 * m_length / m_framerate;
+		return m_length / 30;
 	else
 		return (15 * m_length) / (s_tempo * 2);
 }
 
-const float Animation::getTime(const float numSeconds) const
+// Generates the keyframe value to give to the xgTime node
+// 
+// @param frame - The current time in terms of frames
+const float Animation::getTime(const float frame) const
 {
 	if (m_non_tempo)
-		return numSeconds * m_framerate / (2 * m_keyframe_interval) + m_starting_keyframe;
+		return frame / m_keyframe_interval + m_starting_keyframe;
 	else
-		return numSeconds * (2 * s_tempo) / (15 * m_keyframe_interval) + m_starting_keyframe;
+		return frame * s_tempo / (225 * m_keyframe_interval) + m_starting_keyframe;
 }

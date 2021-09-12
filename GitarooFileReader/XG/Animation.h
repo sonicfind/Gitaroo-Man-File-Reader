@@ -36,7 +36,10 @@ public:
 	static float getTempo();
 	static bool setTempo();
 
+	// Returns the total length in seconds
 	const float getTotalTime() const;
-	const float getTotalCoefficient() const;
+	// Generates the keyframe value to give to the xgTime node
+	// 
+	// @param frame - The current time in terms of frames
 	const float getTime(const float numSeconds) const;
 };

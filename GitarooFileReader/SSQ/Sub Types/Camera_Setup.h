@@ -94,6 +94,6 @@ public:
 	glm::vec4 getClearColor(const float time) const;
 	glm::mat4 getProjectionMatrix(const float time) const;
 	glm::mat4 getViewMatrix(const float time) const;
-	glm::vec3 setAmbientColor(const float time) const;
+	glm::vec3 getAmbientColor(const float time) const;
 	bool getLightSettings(const size_t index, const float time, glm::vec3& direction, glm::vec3& diffuse, glm::vec3& specular) const;
 };

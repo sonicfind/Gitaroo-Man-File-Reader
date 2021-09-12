@@ -169,13 +169,18 @@ glm::mat4 CameraSetup::getViewMatrix(const float time) const
 	return glm::lookAt(position, position + glm::rotate(rotation, glm::vec3(0, 0, -1)), glm::rotate(rotation, glm::vec3(0, 1, 0)));
 }
 
-glm::vec3 CameraSetup::setAmbientColor(const float time) const
+glm::vec3 CameraSetup::getAmbientColor(const float time) const
 {
-	auto iter = getIter(m_ambientColors, time);
-	if (!iter->m_doInterpolation || iter + 1 == m_ambientColors.end())
-		return iter->m_color;
+	if (m_ambientColors.empty())
+		return glm::vec3(m_baseGlobalValues.m_baseAmbience) / 255.0f;
 	else
-		return glm::mix(iter->m_color, (iter + 1)->m_color, (time - iter->m_frame) * iter->m_coefficient);
+	{
+		auto iter = getIter(m_ambientColors, time);
+		if (!iter->m_doInterpolation || iter + 1 == m_ambientColors.end())
+			return iter->m_color;
+		else
+			return glm::mix(iter->m_color, (iter + 1)->m_color, (time - iter->m_frame) * iter->m_coefficient);
+	}
 }
 
 bool CameraSetup::getLightSettings(const size_t index, const float time, glm::vec3& direction, glm::vec3& diffuse, glm::vec3& specular) const

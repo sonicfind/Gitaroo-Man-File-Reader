@@ -26,11 +26,6 @@ class SSQ
 	friend class SSQ_Main;
 	friend class SSQ_Editor;
 private:
-	// Full filename
-	std::string m_filename;
-	// Short version of filename
-	std::string m_shortname;
-	// 
 	unsigned long m_headerVersion;
 	char m_unk[12] = { 0 };
 	Val m_junk[4] = { 0 };

@@ -19,9 +19,9 @@ class LightSetup
 	struct BaseValues
 	{
 		unsigned long m_isActive;
-		float m_diffuse[3];
-		float m_specular[3];
-		float m_rotation[4];
+		glm::vec3 m_diffuse;
+		glm::vec3 m_specular;
+		glm::quat m_rotation;
 		Val ulong_b;
 		Val l_a;
 		Val ulong_c;
@@ -45,8 +45,8 @@ class LightSetup
 
 	struct LightColors : public Frame
 	{
-		float m_diffuse[3];
-		float m_specular[3];
+		glm::vec3 m_diffuse;
+		glm::vec3 m_specular;
 		unsigned long m_doInterpolation;
 		unsigned long ulong_b;
 		float float_a;

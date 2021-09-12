@@ -45,9 +45,8 @@ class FixedSprite
 
 	struct Struct48_8f : public Frame
 	{
-		float m_position[3];
-		float m_worldScale_X;
-		float m_worldScale_Y;
+		glm::vec3 m_position;
+		glm::vec2 m_worldScale;
 		unsigned long ulong_a;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
@@ -72,10 +71,8 @@ class FixedSprite
 
 	struct SpriteFrame : public Frame
 	{
-		float m_initial_BottmLeft_X;
-		float m_initial_BottmLeft_Y;
-		float m_boxSize_X;
-		float m_boxSize_Y;
+		glm::vec2 m_initial_BottomLeft;
+		glm::vec2 m_boxSize;
 		unsigned long ulong_a;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;

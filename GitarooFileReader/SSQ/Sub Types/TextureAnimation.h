@@ -19,10 +19,8 @@ class TexAnim
 public:
 	struct CutOut
 	{
-		float m_topLeft_X;
-		float m_topLeft_Y;
-		float m_bottomRight_X;
-		float m_bottomRight_Y;
+		glm::vec2 m_topLeft;
+		glm::vec2 m_bottomRight;
 	};
 
 	struct TexFrame : public Frame
@@ -38,9 +36,7 @@ private:
 
 	Val m_junk[4] = { 0 };
 
-	unsigned long m_offset_X;
-
-	unsigned long m_offset_Y;
+	glm::u32vec2 m_offset;
 
 	char m_texture[24] = { 0 };
 

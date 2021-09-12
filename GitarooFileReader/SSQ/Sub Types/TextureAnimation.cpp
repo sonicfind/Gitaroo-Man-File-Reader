@@ -14,6 +14,7 @@
  */
 #include "pch.h"
 #include "TextureAnimation.h"
+#include <glm/gtc/type_ptr.hpp>
 TexAnim::TexAnim(FILE* inFile)
 {
 	char tmp[5] = { 0 };
@@ -29,8 +30,7 @@ TexAnim::TexAnim(FILE* inFile)
 	fread(&m_headerVersion, 4, 1, inFile);
 	fread(m_unk1, 1, 12, inFile);
 	fread(m_junk, 1, 16, inFile);
-	fread(&m_offset_X, 4, 1, inFile);
-	fread(&m_offset_Y, 4, 1, inFile);
+	fread(glm::value_ptr(m_offset), sizeof(glm::u32vec2), 1, inFile);
 	fread(m_texture, 1, 24, inFile);
 
 	unsigned long numCutOuts, numTexFrames;
@@ -50,8 +50,7 @@ void TexAnim::create(FILE* outFile)
 	fwrite(&m_headerVersion, 4, 1, outFile);
 	fwrite(m_unk1, 1, 12, outFile);
 	fwrite(m_junk, 1, 16, outFile);
-	fwrite(&m_offset_X, 4, 1, outFile);
-	fwrite(&m_offset_Y, 4, 1, outFile);
+	fwrite(glm::value_ptr(m_offset), sizeof(glm::u32vec2), 1, outFile);
 	fwrite(m_texture, 1, 24, outFile);
 
 	unsigned long numCutOuts = (unsigned long)m_cutOuts.size(), numTexFrames = (unsigned long)m_textureFrames.size();

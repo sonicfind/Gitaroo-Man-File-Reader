@@ -19,10 +19,10 @@ class CameraSetup
 public:
 	struct BaseGlobalValues
 	{
-		float m_clearColor[4];
-		unsigned long m_baseAmbience[3];
+		glm::vec4 m_clearColor;
+		glm::u32vec3 m_baseAmbience[3];
 		unsigned long m_useDiffuse;
-		unsigned long m_vertColorDiffuse[3];
+		glm::u32vec3 m_vertColorDiffuse[3];
 		float m_fov;
 		float m_aspectRatio;
 		float m_zNear;
@@ -42,7 +42,7 @@ public:
 
 	struct AmbientColor : public Frame
 	{
-		float m_color[3];
+		glm::vec3 m_color;
 		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;

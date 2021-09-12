@@ -27,17 +27,11 @@ class FixedSpriteSetup
 	struct Struct80_7f
 	{
 		unsigned long m_IMXindex;
-		float m_initial_BottmLeft_X;
-		float m_initial_BottmLeft_Y;
-		float m_boxSize_X;
-		float m_boxSize_Y;
-		float m_worldPosition_X;
-		float m_worldPosition_Y;
-		float m_worldPosition_Z;
-		float m_worldScale_X;
-		float m_worldScale_Y;
-		float m_worldScale_Z_maybe;
-		float m_worldScale_W_maybe;
+		glm::vec2 m_initial_BottomLeft;
+		glm::vec2 m_boxSize;
+		glm::vec3 m_worldPosition;
+		glm::vec2 m_worldScale;
+		glm::vec2 m_worldScale_ZW_maybe;
 		float float_l;
 		unsigned long ulong_b;
 		float float_m;

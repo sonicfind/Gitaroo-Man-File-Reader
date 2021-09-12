@@ -13,7 +13,7 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-
+#include <glm/gtx/quaternion.hpp>
 union Val
 {
 	char c[4];
@@ -30,7 +30,7 @@ struct Frame
 
 struct Position : public Frame
 {
-	float m_position[3];
+	glm::vec3 m_position;
 	unsigned long m_doInterpolation;
 	// Essentially m_frame * 160
 	unsigned long m_otherPos;
@@ -39,7 +39,7 @@ struct Position : public Frame
 
 struct Rotation : public Frame
 {
-	float m_rotation[4];
+	glm::quat m_rotation;
 	unsigned long m_doInterpolation;
 	// Essentially m_frame * 160
 	unsigned long m_otherPos;

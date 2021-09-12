@@ -40,7 +40,7 @@ class ModelSetup
 
 	struct ModelScalar : public Frame
 	{
-		float m_scalar[3];
+		glm::vec3 m_scalar;
 		unsigned long m_envMap_maybe;
 		unsigned long m_doInterpolation;
 		unsigned long ulong_b;
@@ -48,8 +48,8 @@ class ModelSetup
 
 	struct BaseValues
 	{
-		float m_basePosition[3];
-		float m_baseRotation[4];
+		glm::vec3 m_basePosition;
+		glm::quat m_baseRotation;
 		unsigned long m_baseAnimIndex_maybe;
 		unsigned long ulong_b;
 		unsigned long m_depthTest;

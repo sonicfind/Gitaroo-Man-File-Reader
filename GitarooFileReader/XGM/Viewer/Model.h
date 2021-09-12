@@ -33,20 +33,20 @@ public:
 	// Then updates the model data
 	void update();
 	// Sets the handler to the provided animation index
-	void setAnimation(float time, size_t animIndex);
+	void setAnimation(size_t animIndex, float time = s_currentTime, bool animate = true);
 	// Skip to next animation
-	void nextAnimation(float time, bool forced = false);
+	void nextAnimation(float time = s_currentTime, bool animate = true);
 	// Skip back to the previoes animation
 	void prevAnimation();
 	// Resets the current animation
 	void resetStartTime();
 	// Jumps to the first animation
 	void resetModel();
-	// This is one isn't obvious at all
-	static void toggleLoop();
 	// Draws all vertex data to the current framebuffer
 	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
 
 	static void resetTime();
 	static void adjustTime(float delta);
+	// This is one isn't obvious at all
+	static void toggleLoop();
 };

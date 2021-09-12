@@ -53,7 +53,7 @@ void Model::update()
 				GlobalFunctions::printf_tab("Loop\n");
 			}
 			else
-				nextAnimation(m_currAnimStartTime + m_length);
+				nextAnimation(m_currAnimStartTime + m_length, false);
 		}
 
 		m_xg->animate(s_currentTime - m_currAnimStartTime, m_animIndex);
@@ -61,7 +61,7 @@ void Model::update()
 }
 
 // Sets the handler to the provided animation index
-void Model::setAnimation(float time, size_t animIndex)
+void Model::setAnimation(size_t animIndex, float time, bool animate)
 {
 	m_currAnimStartTime = time;
 	if (m_animIndex != animIndex)
@@ -70,47 +70,43 @@ void Model::setAnimation(float time, size_t animIndex)
 		m_length = m_xg->getAnimationLength(m_animIndex);
 		GlobalFunctions::printf_tab("Animation: %zu\n", m_animIndex);
 	}
+
+	if (animate)
+		m_xg->animate(0, m_animIndex);
 }
 
 // Skip to next animation
-void Model::nextAnimation(float time, bool forced)
+void Model::nextAnimation(float time, bool animate)
 {
 	if (m_animIndex < m_xg->m_animations.size() - 1)
-		setAnimation(time, m_animIndex + 1);
+		setAnimation(m_animIndex + 1, time, animate);
 	else
-		setAnimation(time, 0);
-	if (forced)
-		m_xg->animate(0, m_animIndex);
+		setAnimation(0, time, animate);
 }
 
 // Skip back to the previoes animation
 void Model::prevAnimation()
 {
 	if (m_animIndex > 0)
-		setAnimation(0, m_animIndex - 1);
+		setAnimation(m_animIndex - 1);
 	else
-		setAnimation(0, m_xg->m_animations.size() - 1);
-	m_xg->animate(0, m_animIndex);
+		setAnimation(m_xg->m_animations.size() - 1);
 }
 
 // Resets the current animation
 void Model::resetStartTime()
 {
-	m_currAnimStartTime = 0;
-	m_xg->animate(0, m_animIndex);
+	setAnimation(m_animIndex);
 }
 
 // Jumps to the first animation
 void Model::resetModel()
 {
-	setAnimation(0, 0);
-	m_xg->animate(0, 0);
-}
-
 // This is one isn't obvious at all
 void Model::toggleLoop()
 {
 	s_isLooping = !s_isLooping;
+	setAnimation(0);
 }
 
 // Draws all vertex data to the current framebuffer

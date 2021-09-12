@@ -61,13 +61,9 @@ class ModelSetup
 	float m_controllableStartFrame;
 	Val m_junk[4] = { 0 };
 	std::vector<Position> m_positions;
-	size_t m_posIndex;
 	std::vector<Rotation> m_rotations;
-	size_t m_rotIndex;
 	std::vector<ModelAnim> m_animations;
-	size_t m_animIndex;
 	std::vector<ModelScalar> m_scalars;
-	size_t m_sclIndex;
 	BaseValues m_baseValues;
 
 protected:
@@ -77,6 +73,8 @@ public:
 	ModelSetup(FILE* inFile, char(&name)[16]);
 	virtual void create(FILE* outFile) const;
 	void loadXG(XG* xg);
+
+	glm::mat4 getModelMatrix(const float time) const;
 };
 
 class PlayerModelSetup : public ModelSetup

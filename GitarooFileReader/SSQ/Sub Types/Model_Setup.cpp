@@ -108,3 +108,45 @@ void ModelSetup::create(FILE* outFile) const
 		fwrite(&m_baseValues, sizeof(BaseValues), 1, outFile);
 	}
 }
+
+#include <glm/gtx/transform.hpp>
+glm::mat4 ModelSetup::getModelMatrix(const float time) const
+{
+	glm::vec3 position;
+	if (m_positions.empty())
+		position = m_baseValues.m_basePosition;
+	else
+	{
+		auto iter = getIter(m_positions, time);
+		if (!iter->m_doInterpolation || iter + 1 == m_positions.end())
+			position = iter->m_position;
+		else
+			position = glm::mix(iter->m_position, (iter + 1)->m_position, (time - iter->m_frame) * iter->m_coefficient);
+	}
+
+	glm::quat rotation;
+	if (m_rotations.empty())
+		rotation = m_baseValues.m_baseRotation;
+	else
+	{
+		auto iter = getIter(m_rotations, time);
+		if (!iter->m_doInterpolation || iter + 1 == m_rotations.end())
+			rotation = iter->m_rotation;
+		else
+			rotation = glm::slerp(iter->m_rotation, (iter + 1)->m_rotation, (time - iter->m_frame) * iter->m_coefficient);
+	}
+	
+	if (!m_scalars.empty())
+	{
+		glm::vec3 scale;
+		auto iter = getIter(m_scalars, time);
+		if (!iter->m_doInterpolation || iter + 1 == m_scalars.end())
+			scale = iter->m_scalar;
+		else
+			scale = glm::mix(iter->m_scalar, (iter + 1)->m_scalar, (time - iter->m_frame) * iter->m_coefficient);
+
+		return glm::translate(position) * glm::toMat4(conjugate(rotation)) * glm::scale(scale);
+	}
+	else
+		return glm::translate(position) * glm::toMat4(conjugate(rotation));
+}

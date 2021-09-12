@@ -141,6 +141,8 @@ vec3 applySpecular(const Material material, vec3 lightDir, float attenuation)
 	vec3 viewDir = normalize(viewPos - vs_in.fragPos);
 	vec3 reflectDir = reflect(-lightDir, vs_in.normal);
 	vec3 halfwayDir = normalize(lightDir + viewDir);
-	float spec =  material.color.a * pow(max(dot(vs_in.normal, halfwayDir), 0.0), material.shininess);
+	float spec = pow(max(dot(vs_in.normal, halfwayDir), 0.0), material.shininess);
+	if (material.shadingType == 1)
+		spec *= material.diffuse.a;
 	return attenuation * material.specular * spec * light.specular;
 };

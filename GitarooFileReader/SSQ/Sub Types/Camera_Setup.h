@@ -20,9 +20,9 @@ public:
 	struct BaseGlobalValues
 	{
 		glm::vec4 m_clearColor;
-		glm::u32vec3 m_baseAmbience[3];
+		glm::u32vec3 m_baseAmbience;
 		unsigned long m_useDiffuse;
-		glm::u32vec3 m_vertColorDiffuse[3];
+		glm::u32vec3 m_vertColorDiffuse;
 		float m_fov;
 		float m_aspectRatio;
 		float m_zNear;

@@ -301,7 +301,7 @@ float XG::getAnimationLength(size_t index)
 }
 
 // Sets all vertex and bone matrix values to their defaults
-void XG::restPose()
+void XG::restPose() const
 {
 	m_data->restPose();
 }
@@ -315,7 +315,7 @@ void XG::animate(float frame, size_t index)
 }
 
 // Draws all vertex data to the current framebuffer
-void XG::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const
+void XG::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
-	m_data->draw(view, showNormals, doTransparents);
+	m_data->draw(view, showNormals, doTransparents, isAnimated);
 }

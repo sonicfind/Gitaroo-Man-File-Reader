@@ -45,7 +45,7 @@ public:
 	// This is one isn't obvious at all
 	static void toggleLoop();
 	// Draws all vertex data to the current framebuffer
-	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const;
+	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
 
 	static void resetTime();
 	static void adjustTime(float delta);

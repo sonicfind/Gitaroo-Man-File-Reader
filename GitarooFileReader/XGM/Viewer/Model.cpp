@@ -114,9 +114,9 @@ void Model::toggleLoop()
 }
 
 // Draws all vertex data to the current framebuffer
-void Model::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const
+void Model::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
-	m_xg->draw(view, showNormals, doTransparents);
+	m_xg->draw(view, showNormals, doTransparents, isAnimated);
 }
 
 void Model::resetTime()

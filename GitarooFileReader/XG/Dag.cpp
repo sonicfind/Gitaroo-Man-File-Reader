@@ -15,7 +15,6 @@
 #include "pch.h"
 #include "Dag.h"
 Dag::Dag(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList, bool isRootBranch)
-	: m_matrix(1.0f)
 {
 	PString pstr(inFile);
 	if (pstr.m_pstring[0] == '}' || pstr.m_pstring[0] == ']')
@@ -103,13 +102,12 @@ void Dag::uninitializeViewerState()
 			dag.uninitializeViewerState();
 }
 
-void Dag::restPose()
+void Dag::restPose() const
 {
 	if (auto mesh = m_base.get<xgDagMesh>())
 		mesh->restPose();
 	else
 	{
-		m_matrix = glm::identity<glm::mat4>();
 		for (auto& dag : m_connected)
 			dag.restPose();
 	}
@@ -121,20 +119,19 @@ void Dag::animate()
 		mesh->animate();
 	else
 	{
-		m_matrix = m_base.get<xgDagTransform>()->getModelMatrix();
 		for (auto& dag : m_connected)
 			dag.animate();
 	}
 }
 
-void Dag::draw(const glm::mat4 view, const glm::mat4 model, const bool showNormals, const bool doTransparents) const
+void Dag::draw(const glm::mat4 view, const glm::mat4 model, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
 	if (auto mesh = m_base.get<xgDagMesh>())
 		mesh->draw(view, model, showNormals, doTransparents);
 	else
 	{
-		const glm::mat4 transform = model * m_matrix;
+		const glm::mat4 transform = isAnimated ? model * m_base.get<xgDagTransform>()->getModelMatrix() : model;
 		for (const auto& dag : m_connected)
-			dag.draw(view, transform, showNormals, doTransparents);
+			dag.draw(view, transform, showNormals, doTransparents, isAnimated);
 	}
 }

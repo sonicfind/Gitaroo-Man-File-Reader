@@ -18,7 +18,6 @@
 class Dag
 {
 	SharedNode<DagNode> m_base;
-	glm::mat4 m_matrix;
 	std::vector<Dag> m_connected;
 public:
 	Dag(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList, bool isRootBranch = false);
@@ -29,7 +28,7 @@ public:
 
 	void initializeViewerState();
 	void uninitializeViewerState();
-	void restPose();
+	void restPose() const;
 	void animate();
-	void draw(const glm::mat4 view, const glm::mat4 model, const bool showNormals, const bool doTransparents) const;
+	void draw(const glm::mat4 view, const glm::mat4 model, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
 };

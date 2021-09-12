@@ -34,9 +34,9 @@ public:
 	// Deletes all the vertex and uniform buffers created for the OpenGL viewer
 	void uninitializeViewerState();
 	// Sets all vertex and bone matrix values to their defaults
-	void restPose();
+	void restPose() const;
 	// Updates all data to the current frame
 	void animate(float frame);
 	// Draws all vertex data to the current framebuffer
-	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const;
+	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
 };

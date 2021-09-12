@@ -164,9 +164,9 @@ void XG_Data::uninitializeViewerState()
 }
 
 // Sets all vertex and bone matrix values to their defaults
-void XG_Data::restPose()
+void XG_Data::restPose() const
 {
-	for (Dag& dag : m_dagMap)
+	for (const Dag& dag : m_dagMap)
 		dag.restPose();
 }
 
@@ -185,10 +185,10 @@ void XG_Data::animate(float frame)
 
 #include <glm/gtx/transform.hpp>
 // Draws all vertex data to the current framebuffer
-void XG_Data::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents) const
+void XG_Data::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
 	// Necessary to flip the z value of all coordinates
 	const glm::mat4 base = glm::scale(glm::vec3(1, 1, -1));
 	for (const Dag& dag : m_dagMap)
-		dag.draw(view, base, showNormals, doTransparents);
+		dag.draw(view, base, showNormals, doTransparents, isAnimated);
 }

@@ -72,8 +72,7 @@ SSQ::SSQ(std::string filename, bool unused)
 bool SSQ::loadXGM()
 {
 	// Note: Gitaroo Man uses Albumdef.txt to specify an XGM
-	if (!m_xgm)
-		m_xgm = std::make_unique<XGM>(m_directory + m_filename);
+	m_xgm = std::make_unique<XGM>(m_directory + m_filename);
 	return true;
 }
 

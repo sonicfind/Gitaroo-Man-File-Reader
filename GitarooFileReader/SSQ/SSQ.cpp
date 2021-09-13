@@ -35,9 +35,8 @@ SSQ::SSQ(std::string filename, bool unused)
 	fread(m_unk, 1, 12, m_filePtr);
 	fread(m_junk, 1, 16, m_filePtr);
 
-	unsigned long numXG = 0;
-	fread(&numXG, 4, 1, m_filePtr);
-	m_modelSetups.resize(numXG);
+	unsigned long numMatrices = 0;
+	fread(&numMatrices, 4, 1, m_filePtr);
 
 	unsigned long numIMX = 0;
 	fread(&numIMX, 4, 1, m_filePtr);
@@ -45,13 +44,35 @@ SSQ::SSQ(std::string filename, bool unused)
 	for (unsigned long i = 0; i < numIMX; ++i)
 		m_IMXentries.emplace_back(m_filePtr);
 
+	unsigned long numXG = 0;
 	fread(&numXG, 4, 1, m_filePtr);
 
-	for (unsigned long i = 0, instance = 0; i < numXG; ++i)
-		m_modelSetups[i].readEntry(m_filePtr, instance);
+	for (unsigned long i = 0; i < numXG; ++i)
+		m_XGentries.emplace_back(m_filePtr);
 
-	for (unsigned long i = 0, instance = 0; i < numXG; ++i)
-		m_modelSetups[i].read(m_filePtr);
+	// Setups listed in same order as Entries
+	for (unsigned long i = 0; i < numXG; ++i)
+	{
+		switch (m_XGentries[i].m_type)
+		{
+		case ModelType::Normal:
+			m_modelSetups.push_back(std::make_unique<ModelSetup>(m_filePtr, m_XGentries[i].m_name));
+			break;
+		case ModelType::Player1:
+		case ModelType::Player2:
+		case ModelType::DuetPlayer:
+			m_modelSetups.push_back(std::make_unique<PlayerModelSetup>(m_filePtr, m_XGentries[i].m_name));
+			break;
+		case ModelType::Player1AttDef:
+		case ModelType::Player2AttDef:
+		case ModelType::DuetPlayerAttDef:
+		case ModelType::DuetComboAttack:
+			m_modelSetups.push_back(std::make_unique<AttDefModelSetup>(m_filePtr, m_XGentries[i].m_name));
+			break;
+		case ModelType::Snake:
+			m_modelSetups.push_back(std::make_unique<SnakeModelSetup>(m_filePtr, m_XGentries[i].m_name));
+		}
+	}
 
 	m_camera.read(m_filePtr);
 
@@ -98,11 +119,11 @@ bool SSQ::create(std::string filename)
 		size = (unsigned long)m_modelSetups.size();
 		fwrite(&size, 4, 1, m_filePtr);
 
-		for (const auto& model : m_modelSetups)
-			model.createEntry(m_filePtr);
+		for (XGEntry& xg : m_XGentries)
+			xg.create(m_filePtr);
 
 		for (const auto& model : m_modelSetups)
-			model.create(m_filePtr);
+			model->create(m_filePtr);
 
 		m_camera.create(m_filePtr);
 

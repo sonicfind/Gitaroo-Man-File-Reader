@@ -284,6 +284,7 @@
     <ClInclude Include="PString\PString.h" />
     <ClInclude Include="IMX\IMX_Data.h" />
     <ClInclude Include="IMX\IMX.h" />
+    <ClInclude Include="SSQ\Sub Types\XGEntry.h" />
     <ClInclude Include="XGM\Viewer\Model.h" />
     <ClInclude Include="XG\Triangle Types\Triangle_Data.h" />
     <ClInclude Include="XG\Triangle Types\Triangle_Fan.h" />

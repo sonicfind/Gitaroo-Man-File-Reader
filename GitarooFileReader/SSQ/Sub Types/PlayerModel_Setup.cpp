@@ -14,38 +14,46 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-PlayerModelSetup::PlayerModelSetup(FILE* inFile)
+PlayerModelSetup::PlayerModelSetup(FILE* inFile, char(&name)[16])
+	: ModelSetup(inFile, name)
 {
-	unsigned long numControllable;
-	fread(&numControllable, 4, 1, inFile);
-	m_player_controllable.resize(numControllable);
-	fread(&m_player_controllable.front(), sizeof(Struct48_2f), numControllable, inFile);
-	m_player_read4Entry.resize(numControllable);
-	for (auto& r4e : m_player_read4Entry)
+	if (m_headerVersion >= 0x1300)
 	{
-		unsigned long num;
-		fread(&num, 4, 1, inFile);
-		if (num)
+		unsigned long numControllable;
+		fread(&numControllable, 4, 1, inFile);
+		m_player_controllable.resize(numControllable);
+		fread(&m_player_controllable.front(), sizeof(Struct48_2f), numControllable, inFile);
+		m_player_read4Entry.resize(numControllable);
+		for (auto& r4e : m_player_read4Entry)
 		{
-			r4e.m_vals.resize(num);
-			fread(&r4e.m_vals.front(), 4, num, inFile);
+			unsigned long num;
+			fread(&num, 4, 1, inFile);
+			if (num)
+			{
+				r4e.m_vals.resize(num);
+				fread(&r4e.m_vals.front(), 4, num, inFile);
+			}
 		}
+		m_player_ulongs.resize(numControllable);
+		fread(&m_player_ulongs.front(), 4, numControllable, inFile);
 	}
-	m_player_ulongs.resize(numControllable);
-	fread(&m_player_ulongs.front(), 4, numControllable, inFile);
 }
 
 void PlayerModelSetup::create(FILE* outFile) const
 {
-	unsigned long size = (unsigned long)m_player_controllable.size();
-	fwrite(&size, 4, 1, outFile);
-	fwrite(&m_player_controllable.front(), sizeof(Struct48_2f), size, outFile);
-	for (auto& r4e : m_player_read4Entry)
+	ModelSetup::create(outFile);
+	if (m_headerVersion >= 0x1300)
 	{
-		unsigned long num = (unsigned long)r4e.m_vals.size();
-		fwrite(&num, 4, 1, outFile);
-		if (num)
-			fwrite(&r4e.m_vals.front(), 4, num, outFile);
+		unsigned long size = (unsigned long)m_player_controllable.size();
+		fwrite(&size, 4, 1, outFile);
+		fwrite(&m_player_controllable.front(), sizeof(Struct48_2f), size, outFile);
+		for (auto& r4e : m_player_read4Entry)
+		{
+			unsigned long num = (unsigned long)r4e.m_vals.size();
+			fwrite(&num, 4, 1, outFile);
+			if (num)
+				fwrite(&r4e.m_vals.front(), 4, num, outFile);
+		}
+		fwrite(&m_player_ulongs.front(), 4, size, outFile);
 	}
-	fwrite(&m_player_ulongs.front(), 4, size, outFile);
 }

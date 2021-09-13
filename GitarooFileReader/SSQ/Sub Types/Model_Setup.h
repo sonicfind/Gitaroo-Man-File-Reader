@@ -15,13 +15,6 @@
  */
 #include "SSQ_BaseStructs.h"
 #include "XG/XG.h"
-class ModelSetup_Sub
-{
-public:
-	virtual void create(FILE* outFile) const = 0;
-	virtual void use() = 0;
-};
-
 class ModelSetup
 {
 	struct ModelAnim : public Frame
@@ -60,40 +53,8 @@ class ModelSetup
 		float float_i;
 		unsigned long ulong_g;
 	};
-
-	enum class ModelType
-	{
-		Normal,
-		Player1,
-		Player2,
-		DuetPlayer,
-		Player1AttDef = 5,
-		Player2AttDef,
-		DuetPlayerAttDef,
-		DuetComboAttack,
-		Snake
-	};
-
-	struct XGEntry
-	{
-		char m_name[16] = { 0 };
-		unsigned long m_isClone;
-		unsigned long m_cloneID;
-		// Unused in the actual game, but is going to be used here
-		unsigned long m_instanceIndex;
-		ModelType m_type = ModelType::Normal;
-		float m_length;
-		float m_speed;
-		float m_framerate;
-		char m_junk[4];
-
-		void read(FILE* inFile, unsigned long& instance);
-		void create(FILE* outFile) const;
-	} m_entry;
-
+	const char* m_name;
 	XG* m_xg = nullptr;
-
-	unsigned long m_headerVersion;
 	// Maybe?
 	unsigned long m_size;
 	char m_unk[8] = { 0 };
@@ -107,18 +68,17 @@ class ModelSetup
 	std::vector<ModelScalar> m_scalars;
 	size_t m_sclIndex;
 	BaseValues m_baseValues;
-	std::unique_ptr<ModelSetup_Sub> m_subType;
+
+protected:
+	unsigned long m_headerVersion;
 
 public:
-	void readEntry(FILE* inFile, unsigned long& instance);
-	void read(FILE* inFile);
-	void createEntry(FILE* outFile) const;
+	ModelSetup(FILE* inFile, char(&name)[16]);
 	void create(FILE* outFile) const;
-	const char* getName() { return m_entry.m_name; }
 	void loadXG(XG* xg);
 };
 
-class PlayerModelSetup : public ModelSetup_Sub
+class PlayerModelSetup : public ModelSetup
 {
 	struct Struct48_2f
 	{
@@ -149,12 +109,11 @@ class PlayerModelSetup : public ModelSetup_Sub
 	std::vector<unsigned long> m_player_ulongs;
 
 public:
-	PlayerModelSetup(FILE* inFile);
+	PlayerModelSetup(FILE* inFile, char(&name)[16]);
 	void create(FILE* outFile) const;
-	void use() {}
 };
 
-class AttDefModelSetup : public ModelSetup_Sub
+class AttDefModelSetup : public ModelSetup
 {
 	float m_attdef_float32;
 
@@ -179,15 +138,13 @@ class AttDefModelSetup : public ModelSetup_Sub
 	} m_attdef_64bytes;
 
 public:
-	AttDefModelSetup(FILE* inFile);
+	AttDefModelSetup(FILE* inFile, char(&name)[16]);
 	void create(FILE* outFile) const;
-	void use() {}
 };
 
-class SnakeModelSetup : public ModelSetup_Sub
+class SnakeModelSetup : public ModelSetup
 {
 public:
-	SnakeModelSetup(FILE* inFile);
+	SnakeModelSetup(FILE* inFile, char(&name)[16]);
 	void create(FILE* outFile) const;
-	void use() {}
 };

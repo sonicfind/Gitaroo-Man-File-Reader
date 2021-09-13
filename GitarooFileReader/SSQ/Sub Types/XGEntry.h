@@ -1,3 +1,4 @@
+#pragma once
 /*  Gitaroo Man File Reader
  *  Copyright (C) 2020 Gitaroo Pals
  *
@@ -12,24 +13,31 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pch.h"
-#include "Model_Setup.h"
-AttDefModelSetup::AttDefModelSetup(FILE* inFile, char(&name)[16])
-	: ModelSetup(inFile, name)
+enum class ModelType
 {
-	if (m_headerVersion >= 0x1200)
-	{
-		fread(&m_attdef_float32, 4, 1, inFile);
-		fread(&m_attdef_64bytes, sizeof(Struct64_9f), 1, inFile);
-	}
-}
+	Normal,
+	Player1,
+	Player2,
+	DuetPlayer,
+	Player1AttDef = 5,
+	Player2AttDef,
+	DuetPlayerAttDef,
+	DuetComboAttack,
+	Snake
+};
 
-void AttDefModelSetup::create(FILE* outFile) const
+struct XGEntry
 {
-	ModelSetup::create(outFile);
-	if (m_headerVersion >= 0x1200)
-	{
-		fwrite(&m_attdef_float32, 4, 1, outFile);
-		fwrite(&m_attdef_64bytes, sizeof(Struct64_9f), 1, outFile);
-	}
-}
+	char m_name[16] = { 0 };
+	unsigned long m_isClone;
+	unsigned long m_cloneID;
+	unsigned long m_instanceIndex;
+	ModelType m_type = ModelType::Normal;
+	float m_length;
+	float m_speed;
+	float m_framerate;
+	char m_junk[4];
+
+	XGEntry(FILE* inFile);
+	void create(FILE* outFile) const;
+};

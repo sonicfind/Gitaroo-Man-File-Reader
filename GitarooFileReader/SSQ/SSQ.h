@@ -13,6 +13,7 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "Sub Types/XGEntry.h"
 #include "Sub Types/IMXEntry.h"
 #include "Sub Types/Model_Setup.h"
 #include "Sub Types/Camera_Setup.h"
@@ -23,24 +24,16 @@
 class SSQ
 	: public FileType
 {
-	friend class SSQ_Main;
-	friend class SSQ_Editor;
-private:
 	unsigned long m_headerVersion;
 	char m_unk[12] = { 0 };
 	Val m_junk[4] = { 0 };
 	std::vector<IMXEntry> m_IMXentries;
-	std::vector<ModelSetup> m_modelSetups;
+	std::vector<XGEntry> m_XGentries;
+	std::vector<std::unique_ptr<ModelSetup>> m_modelSetups;
 	CameraSetup m_camera;
 	SpritesSetup m_sprites;
 	std::vector<TexAnim> m_texAnimations;
 	PSetup m_pSetup;
-
-	//0 - Not saved
-	//1 - Saved
-	//2 - Saved at the currently pointed location
-	char m_saved;
-
 	std::unique_ptr<XGM> m_xgm;
 
 public:

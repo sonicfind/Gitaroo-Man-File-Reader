@@ -14,5 +14,9 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-SnakeModelSetup::SnakeModelSetup(FILE* inFile) {}
-void SnakeModelSetup::create(FILE* outFile)  const {}
+SnakeModelSetup::SnakeModelSetup(FILE* inFile, char(&name)[16])
+	: ModelSetup(inFile, name) {}
+void SnakeModelSetup::create(FILE* outFile) const
+{
+	ModelSetup::create(outFile);
+}

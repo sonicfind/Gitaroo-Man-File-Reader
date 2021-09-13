@@ -14,17 +14,8 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-void ModelSetup::loadXG(XG* xg)
-{
-	m_xg = xg;
-}
-
-void ModelSetup::readEntry(FILE* inFile, unsigned long& instance)
-{
-	m_entry.read(inFile, instance);
-}
-
-void ModelSetup::read(FILE* inFile)
+ModelSetup::ModelSetup(FILE* inFile, char(&name)[16])
+	: m_name(name)
 {
 	// Block Tag
 	char tmp[5] = { 0 };
@@ -69,30 +60,11 @@ void ModelSetup::read(FILE* inFile)
 		}
 		fread(&m_baseValues, sizeof(BaseValues), 1, inFile);
 	}
-
-	switch (m_entry.m_type)
-	{
-	case ModelType::Player1:
-	case ModelType::Player2:
-	case ModelType::DuetPlayer:
-		if (m_headerVersion >= 0x1300)
-			m_subType = std::make_unique<PlayerModelSetup>(inFile);
-		break;
-	case ModelType::Player1AttDef:
-	case ModelType::Player2AttDef:
-	case ModelType::DuetPlayerAttDef:
-	case ModelType::DuetComboAttack:
-		if (m_headerVersion >= 0x1200)
-			m_subType = std::make_unique<AttDefModelSetup>(inFile);
-		break;
-	case ModelType::Snake:
-		m_subType = std::make_unique<SnakeModelSetup>(inFile);
-	}
 }
 
-void ModelSetup::createEntry(FILE* outFile) const
+void ModelSetup::loadXG(XG* xg)
 {
-	m_entry.create(outFile);
+	m_xg = xg;
 }
 
 void ModelSetup::create(FILE* outFile) const
@@ -131,7 +103,4 @@ void ModelSetup::create(FILE* outFile) const
 			fwrite(&m_scalars.front(), sizeof(ModelScalar), size, outFile);
 		fwrite(&m_baseValues, sizeof(BaseValues), 1, outFile);
 	}
-
-	if (m_subType)
-		m_subType->create(outFile);
 }

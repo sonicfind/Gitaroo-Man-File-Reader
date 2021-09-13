@@ -19,7 +19,7 @@ XGEntry::XGEntry(FILE* inFile)
 	fread(m_name, 1, 16, inFile);
 	fread(&m_isClone, 4, 1, inFile);
 	fread(&m_cloneID, 4, 1, inFile);
-	fread(&m_instanceIndex, 4, 1, inFile);
+	fread(&m_isActive, 4, 1, inFile);
 	fread(&m_type, 4, 1, inFile);
 	fread(&m_length, 4, 1, inFile);
 	fread(&m_speed, 4, 1, inFile);

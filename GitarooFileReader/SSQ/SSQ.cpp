@@ -97,6 +97,9 @@ bool SSQ::loadXGM()
 {
 	// Note: Gitaroo Man uses Albumdef.txt to specify an XGM
 	m_xgm = std::make_unique<XGM>(m_directory + m_filename);
+	for (auto& entry : m_XGentries)
+		if (!entry.m_isClone)
+			entry.m_xg = m_xgm->getModel(entry.m_name);
 	for (auto& texAnim : m_texAnimations)
 		texAnim.connectTexture(m_xgm->getTexture(texAnim.getTextureName()));
 	return true;

@@ -54,7 +54,7 @@ class ModelSetup
 		unsigned long ulong_g;
 	};
 	const char* m_name;
-	XG* m_xg = nullptr;
+	
 	// Maybe?
 	unsigned long m_controllableIndex;
 	float m_bpmStartFrame;
@@ -72,7 +72,6 @@ protected:
 public:
 	ModelSetup(FILE* inFile, char(&name)[16]);
 	virtual void create(FILE* outFile) const;
-	void loadXG(XG* xg);
 
 	glm::mat4 getModelMatrix(const float time) const;
 };

@@ -64,11 +64,6 @@ ModelSetup::ModelSetup(FILE* inFile, char(&name)[16])
 	}
 }
 
-void ModelSetup::loadXG(XG* xg)
-{
-	m_xg = xg;
-}
-
 void ModelSetup::create(FILE* outFile) const
 {
 	// Block Tag

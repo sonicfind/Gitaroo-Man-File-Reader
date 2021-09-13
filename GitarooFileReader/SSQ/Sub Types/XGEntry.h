@@ -13,6 +13,7 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "XG/XG.h"
 enum class ModelType
 {
 	Normal,
@@ -31,12 +32,14 @@ struct XGEntry
 	char m_name[16] = { 0 };
 	unsigned long m_isClone;
 	unsigned long m_cloneID;
-	unsigned long m_instanceIndex;
+	unsigned long m_isActive;
 	ModelType m_type = ModelType::Normal;
 	float m_length;
 	float m_speed;
 	float m_framerate;
 	char m_junk[4];
+
+	XG* m_xg = nullptr;
 
 	XGEntry(FILE* inFile);
 	void create(FILE* outFile) const;

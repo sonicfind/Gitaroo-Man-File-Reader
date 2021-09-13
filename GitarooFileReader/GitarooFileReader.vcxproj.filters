@@ -529,6 +529,9 @@
     <Natvis Include="Main\SharedPtr.natvis">
       <Filter>Global</Filter>
     </Natvis>
+    <Natvis Include="SSQ\Sub Types\Model_Setup.natvis">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
+    </Natvis>
   </ItemGroup>
   <ItemGroup>
     <None Include="base.vert">

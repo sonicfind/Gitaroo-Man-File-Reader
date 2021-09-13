@@ -26,7 +26,8 @@ class XG
 	char m_name[17] = { 0 };
 	unsigned long m_modelIndex;
 	unsigned long m_fileSize;
-	unsigned long m_unk;
+	// It's possible this value isn't actually used for this purpose, but we're using it anyways
+	unsigned long m_instanceCount;
 public:
 	bool m_fromXGM;
 	std::vector<Animation> m_animations;
@@ -64,5 +65,5 @@ private:
 	// @param frame - The current time in terms of frames
 	void animate(float frame, size_t index);
 	// Draws all vertex data to the current framebuffer
-	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
+	void draw(const glm::mat4 view, const glm::mat4* models, const bool showNormals, const bool doTransparents, const bool isAnimated = true);
 };

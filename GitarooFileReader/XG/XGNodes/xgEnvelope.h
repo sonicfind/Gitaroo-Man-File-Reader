@@ -28,7 +28,8 @@ class xgEnvelope : public XGNode
 	std::vector<SharedNode<xgBone>> m_inputMatrices;
 	SharedNode<xgBgGeometry> m_inputGeometry;
 
-	glm::mat4 m_matrices[4];
+	// Max number of instances * Max number of bones
+	glm::mat4 m_matrices[32][4];
 	static unsigned int s_BoneSSBU;
 public:
 	using XGNode::XGNode;
@@ -45,6 +46,6 @@ public:
 	static void unbindBoneUniform();
 	void bindBoneWeights(unsigned long envIndex) const;
 	void restPose();
-	void animate();
-	void updateBoneMatrices(unsigned long envIndex) const;
+	void animate(unsigned long instance);
+	void updateBoneMatrices(unsigned long envIndex, const size_t numInstances) const;
 };

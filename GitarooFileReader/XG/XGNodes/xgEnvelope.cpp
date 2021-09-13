@@ -155,7 +155,7 @@ void xgEnvelope::generateBoneUniform()
 {
 	glGenBuffers(1, &s_BoneSSBU);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_BoneSSBU);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, 17408, NULL, GL_DYNAMIC_COPY);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 525312, NULL, GL_DYNAMIC_DRAW);
 
 	g_boneShaders.bindStorageBlock(4, "Envelopes");
 
@@ -191,21 +191,21 @@ void xgEnvelope::bindBoneWeights(unsigned long envIndex) const
 void xgEnvelope::restPose()
 {
 	for (size_t i = 0; i < m_inputMatrices.size(); ++i)
-		m_matrices[i] = glm::identity<glm::mat4>();
+		m_matrices[0][i] = glm::identity<glm::mat4>();
 }
 
-void xgEnvelope::animate()
+void xgEnvelope::animate(unsigned long instance)
 {
 	for (size_t i = 0; i < m_inputMatrices.size(); ++i)
-		m_matrices[i] = m_inputMatrices[i]->getBoneMatrix();
+		m_matrices[instance][i] = m_inputMatrices[i]->getBoneMatrix();
 }
 
 #include <glm/gtc/type_ptr.hpp>
-void xgEnvelope::updateBoneMatrices(unsigned long envIndex) const
+void xgEnvelope::updateBoneMatrices(unsigned long envIndex, const size_t numInstances) const
 {
-	size_t offset = (4 * sizeof(glm::mat4) + sizeof(glm::vec4)) * envIndex;
+	size_t offset = (128 * sizeof(glm::mat4) + sizeof(glm::vec4)) * envIndex;
 	const unsigned numBones = (unsigned)m_inputMatrices.size();
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, sizeof(int), &numBones);
 	offset += sizeof(glm::vec4);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, 4 * sizeof(glm::mat4), glm::value_ptr(m_matrices[0]));
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, numInstances * 4 * sizeof(glm::mat4), glm::value_ptr(m_matrices[0][0]));
 }

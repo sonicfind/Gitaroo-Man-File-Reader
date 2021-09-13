@@ -50,6 +50,6 @@ public:
 	void intializeBuffers();
 	void deleteBuffers();
 	void restPose() const;
-	void animate();
-	void draw(const glm::mat4 view, glm::mat4 model, const bool showNormals, const bool doTransparents) const;
+	void animate(unsigned long instance);
+	void draw(const glm::mat4 view, const glm::mat4* models, const unsigned long numInstances, const bool showNormals, const bool doTransparents) const;
 };

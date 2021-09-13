@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "Dag.h"
 Dag::Dag(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList, bool isRootBranch)
+	: m_matrix(glm::identity<glm::mat4>())
 {
 	PString pstr(inFile);
 	if (pstr.m_pstring[0] == '}' || pstr.m_pstring[0] == ']')
@@ -119,25 +120,36 @@ void Dag::restPose() const
 	}
 }
 
-void Dag::animate()
+void Dag::animate(unsigned long instance)
 {
 	if (auto mesh = m_base.get<xgDagMesh>())
-		mesh->animate();
+		mesh->animate(instance);
 	else
 	{
+		m_matrix = m_base.get<xgDagTransform>()->getModelMatrix();
 		for (auto& dag : m_connected)
-			dag.animate();
+			dag.animate(instance);
 	}
 }
 
-void Dag::draw(const glm::mat4 view, const glm::mat4 model, const bool showNormals, const bool doTransparents, const bool isAnimated) const
+void Dag::draw(const glm::mat4 view, const glm::mat4* models, const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
 	if (auto mesh = m_base.get<xgDagMesh>())
-		mesh->draw(view, model, showNormals, doTransparents);
+		mesh->draw(view, models, numInstances, showNormals, doTransparents);
 	else
 	{
-		const glm::mat4 transform = isAnimated ? model * m_base.get<xgDagTransform>()->getModelMatrix() : model;
+		glm::mat4* transforms = new glm::mat4[numInstances];
+		if (isAnimated)
+		{
+			const glm::mat4 transform = m_base.get<xgDagTransform>()->getModelMatrix();
+			for (size_t i = 0; i < numInstances; ++i)
+				transforms[i] = models[i] * transform;
+		}
+		else
+			memcpy(transforms, models, sizeof(glm::mat4) * numInstances);
+
 		for (const auto& dag : m_connected)
-			dag.draw(view, transform, showNormals, doTransparents, isAnimated);
+			dag.draw(view, transforms, numInstances, showNormals, doTransparents, isAnimated);
+		delete[numInstances] transforms;
 	}
 }

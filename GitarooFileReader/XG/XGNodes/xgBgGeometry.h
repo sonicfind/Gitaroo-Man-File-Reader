@@ -45,9 +45,9 @@ public:
 	void normals_to_obj(FILE* objFile) const;
 	
 	bool generateVertexBuffer();
-	void bindVertexBuffer() const;
+	void bindVertexBuffer(const size_t numInstances) const;
 	void deleteVertexBuffer();
 	ShaderCombo* activateShader() const;
 	void restPose() const;
-	void animate();
+	void animate(unsigned long instance);
 };

@@ -177,14 +177,14 @@ bool xgBgGeometry::generateVertexBuffer()
 	return false;
 }
 
-void xgBgGeometry::bindVertexBuffer() const
+void xgBgGeometry::bindVertexBuffer(const size_t numInstances) const
 {
 	m_vertexList.bind();
 	if (m_inputEnvelopes.size())
 	{
 		xgEnvelope::bindBoneUniform();
 		for (unsigned long i = 0; i < m_inputEnvelopes.size(); ++i)
-			m_inputEnvelopes[i]->updateBoneMatrices(i);
+			m_inputEnvelopes[i]->updateBoneMatrices(i, numInstances);
 		xgEnvelope::unbindBoneUniform();
 	}
 }
@@ -217,10 +217,10 @@ void xgBgGeometry::restPose() const
 			env->restPose();
 }
 
-void xgBgGeometry::animate()
+void xgBgGeometry::animate(unsigned long instance)
 {
 	for (const auto& env : m_inputEnvelopes)
-		env->animate();
+		env->animate(instance);
 
 	if (m_inputShapeInterpolator)
 		m_vertexList.replace(m_inputShapeInterpolator->interpolate());

@@ -21,7 +21,7 @@ XG::XG()
 	: FileType(".XG")
 	, m_modelIndex(0)
 	, m_fileSize(0)
-	, m_unk(0)
+	, m_instanceCount(0)
 	, m_fromXGM(false) {}
 
 XG::XG(FILE* inFile, const std::string& directory, std::vector<IMX>& textures)
@@ -37,7 +37,7 @@ XG::XG(FILE* inFile, const std::string& directory, std::vector<IMX>& textures)
 	fread(&m_fileSize, 4, 1, inFile);
 	unsigned long numAnims;
 	fread(&numAnims, 4, 1, inFile);
-	fread(&m_unk, 4, 1, inFile);
+	fread(&m_instanceCount, 4, 1, inFile);
 	for (size_t a = 0; a < numAnims; ++a)
 		m_animations.emplace_back(inFile);
 
@@ -62,7 +62,7 @@ XG::XG(FILE* inFile, const std::string& directory, std::vector<IMX>& textures)
 XG::XG(std::string filename)
 	: FileType(filename, ".XG")
 	, m_modelIndex(0)
-	, m_unk(false)
+	, m_instanceCount(0)
 {
 	try
 	{
@@ -129,7 +129,7 @@ void XG::create(FILE* outFile)
 	fwrite(&m_fileSize, 4, 1, outFile);
 	const unsigned long size = (unsigned long)m_animations.size();
 	fwrite(&size, 4, 1, outFile);
-	fwrite(&m_unk, 4, 1, outFile);
+	fwrite(&m_instanceCount, 4, 1, outFile);
 	fwrite(&m_animations[0], sizeof(Animation), size, outFile);
 	m_data->create(outFile);
 	m_saved = 1;
@@ -305,11 +305,15 @@ void XG::animate(float frame, size_t index)
 {
 	// Calculates the current keyframe from the current animation
 	const float key = m_animations[index].getTime(frame);
-	m_data->animate(key);
+	// Increment count for if another instance is needed
+	m_data->animate(key, m_instanceCount++);
 }
 
 // Draws all vertex data to the current framebuffer
-void XG::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated) const
+void XG::draw(const glm::mat4 view, const glm::mat4* models, const bool showNormals, const bool doTransparents, const bool isAnimated)
 {
-	m_data->draw(view, showNormals, doTransparents, isAnimated);
+	m_data->draw(view, models, m_instanceCount, showNormals, doTransparents, isAnimated);
+	if (doTransparents)
+		m_instanceCount = 0;
+}
 }

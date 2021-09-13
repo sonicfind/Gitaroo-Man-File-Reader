@@ -36,7 +36,7 @@ public:
 	// Sets all vertex and bone matrix values to their defaults
 	void restPose() const;
 	// Updates all data to the current frame
-	void animate(float frame);
+	void animate(float frame, unsigned long instance);
 	// Draws all vertex data to the current framebuffer
-	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
+	void draw(const glm::mat4 view, const glm::mat4* models, const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
 };

@@ -107,6 +107,7 @@ XG::XG(std::string filename)
 						case ResultType::Yes:
 							create(filename + ext);
 							m_filename += ext;
+							__fallthrough;
 						case ResultType::Quit:
 							return;
 						}
@@ -289,7 +290,7 @@ void XG::uninitializeViewerState()
 }
 
 // Returns the total duration of the chosen animation in seconds 
-float XG::getAnimationLength(size_t index)
+float XG::getAnimationLength(size_t index) const
 {
 	return m_animations[index].getTotalTime();
 }
@@ -316,4 +317,8 @@ void XG::draw(const glm::mat4 view, const glm::mat4* models, const bool showNorm
 	if (doTransparents)
 		m_instanceCount = 0;
 }
+
+unsigned long XG::getInstanceCount() const
+{
+	return m_instanceCount;
 }

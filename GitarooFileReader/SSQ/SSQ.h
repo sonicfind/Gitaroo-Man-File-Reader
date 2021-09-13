@@ -28,6 +28,7 @@ class SSQ
 	unsigned long m_headerVersion;
 	char m_unk[12] = { 0 };
 	Val m_junk[4] = { 0 };
+	std::vector<glm::mat4> m_modelMatrices;
 	std::vector<IMXEntry> m_IMXentries;
 	std::vector<XGEntry> m_XGentries;
 	std::vector<std::unique_ptr<ModelSetup>> m_modelSetups;
@@ -51,6 +52,12 @@ public:
 	static void displayMultiChoices();
 	static void displayMultiHelp();
 	static const std::string multiChoiceString;
+
+	void update();
+	glm::mat4 getViewMatrix() const;
+	glm::mat4 getProjectionMatrix() const;
+	glm::vec4 getClearColor() const;
+	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents);
 	static void setFrame(float frame);
 	static void adjustFrame(float delta);
 };

@@ -42,6 +42,7 @@ SSQ::SSQ(std::string filename, bool unused)
 
 	unsigned long numMatrices = 0;
 	fread(&numMatrices, 4, 1, m_filePtr);
+	m_modelMatrices.resize(numMatrices);
 
 	unsigned long numIMX = 0;
 	fread(&numIMX, 4, 1, m_filePtr);
@@ -155,6 +156,67 @@ bool SSQ::create(std::string filename)
 	}
 	return false;
 }
+
+void SSQ::update()
+{
+	for (size_t i = 0; i < m_modelSetups.size(); ++i)
+	{
+		auto& entry = m_XGentries[i];
+		XG* xg = entry.m_isClone ? m_XGentries[entry.m_cloneID].m_xg : entry.m_xg;
+		if (m_modelSetups[i]->animate(xg, s_frame))
+		{
+			entry.m_isActive = 1;
+			m_modelMatrices[i] = m_modelSetups[i]->getModelMatrix(s_frame);
+		}
+		else
+			entry.m_isActive = 0;
+	}
+
+	for (auto& texAnim : m_texAnimations)
+		texAnim.substitute(s_frame);
+
+	// Insert Light stuff here
+}
+
+glm::mat4 SSQ::getViewMatrix() const
+{
+	return m_camera.getViewMatrix(s_frame);
+}
+
+glm::mat4 SSQ::getProjectionMatrix() const
+{
+	return m_camera.getProjectionMatrix(s_frame);
+}
+
+glm::vec4 SSQ::getClearColor() const
+{
+	return m_camera.getClearColor(s_frame);
+}
+
+void SSQ::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents)
+{
+	static glm::mat4 matrixBuffer[32];
+	for (size_t i = 0; i < m_modelSetups.size(); ++i)
+	{
+		auto& entry = m_XGentries[i];
+		if (!entry.m_isClone && entry.m_xg->getInstanceCount())
+		{
+			unsigned count = 0;
+			if (entry.m_isActive)
+				matrixBuffer[count++] = m_modelMatrices[i];
+
+			for (size_t j = i + 1; count < entry.m_xg->getInstanceCount(); ++j)
+			{
+				if (m_XGentries[j].m_isClone
+					&& m_XGentries[j].m_cloneID == i
+					&& m_XGentries[j].m_isActive)
+					matrixBuffer[count++] = m_modelMatrices[j];
+			}
+			entry.m_xg->draw(view, matrixBuffer, showNormals, doTransparents);
+		}
+	}
+}
+
 void SSQ::setFrame(float frame)
 {
 	s_frame = frame;

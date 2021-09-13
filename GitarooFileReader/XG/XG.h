@@ -21,6 +21,8 @@ class XG
 {
 	friend class XGM;
 	friend class Model;
+	friend class SSQ;
+	friend class ModelSetup;
 
 	char m_filepath[257] = { 0 };
 	char m_name[17] = { 0 };
@@ -58,7 +60,7 @@ private:
 	// Deletes all the vertex and uniform buffers created for the OpenGL viewer
 	void uninitializeViewerState();
 	// Returns the total duration of the chosen animation in seconds 
-	float getAnimationLength(size_t index);
+	float getAnimationLength(size_t index) const;
 	// Sets all vertex and bone matrix values to their defaults
 	void restPose() const;
 	// Updates all data to the current frame
@@ -66,4 +68,6 @@ private:
 	void animate(float frame, size_t index);
 	// Draws all vertex data to the current framebuffer
 	void draw(const glm::mat4 view, const glm::mat4* models, const bool showNormals, const bool doTransparents, const bool isAnimated = true);
+
+	unsigned long getInstanceCount() const;
 };

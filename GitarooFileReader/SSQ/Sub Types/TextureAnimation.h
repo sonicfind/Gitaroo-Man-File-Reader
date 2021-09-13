@@ -58,5 +58,5 @@ public:
 	// since the actual image data held in the IMX object can be swapped out
 	void loadCuts();
 	void unloadCuts();
-	void substitute(const float time);
+	void substitute(const float frame);
 };

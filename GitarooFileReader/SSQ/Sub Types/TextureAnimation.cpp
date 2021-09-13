@@ -104,15 +104,22 @@ void TexAnim::unloadCuts()
 	}
 }
 
-void TexAnim::substitute(const float time)
+#include <glad/glad.h>
+void TexAnim::substitute(const float frame)
 {
 	if (!m_imxPtr)
 		return;
 
-	auto iter = getIter(m_textureFrames, time);
+	auto iter = getIter(m_textureFrames, frame);
 	if (iter->m_cutOutIndex != m_cutOutIndex)
 	{
 		m_cutOutIndex = iter->m_cutOutIndex;
-		// Load the subImage into the texture buffer
+		const auto& cut = m_cutOuts[m_cutOutIndex];
+		m_imxPtr->m_data->bindTexture();
+		glTexSubImage2D(GL_TEXTURE_2D, 0, m_offset.x, m_offset.y,
+			(unsigned long)roundf(cut.m_bottomRight.x - cut.m_topLeft.x),
+			(unsigned long)roundf(cut.m_bottomRight.y - cut.m_topLeft.y),
+			m_imxPtr->m_data->hasAlpha() ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
+			cut.m_subImage);
 	}
 }

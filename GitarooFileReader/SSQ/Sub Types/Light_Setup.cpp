@@ -76,7 +76,7 @@ void LightSetup::create(FILE* outFile)
 		fwrite(&m_colors.front(), sizeof(LightColors), numColors, outFile);
 }
 
-glm::vec3 LightSetup::getDirection(const float time) const
+glm::vec3 LightSetup::getDirection(const float frame) const
 {
 	// The actual direction of the light can not yet be determined at this point,
 	// so we're going with these basic returns for now
@@ -84,16 +84,15 @@ glm::vec3 LightSetup::getDirection(const float time) const
 		return glm::rotate(m_baseValues.m_rotation, glm::vec3(0, 0, -1));
 	else
 	{
-		glm::quat rotation;
-		auto iter = getIter(m_rotations, time);
+		auto iter = getIter(m_rotations, frame);
 		if (!iter->m_doInterpolation || iter + 1 == m_rotations.end())
 			return glm::rotate(iter->m_rotation, glm::vec3(0, 0, -1));
 		else
-			return glm::rotate(glm::slerp(iter->m_rotation, (iter + 1)->m_rotation, (time - iter->m_frame) * iter->m_coefficient), glm::vec3(0, 0, -1));
+			return glm::rotate(glm::slerp(iter->m_rotation, (iter + 1)->m_rotation, (frame - iter->m_frame) * iter->m_coefficient), glm::vec3(0, 0, -1));
 	}
 }
 
-void LightSetup::getColors(const float time, glm::vec3& diffuse, glm::vec3& specular) const
+void LightSetup::getColors(const float frame, glm::vec3& diffuse, glm::vec3& specular) const
 {
 	if (m_colors.empty())
 	{
@@ -102,7 +101,7 @@ void LightSetup::getColors(const float time, glm::vec3& diffuse, glm::vec3& spec
 	}
 	else
 	{
-		auto iter = getIter(m_colors, time);
+		auto iter = getIter(m_colors, frame);
 		if (!iter->m_doInterpolation || iter + 1 == m_colors.end())
 		{
 			diffuse = iter->m_diffuse;
@@ -110,8 +109,8 @@ void LightSetup::getColors(const float time, glm::vec3& diffuse, glm::vec3& spec
 		}
 		else
 		{
-			diffuse = glm::mix(iter->m_diffuse, (iter + 1)->m_diffuse, (time - iter->m_frame) * iter->m_coefficient);
-			specular = glm::mix(iter->m_specular, (iter + 1)->m_specular, (time - iter->m_frame) * iter->m_coefficient);
+			diffuse = glm::mix(iter->m_diffuse, (iter + 1)->m_diffuse, (frame - iter->m_frame) * iter->m_coefficient);
+			specular = glm::mix(iter->m_specular, (iter + 1)->m_specular, (frame - iter->m_frame) * iter->m_coefficient);
 		}
 	}
 }

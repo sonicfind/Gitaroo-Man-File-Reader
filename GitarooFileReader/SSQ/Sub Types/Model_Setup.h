@@ -73,7 +73,7 @@ public:
 	ModelSetup(FILE* inFile, char(&name)[16]);
 	virtual void create(FILE* outFile) const;
 
-	glm::mat4 getModelMatrix(const float time) const;
+	glm::mat4 getModelMatrix(const float frame) const;
 };
 
 class PlayerModelSetup : public ModelSetup

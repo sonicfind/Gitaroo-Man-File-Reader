@@ -58,6 +58,6 @@ class LightSetup
 public:
 	LightSetup(FILE* inFile);
 	void create(FILE* outFile);
-	glm::vec3 getDirection(const float time) const;
-	void getColors(const float time, glm::vec3& diffuse, glm::vec3& specular) const;
+	glm::vec3 getDirection(const float frame) const;
+	void getColors(const float frame, glm::vec3& diffuse, glm::vec3& specular) const;
 };

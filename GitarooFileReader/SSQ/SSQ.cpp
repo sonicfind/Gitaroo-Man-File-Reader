@@ -20,6 +20,8 @@ float mixFloat(const float a, const float b, const float coefficient)
 	return a + (b - a) * coefficient;
 }
 
+float SSQ::s_frame = 0;
+
 SSQ::SSQ() : FileType(".SSQ") {}
 
 SSQ::SSQ(std::string filename, bool unused)
@@ -152,4 +154,13 @@ bool SSQ::create(std::string filename)
 		return true;
 	}
 	return false;
+}
+void SSQ::setFrame(float frame)
+{
+	s_frame = frame;
+}
+
+void SSQ::adjustFrame(float delta)
+{
+	s_frame += 30 * delta;
 }

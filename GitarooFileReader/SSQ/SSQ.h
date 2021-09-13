@@ -24,6 +24,7 @@
 class SSQ
 	: public FileType
 {
+	static float s_frame;
 	unsigned long m_headerVersion;
 	char m_unk[12] = { 0 };
 	Val m_junk[4] = { 0 };
@@ -50,4 +51,6 @@ public:
 	static void displayMultiChoices();
 	static void displayMultiHelp();
 	static const std::string multiChoiceString;
+	static void setFrame(float frame);
+	static void adjustFrame(float delta);
 };

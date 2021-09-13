@@ -74,7 +74,7 @@ protected:
 
 public:
 	ModelSetup(FILE* inFile, char(&name)[16]);
-	void create(FILE* outFile) const;
+	virtual void create(FILE* outFile) const;
 	void loadXG(XG* xg);
 };
 

@@ -145,3 +145,41 @@ glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 	else
 		return glm::translate(position) * glm::toMat4(conjugate(rotation)) * glm::scale(glm::vec3(1, 1, -1));
 }
+
+#include <math.h>
+bool ModelSetup::animate(XG* xg, const float frame) const
+{
+	if (!m_animations.empty())
+	{
+		auto iter = getIter(m_animations, frame);
+		if (iter->m_noDrawing)
+			return false;
+		else
+		{
+			float length = xg->getAnimationLength(iter->m_animIndex);
+
+			if (frame < length + iter->m_frame)
+				xg->animate(frame - iter->m_frame, iter->m_animIndex);
+			else if (iter->m_holdLastFrame)
+				xg->animate(length, iter->m_animIndex);
+			else if (iter->m_loop)
+				xg->animate(fmod(frame - iter->m_frame, length), iter->m_animIndex);
+			else
+			{
+				unsigned long animIndex = iter->m_animIndex;
+				float start = iter->m_frame;
+				do
+				{
+					if (animIndex < xg->m_animations.size() - 1)
+						++animIndex;
+					else
+						animIndex = 0;
+					start += length;
+					length = xg->getAnimationLength(animIndex);
+				} while (frame >= length + start);
+				xg->animate(frame - start, animIndex);
+			}
+		}
+	}
+	return true;
+}

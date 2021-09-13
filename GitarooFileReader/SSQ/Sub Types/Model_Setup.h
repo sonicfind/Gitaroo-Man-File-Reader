@@ -73,6 +73,7 @@ public:
 	ModelSetup(FILE* inFile, char(&name)[16]);
 	virtual void create(FILE* outFile) const;
 
+	bool animate(XG* xg, const float frame) const;
 	glm::mat4 getModelMatrix(const float frame) const;
 };
 

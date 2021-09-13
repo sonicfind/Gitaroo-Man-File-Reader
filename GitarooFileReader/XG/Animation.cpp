@@ -68,13 +68,13 @@ bool Animation::setTempo()
 	}
 }
 
-// Returns the total length in seconds
+// Returns the total length in number of frame (30 fps)
 const float Animation::getTotalTime() const
 {
 	if (m_non_tempo)
-		return m_length / 30;
+		return m_length;
 	else
-		return (15 * m_length) / (s_tempo * 2);
+		return (225 * m_length) / s_tempo;
 }
 
 // Generates the keyframe value to give to the xgTime node

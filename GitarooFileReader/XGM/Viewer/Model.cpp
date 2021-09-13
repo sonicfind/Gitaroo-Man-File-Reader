@@ -16,12 +16,12 @@
 #include "Model.h"
 #include "Global_Functions.h"
 bool Model::s_isLooping = false;
-float Model::s_currentTime = 0;
+float Model::s_currentFrame = 0;
 
 Model::Model(XG* xg)
 	: m_xg(xg)
 	, m_animIndex(0)
-	, m_currAnimStartTime(0)
+	, m_currAnimStartFrame(0)
 	, m_length(xg->getAnimationLength(m_animIndex))
 {
 	m_xg->initializeViewerState();
@@ -44,25 +44,25 @@ void Model::update()
 {
 	if (m_length > 0)
 	{
-		while (s_currentTime >= m_length + m_currAnimStartTime)
+		while (s_currentFrame >= m_length + m_currAnimStartFrame)
 		{
 			if (s_isLooping)
 			{
-				m_currAnimStartTime += m_length;
+				m_currAnimStartFrame += m_length;
 				GlobalFunctions::printf_tab("Loop\n");
 			}
 			else
-				nextAnimation(m_currAnimStartTime + m_length, false);
+				nextAnimation(m_currAnimStartFrame + m_length, false);
 		}
 
-		m_xg->animate(30 * (s_currentTime - m_currAnimStartTime), m_animIndex);
+		m_xg->animate(s_currentFrame - m_currAnimStartFrame, m_animIndex);
 	}
 }
 
 // Sets the handler to the provided animation index
-void Model::setAnimation(size_t animIndex, float time, bool animate)
+void Model::setAnimation(size_t animIndex, float frame, bool animate)
 {
-	m_currAnimStartTime = time;
+	m_currAnimStartFrame = frame;
 	if (m_animIndex != animIndex)
 	{
 		m_animIndex = animIndex;
@@ -75,12 +75,12 @@ void Model::setAnimation(size_t animIndex, float time, bool animate)
 }
 
 // Skip to next animation
-void Model::nextAnimation(float time, bool animate)
+void Model::nextAnimation(float frame, bool animate)
 {
 	if (m_animIndex < m_xg->m_animations.size() - 1)
-		setAnimation(m_animIndex + 1, time, animate);
+		setAnimation(m_animIndex + 1, frame, animate);
 	else
-		setAnimation(0, time, animate);
+		setAnimation(0, frame, animate);
 }
 
 // Skip back to the previoes animation
@@ -112,12 +112,12 @@ void Model::draw(const glm::mat4 view, const bool showNormals, const bool doTran
 
 void Model::resetTime()
 {
-	s_currentTime = 0;
+	s_currentFrame = 0;
 }
 
 void Model::adjustTime(float delta)
 {
-	s_currentTime += delta;
+	s_currentFrame += 30 * delta;
 }
 
 void Model::resetLoop()

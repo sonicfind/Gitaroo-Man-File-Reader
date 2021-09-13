@@ -18,11 +18,11 @@ class Model
 {
 	XG* m_xg;
 	size_t m_animIndex;
-	float m_currAnimStartTime;
+	float m_currAnimStartFrame;
 	// The length of the animation in seconds
 	float m_length;
 	static bool s_isLooping;
-	static float s_currentTime;
+	static float s_currentFrame;
 
 public:
 	Model(XG* xg);
@@ -33,9 +33,9 @@ public:
 	// Then updates the model data
 	void update();
 	// Sets the handler to the provided animation index
-	void setAnimation(size_t animIndex, float time = s_currentTime, bool animate = true);
+	void setAnimation(size_t animIndex, float frame = s_currentFrame, bool animate = true);
 	// Skip to next animation
-	void nextAnimation(float time = s_currentTime, bool animate = true);
+	void nextAnimation(float frame = s_currentFrame, bool animate = true);
 	// Skip back to the previoes animation
 	void prevAnimation();
 	// Resets the current animation

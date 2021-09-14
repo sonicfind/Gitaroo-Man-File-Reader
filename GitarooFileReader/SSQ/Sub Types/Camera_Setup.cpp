@@ -38,6 +38,8 @@ void CameraSetup::read(FILE* inFile)
 
 	m_positions.resize(numPositions);
 	fread(&m_positions.front(), sizeof(Position), numPositions, inFile);
+	for (auto& pos : m_positions)
+		pos.m_position.z *= -1;
 
 	m_rotations.resize(numRotations);
 	fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
@@ -90,7 +92,10 @@ void CameraSetup::create(FILE* outFile)
 
 	fwrite(&numPositions, 4, 1, outFile);
 	fwrite(&numRotations, 4, 1, outFile);
-	fwrite(&m_positions.front(), sizeof(Position), numPositions, outFile);
+	std::vector<Position> tmp = m_positions;
+	for (auto& pos : tmp)
+		pos.m_position.z *= -1;
+	fwrite(&tmp.front(), sizeof(Position), numPositions, outFile);
 	fwrite(&m_rotations.front(), sizeof(Rotation), numRotations, outFile);
 
 	unsigned long size = (unsigned long)m_projections.size();
@@ -165,8 +170,9 @@ glm::mat4 CameraSetup::getViewMatrix(const float frame) const
 		rotation = rotIter->m_rotation;
 	else
 		rotation = glm::slerp(rotIter->m_rotation, (rotIter + 1)->m_rotation, (frame - rotIter->m_frame) * rotIter->m_coefficient);
-
-	return glm::lookAt(position, position + glm::rotate(rotation, glm::vec3(0, 0, -1)), glm::rotate(rotation, glm::vec3(0, 1, 0)));
+	glm::mat4 result = glm::toMat4(rotation) * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
+	result[2] *= -1.0f;
+	return result;
 }
 
 glm::vec3 CameraSetup::getAmbientColor(const float frame) const

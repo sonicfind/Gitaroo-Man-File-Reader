@@ -42,6 +42,7 @@ ModelSetup::ModelSetup(FILE* inFile, char(&name)[16])
 
 	m_rotations.resize(numRotations);
 	fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
+	fixRotations(m_rotations);
 
 	unsigned long numAnimations;
 	fread(&numAnimations, 4, 1, inFile);
@@ -81,7 +82,9 @@ void ModelSetup::create(FILE* outFile) const
 	fwrite(&numPositions, 4, 1, outFile);
 	fwrite(&numRotations, 4, 1, outFile);
 	fwrite(&m_positions.front(), sizeof(Position), numPositions, outFile);
-	fwrite(&m_rotations.front(), sizeof(Rotation), numRotations, outFile);
+	std::vector<Rotation> tmp = m_rotations;
+	fixRotations(tmp);
+	fwrite(&tmp.front(), sizeof(Rotation), numRotations, outFile);
 
 	unsigned long size = (unsigned long)m_animations.size();
 	if (!size)
@@ -130,6 +133,9 @@ glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 		else
 			rotation = glm::slerp(iter->m_rotation, (iter + 1)->m_rotation, (frame - iter->m_frame) * iter->m_coefficient);
 	}
+
+	glm::mat4 result = glm::toMat4(rotation);
+	result[3] = glm::vec4(position, 1);
 	
 	if (!m_scalars.empty())
 	{
@@ -139,11 +145,11 @@ glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 			scale = iter->m_scalar;
 		else
 			scale = glm::mix(iter->m_scalar, (iter + 1)->m_scalar, (frame - iter->m_frame) * iter->m_coefficient);
-
-		return glm::translate(position) * glm::toMat4(conjugate(rotation)) * glm::scale(scale) * glm::scale(glm::vec3(1, 1, -1));
+		result[0] *= scale.x;
+		result[1] *= scale.y;
+		result[2] *= scale.z;
 	}
-	else
-		return glm::translate(position) * glm::toMat4(conjugate(rotation)) * glm::scale(glm::vec3(1, 1, -1));
+	return result;
 }
 
 #include <math.h>

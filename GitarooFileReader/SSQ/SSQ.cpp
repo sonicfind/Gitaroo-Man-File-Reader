@@ -20,6 +20,17 @@ float mixFloat(const float a, const float b, const float coefficient)
 	return a + (b - a) * coefficient;
 }
 
+void fixRotations(std::vector<Rotation>& rotations)
+{
+	float tmp;
+	for (auto& rot : rotations)
+	{
+		tmp = rot.m_rotation.z;
+		rot.m_rotation.z = rot.m_rotation.y;
+		rot.m_rotation.y = tmp;
+	}
+}
+
 float SSQ::s_frame = 0;
 
 SSQ::SSQ() : FileType(".SSQ") {}

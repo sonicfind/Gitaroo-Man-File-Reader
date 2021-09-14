@@ -22,9 +22,9 @@ Camera g_camera;
 void Camera::reset()
 {
 	m_position = glm::vec3(0.0f, 40.0f, 200.0f);
-	m_front = glm::vec3(0.0f, 0.0f, -1.0f);
+	m_front = glm::vec3(0.0f, 0.0f, 1.0f);
 	m_up = glm::vec3(0.0f, 1.0f, 0.0f);
-	m_yaw = -90.0f;
+	m_yaw = 89.9f;
 	m_pitch = 0.0f;
 	m_fov = 45.0f;
 	m_firstMouse = true;
@@ -34,23 +34,23 @@ void Camera::reset()
 
 glm::mat4 Camera::getViewMatrix()
 {
-	return glm::lookAt(m_position, m_position + m_front, m_up);
+	return glm::lookAtLH(m_position, m_position + m_front, m_up);
 }
 
 void Camera::moveCamera(float delta)
 {
 	const float cameraSpeed = m_sens * delta; // adjust accordingly
 	if (g_input_keyboard.KEY_W.isActive())
-		m_position += cameraSpeed * m_front;
-
-	if (g_input_keyboard.KEY_S.isActive())
 		m_position -= cameraSpeed * m_front;
 
+	if (g_input_keyboard.KEY_S.isActive())
+		m_position += cameraSpeed * m_front;
+
 	if (g_input_keyboard.KEY_A.isActive())
-		m_position -= glm::normalize(glm::cross(m_front, m_up)) * cameraSpeed;
+		m_position -= glm::normalize(glm::cross(m_up, m_front)) * cameraSpeed;
 
 	if (g_input_keyboard.KEY_D.isActive())
-		m_position += glm::normalize(glm::cross(m_front, m_up)) * cameraSpeed;
+		m_position += glm::normalize(glm::cross(m_up, m_front)) * cameraSpeed;
 
 	if (g_input_keyboard.KEY_SPACE.isActive())
 		m_position.y += cameraSpeed;
@@ -80,22 +80,19 @@ void Camera::moveCamera(float delta)
 void Camera::turnCamera(double xpos, double ypos)
 {
 	if (m_firstMouse) // initially set to true
-	{
-		m_lastX = (float)xpos;
-		m_lastY = (float)ypos;
 		m_firstMouse = false;
+	else
+	{
+		const float sensitivity = 0.1f;
+		float xoffset = (float)xpos - m_lastX;
+		float yoffset = m_lastY - (float)ypos; // reversed: y ranges bottom to top
+		xoffset *= sensitivity;
+		yoffset *= sensitivity;
+		m_yaw += xoffset;
+		m_pitch -= yoffset;
 	}
-	float xoffset = (float)xpos - m_lastX;
-	float yoffset = m_lastY - (float)ypos; // reversed: y ranges bottom to top
 	m_lastX = (float)xpos;
 	m_lastY = (float)ypos;
-
-	const float sensitivity = 0.1f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	m_yaw += xoffset;
-	m_pitch += yoffset;
 
 	if (m_pitch > 89.9f)
 		m_pitch = 89.9f;

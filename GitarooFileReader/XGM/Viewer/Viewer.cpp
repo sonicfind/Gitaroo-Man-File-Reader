@@ -495,7 +495,10 @@ void Viewer_SSQ::update(float current)
 	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
 
 	if (m_hasFreeMovement)
+	{
 		m_view = g_camera.getViewMatrix();
+		m_view[2] *= -1.0f;
+	}
 	else
 		m_view = m_ssq->getViewMatrix();
 

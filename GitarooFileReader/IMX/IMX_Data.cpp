@@ -82,12 +82,11 @@ bool IMX_Data::hasAlpha() const
 
 unsigned char* IMX_Data::getSubImage(unsigned long bytes_per_pixel, float topLeft_X, float topLeft_Y, float bottomRight_X, float bottomRight_Y) const
 {
-	const size_t offset_x = (size_t)roundf(bytes_per_pixel * topLeft_X);
 	const size_t width = (size_t)roundf(bytes_per_pixel * (bottomRight_X - topLeft_X));
 	const size_t height = (size_t)roundf(bottomRight_Y - topLeft_Y);
 	unsigned char* subImage = new unsigned char[width * height];
-	unsigned char* pos = m_colorData->m_image_uncompressed + offset_x;
-	for (size_t i = (size_t)roundf(topLeft_Y); i < (size_t)roundf(bottomRight_Y); ++i, pos += size_t(bytes_per_pixel) * m_width)
+	unsigned char* pos = m_colorData->m_image_uncompressed + (size_t)roundf(bytes_per_pixel * (topLeft_Y * m_width + topLeft_X));
+	for (size_t i = 0; i < height; ++i, pos += size_t(bytes_per_pixel) * m_width)
 		memcpy(subImage + i * width, pos, width);
 	return subImage;
 }

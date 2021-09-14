@@ -287,6 +287,7 @@ void XG::initializeViewerState()
 void XG::uninitializeViewerState()
 {
 	m_data->uninitializeViewerState();
+	m_instanceCount = 0;
 }
 
 // Returns the total duration of the chosen animation in seconds 
@@ -308,14 +309,22 @@ void XG::restPose()
 // Updates all data to the current frame
 void XG::animate(float frame, size_t index)
 {
-	// Calculates the current keyframe from the current animation
-	float key;
-	if (index < m_animations.size())
-		key = m_animations[index].getTime(frame);
-	else
-		key = m_animations.back().getTime(frame);
-	// Increment count for if another instance is needed
-	m_data->animate(key, m_instanceCount++);
+	try
+	{
+		// Calculates the current keyframe from the current animation
+		float key;
+		if (index < m_animations.size())
+			key = m_animations[index].getTime(frame);
+		else
+			key = m_animations.back().getTime(frame);
+		// Increment count for if another instance is needed
+		m_data->animate(key, m_instanceCount++);
+	}
+	catch (...)
+	{
+		// There is no length to the animation
+		m_instanceCount++;
+	}
 }
 
 // Draws all vertex data to the current framebuffer

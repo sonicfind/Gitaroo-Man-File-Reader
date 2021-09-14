@@ -82,6 +82,9 @@ const float Animation::getTotalTime() const
 // @param frame - The current time in terms of frames
 const float Animation::getTime(const float frame) const
 {
+	if (m_length == 0)
+		throw "Lengthless";
+	
 	if (m_non_tempo)
 		return frame / m_keyframe_interval + m_starting_keyframe;
 	else

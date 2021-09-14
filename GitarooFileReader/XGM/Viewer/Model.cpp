@@ -56,10 +56,10 @@ void Model::update()
 			else
 				nextAnimation(m_currAnimStartFrame + m_length, false);
 		}
-
-		m_xg->resetInstanceCount();
-		m_xg->animate(s_currentFrame - m_currAnimStartFrame, m_animIndex);
 	}
+
+	m_xg->resetInstanceCount();
+	m_xg->animate(s_currentFrame - m_currAnimStartFrame, m_animIndex);
 }
 
 // Sets the handler to the provided animation index

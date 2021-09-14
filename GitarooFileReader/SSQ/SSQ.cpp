@@ -157,6 +157,25 @@ bool SSQ::create(std::string filename)
 	return false;
 }
 
+void SSQ::loadbuffers()
+{
+	for (size_t i = 0; i < m_modelSetups.size(); ++i)
+		if (!m_XGentries[i].m_isClone)
+			m_XGentries[i].m_xg->initializeViewerState();
+
+	for (auto& texAnim : m_texAnimations)
+		texAnim.loadCuts();
+}
+
+void SSQ::unloadBuffers()
+{
+	for (size_t i = 0; i < m_modelSetups.size(); ++i)
+		if (!m_XGentries[i].m_isClone)
+			m_XGentries[i].m_xg->uninitializeViewerState();
+	for (auto& texAnim : m_texAnimations)
+		texAnim.unloadCuts();
+}
+
 void SSQ::update()
 {
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)

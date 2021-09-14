@@ -53,6 +53,8 @@ public:
 	static void displayMultiHelp();
 	static const std::string multiChoiceString;
 
+	void loadbuffers();
+	void unloadBuffers();
 	void update();
 	glm::mat4 getViewMatrix() const;
 	glm::mat4 getProjectionMatrix(unsigned int width, unsigned int height) const;

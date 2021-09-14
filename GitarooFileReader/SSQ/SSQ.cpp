@@ -263,8 +263,6 @@ void SSQ::update()
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 	{
 		auto& entry = m_XGentries[i];
-		//if (strcmp(entry.m_name, "BGSLOT.XG") != 0)
-			//continue;
 		XG* xg;
 		if (!entry.m_isClone)
 		{

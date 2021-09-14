@@ -187,5 +187,7 @@ bool ModelSetup::animate(XG* xg, const float frame) const
 			}
 		}
 	}
+	else
+		xg->animate(frame, m_baseValues.m_baseAnimIndex_maybe);
 	return true;
 }

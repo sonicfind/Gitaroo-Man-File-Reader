@@ -18,40 +18,36 @@
 Triangle_Data::Triangle_Data(FILE* inFile)
 {
 	PString::pull(inFile);
-	unsigned long size;
-	fread(&size, 4, 1, inFile);
-	if (size)
-	{
-		m_counts.reserve(size);
-		m_counts.resize(size);
-	}
+	fread(&m_numPrimitives, 4, 1, inFile);
 }
 
-Triangle_Data::Triangle_Data(const std::vector<unsigned long>& counts)
-	: m_counts(counts) {}
+Triangle_Data::Triangle_Data(const unsigned long numPrimitives)
+	: m_numPrimitives(numPrimitives) {}
 
-void Triangle_Data::create(FILE* outFile, bool writeData) const
+void Triangle_Data::createCount(FILE* outFile) const
 {
-	if (!writeData)
-	{
-		unsigned long size = (unsigned long)m_counts.size();
-		fwrite(&size, 4, 1, outFile);
-	}
-	else
-		fwrite("\0\0\0\0", 1, 4, outFile);
+	fwrite(&m_numPrimitives, 4, 1, outFile);
 }
 
 void Triangle_Data::write_to_txt(FILE* txtFile, const char* tabs) const
 {	
-	fprintf_s(txtFile, "\t\t\t\t%s    Count: %zu\n", tabs, m_counts.size());
-}
-
-std::vector<std::vector<unsigned long>> Triangle_Data::extract() const
-{
-	return std::vector<std::vector<unsigned long>>(m_counts.size());
+	fprintf_s(txtFile, "\t\t\t\t%s    Count: %lu\n", tabs, m_numPrimitives);
 }
 
 const size_t Triangle_Data::getSize() const
 {
-	return sizeof(unsigned long) * m_counts.size();
+	return sizeof(unsigned long) * m_numPrimitives;
 }
+
+std::vector<std::vector<unsigned long>> Triangle_Data::extract() const
+{
+	return std::vector<std::vector<unsigned long>>(m_numPrimitives);
+}
+
+//void Triangle_Data::generateIBO(const size_t structSize)
+//{
+//	glGenBuffers(1, &m_IBO);
+//	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_IBO);
+//	glBufferData(GL_DRAW_INDIRECT_BUFFER, structSize * m_numPrimitives, NULL, GL_STATIC_DRAW);
+//	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+//}

@@ -17,15 +17,23 @@
 class Triangle_Data
 {
 protected:
-	std::vector<unsigned long> m_counts;
+	unsigned long m_numPrimitives;
+	//unsigned int m_IBO = 0;
 
 public:
 	Triangle_Data() = default;
 	Triangle_Data(FILE* inFile);
-	Triangle_Data(const std::vector<unsigned long>& counts);
-	virtual void create(FILE* outFile, bool writeData) const;
+	Triangle_Data(const unsigned long numPrimitives);
+	void createCount(FILE* outFile) const;
+	virtual void create(FILE* outFile) const {}
 	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const;
-	virtual std::vector<std::vector<unsigned long>> extract() const;
-	virtual void draw(GLenum mode) const {}
 	virtual const size_t getSize() const;
+	virtual std::vector<std::vector<unsigned long>> extract() const;
+
+	//virtual void intializeBuffers() {}
+	//virtual void deleteBuffers() {}
+	virtual void draw(GLenum mode, unsigned int numInstances) {}
+
+protected:
+	//void generateIBO(const size_t structSize);
 };

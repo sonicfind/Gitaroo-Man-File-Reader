@@ -18,9 +18,9 @@
 void Triangle_List::create(FILE* outFile) const
 {
 	PString::push("triListCount", outFile);
-	m_data->create(outFile, false);
+	m_data->createCount(outFile);
 	PString::push("triListData", outFile);
-	m_data->create(outFile, true);
+	m_data->create(outFile);
 }
 
 void Triangle_List::write_to_txt(FILE* txtFile, const char* tabs) const
@@ -49,4 +49,9 @@ const size_t Triangle_List::getSize() const
 	return PSTRING_LEN_VAR("triListCount", unsigned long)
 		+ PSTRING_LEN_VAR("triListData", unsigned long)
 		+ m_data->getSize();
+}
+
+void Triangle_List::draw(unsigned int numInstances) const
+{
+	m_data->draw(GL_TRIANGLES, numInstances);
 }

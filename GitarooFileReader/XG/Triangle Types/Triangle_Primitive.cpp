@@ -36,15 +36,15 @@ Triangle_Prim::Triangle_Prim(FILE* inFile, unsigned long type)
 	}
 }
 
-Triangle_Prim::Triangle_Prim(unsigned long index, const std::vector<unsigned long>& counts)
-	: m_data(std::make_unique<Triangle_Group>(index, counts)) {}
+Triangle_Prim::Triangle_Prim(unsigned long index, const unsigned long numPrimitives)
+	: m_data(std::make_unique<Triangle_Group>(index, numPrimitives)) {}
 
 void Triangle_Prim::create(FILE* outFile) const
 {
 	PString::push("primCount", outFile);
-	m_data->create(outFile, false);
+	m_data->createCount(outFile);
 	PString::push("primData", outFile);
-	m_data->create(outFile, true);
+	m_data->create(outFile);
 }
 
 const size_t Triangle_Prim::getSize() const
@@ -54,7 +54,17 @@ const size_t Triangle_Prim::getSize() const
 		+ m_data->getSize();
 }
 
-void Triangle_Prim::draw(GLenum mode) const
+//void Triangle_Prim::intializeBuffers()
+//{
+//	m_data->intializeBuffers();
+//}
+//
+//void Triangle_Prim::deleteBuffers()
+//{
+//	m_data->deleteBuffers();
+//}
+
+void Triangle_Prim::draw(unsigned int numInstances) const
 {
-	m_data->draw(mode);
+	m_data->draw(GL_LINE_STRIP, numInstances);
 }

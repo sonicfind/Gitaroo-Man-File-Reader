@@ -21,81 +21,122 @@ Triangle_Separate::Triangle_Separate(FILE* inFile)
 	PString::pull(inFile);
 	unsigned long size;
 	fread(&size, 4, 1, inFile);
-	if (m_counts.size() > 0)
+	if (m_numPrimitives > 0)
 	{
-		m_indices.reserve(m_counts.size());
-		m_indices.resize(m_counts.size());
-		for (size_t i = 0; i < m_counts.size(); ++i)
+		m_indices.reserve(m_numPrimitives);
+		m_indices.resize(m_numPrimitives);
+		unsigned long count;
+		for (auto& set : m_indices)
 		{
-			fread(&m_counts[i], 4, 1, inFile);
-			m_indices[i] = new unsigned long[m_counts[i]];
-			fread(m_indices[i], 4, m_counts[i], inFile);
+			fread(&count, 4, 1, inFile);
+			set.reserve(count);
+			set.resize(count);
+			fread(set.data(), 4, count, inFile);
 		}
 	}
 }
 
-Triangle_Separate::~Triangle_Separate()
+void Triangle_Separate::create(FILE* outFile) const
 {
-	for (size_t i = 0; i < m_counts.size(); ++i)
-		delete[m_counts[i]] m_indices[i];
-}
+	// Counting all the "numVert" values
+	unsigned long size = m_numPrimitives;
+	for (const auto& set : m_indices)
+		size += (unsigned long)set.size();
 
-void Triangle_Separate::create(FILE* outFile, bool writeData) const
-{
-	if (!writeData)
-		Triangle_Data::create(outFile, false);
-	else
+	fwrite(&size, 4, 1, outFile);
+	for (const auto& set : m_indices)
 	{
-		// Counting all the "numVert" values
-		unsigned long size = (unsigned long)m_counts.size();
-		for (const auto& count : m_counts)
-			size += count;
-
+		size = (unsigned long)set.size();
 		fwrite(&size, 4, 1, outFile);
-		for (size_t i = 0; i < m_counts.size(); ++i)
-		{
-			fwrite(&m_counts[i], 4, 1, outFile);
-			fwrite(m_indices[i], 4, m_counts[i], outFile);
-		}
+		fwrite(set.data(), 4, size, outFile);
 	}
 }
 
 void Triangle_Separate::write_to_txt(FILE* txtFile, const char* tabs) const
 {
 	Triangle_Data::write_to_txt(txtFile, tabs);
-	for (size_t countIndex = 0; countIndex < m_counts.size(); ++countIndex)
+	size_t countIndex = 0;
+	for (const auto& set : m_indices)
 	{
 		fprintf_s(txtFile, "\t\t\t\t%s   Group %03zu\n", tabs, countIndex);
-		fprintf_s(txtFile, "\t\t\t\t%s       # of Vertex Indexes: %03lu\n", tabs, m_counts[countIndex]);
-		for (size_t vertexIndex = 0; vertexIndex < m_counts[countIndex]; ++vertexIndex)
-			fprintf_s(txtFile, "\t\t\t\t\t\t%s   Index %03zu: %lu\n", tabs, vertexIndex + 1, m_indices[countIndex][vertexIndex]);
+		fprintf_s(txtFile, "\t\t\t\t%s       # of Vertex Indexes: %03zu\n", tabs, set.size());
+		for (size_t vertexIndex = 0; vertexIndex < set.size(); ++vertexIndex)
+			fprintf_s(txtFile, "\t\t\t\t\t\t%s   Index %03zu: %lu\n", tabs, vertexIndex + 1, set[vertexIndex]);
+		++countIndex;
 	}
-}
-
-std::vector<std::vector<unsigned long>> Triangle_Separate::extract() const
-{
-	std::vector<std::vector<unsigned long>> indexSets;
-	indexSets.reserve(m_counts.size());
-	indexSets.resize(m_counts.size());
-
-	for (size_t vectIndex = 0; vectIndex < m_counts.size(); ++vectIndex)
-	{
-		indexSets[vectIndex].reserve(m_counts[vectIndex]);
-		indexSets[vectIndex].resize(m_counts[vectIndex]);
-		memcpy(indexSets[vectIndex].data(), m_indices[vectIndex], sizeof(unsigned long) * m_counts[vectIndex]);
-	}
-	return indexSets;
 }
 
 const size_t Triangle_Separate::getSize() const
 {
 	size_t size = Triangle_Data::getSize();
-	for (const auto count : m_counts)
-		size += count * sizeof(unsigned long);
+	for (const auto& set : m_indices)
+		size += sizeof(unsigned long) * set.size();
 	return size;
 }
 
-void Triangle_Separate::draw(GLenum mode) const
+std::vector<std::vector<unsigned long>> Triangle_Separate::extract() const
 {
-	glMultiDrawElements(mode, (GLsizei*)m_counts.data(), GL_UNSIGNED_INT, (void* const*)m_indices.data(), (GLsizei)m_counts.size());
+	return m_indices;
+}
+
+//void Triangle_Separate::intializeBuffers()
+//{
+//	if (m_numPrimitives)
+//	{
+//		generateIBO(sizeof(DrawElementsIndirectCommand));
+//
+//		unsigned long numIndices = 0;
+//		for (const auto& set : m_indices)
+//			numIndices += (unsigned long)set.size();
+//
+//		glGenBuffers(1, &m_EBO);
+//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+//		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned long) * numIndices, NULL, GL_STATIC_DRAW);
+//		numIndices = 0;
+//		for (const auto& set : m_indices)
+//		{
+//			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
+//				sizeof(unsigned long) * numIndices,
+//				sizeof(unsigned long) * set.size(),
+//				set.data());
+//			m_commands.push_back({ (unsigned long)set.size(), 0, numIndices, 0, 0 });
+//			numIndices += (unsigned long)set.size();
+//		}
+//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//	}
+//}
+//
+//void Triangle_Separate::deleteBuffers()
+//{
+//	if (m_numPrimitives)
+//	{
+//		glDeleteBuffers(1, &m_IBO);
+//		glDeleteBuffers(1, &m_EBO);
+//		m_commands.clear();
+//	}
+//}
+
+void Triangle_Separate::draw(GLenum mode, unsigned int numInstances)
+{
+	if (m_numPrimitives)
+	{
+		for (const auto& set : m_indices)
+			glDrawElementsInstanced(mode, (unsigned long)set.size(), GL_UNSIGNED_INT, set.data(), numInstances);
+
+		// Commented out due to what I'm gonna assume are driver errors causing flickering.
+		// I use intel uhd graphics, so that may be why.
+		// Would be a good idea to see if having this run on more powerful discrete GPUs
+		// fixes it.
+
+		/*glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_IBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+
+		for (auto& command : m_commands)
+			command.instanceCount = numInstances;
+		glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, sizeof(DrawElementsIndirectCommand) * m_numPrimitives, m_commands.data());
+
+		glMultiDrawElementsIndirect(mode, GL_UNSIGNED_INT, 0, m_numPrimitives, 0);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);*/
+	}
 }

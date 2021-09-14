@@ -20,81 +20,45 @@ Triangle_Group::Triangle_Group(FILE* inFile)
 {
 	PString::pull(inFile);
 	fseek(inFile, 4, SEEK_CUR);
-	if (m_counts.size() > 0)
+	if (m_numPrimitives > 0)
 	{
-		m_indices.reserve(m_counts.size());
-		m_indices.resize(m_counts.size());
-
-		unsigned long index;
-		fread(&index, 4, 1, inFile);
-		fread(m_counts.data(), 4, m_counts.size(), inFile);
-		for (size_t i = 0; i < m_counts.size(); ++i)
-		{
-			m_indices[i] = index;
-			index += m_counts[i];
-		}
+		fread(&m_initialIndex, 4, 1, inFile);
+		m_counts.reserve(m_numPrimitives);
+		m_counts.resize(m_numPrimitives);
+		fread(m_counts.data(), 4, m_numPrimitives, inFile);
 	}
 }
 
-Triangle_Group::Triangle_Group(unsigned long index, const std::vector<unsigned long>& counts)
-	: Triangle_Data(counts)
-{
-	m_indices.reserve(m_counts.size());
-	m_indices.resize(m_counts.size());
-	for (size_t i = 0; i < m_counts.size(); ++i)
-	{
-		m_indices[i] = index;
-		index += m_counts[i];
-	}
-}
+Triangle_Group::Triangle_Group(unsigned long index, const unsigned long numPrimitives)
+	: Triangle_Data(numPrimitives)
+	, m_initialIndex(index) {}
 
-void Triangle_Group::create(FILE* outFile, bool writeData) const
+void Triangle_Group::create(FILE* outFile) const
 {
-	if (!writeData)
-		Triangle_Data::create(outFile, false);
+	unsigned long size = 0;
+	if (m_numPrimitives)
+	{
+		size = m_numPrimitives + 1;
+		fwrite(&size, 4, 1, outFile);
+		fwrite(&m_initialIndex, 4, 1, outFile);
+		fwrite(m_counts.data(), 4, m_numPrimitives, outFile);
+	}
 	else
-	{
-		unsigned long size = 0;
-		if (m_counts.size())
-		{
-			size = (unsigned long)m_counts.size() + 1;
-			fwrite(&size, 4, 1, outFile);
-			fwrite(&m_indices.front(), 4, 1, outFile);
-			fwrite(m_counts.data(), 4, m_counts.size(), outFile);
-		}
-		else
-			fwrite(&size, 4, 1, outFile);
-	}
+		fwrite(&size, 4, 1, outFile);
 }
 
 void Triangle_Group::write_to_txt(FILE* txtFile, const char* tabs) const
 {
 	Triangle_Data::write_to_txt(txtFile, tabs);
-	if (m_counts.size())
+	if (m_numPrimitives)
 	{
-		fprintf_s(txtFile, "\t\t\t%s       Base Index: %03lu\n", tabs, m_indices.front());
+		fprintf_s(txtFile, "\t\t\t%s       Base Index: %03lu\n", tabs, m_initialIndex);
 		for (unsigned long index = 0; index < m_counts.size(); ++index)
 		{
 			fprintf_s(txtFile, "\t\t\t\t%s   Group %03lu\n", tabs, index + 1);
 			fprintf_s(txtFile, "\t\t\t\t%s       # of Vertices: %lu\n", tabs, m_counts[index]);
 		}
 	}
-}
-
-std::vector<std::vector<unsigned long>> Triangle_Group::extract() const
-{
-	std::vector<std::vector<unsigned long>> indexSets;
-	indexSets.reserve(m_counts.size());
-	indexSets.resize(m_counts.size());
-
-	for (size_t vectIndex = 0; vectIndex < m_counts.size(); ++vectIndex)
-	{
-		indexSets[vectIndex].reserve(m_counts[vectIndex]);
-		indexSets[vectIndex].resize(m_counts[vectIndex]);
-		for (unsigned long i = 0; i < m_counts[vectIndex]; ++i)
-			indexSets[vectIndex][i] = m_indices[vectIndex] + i;
-	}
-	return indexSets;
 }
 
 const size_t Triangle_Group::getSize() const
@@ -105,7 +69,69 @@ const size_t Triangle_Group::getSize() const
 	return size;
 }
 
-void Triangle_Group::draw(GLenum mode) const
+std::vector<std::vector<unsigned long>> Triangle_Group::extract() const
 {
-	glMultiDrawArrays(mode, (GLint*)m_indices.data(), (GLsizei*)m_counts.data(), (GLsizei)m_counts.size());
+	std::vector<std::vector<unsigned long>> indexSets;
+	indexSets.reserve(m_counts.size());
+	indexSets.resize(m_counts.size());
+	unsigned long index = m_initialIndex;
+	for (size_t vectIndex = 0; vectIndex < m_counts.size(); ++vectIndex)
+	{
+		indexSets[vectIndex].reserve(m_counts[vectIndex]);
+		indexSets[vectIndex].resize(m_counts[vectIndex]);
+		for (unsigned long i = 0; i < m_counts[vectIndex]; ++i, ++index)
+			indexSets[vectIndex][i] = index;
+	}
+	return indexSets;
+}
+
+//void Triangle_Group::intializeBuffers()
+//{
+//	if (m_numPrimitives)
+//	{
+//		generateIBO(sizeof(DrawArraysIndirectCommand));
+//		unsigned long index = m_initialIndex;
+//		for (const auto& count : m_counts)
+//		{
+//			m_commands.push_back({ count, 0, index, 0 });
+//			index += count;
+//		}
+//	}
+//}
+//
+//void Triangle_Group::deleteBuffers()
+//{
+//	if (m_numPrimitives)
+//	{
+//		glDeleteBuffers(1, &m_IBO);
+//		m_commands.clear();
+//	}
+//}
+
+void Triangle_Group::draw(GLenum mode, unsigned int numInstances)
+{
+	if (m_numPrimitives)
+	{
+		unsigned long index = m_initialIndex;
+		for (const auto& count : m_counts)
+		{
+			glDrawArraysInstanced(mode, index, count, numInstances);
+			index += count;
+		}
+
+		// Commented out due to what I'm gonna assume are driver errors causing flickering.
+		// I use intel uhd graphics, so that may be why.
+		// Would be a good idea to see if having this run on more powerful discrete GPUs
+		// fixes it.
+
+		/*glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_IBO);
+
+		for (auto& command : m_commands)
+			command.instanceCount = numInstances;
+		glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, sizeof(DrawArraysIndirectCommand) * m_numPrimitives, m_commands.data());
+
+		glMultiDrawArraysIndirect(mode, 0, m_numPrimitives, 0);
+		int val = glGetError();
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);*/
+	}
 }

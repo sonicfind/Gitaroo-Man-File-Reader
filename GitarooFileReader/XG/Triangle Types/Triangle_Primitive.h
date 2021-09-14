@@ -22,10 +22,13 @@ protected:
 public:
 	Triangle_Prim();
 	Triangle_Prim(FILE* inFile, unsigned long type);
-	Triangle_Prim(unsigned long index, const std::vector<unsigned long>& counts);
+	Triangle_Prim(unsigned long index, const unsigned long numPrimitives);
 	void create(FILE* outFile) const;
-	void draw(GLenum mode) const;
 	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const {}
 	virtual void write_to_obj(FILE* objFile, const size_t offset, const bool writeTexture) const {}
 	virtual const size_t getSize() const;
+
+	/*void intializeBuffers();
+	void deleteBuffers();*/
+	void draw(unsigned int numInstances) const;
 };

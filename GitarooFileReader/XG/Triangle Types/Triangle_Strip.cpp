@@ -18,9 +18,9 @@
 void Triangle_Strip::create(FILE* outFile) const
 {
 	PString::push("triStripCount", outFile);
-	m_data->create(outFile, false);
+	m_data->createCount(outFile);
 	PString::push("triStripData", outFile);
-	m_data->create(outFile, true);
+	m_data->create(outFile);
 }
 
 void Triangle_Strip::write_to_txt(FILE* txtFile, const char* tabs) const
@@ -59,4 +59,9 @@ const size_t Triangle_Strip::getSize() const
 	return PSTRING_LEN_VAR("triStripCount", unsigned long)
 		+ PSTRING_LEN_VAR("triStripData", unsigned long)
 		+ m_data->getSize();
+}
+
+void Triangle_Strip::draw(unsigned int numInstances) const
+{
+	m_data->draw(GL_TRIANGLE_STRIP, numInstances);
 }

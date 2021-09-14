@@ -18,9 +18,9 @@
 void Triangle_Fan::create(FILE* outFile) const
 {
 	PString::push("triFanCount", outFile);
-	m_data->create(outFile, false);
+	m_data->createCount(outFile);
 	PString::push("triFanData", outFile);
-	m_data->create(outFile, true);
+	m_data->create(outFile);
 }
 
 void Triangle_Fan::write_to_txt(FILE* txtFile, const char* tabs) const
@@ -52,4 +52,9 @@ const size_t Triangle_Fan::getSize() const
 	return PSTRING_LEN_VAR("triFanCount", unsigned long)
 		+ PSTRING_LEN_VAR("triFanData", unsigned long)
 		+ m_data->getSize();
+}
+
+void Triangle_Fan::draw(unsigned int numInstances) const
+{
+	m_data->draw(GL_TRIANGLE_FAN, numInstances);
 }

@@ -15,16 +15,26 @@
 #include "Triangle_Data.h"
 class Triangle_Separate : public Triangle_Data
 {
-protected:
-	std::vector<unsigned long*> m_indices;
+	/*struct DrawElementsIndirectCommand {
+		unsigned long count;
+		unsigned long instanceCount;
+		unsigned long firstIndex;
+		unsigned long baseVertex;
+		unsigned long baseInstance;
+	};
+	std::vector<DrawElementsIndirectCommand> m_commands;*/
+	std::vector<std::vector<unsigned long>> m_indices;
+	unsigned int m_EBO;
 
 public:
 	Triangle_Separate() = default;
 	Triangle_Separate(FILE* inFile);
-	~Triangle_Separate();
-	void create(FILE* outFile, bool writeData) const;
+	void create(FILE* outFile) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	std::vector<std::vector<unsigned long>> extract() const;
 	const size_t getSize() const;
-	void draw(GLenum mode) const;
+
+	//void intializeBuffers();
+	//void deleteBuffers();
+	void draw(GLenum mode, unsigned int numInstances);
 };

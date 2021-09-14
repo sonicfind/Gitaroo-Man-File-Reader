@@ -15,17 +15,26 @@
 #include "Triangle_Data.h"
 class Triangle_Group : public Triangle_Data
 {
-protected:
-	std::vector<unsigned long> m_indices;
+	/*struct DrawArraysIndirectCommand {
+		unsigned long count;
+		unsigned long instanceCount;
+		unsigned long first;
+		unsigned long baseInstance;
+	};
+	std::vector<DrawArraysIndirectCommand> m_commands;*/
+	unsigned long m_initialIndex;
+	std::vector<unsigned long> m_counts;
 
 public:
 	Triangle_Group() = default;
 	Triangle_Group(FILE* inFile);
-	Triangle_Group(unsigned long index, const std::vector<unsigned long>& counts);
-	void create(FILE* outFile, bool writeData) const;
+	Triangle_Group(unsigned long index, const unsigned long numPrimitives);
+	void create(FILE* outFile) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	std::vector<std::vector<unsigned long>> extract() const;
 	const size_t getSize() const;
 
-	void draw(GLenum mode) const;
+	//void intializeBuffers();
+	//void deleteBuffers();
+	void draw(GLenum mode, unsigned int numInstances);
 };

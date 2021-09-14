@@ -168,12 +168,20 @@ void xgDagMesh::intializeBuffers()
 	// If a buffer was made, then this is a unique geometry node
 	m_doGeometryAnimation = m_inputGeometry->generateVertexBuffer();
 	m_inputMaterial->intializeBuffers();
+	/*m_prim->intializeBuffers();
+	m_triFan->intializeBuffers();
+	m_triStrip->intializeBuffers();
+	m_triList->intializeBuffers();*/
 }
 
 void xgDagMesh::deleteBuffers()
 {
 	m_inputGeometry->deleteVertexBuffer();
 	m_inputMaterial->deleteBuffers();
+	/*m_prim->deleteBuffers();
+	m_triFan->deleteBuffers();
+	m_triStrip->deleteBuffers();
+	m_triList->deleteBuffers();*/
 }
 
 void xgDagMesh::restPose() const
@@ -228,9 +236,9 @@ void xgDagMesh::draw(const glm::mat4 view, const glm::mat4* models, const unsign
 			s_currentCulling = m_cullFunc;
 		}
 		
-		m_triFan->draw(GL_TRIANGLE_FAN);
-		m_triStrip->draw(GL_TRIANGLE_STRIP);
-		m_triList->draw(GL_TRIANGLES);
+		m_triFan->draw(numInstances);
+		m_triStrip->draw(numInstances);
+		m_triList->draw(numInstances);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		if (showNormals)
@@ -239,9 +247,9 @@ void xgDagMesh::draw(const glm::mat4 view, const glm::mat4* models, const unsign
 			active->m_geometry.setMat4("models[0]", (float*)models, numInstances);
 			active->m_geometry.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
 
-			m_triFan->draw(GL_TRIANGLE_FAN);
-			m_triStrip->draw(GL_TRIANGLE_STRIP);
-			m_triList->draw(GL_TRIANGLES);
+			m_triFan->draw(numInstances);
+			m_triStrip->draw(numInstances);
+			m_triList->draw(numInstances);
 		}
 	}
 }

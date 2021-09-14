@@ -299,9 +299,10 @@ float XG::getAnimationLength(size_t index) const
 }
 
 // Sets all vertex and bone matrix values to their defaults
-void XG::restPose() const
+void XG::restPose()
 {
 	m_data->restPose();
+	m_instanceCount = 1;
 }
 
 // Updates all data to the current frame

@@ -62,7 +62,7 @@ private:
 	// Returns the total duration of the chosen animation in seconds 
 	float getAnimationLength(size_t index) const;
 	// Sets all vertex and bone matrix values to their defaults
-	void restPose() const;
+	void restPose();
 	// Updates all data to the current frame
 	// @param frame - The current time in terms of frames
 	void animate(float frame, size_t index);

@@ -52,10 +52,6 @@ Viewer::Viewer()
 	g_boneShaders.createPrograms("bones.vert", "material.frag", "geometry - bones.vert", "geometry.geo", "geometry.frag");
 
 	glfwSetFramebufferSizeCallback(m_window, InputHandling::framebuffer_size_callback);
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
-	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
-	g_camera.reset();
 
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -100,6 +96,7 @@ Viewer::Viewer()
 
 	xgEnvelope::generateBoneUniform();
 	Model::resetTime();
+	g_camera.reset();
 }
 
 Viewer::~Viewer()
@@ -124,9 +121,9 @@ Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
 	for (auto model : models)
 		m_models.emplace_back(model);
 
+	// Set light values
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
 
-	// Set light values
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, glm::value_ptr(m_lightAmbient));
 	glBufferSubData(GL_UNIFORM_BUFFER, 16, 4, glm::value_ptr(m_lightDiffuse));
 	glBufferSubData(GL_UNIFORM_BUFFER, 32, 4, glm::value_ptr(m_lightSpecular));
@@ -135,12 +132,37 @@ Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
 	glBufferSubData(GL_UNIFORM_BUFFER, 52, 4, &m_lightQuadratic);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
+	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
+	m_isMouseActive = true;
 }
 
 Viewer_XGM::~Viewer_XGM()
 {
 	Model::resetLoop();
 	Model::resetTime();
+}
+
+float Viewer_SSQ::s_startFrame = 0;
+
+Viewer_SSQ::Viewer_SSQ(SSQ* ssq)
+	: m_ssq(ssq)
+	, m_hasFreeMovement(false)
+{
+	ssq->loadbuffers();
+
+	SSQ::setFrame(s_startFrame);
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	glfwSetCursorPosCallback(m_window, NULL);
+	glfwSetScrollCallback(m_window, NULL);
+	m_isMouseActive = false;
+}
+
+Viewer_SSQ::~Viewer_SSQ()
+{
+	m_ssq->unloadBuffers();
 }
 
 std::string Viewer::getAspectRatioString()
@@ -216,6 +238,37 @@ void Viewer::setWidth()
 	}
 }
 
+bool Viewer_SSQ::changeStartFrame()
+{
+	while (true)
+	{
+		GlobalFunctions::printf_tab("Current Starting Fame: %g ['B' to leave unchanged]\n", s_startFrame);
+		GlobalFunctions::printf_tab("Input: ");
+		switch (GlobalFunctions::valueInsert(s_startFrame, false, "b"))
+		{
+		case GlobalFunctions::ResultType::Quit:
+			return true;
+		case GlobalFunctions::ResultType::Success:
+		case GlobalFunctions::ResultType::SpecialCase:
+			return false;
+		case GlobalFunctions::ResultType::InvalidNegative:
+			GlobalFunctions::printf_tab("Value must be positive.\n");
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+			break;
+		case GlobalFunctions::ResultType::Failed:
+			GlobalFunctions::printf_tab("\"%s\" is not a valid response.\n", g_global.invalid.c_str());
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+		}
+	}
+}
+
+float Viewer_SSQ::getStartFrame()
+{
+	return s_startFrame;
+}
+
 void Viewer::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	g_camera.turnCamera(xpos, ypos);
@@ -232,7 +285,6 @@ int Viewer::view()
 	double lastFPSTime = glfwGetTime();
 	int nbFrames = 0;
 	
-	bool isMouseActive = true;
 	while (!glfwWindowShouldClose(m_window))
 	{
 		float currentTime = (float)glfwGetTime();
@@ -247,27 +299,6 @@ int Viewer::view()
 
 		if (InputHandling::g_input_keyboard.KEY_ESCAPE.isPressed())
 			break;
-
-		if (InputHandling::g_input_keyboard.KEY_M.isPressed())
-		{
-			isMouseActive = !isMouseActive;
-			if (!isMouseActive)
-			{
-				glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-				glfwSetCursorPosCallback(m_window, NULL);
-				glfwSetScrollCallback(m_window, NULL);
-			}
-			else
-			{
-				glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-				glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
-				glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
-				g_camera.setFirstMouse();
-			}
-		}
-
-		if (isMouseActive)
-			g_camera.moveCamera(currentTime - m_previous);
 
 		if (InputHandling::g_input_keyboard.KEY_N.isPressed())
 			m_showNormals = !m_showNormals;
@@ -285,6 +316,27 @@ int Viewer::view()
 
 void Viewer_XGM::update(float current)
 {
+	if (InputHandling::g_input_keyboard.KEY_M.isPressed())
+	{
+		m_isMouseActive = !m_isMouseActive;
+		if (!m_isMouseActive)
+		{
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetCursorPosCallback(m_window, NULL);
+			glfwSetScrollCallback(m_window, NULL);
+		}
+		else
+		{
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
+			glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
+			g_camera.setFirstMouse();
+		}
+	}
+
+	if (m_isMouseActive)
+		g_camera.moveCamera(current - m_previous);
+
 	if (InputHandling::g_input_keyboard.KEY_L.isPressed())
 		Model::toggleLoop();
 
@@ -375,5 +427,101 @@ void Viewer_XGM::draw()
 	// Draw transparent meshes
 	for (auto& model : m_models)
 		model.draw(m_view, m_showNormals, true, m_showAnimation);
+	glBindVertexArray(0);
+}
+
+void Viewer_SSQ::update(float current)
+{
+	if (InputHandling::g_input_keyboard.KEY_F.isPressed())
+	{
+		m_hasFreeMovement = !m_hasFreeMovement;
+		if (!m_hasFreeMovement)
+		{
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetCursorPosCallback(m_window, NULL);
+			glfwSetScrollCallback(m_window, NULL);
+		}
+		else
+		{
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
+			glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
+			g_camera.setFirstMouse();
+			m_isMouseActive = true;
+		}
+	}
+	else if (m_hasFreeMovement && InputHandling::g_input_keyboard.KEY_M.isPressed())
+	{
+		m_isMouseActive = !m_isMouseActive;
+		if (!m_isMouseActive)
+		{
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetCursorPosCallback(m_window, NULL);
+			glfwSetScrollCallback(m_window, NULL);
+		}
+		else
+		{
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
+			glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
+			g_camera.setFirstMouse();
+		}
+	}
+
+	if (m_hasFreeMovement && m_isMouseActive)
+		g_camera.moveCamera(current - m_previous);
+
+	if (InputHandling::g_input_keyboard.KEY_P.isPressed())
+	{
+		m_isPaused = !m_isPaused;
+		if (m_isPaused)
+			GlobalFunctions::printf_tab("%g\n",SSQ::getFrame());
+	}
+
+	if (InputHandling::g_input_keyboard.KEY_R.isHeld())
+	{
+		SSQ::setFrame(s_startFrame);
+		m_ssq->update();
+	}
+	// Animates model data as normal
+	else if (!m_isPaused)
+	{
+		// Update animations, obviously
+		SSQ::adjustFrame(current - m_previous);
+		m_ssq->update();
+	}
+
+	// Update view matrix buffer
+	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
+
+	if (m_hasFreeMovement)
+		m_view = g_camera.getViewMatrix();
+	else
+		m_view = m_ssq->getViewMatrix();
+
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(m_view));
+
+	// Update projection matrix buffer
+	glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
+
+	if (m_hasFreeMovement)
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(glm::perspective(glm::radians(g_camera.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f)));
+	else
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(m_ssq->getProjectionMatrix(s_screenWidth, s_screenHeight)));
+	
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void Viewer_SSQ::draw()
+{
+	// Clear color and depth buffers
+	glm::vec4 color = m_ssq->getClearColor();
+	glClearColor(color.r, color.g, color.b, color.a);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Draw opaque meshes
+	m_ssq->draw(m_view, m_showNormals, false);
+	// Draw transparent meshes
+	m_ssq->draw(m_view, m_showNormals, true);
 	glBindVertexArray(0);
 }

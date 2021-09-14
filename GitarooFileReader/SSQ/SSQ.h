@@ -46,6 +46,7 @@ public:
 	bool create(std::string filename);
 
 	bool write_to_txt() { return false; }
+	bool viewSequence();
 
 	bool menu(bool nextFile, const std::pair<bool, const char*> nextExtension);
 	bool functionSelection(const char choice, bool isMulti);
@@ -62,4 +63,5 @@ public:
 	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents);
 	static void setFrame(float frame);
 	static void adjustFrame(float delta);
+	static float getFrame();
 };

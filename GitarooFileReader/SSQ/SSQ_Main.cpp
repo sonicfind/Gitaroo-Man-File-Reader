@@ -36,8 +36,9 @@ bool SSQ::menu(bool nextFile, const std::pair<bool, const char*> nextExtension)
 		}
 		else
 		{
-			printf_tab("X - Open %s.XGM's menu\n", m_filename.c_str());
-			choices += 'x';
+			printf_tab("X - Open %s.XGM's menu\n", m_xgm->getFilename().c_str());
+			printf_tab("V - Open Sequence Viewer\n");
+			choices += "xv";
 		}
 
 		if (nextFile)
@@ -93,6 +94,8 @@ bool SSQ::functionSelection(const char choice, bool isMulti)
 			return loadXGM();
 		else
 			return m_xgm->menu(false, {false, ""});
+	case 'v':
+		return viewSequence();
 	default:
 		return false;
 	}

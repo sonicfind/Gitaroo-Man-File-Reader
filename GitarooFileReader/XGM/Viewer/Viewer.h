@@ -14,7 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Model.h"
-#include "XGM/XGM.h"
+#include "SSQ/SSQ.h"
 #include <GLFW/glfw3.h>
 
 enum class AspectRatioMode
@@ -40,6 +40,7 @@ protected:
 	float m_previous;
 	bool m_isPaused;
 	bool m_showNormals;
+	bool m_isMouseActive;
 	glm::mat4 m_view;
 
 	std::list<Model> m_models;
@@ -78,6 +79,25 @@ class Viewer_XGM : public Viewer
 public:
 	Viewer_XGM(const std::vector<XG*>& models);
 	~Viewer_XGM();
+
+private:
+	void update(float current);
+	void draw();
+};
+
+class Viewer_SSQ : public Viewer
+{
+	SSQ* m_ssq;
+	bool m_hasFreeMovement;
+
+	static float s_startFrame;
+
+public:
+	Viewer_SSQ(SSQ* ssq);
+	~Viewer_SSQ();
+
+	static bool changeStartFrame();
+	static float getStartFrame();
 
 private:
 	void update(float current);

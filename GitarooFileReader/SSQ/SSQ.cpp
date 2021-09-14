@@ -15,6 +15,8 @@
  */
 #include "pch.h"
 #include "SSQ.h"
+#include "XGM/Viewer/Viewer.h"
+using namespace GlobalFunctions;
 float mixFloat(const float a, const float b, const float coefficient)
 {
 	return a + (b - a) * coefficient;
@@ -168,6 +170,75 @@ bool SSQ::create(std::string filename)
 	return false;
 }
 
+bool SSQ::viewSequence()
+{
+	while (true)
+	{
+		banner(" " + m_filename + ".SSQ - Sequence Viewer ");
+		printf_tab("V - Enter the Viewer\n");
+		printf_tab("B - Change BPM for tempo-base animations: %g\n", Animation::getTempo());
+		printf_tab("A - Switch aspect ratio: %s\n", Viewer::getAspectRatioString().c_str());
+		printf_tab("H - Change viewer resolution, Height: %u\n", Viewer::getScreenHeight());
+		printf_tab("F - Change Starting Frame: %g\n", Viewer_SSQ::getStartFrame());
+		printf_tab("? - Show list of controls\n");
+		switch (menuChoices("vbahf"))
+		{
+		case ResultType::Help:
+			printf_tab("\n");
+			printf_tab("P - Pause/Play\n");
+			printf_tab("R (Hold) - Reset to the beginning of the sequence\n");
+			printf_tab("N - Toggle displaying vertex normal vectors\n");
+			printf_tab("F - Toggle FreeCam movement\n");
+			printf_tab("ESC - exit\n");
+
+			printf_tab("With FreeCam mode active:\n");
+			printf_tab("\tWASD - Move\n");
+			printf_tab("\tSpace/Left Shift - Ascend/Descend\n");
+			printf_tab("\tUp/Down - Increase/Decrease movement speed\n");
+			printf_tab("\tMouse - Camera Aiming\n");
+			printf_tab("\tMouse Scroll - Increase/Decrease zoom\n");
+			printf_tab("\t'M' - Release/Reattach mouse control from/to the window (while in FreeCam mode)\n");
+			
+			printf_tab("\n");
+			printf_tab("Press 'Enter' when you're done reading\n");
+			printf_tab("");
+			clearIn();
+			testForMulti();
+			break;
+		case ResultType::Quit:
+			return true;
+		case ResultType::Success:
+			switch (g_global.answer.character)
+			{
+			case 'v':
+				try
+				{
+					Viewer_SSQ(this).view();
+				}
+				catch (char* str)
+				{
+					printf("%s", str);
+				}
+				break;
+			case 'b':
+				if (Animation::setTempo())
+					return true;
+				break;
+			case 'a':
+				Viewer::switchAspectRatio();
+				break;
+			case 'h':
+				if (Viewer::changeHeight())
+					return true;
+				break;
+			case 'f':
+				if (Viewer_SSQ::changeStartFrame())
+					return true;
+			}
+		}
+	}
+}
+
 void SSQ::loadbuffers()
 {
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
@@ -192,7 +263,17 @@ void SSQ::update()
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 	{
 		auto& entry = m_XGentries[i];
-		XG* xg = entry.m_isClone ? m_XGentries[entry.m_cloneID].m_xg : entry.m_xg;
+		//if (strcmp(entry.m_name, "BGSLOT.XG") != 0)
+			//continue;
+		XG* xg;
+		if (!entry.m_isClone)
+		{
+			xg = entry.m_xg;
+			xg->resetInstanceCount();
+		}
+		else
+			xg = m_XGentries[entry.m_cloneID].m_xg;
+
 		if (m_modelSetups[i]->animate(xg, s_frame))
 		{
 			entry.m_isActive = 1;
@@ -255,4 +336,9 @@ void SSQ::setFrame(float frame)
 void SSQ::adjustFrame(float delta)
 {
 	s_frame += 30 * delta;
+}
+
+float SSQ::getFrame()
+{
+	return s_frame;
 }

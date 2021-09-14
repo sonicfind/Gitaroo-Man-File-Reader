@@ -138,6 +138,7 @@ namespace GlobalFunctions
 		{
 		case ';':
 			scanf_s("%c", &g_global.input, 1);
+			__fallthrough;
 		case '\n':
 			printf("%sPlease remember to type SOMETHING before pressing 'Enter'\n", g_global.tabs.c_str());
 			printf("%s\n", g_global.tabs.c_str());

@@ -71,7 +71,12 @@ glm::mat4 xgDagTransform::getModelMatrix() const
 		if (m_inputMatrix)
 			m_inputMatrix->applyTransformations(translation, rotation, scale);
 
-		return glm::translate(translation) * glm::toMat4(glm::conjugate(rotation)) * glm::scale(scale);
+		glm::mat4 result = glm::toMat4(conjugate(rotation));
+		result[0] *= scale.x;
+		result[1] *= scale.y;
+		result[2] *= scale.z;
+		result[3] = glm::vec4(translation, 1);
+		return result;
 	}
 	else
 		return glm::identity<glm::mat4>();

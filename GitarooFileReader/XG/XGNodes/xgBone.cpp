@@ -70,6 +70,11 @@ glm::mat4 xgBone::getBoneMatrix() const
 	glm::vec3 scale(1.0f);
 	if (m_inputMatrix)
 		m_inputMatrix->applyTransformations(translation, rotation, scale);
-	
-	return glm::translate(translation) * glm::toMat4(conjugate(rotation)) * glm::scale(scale) * m_restMatrix;
+
+	glm::mat4 result = glm::toMat4(conjugate(rotation));
+	result[0] *= scale.x;
+	result[1] *= scale.y;
+	result[2] *= scale.z;
+	result[3] = glm::vec4(translation, 1);
+	return result * m_restMatrix;
 }

@@ -240,14 +240,21 @@ void VertexList::replace(const VertexList& list) const
 void VertexList::replace(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords) const
 {
 	std::vector<Vertex> vect(m_vertices);
-	for (size_t i = 0; i < m_vertices.size(); ++i)
-		vect[i].m_position = glm::vec4(positions[i], 1);
+	const size_t vertSize = m_vertices.size();
+	const size_t posSize = positions.size();
+	const size_t normSize = normals.size();
+	const size_t texSize = texCoords.size();
 
-	for (size_t i = 0; i < m_vertices.size(); ++i)
-		vect[i].m_normal = normals[i];
-
-	for (size_t i = 0; i < m_vertices.size(); ++i)
-		vect[i].m_texCoord = texCoords[i];
+	for (size_t i = 0; i < vertSize; ++i)
+	{
+		Vertex& vert = vect[i];
+		if (i < posSize)
+			vert.m_position = glm::vec4(positions[i], 1);
+		if (i < normSize)
+			vert.m_normal = normals[i];
+		if (i < texSize)
+			vert.m_texCoord = texCoords[i];
+	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, vect.size() * sizeof(Vertex), vect.data());

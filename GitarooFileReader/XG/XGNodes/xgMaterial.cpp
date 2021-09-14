@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "xgMaterial.h"
 #include <glad/glad.h>
+unsigned int xgMaterial::s_MaterialUBO = 0;
 unsigned long xgMaterial::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
@@ -181,34 +182,51 @@ void xgMaterial::intializeBuffers()
 {
 	if (m_inputTexture)
 		m_inputTexture->generateTexture();
+
+	if (!s_MaterialUBO)
+	{
+		glGenBuffers(1, &s_MaterialUBO);
+		glBindBuffer(GL_UNIFORM_BUFFER, s_MaterialUBO);
+		glBufferData(GL_UNIFORM_BUFFER, 128, NULL, GL_DYNAMIC_DRAW);
+		
+		g_shaders.m_base.bindUniformBlock(4, "Materials");
+		g_boneShaders.m_base.bindUniformBlock(4, "Materials");
+		
+		glBindBufferBase(GL_UNIFORM_BUFFER, 4, s_MaterialUBO);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
 }
 
 void xgMaterial::deleteBuffers()
 {
 	if (m_inputTexture)
 		m_inputTexture->deleteTexture();
+
+	if (s_MaterialUBO)
+	{
+		glDeleteBuffers(1, &s_MaterialUBO);
+		s_MaterialUBO = 0;
+	}
 }
 
-void xgMaterial::setShaderValues(Shader* shader, const std::string index) const
+void xgMaterial::setShaderValues(Shader* shader, const size_t index) const
 {
+	static const std::string textures[] = { "textures[0]", "textures[1]" };
+	static const std::string use[] = { "useTexture[0]", "useTexture[1]" };
+	shader->setInt("doMulti", int(index));
+	if (m_textureEnv)
+		printf("");
 	if (m_inputTexture)
 	{
+		glActiveTexture(GL_TEXTURE0 + int(index));
 		m_inputTexture->bindTexture();
-		// If both a texture and vertex color are applicable
-		if (m_shadingType >= 3)
-			shader->setInt("materials" + index + ".shadingType", m_shadingType + 2);
-		else
-			shader->setInt("materials" + index + ".shadingType", m_shadingType);
-		shader->setInt("materials" + index + ".alphaType", m_flags & 1);
-		shader->setInt("materials" + index + ".alphaMultiplier", m_flags & ~1);
-		shader->setInt("textEnv" + index, m_textureEnv);
+		shader->setInt(textures[index], int(index));
+		shader->setInt(use[index], 1);
 	}
 	else
-		shader->setInt("materials" + index + ".shadingType", m_shadingType);
-	glBlendColor(m_diffuse.red, m_diffuse.green, m_diffuse.blue, m_diffuse.alpha);
-	shader->setVec4("materials" + index + ".diffuse", (float*)&m_diffuse);
-	shader->setVec3("materials" + index + ".specular", (float*)&m_specular);
-	shader->setFloat("materials" + index + ".shininess", m_specular.exponent);
+		shader->setInt(use[index], 0);
 
-	shader->setInt("materials" + index + ".blendingType", m_blendType);
+	glBindBuffer(GL_UNIFORM_BUFFER, s_MaterialUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 64 * index, 64, (float*)&m_blendType);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

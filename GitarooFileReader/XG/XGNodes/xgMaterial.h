@@ -22,13 +22,14 @@ public:
 	virtual bool hasTransparency() const = 0;
 	virtual void intializeBuffers() = 0;
 	virtual void deleteBuffers() = 0;
-	virtual void setShaderValues(Shader* shader, const std::string index) const = 0;
+	virtual void setShaderValues(Shader* shader, const size_t index = 0) const = 0;
 };
 
 class xgMaterial : public MaterialNode
 {
 	unsigned long m_blendType = 0;
 	unsigned long m_shadingType = 0;
+	unsigned long :32, :32;
 	struct Diffuse
 	{
 		float red = 0;
@@ -49,6 +50,8 @@ class xgMaterial : public MaterialNode
 	unsigned long m_vTile = 0;
 	SharedNode<xgTexture> m_inputTexture;
 
+	static unsigned int s_MaterialUBO;
+
 public:
 	using MaterialNode::MaterialNode;
 	unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList);
@@ -61,5 +64,5 @@ public:
 	void connectTexture(std::vector<IMX>& textures);
 	void intializeBuffers();
 	void deleteBuffers();
-	void setShaderValues(Shader* shader, const std::string index) const;
+	void setShaderValues(Shader* shader, const size_t index = 0) const;
 };

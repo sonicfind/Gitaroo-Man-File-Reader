@@ -157,9 +157,9 @@ void xgEnvelope::generateBoneUniform()
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_BoneSSBU);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, 525312, NULL, GL_DYNAMIC_DRAW);
 
-	g_boneShaders.bindStorageBlock(4, "Envelopes");
+	g_boneShaders.bindStorageBlock(1, "Envelopes");
 
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, s_BoneSSBU);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, s_BoneSSBU);
 }
 
 void xgEnvelope::deleteBoneUniform()

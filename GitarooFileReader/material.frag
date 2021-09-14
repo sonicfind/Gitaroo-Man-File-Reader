@@ -11,16 +11,22 @@ in VS_OUT
 
 struct Material
 {
-	int blendingType;
+	int blendType;
 	int shadingType;
-	sampler2D tex;
 	vec4 diffuse;
-	vec3 specular;
-	float shininess;
-	int alphaType;
-	int alphaMultiplier;
+	vec4 specular;
+	int flags;
+	int textEnv;
+	int uTile;
+	int vTile;
 };
-uniform Material materials[2];
+
+layout (std140) uniform Materials
+{
+	Material materials[2];
+};
+uniform sampler2D textures[2];
+uniform int useTexture[2];
 uniform int doMulti;
 
 struct Light
@@ -42,56 +48,56 @@ layout (std140) uniform Lights
 uniform vec3 viewPos;
 uniform vec3 lightPosition;
 
-vec4 doStuff(const Material material, vec2 texCoord);
+vec4 doColor(const int index);
 vec4 getBlendColor(const int blend, const float multiplier, const vec4 color);
 vec4 applyShading(const Material material, vec4 baseColor);
 vec3 applySpecular(const Material material, vec3 lightDir, float attenuation);
 
 void main()
-{
+{	
 	//if (gl_FrontFacing)
 	//	FragColor = vec4(0, 1, 0, 1);
 	//else
 	//	FragColor = vec4(1, 0, 0, 1);
 	//return;
-	vec4 result = doStuff(materials[0], vs_in.texCoord[0]);
-	if (result.a < 0.01)
-		discard;
+	vec4 result = doColor(0);
 
 	if (doMulti == 1)
 	{
-		vec4 col2 = doStuff(materials[1], vs_in.texCoord[1]);
+		vec4 col2 = doColor(1);
 		FragColor = vec4(result.rgb * (1 - col2.a) + col2.rgb * col2.a, result.a + col2.a - result.a * col2.a);
 	}
 	else
 		FragColor = result;
+	if (FragColor.a < 0.01)
+		discard;
 }
 
-vec4 doStuff(const Material material, vec2 texCoord)
+vec4 doColor(const int index)
 {
-	vec4 result = vec4(1.0f);
-	if (material.shadingType < 3 || 5 <= material.shadingType)
+	vec4 result = vec4(1);
+	if (useTexture[index] == 1)
 	{
-		vec4 texColor = texture(material.tex, texCoord);
-		if (material.shadingType != 1)
-			result = getBlendColor(material.blendingType, material.diffuse.a, texColor);
+		vec4 texColor = texture(textures[index], vs_in.texCoord[index]);
+		if (materials[index].shadingType != 1)
+			result = getBlendColor(materials[index].blendType, materials[index].diffuse.a, texColor);
 		else
-			result = getBlendColor(material.blendingType, 1, texColor);
+			result = getBlendColor(materials[index].blendType, 1, texColor);
 
-		if (material.alphaType == 1)
+		if (materials[index].flags > 2)
 			result.a *= 2 * texColor.a;
 	}
-	
-	if (material.shadingType >= 3)
-		result *= getBlendColor(material.blendingType, material.diffuse.a, vs_in.color);
 
-	switch (material.shadingType)
+	if (materials[index].shadingType >= 3)
+		result *= getBlendColor(materials[index].blendType, materials[index].diffuse.a, vs_in.color);
+
+	switch (materials[index].shadingType)
 	{
 	//case 1:
 	//case 2:
 	//case 4:
 	//case 6:
-	//	return applyShading(material, result);
+	//	return applyShading(materials[index], result);
 	default:
 		return result;
 	}
@@ -127,13 +133,8 @@ vec4 applyShading(const Material material, vec4 baseColor)
 	float diff = max(dot(vs_in.normal, lightDir), 0.0);
 	vec3 diffuse = attenuation * light.diffuse * diff * vec3(baseColor);
 
-	if (material.shadingType != 1)
-	{
-		vec3 specular = applySpecular(material, lightDir, attenuation);
-		return vec4((ambient + diffuse + specular) * baseColor.rgb, baseColor.a);
-	}
-	else
-		return vec4((ambient + diffuse) * baseColor.rgb, baseColor.a);
+	vec3 specular = applySpecular(material, lightDir, attenuation);
+	return vec4((ambient + diffuse + specular) * baseColor.rgb, baseColor.a);
 };
 
 vec3 applySpecular(const Material material, vec3 lightDir, float attenuation)
@@ -141,8 +142,8 @@ vec3 applySpecular(const Material material, vec3 lightDir, float attenuation)
 	vec3 viewDir = normalize(viewPos - vs_in.fragPos);
 	vec3 reflectDir = reflect(-lightDir, vs_in.normal);
 	vec3 halfwayDir = normalize(lightDir + viewDir);
-	float spec = pow(max(dot(vs_in.normal, halfwayDir), 0.0), material.shininess);
+	float spec = pow(max(dot(vs_in.normal, halfwayDir), 0.0), material.specular.a);
 	if (material.shadingType == 1)
 		spec *= material.diffuse.a;
-	return attenuation * material.specular * spec * light.specular;
+	return attenuation * material.specular.xyz * spec * light.specular;
 };

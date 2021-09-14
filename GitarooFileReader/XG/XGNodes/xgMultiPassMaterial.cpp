@@ -96,14 +96,8 @@ void xgMultiPassMaterial::deleteBuffers()
 		mat->deleteBuffers();
 }
 
-void xgMultiPassMaterial::setShaderValues(Shader* shader, const std::string index) const
+void xgMultiPassMaterial::setShaderValues(Shader* shader, const size_t index) const
 {
-	shader->setInt("doMulti", m_inputMaterials.size() > 1 ? 1 : 0);
 	for (size_t i = 0; i < m_inputMaterials.size(); ++i)
-	{
-		glActiveTexture(GL_TEXTURE0 + int(i));
-		std::string index = std::to_string(i);
-		shader->setInt("materials[" + index + "].tex", int(i));
-		m_inputMaterials[i]->setShaderValues(shader, "[" + index + ']');
-	}
+		m_inputMaterials[i]->setShaderValues(shader, i);
 }

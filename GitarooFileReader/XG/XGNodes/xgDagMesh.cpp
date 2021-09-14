@@ -193,30 +193,21 @@ void xgDagMesh::animate(unsigned long instance)
 unsigned long xgDagMesh::s_currentCulling = 0;
 void xgDagMesh::draw(const glm::mat4 view, const glm::mat4* models, const unsigned long numInstances, const bool showNormals, const bool doTransparents) const
 {
-	static const std::string indices[] =
-	{
-		"[0]","[1]","[2]","[3]","[4]","[5]","[6]","[7]","[8]","[9]","[10]","[11]","[12]","[13]","[14]","[15]",
-		"[16]","[17]","[18]","[19]","[20]","[21]","[22]","[23]","[24]","[25]","[26]","[27]","[28]","[29]","[30]","[31]"
-	};
-
 	if (doTransparents == m_inputMaterial->hasTransparency())
 	{
-		ShaderCombo* active = m_inputGeometry->activateShader();
-		active->m_base.setInt("doMulti", 0);
-		glActiveTexture(GL_TEXTURE0);
-		m_inputMaterial->setShaderValues(&active->m_base, indices[0]);
-
-		active->m_base.setVec3("lightPosition", glm::value_ptr(g_camera.m_position));
-		active->m_base.setVec3("viewPos", glm::value_ptr(g_camera.m_position));
 		std::vector<glm::mat3> normals;
 		for (size_t i = 0; i < numInstances; ++i)
-		{
-			active->m_base.setMat4("models" + indices[i], (float*)glm::value_ptr(models[i]));
 			normals.push_back(glm::mat3(glm::transpose(glm::inverse(view * models[i]))));
-			active->m_base.setMat3("normalMatrices" + indices[i], glm::value_ptr(normals[i]));
-		}
-		m_inputGeometry->bindVertexBuffer(numInstances);
 
+		ShaderCombo* active = m_inputGeometry->activateShader();
+		m_inputMaterial->setShaderValues(&active->m_base);
+		active->m_base.setVec3("lightPosition", glm::value_ptr(g_camera.m_position));
+		active->m_base.setVec3("viewPos", glm::value_ptr(g_camera.m_position));
+
+		active->m_base.setMat4("models[0]", (float*)models, numInstances);
+		active->m_base.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
+
+		m_inputGeometry->bindVertexBuffer(numInstances);
 		if (m_cullFunc != s_currentCulling)
 		{
 			switch (m_cullFunc)
@@ -245,11 +236,8 @@ void xgDagMesh::draw(const glm::mat4 view, const glm::mat4* models, const unsign
 		if (showNormals)
 		{
 			active->m_geometry.use();
-			for (size_t i = 0; i < numInstances; ++i)
-			{
-				active->m_geometry.setMat4("models" + indices[i], (float*)glm::value_ptr(models[i]));
-				active->m_geometry.setMat3("normalMatrices" + indices[i], glm::value_ptr(normals[i]));
-			}
+			active->m_geometry.setMat4("models[0]", (float*)models, numInstances);
+			active->m_geometry.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
 
 			m_triFan->draw(GL_TRIANGLE_FAN);
 			m_triStrip->draw(GL_TRIANGLE_STRIP);

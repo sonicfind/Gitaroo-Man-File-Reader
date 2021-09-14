@@ -41,7 +41,23 @@ layout (std430) buffer Envelopes
 
 uniform mat4 models[MAX_INSTANCES];
 uniform mat3 normalMatrices[MAX_INSTANCES];
-uniform int textEnv[2];
+
+struct Material
+{
+	int blendType;
+	int shadingType;
+	vec4 diffuse;
+	vec4 specular;
+	int flags;
+	int textEnv;
+	int uTile;
+	int vTile;
+};
+
+layout (std140) uniform Materials
+{
+	Material materials[2];
+};
 uniform int doMulti;
 
 void main()
@@ -62,7 +78,7 @@ void main()
 	vs_out.normal = normalize(normalMatrix * vec3(finalNorm));
 	vs_out.color = aColor;
 
-	if (textEnv[0] == 0)
+	if (materials[0].textEnv == 0)
 		vs_out.texCoord[0] = aTexCoord;
 	else
 	{
@@ -73,9 +89,9 @@ void main()
 	
 	if (doMulti == 1)
 	{
-		if (textEnv[1] == textEnv[0])
+		if (materials[1].textEnv == materials[0].textEnv)
 			vs_out.texCoord[1] = vs_out.texCoord[0];
-		else if (textEnv[1] == 0)
+		else if (materials[1].textEnv == 0)
 			vs_out.texCoord[1] = aTexCoord;
 		else
 		{

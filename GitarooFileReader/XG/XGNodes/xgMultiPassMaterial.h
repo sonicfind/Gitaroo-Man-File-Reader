@@ -30,5 +30,5 @@ public:
 	void connectTextures(std::vector<IMX>& textures);
 	void intializeBuffers();
 	void deleteBuffers();
-	void setShaderValues(Shader* shader, const std::string index) const;
+	void setShaderValues(Shader* shader, const size_t index = 0) const;
 };

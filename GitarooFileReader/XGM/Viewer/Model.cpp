@@ -57,6 +57,7 @@ void Model::update()
 				nextAnimation(m_currAnimStartFrame + m_length, false);
 		}
 
+		m_xg->resetInstanceCount();
 		m_xg->animate(s_currentFrame - m_currAnimStartFrame, m_animIndex);
 	}
 }
@@ -73,7 +74,10 @@ void Model::setAnimation(size_t animIndex, float frame, bool animate)
 	}
 
 	if (animate)
+	{
+		m_xg->resetInstanceCount();
 		m_xg->animate(0, m_animIndex);
+	}
 }
 
 // Skip to next animation

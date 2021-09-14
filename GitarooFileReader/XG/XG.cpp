@@ -311,14 +311,17 @@ void XG::animate(float frame, size_t index)
 }
 
 // Draws all vertex data to the current framebuffer
-void XG::draw(const glm::mat4 view, const glm::mat4* models, const bool showNormals, const bool doTransparents, const bool isAnimated)
+void XG::draw(const glm::mat4 view, const glm::mat4* models, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
 	m_data->draw(view, models, m_instanceCount, showNormals, doTransparents, isAnimated);
-	if (doTransparents)
-		m_instanceCount = 0;
 }
 
 unsigned long XG::getInstanceCount() const
 {
 	return m_instanceCount;
+}
+
+void XG::resetInstanceCount()
+{
+	m_instanceCount = 0;
 }

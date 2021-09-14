@@ -67,7 +67,8 @@ private:
 	// @param frame - The current time in terms of frames
 	void animate(float frame, size_t index);
 	// Draws all vertex data to the current framebuffer
-	void draw(const glm::mat4 view, const glm::mat4* models, const bool showNormals, const bool doTransparents, const bool isAnimated = true);
+	void draw(const glm::mat4 view, const glm::mat4* models, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
 
 	unsigned long getInstanceCount() const;
+	void resetInstanceCount();
 };

@@ -292,7 +292,10 @@ void XG::uninitializeViewerState()
 // Returns the total duration of the chosen animation in seconds 
 float XG::getAnimationLength(size_t index) const
 {
-	return m_animations[index].getTotalTime();
+	if (index < m_animations.size())
+		return m_animations[index].getTotalTime();
+	else
+		return m_animations.back().getTotalTime();
 }
 
 // Sets all vertex and bone matrix values to their defaults
@@ -305,7 +308,11 @@ void XG::restPose() const
 void XG::animate(float frame, size_t index)
 {
 	// Calculates the current keyframe from the current animation
-	const float key = m_animations[index].getTime(frame);
+	float key;
+	if (index < m_animations.size())
+		key = m_animations[index].getTime(frame);
+	else
+		key = m_animations.back().getTime(frame);
 	// Increment count for if another instance is needed
 	m_data->animate(key, m_instanceCount++);
 }

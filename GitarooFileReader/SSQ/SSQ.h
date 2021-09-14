@@ -55,7 +55,7 @@ public:
 
 	void update();
 	glm::mat4 getViewMatrix() const;
-	glm::mat4 getProjectionMatrix() const;
+	glm::mat4 getProjectionMatrix(unsigned int width, unsigned int height) const;
 	glm::vec4 getClearColor() const;
 	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents);
 	static void setFrame(float frame);

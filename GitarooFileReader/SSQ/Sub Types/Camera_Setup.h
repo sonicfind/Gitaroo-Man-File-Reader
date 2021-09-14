@@ -92,7 +92,7 @@ public:
 	void read(FILE* inFile);
 	void create(FILE* outFile);
 	glm::vec4 getClearColor(const float frame) const;
-	glm::mat4 getProjectionMatrix(const float frame) const;
+	glm::mat4 getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const;
 	glm::mat4 getViewMatrix(const float frame) const;
 	glm::vec3 getAmbientColor(const float frame) const;
 	bool getLightSettings(const size_t index, const float frame, glm::vec3& direction, glm::vec3& diffuse, glm::vec3& specular) const;

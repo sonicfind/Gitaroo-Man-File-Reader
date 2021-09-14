@@ -130,20 +130,20 @@ glm::vec4 CameraSetup::getClearColor(const float frame) const
 	return m_baseGlobalValues.m_clearColor;
 }
 
-glm::mat4 CameraSetup::getProjectionMatrix(const float frame) const
+glm::mat4 CameraSetup::getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const
 {
 	if (m_projections.empty())
-		return glm::perspective(m_baseGlobalValues.m_fov, m_baseGlobalValues.m_aspectRatio, m_baseGlobalValues.m_zNear, m_baseGlobalValues.m_zFar);
+		return glm::perspective(glm::radians(m_baseGlobalValues.m_fov), float(width) / height, m_baseGlobalValues.m_zNear, m_baseGlobalValues.m_zFar);
 	else
 	{
 		auto iter = getIter(m_projections, frame);
 		if (!iter->m_doInterpolation || iter + 1 == m_projections.end())
-			return glm::perspective(iter->m_fov, iter->m_aspectRatio, iter->m_zNear, iter->m_zFar);
+			return glm::perspective(glm::radians(iter->m_fov), iter->m_aspectRatio, iter->m_zNear, iter->m_zFar);
 		else
 		{
 			const float coefficient = (frame - iter->m_frame) * iter->m_coefficient;
-			return glm::perspective(mixFloat(iter->m_fov, (iter + 1)->m_fov, coefficient),
-									mixFloat(iter->m_aspectRatio, (iter + 1)->m_aspectRatio, coefficient),
+			return glm::perspective(glm::radians(mixFloat(iter->m_fov, (iter + 1)->m_fov, coefficient)),
+									float(width) / height,
 									mixFloat(iter->m_zNear, (iter + 1)->m_zNear, coefficient),
 									mixFloat(iter->m_zFar, (iter + 1)->m_zFar, coefficient));
 		}

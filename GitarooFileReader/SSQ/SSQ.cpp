@@ -183,9 +183,9 @@ glm::mat4 SSQ::getViewMatrix() const
 	return m_camera.getViewMatrix(s_frame);
 }
 
-glm::mat4 SSQ::getProjectionMatrix() const
+glm::mat4 SSQ::getProjectionMatrix(unsigned int width, unsigned int height) const
 {
-	return m_camera.getProjectionMatrix(s_frame);
+	return m_camera.getProjectionMatrix(s_frame, width, height);
 }
 
 glm::vec4 SSQ::getClearColor() const

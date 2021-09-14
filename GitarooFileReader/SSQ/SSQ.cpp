@@ -22,7 +22,7 @@ float mixFloat(const float a, const float b, const float coefficient)
 	return a + (b - a) * coefficient;
 }
 
-void fixRotations(std::vector<Rotation>& rotations)
+void flipHand(std::vector<Rotation>& rotations)
 {
 	float tmp;
 	for (auto& rot : rotations)

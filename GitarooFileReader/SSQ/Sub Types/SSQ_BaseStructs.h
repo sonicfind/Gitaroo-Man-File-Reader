@@ -55,4 +55,4 @@ auto getIter(const std::vector<T>& vect, const float time)
 }
 
 float mixFloat(const float a, const float b, const float coefficient);
-void fixRotations(std::vector<Rotation>& rotations);
+void flipHand(std::vector<Rotation>& rotations);

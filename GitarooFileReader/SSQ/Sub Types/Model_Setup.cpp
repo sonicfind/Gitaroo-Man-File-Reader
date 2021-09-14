@@ -42,7 +42,7 @@ ModelSetup::ModelSetup(FILE* inFile, char(&name)[16])
 
 	m_rotations.resize(numRotations);
 	fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
-	fixRotations(m_rotations);
+	flipHand(m_rotations);
 
 	unsigned long numAnimations;
 	fread(&numAnimations, 4, 1, inFile);
@@ -83,7 +83,7 @@ void ModelSetup::create(FILE* outFile) const
 	fwrite(&numRotations, 4, 1, outFile);
 	fwrite(&m_positions.front(), sizeof(Position), numPositions, outFile);
 	std::vector<Rotation> tmp = m_rotations;
-	fixRotations(tmp);
+	flipHand(tmp);
 	fwrite(&tmp.front(), sizeof(Rotation), numRotations, outFile);
 
 	unsigned long size = (unsigned long)m_animations.size();

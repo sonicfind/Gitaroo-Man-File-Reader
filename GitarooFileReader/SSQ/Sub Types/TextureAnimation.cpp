@@ -121,5 +121,7 @@ void TexAnim::substitute(const float frame)
 			(unsigned long)roundf(cut.m_bottomRight.y - cut.m_topLeft.y),
 			m_imxPtr->m_data->hasAlpha() ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
 			cut.m_subImage);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }

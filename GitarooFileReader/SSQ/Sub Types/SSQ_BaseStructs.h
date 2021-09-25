@@ -54,5 +54,10 @@ auto getIter(const std::vector<T>& vect, const float time)
 	return iter;
 }
 
-float mixFloat(const float a, const float b, const float coefficient);
+template <typename T>
+T mix(const T a, const T b, const float coefficient)
+{
+	return T(a + (b - a) * coefficient);
+}
+
 void flipHand(std::vector<Rotation>& rotations);

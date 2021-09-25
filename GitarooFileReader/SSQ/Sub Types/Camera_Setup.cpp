@@ -147,10 +147,10 @@ glm::mat4 CameraSetup::getProjectionMatrix(const float frame, unsigned int width
 		else
 		{
 			const float coefficient = (frame - iter->m_frame) * iter->m_coefficient;
-			return glm::perspective(glm::radians(mixFloat(iter->m_fov, (iter + 1)->m_fov, coefficient)),
+			return glm::perspective(glm::radians(mix(iter->m_fov, (iter + 1)->m_fov, coefficient)),
 									float(width) / height,
-									mixFloat(iter->m_zNear, (iter + 1)->m_zNear, coefficient),
-									mixFloat(iter->m_zFar, (iter + 1)->m_zFar, coefficient));
+									mix(iter->m_zNear, (iter + 1)->m_zNear, coefficient),
+									mix(iter->m_zFar, (iter + 1)->m_zFar, coefficient));
 		}
 	}
 }

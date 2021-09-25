@@ -17,11 +17,6 @@
 #include "SSQ.h"
 #include "XGM/Viewer/Viewer.h"
 using namespace GlobalFunctions;
-float mixFloat(const float a, const float b, const float coefficient)
-{
-	return a + (b - a) * coefficient;
-}
-
 void flipHand(std::vector<Rotation>& rotations)
 {
 	float tmp;

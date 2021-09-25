@@ -24,7 +24,7 @@ AspectRatioMode Viewer::s_aspectRatio = AspectRatioMode::Widescreen;
 unsigned int Viewer::s_screenWidth = 1280;
 unsigned int Viewer::s_screenHeight = 720;
 
-Viewer::Viewer()
+Viewer::Viewer(const char* windowName)
 	: m_previous(0)
 	, m_isPaused(false)
 	, m_showNormals(false)
@@ -35,7 +35,7 @@ Viewer::Viewer()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	m_window = glfwCreateWindow(s_screenWidth, s_screenHeight, "XG Viewer", NULL, NULL);
+	m_window = glfwCreateWindow(s_screenWidth, s_screenHeight, windowName, NULL, NULL);
 	if (!m_window)
 	{
 		glfwTerminate();
@@ -109,7 +109,6 @@ Viewer::~Viewer()
 }
 
 Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
-	: m_showAnimation(true)
 	, m_lightPos(0, 100, 100)
 	, m_lightAmbient(.5, .5, .5)
 	, m_lightDiffuse(1, 1, 1)
@@ -117,6 +116,8 @@ Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
 	, m_lightConstant(1.0f)
 	, m_lightLinear(0.007f)
 	, m_lightQuadratic(0.0002f)
+	: Viewer("XG Viewer")
+	, m_showAnimation(true)
 {
 	for (auto model : models)
 		m_models.emplace_back(model);
@@ -148,7 +149,8 @@ Viewer_XGM::~Viewer_XGM()
 float Viewer_SSQ::s_startFrame = 0;
 
 Viewer_SSQ::Viewer_SSQ(SSQ* ssq)
-	: m_ssq(ssq)
+	: Viewer("SSQ Viewer")
+	, m_ssq(ssq)
 	, m_hasFreeMovement(false)
 {
 	ssq->loadbuffers();

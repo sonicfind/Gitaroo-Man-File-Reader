@@ -43,10 +43,8 @@ protected:
 	bool m_isMouseActive;
 	glm::mat4 m_view;
 
-	std::list<Model> m_models;
-
 public:
-	Viewer();
+	Viewer(const char* windowName);
 	virtual ~Viewer();
 	int view();
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);

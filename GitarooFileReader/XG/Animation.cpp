@@ -78,15 +78,8 @@ const float Animation::getTotalTime() const
 
 const float Animation::getTime(const float numSeconds) const
 {
-	float numKeys;
 	if (m_non_tempo)
-		numKeys = numSeconds * m_framerate / (2 * m_keyframe_interval);
+		return numSeconds * m_framerate / (2 * m_keyframe_interval) + m_starting_keyframe;
 	else
-		numKeys = numSeconds * (2 * s_tempo) / (15 * m_keyframe_interval);
-
-	const float totalKeys = m_length / m_keyframe_interval;
-	while (numKeys >= totalKeys)
-		numKeys -= totalKeys;
-
-	return numKeys + m_starting_keyframe;
+		return numSeconds * (2 * s_tempo) / (15 * m_keyframe_interval) + m_starting_keyframe;
 }

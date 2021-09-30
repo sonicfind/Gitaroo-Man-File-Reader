@@ -99,8 +99,11 @@ void TexAnim::unloadCuts()
 
 	for (auto& cut : m_cutOuts)
 	{
-		const size_t size = (size_t)roundf(m_bytesPerPixel * (cut.m_bottomRight.x - cut.m_topLeft.x)) * (size_t)roundf(cut.m_bottomRight.y - cut.m_topLeft.y);
-		delete[size] cut.m_subImage;
+		if (cut.m_subImage)
+		{
+			const size_t size = (size_t)roundf(m_bytesPerPixel * (cut.m_bottomRight.x - cut.m_topLeft.x)) * (size_t)roundf(cut.m_bottomRight.y - cut.m_topLeft.y);
+			delete[size] cut.m_subImage;
+		}
 	}
 }
 
@@ -115,13 +118,16 @@ void TexAnim::substitute(const float frame)
 	{
 		m_cutOutIndex = iter->m_cutOutIndex;
 		const auto& cut = m_cutOuts[m_cutOutIndex];
-		m_imxPtr->m_data->bindTexture();
-		glTexSubImage2D(GL_TEXTURE_2D, 0, m_offset.x, m_offset.y,
-			(unsigned long)roundf(cut.m_bottomRight.x - cut.m_topLeft.x),
-			(unsigned long)roundf(cut.m_bottomRight.y - cut.m_topLeft.y),
-			m_imxPtr->m_data->hasAlpha() ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
-			cut.m_subImage);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		if (cut.m_subImage)
+		{
+			m_imxPtr->m_data->bindTexture();
+			glTexSubImage2D(GL_TEXTURE_2D, 0, m_offset.x, m_offset.y,
+				(unsigned long)roundf(cut.m_bottomRight.x - cut.m_topLeft.x),
+				(unsigned long)roundf(cut.m_bottomRight.y - cut.m_topLeft.y),
+				m_imxPtr->m_data->hasAlpha() ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
+				cut.m_subImage);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
 	}
 }

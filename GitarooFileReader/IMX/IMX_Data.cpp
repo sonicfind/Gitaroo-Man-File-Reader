@@ -82,6 +82,9 @@ bool IMX_Data::hasAlpha() const
 
 unsigned char* IMX_Data::getSubImage(unsigned long bytes_per_pixel, float topLeft_X, float topLeft_Y, float bottomRight_X, float bottomRight_Y) const
 {
+	if (topLeft_X < 0 || m_width < bottomRight_X || topLeft_Y < 0 || m_height < bottomRight_Y)
+		return nullptr;
+
 	const size_t width = (size_t)roundf(bytes_per_pixel * (bottomRight_X - topLeft_X));
 	const size_t height = (size_t)roundf(bottomRight_Y - topLeft_Y);
 	unsigned char* subImage = new unsigned char[width * height];

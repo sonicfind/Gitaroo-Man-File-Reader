@@ -58,8 +58,6 @@ Viewer::Viewer(const char* windowName)
 	glEnable(GL_DEPTH_TEST);
 
 	glFrontFace(GL_CW);
-	// Enable color blending
-	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -400,10 +398,14 @@ void Viewer_XGM::draw()
 	glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Disable color blending
+	glDisable(GL_BLEND);
 	// Draw opaque meshes
 	for (auto& model : m_models)
 		model.draw(m_view, m_showNormals, false, m_showAnimation);
 
+	// Enable color blending
+	glEnable(GL_BLEND);
 	// Draw transparent meshes
 	for (auto& model : m_models)
 		model.draw(m_view, m_showNormals, true, m_showAnimation);
@@ -505,8 +507,12 @@ void Viewer_SSQ::draw()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Draw opaque meshes
+	// Disable color blending
+	glDisable(GL_BLEND);
 	m_ssq->draw(m_view, m_showNormals, false);
 	// Draw transparent meshes
+	// Enable color blending
+	glEnable(GL_BLEND);
 	m_ssq->draw(m_view, m_showNormals, true);
 	glBindVertexArray(0);
 }

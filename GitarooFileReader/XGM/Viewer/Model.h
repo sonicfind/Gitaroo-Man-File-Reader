@@ -23,8 +23,6 @@ class Model
 	float m_length;
 	static bool s_isLooping;
 	static float s_currentFrame;
-	// Necessary to flip the z value of all coordinates
-	static const glm::mat4 s_model;
 
 public:
 	Model(XG* xg);

@@ -17,8 +17,6 @@
 #include "Global_Functions.h"
 bool Model::s_isLooping = false;
 float Model::s_currentFrame = 0;
-// Necessary to flip the z value of all coordinates
-const glm::mat4 Model::s_model(1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1);
 
 Model::Model(XG* xg)
 	: m_xg(xg)
@@ -113,7 +111,9 @@ void Model::resetModel()
 // Draws all vertex data to the current framebuffer
 void Model::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
-	m_xg->draw(view, &s_model, showNormals, doTransparents, isAnimated);
+	// Necessary to flip the z value of all coordinates
+	static const glm::mat4 model(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1);
+	m_xg->draw(view, &model, showNormals, doTransparents, isAnimated);
 }
 
 void Model::resetTime()

@@ -14,9 +14,11 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "xgBone.h"
+constexpr int MAX_INSTANCES = 32;
+constexpr int MAX_BONES = 4;
 struct Weight
 {
-	float values[4];
+	float values[MAX_BONES];
 };
 
 class xgBgGeometry;
@@ -28,8 +30,7 @@ class xgEnvelope : public XGNode
 	std::vector<SharedNode<xgBone>> m_inputMatrices;
 	SharedNode<xgBgGeometry> m_inputGeometry;
 
-	// Max number of instances * Max number of bones
-	glm::mat4 m_matrices[32][4];
+	glm::mat4 m_matrices[MAX_INSTANCES][MAX_BONES];
 	static unsigned int s_BoneSSBU;
 public:
 	using XGNode::XGNode;

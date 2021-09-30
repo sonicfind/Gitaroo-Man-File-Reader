@@ -15,7 +15,6 @@
 #include "pch.h"
 #include "Dag.h"
 Dag::Dag(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList, bool isRootBranch)
-	: m_matrix(glm::identity<glm::mat4>())
 {
 	PString pstr(inFile);
 	if (pstr.m_pstring[0] == '}' || pstr.m_pstring[0] == ']')
@@ -126,7 +125,7 @@ void Dag::animate(unsigned long instance)
 		mesh->animate(instance);
 	else
 	{
-		m_matrix = m_base.get<xgDagTransform>()->getModelMatrix();
+		m_matrices[instance] = m_base.get<xgDagTransform>()->getModelMatrix();
 		for (auto& dag : m_connected)
 			dag.animate(instance);
 	}
@@ -141,9 +140,8 @@ void Dag::draw(const glm::mat4 view, const glm::mat4* models, const unsigned lon
 		glm::mat4* transforms = new glm::mat4[numInstances];
 		if (isAnimated)
 		{
-			const glm::mat4 transform = m_base.get<xgDagTransform>()->getModelMatrix();
 			for (size_t i = 0; i < numInstances; ++i)
-				transforms[i] = models[i] * transform;
+				transforms[i] = models[i] * m_matrices[i];
 		}
 		else
 			memcpy(transforms, models, sizeof(glm::mat4) * numInstances);

@@ -20,7 +20,7 @@ class Dag
 	SharedNode<DagNode> m_base;
 	std::vector<Dag> m_connected;
 
-	glm::mat4 m_matrix;
+	glm::mat4 m_matrices[MAX_INSTANCES];
 public:
 	Dag(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList, bool isRootBranch = false);
 	void create(FILE* outFile, bool isRootBranch = false) const;

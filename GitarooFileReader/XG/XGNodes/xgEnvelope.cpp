@@ -207,5 +207,5 @@ void xgEnvelope::updateBoneMatrices(unsigned long envIndex, const size_t numInst
 	const unsigned numBones = (unsigned)m_inputMatrices.size();
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, sizeof(int), &numBones);
 	offset += sizeof(glm::vec4);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, numInstances * 4 * sizeof(glm::mat4), glm::value_ptr(m_matrices[0][0]));
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, numInstances * MAX_BONES * sizeof(glm::mat4), glm::value_ptr(m_matrices[0][0]));
 }

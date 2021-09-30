@@ -209,9 +209,6 @@ void xgDagMesh::draw(const glm::mat4 view, const glm::mat4* models, const unsign
 
 		ShaderCombo* active = m_inputGeometry->activateShader();
 		m_inputMaterial->setShaderValues(&active->m_base);
-		active->m_base.setVec3("lightPosition", glm::value_ptr(g_camera.m_position));
-		active->m_base.setVec3("viewPos", glm::value_ptr(g_camera.m_position));
-
 		active->m_base.setMat4("models[0]", (float*)models, numInstances);
 		active->m_base.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
 

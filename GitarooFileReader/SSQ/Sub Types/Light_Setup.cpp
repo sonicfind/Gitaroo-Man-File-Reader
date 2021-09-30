@@ -76,6 +76,20 @@ void LightSetup::create(FILE* outFile)
 		fwrite(&m_colors.front(), sizeof(LightColors), numColors, outFile);
 }
 
+LightSetup::LightForBuffer LightSetup::getLight(const float frame) const
+{
+	const LightColors colors = getColors(frame);
+	return
+	{
+		glm::vec4(getDirection(frame), 1),
+		glm::vec4(colors.m_diffuse, 0),
+		colors.m_specular, // Due to std140 padding rules, this can stay as a vec3
+		colors.m_min / 255.0f,
+		colors.m_specular_coeff_maybe,
+		colors.m_max / 255.0f,
+	};
+}
+
 glm::vec3 LightSetup::getDirection(const float frame) const
 {
 	// The actual direction of the light can not yet be determined at this point,
@@ -84,33 +98,52 @@ glm::vec3 LightSetup::getDirection(const float frame) const
 		return glm::rotate(m_baseValues.m_rotation, glm::vec3(0, 0, -1));
 	else
 	{
-		auto iter = getIter(m_rotations, frame);
+		auto iter = m_rotations.begin();
+
+		while (iter + 1 != m_rotations.end() && (iter + 2)->m_frame < frame)
+			iter += 2;
+
 		if (!iter->m_doInterpolation || iter + 1 == m_rotations.end())
 			return glm::rotate(iter->m_rotation, glm::vec3(0, 0, -1));
 		else
-			return glm::rotate(glm::slerp(iter->m_rotation, (iter + 1)->m_rotation, (frame - iter->m_frame) * iter->m_coefficient), glm::vec3(0, 0, -1));
+			return glm::rotate(glm::slerp(iter->m_rotation,
+										 (iter + 1)->m_rotation,
+										 (frame - iter->m_frame) / ((iter + 2)->m_frame - iter->m_frame)),
+										glm::vec3(0, 0, -1));
 	}
 }
 
-void LightSetup::getColors(const float frame, glm::vec3& diffuse, glm::vec3& specular) const
+LightSetup::LightColors LightSetup::getColors(const float frame) const
 {
+	LightColors colors{};
 	if (m_colors.empty())
 	{
-		diffuse = m_baseValues.m_diffuse;
-		specular = m_baseValues.m_specular;
+		colors.m_diffuse = m_baseValues.m_diffuse;
+		colors.m_specular = m_baseValues.m_specular;
+		colors.m_min = 0;
+		colors.m_specular_coeff_maybe = 1;
+		colors.m_max = 255;
 	}
 	else
 	{
 		auto iter = getIter(m_colors, frame);
 		if (!iter->m_doInterpolation || iter + 1 == m_colors.end())
 		{
-			diffuse = iter->m_diffuse;
-			specular = iter->m_specular;
+			colors.m_diffuse = iter->m_diffuse;
+			colors.m_specular = iter->m_specular;
+			colors.m_min = iter->m_min;
+			colors.m_specular_coeff_maybe = iter->m_specular_coeff_maybe;
+			colors.m_max = iter->m_max;
 		}
 		else
 		{
-			diffuse = glm::mix(iter->m_diffuse, (iter + 1)->m_diffuse, (frame - iter->m_frame) * iter->m_coefficient);
-			specular = glm::mix(iter->m_specular, (iter + 1)->m_specular, (frame - iter->m_frame) * iter->m_coefficient);
+			const float coefficient = (frame - iter->m_frame) * iter->m_coefficient;
+			colors.m_diffuse = glm::mix(iter->m_diffuse, (iter + 1)->m_diffuse, coefficient);
+			colors.m_specular = glm::mix(iter->m_specular, (iter + 1)->m_specular, coefficient);
+			colors.m_min = mix(iter->m_min, (iter + 1)->m_min, coefficient);
+			colors.m_specular_coeff_maybe = mix(iter->m_specular_coeff_maybe, (iter + 1)->m_specular_coeff_maybe, coefficient);
+			colors.m_max = mix(iter->m_max, (iter + 1)->m_max, coefficient);
 		}
 	}
+	return colors;
 }

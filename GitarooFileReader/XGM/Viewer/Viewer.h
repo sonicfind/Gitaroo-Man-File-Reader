@@ -33,9 +33,10 @@ protected:
 	static unsigned int s_screenHeight;
 
 	GLFWwindow* m_window;
-	unsigned int m_lightUBO;
 	unsigned int m_viewUBO;
 	unsigned int m_projectionUBO;
+
+	unsigned int m_useLights;
 
 	float m_previous;
 	bool m_isPaused;
@@ -63,16 +64,9 @@ protected:
 
 class Viewer_XGM : public Viewer
 {
+	unsigned int m_lightUBO;
+
 	bool m_showAnimation;
-
-	glm::vec3 m_lightPos;
-	glm::vec3 m_lightAmbient;
-	glm::vec3 m_lightDiffuse;
-	glm::vec3 m_lightSpecular;
-	float m_lightConstant;
-	float m_lightLinear;
-	float m_lightQuadratic;
-
 	std::list<Model> m_models;
 public:
 	Viewer_XGM(const std::vector<XG*>& models);

@@ -88,14 +88,19 @@ private:
 	std::vector<LightSetup> m_lights;
 	std::vector<Struct64_7f> m_64bytes_v;
 
+
+	unsigned int m_lightUBO = 0;
+
 public:
 	void read(FILE* inFile);
 	void create(FILE* outFile);
 	float getLastFrame() const;
 
+	void generateLightBuffer();
+	void deleteLightBuffer();
 	glm::vec4 getClearColor(const float frame) const;
 	glm::mat4 getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const;
 	glm::mat4 getViewMatrix(const float frame) const;
 	glm::vec3 getAmbientColor(const float frame) const;
-	bool getLightSettings(const size_t index, const float frame, glm::vec3& direction, glm::vec3& diffuse, glm::vec3& specular) const;
+	void setLights(const float frame, const unsigned int doLights);
 };

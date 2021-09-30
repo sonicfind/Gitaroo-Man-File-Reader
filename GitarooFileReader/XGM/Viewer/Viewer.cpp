@@ -28,6 +28,7 @@ Viewer::Viewer(const char* windowName)
 	: m_previous(0)
 	, m_isPaused(false)
 	, m_showNormals(false)
+	, m_useLights(1)
 	, m_view(glm::identity<glm::mat4>())
 {
 	glfwInit();
@@ -82,16 +83,6 @@ Viewer::Viewer(const char* windowName)
 	g_boneShaders.bindUniformBlock(2, "Projection");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_projectionUBO);
-
-	// Generate light structure uniform
-	glGenBuffers(1, &m_lightUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 56, NULL, GL_STATIC_DRAW);
-
-	g_shaders.m_base.bindUniformBlock(3, "Lights");
-	g_boneShaders.m_base.bindUniformBlock(3, "Lights");
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	xgEnvelope::generateBoneUniform();
@@ -109,28 +100,42 @@ Viewer::~Viewer()
 }
 
 Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
-	, m_lightPos(0, 100, 100)
-	, m_lightAmbient(.5, .5, .5)
-	, m_lightDiffuse(1, 1, 1)
-	, m_lightSpecular(.5, .5, .5)
-	, m_lightConstant(1.0f)
-	, m_lightLinear(0.007f)
-	, m_lightQuadratic(0.0002f)
 	: Viewer("XG Viewer")
 	, m_showAnimation(true)
 {
 	for (auto model : models)
 		m_models.emplace_back(model);
 
-	// Set light values
+	// Generate light structure uniform
+	glGenBuffers(1, &m_lightUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 112, NULL, GL_STATIC_DRAW);
 
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, glm::value_ptr(m_lightAmbient));
-	glBufferSubData(GL_UNIFORM_BUFFER, 16, 4, glm::value_ptr(m_lightDiffuse));
-	glBufferSubData(GL_UNIFORM_BUFFER, 32, 4, glm::value_ptr(m_lightSpecular));
-	glBufferSubData(GL_UNIFORM_BUFFER, 44, 4, &m_lightConstant);
-	glBufferSubData(GL_UNIFORM_BUFFER, 48, 4, &m_lightLinear);
-	glBufferSubData(GL_UNIFORM_BUFFER, 52, 4, &m_lightQuadratic);
+	g_shaders.m_base.bindUniformBlock(3, "Lights");
+	g_boneShaders.m_base.bindUniformBlock(3, "Lights");
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
+
+	// Set light values
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(unsigned int), &m_useLights);
+	unsigned long numLights = 1;
+	glBufferSubData(GL_UNIFORM_BUFFER, 4, sizeof(unsigned long), &numLights);
+	// Vertex Color Diffuse
+	glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(glm::vec3(0)));
+	// Stage Ambience
+	glBufferSubData(GL_UNIFORM_BUFFER, 48, sizeof(glm::vec3), glm::value_ptr(glm::vec3(59.0f / 255, 62.0f / 255, 66.0f / 255)));
+	// Light Direction
+	glBufferSubData(GL_UNIFORM_BUFFER, 64, 12, glm::value_ptr(glm::vec3(0, 0, -1)));
+	// Light Diffuse
+	glBufferSubData(GL_UNIFORM_BUFFER, 80, 12, glm::value_ptr(glm::vec3(0)));
+	// Light Specular
+	glBufferSubData(GL_UNIFORM_BUFFER, 96, 12, glm::value_ptr(glm::vec3(.5)));
+	unsigned long min = 0;
+	glBufferSubData(GL_UNIFORM_BUFFER, 108, 4, &min);
+	float coeff = 1;
+	glBufferSubData(GL_UNIFORM_BUFFER, 112, 4, &coeff);
+	unsigned long max = 1;
+	glBufferSubData(GL_UNIFORM_BUFFER, 116, 4, &max);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -369,6 +374,14 @@ void Viewer_XGM::update(float current)
 		}
 	}
 
+	if (InputHandling::g_input_keyboard.KEY_U.isPressed())
+	{
+		m_useLights = m_useLights ? 0 : 1;
+		glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, 1, &m_useLights);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
+
 	// Update view matrix buffer
 	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
 	m_view = g_camera.getViewMatrix();
@@ -445,21 +458,21 @@ void Viewer_SSQ::update(float current)
 			GlobalFunctions::printf_tab("%g\n", m_ssq->getFrame());
 	}
 
+	if (InputHandling::g_input_keyboard.KEY_U.isPressed())
+		m_useLights = m_useLights ? 0 : 1;
+
 	if (InputHandling::g_input_keyboard.KEY_R.isHeld())
 	{
-		m_ssq->update();
 		m_ssq->setToStart();
+		m_ssq->update(m_useLights);
 	}
 	// Animates model data as normal
 	else if (!m_isPaused)
 	{
 		// Update animations, obviously
-		m_ssq->update();
 		m_ssq->adjustFrame(current - m_previous);
+		m_ssq->update(m_useLights);
 	}
-
-	// Update view matrix buffer
-	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
 
 	if (m_hasFreeMovement)
 	{
@@ -469,6 +482,8 @@ void Viewer_SSQ::update(float current)
 	else
 		m_view = m_ssq->getViewMatrix();
 
+	// Update view matrix buffer
+	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(m_view));
 
 	// Update projection matrix buffer

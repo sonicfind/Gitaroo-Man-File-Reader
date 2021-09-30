@@ -48,16 +48,29 @@ class LightSetup
 		glm::vec3 m_diffuse;
 		glm::vec3 m_specular;
 		unsigned long m_doInterpolation;
-		unsigned long ulong_b;
-		float float_a;
-		unsigned long ulong_d;
+		unsigned long m_min;
+		float m_specular_coeff_maybe;
+		unsigned long m_max;
 	};
 
 	std::vector<LightColors> m_colors;
 
 public:
+	struct LightForBuffer
+	{
+		glm::vec4 m_direction;
+		glm::vec4 m_diffuse;
+		glm::vec3 m_specular;
+		float m_min;
+		float m_specular_coeff_maybe;
+		float m_max;
+		// Padding
+		unsigned long :32, :32;
+	};
 	LightSetup(FILE* inFile);
 	void create(FILE* outFile);
+	LightForBuffer getLight(const float frame) const;
+private:
 	glm::vec3 getDirection(const float frame) const;
-	void getColors(const float frame, glm::vec3& diffuse, glm::vec3& specular) const;
+	LightColors getColors(const float frame) const;
 };

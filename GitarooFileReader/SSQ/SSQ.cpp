@@ -308,6 +308,7 @@ void SSQ::loadbuffers()
 		if (!m_XGentries[i].m_isClone)
 			m_XGentries[i].m_xg->initializeViewerState();
 
+	m_camera.generateLightBuffer();
 	for (auto& texAnim : m_texAnimations)
 		texAnim.loadCuts();
 }
@@ -317,11 +318,12 @@ void SSQ::unloadBuffers()
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 		if (!m_XGentries[i].m_isClone)
 			m_XGentries[i].m_xg->uninitializeViewerState();
+	m_camera.deleteLightBuffer();
 	for (auto& texAnim : m_texAnimations)
 		texAnim.unloadCuts();
 }
 
-void SSQ::update()
+void SSQ::update(const unsigned int doLights)
 {
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 	{
@@ -344,6 +346,7 @@ void SSQ::update()
 			entry.m_isActive = 0;
 	}
 
+	m_camera.setLights(m_currFrame, doLights);
 
 	for (auto& texAnim : m_texAnimations)
 		texAnim.substitute(m_currFrame);

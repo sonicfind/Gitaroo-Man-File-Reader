@@ -85,7 +85,6 @@ Viewer::Viewer(const char* windowName)
 
 	xgEnvelope::generateBoneUniform();
 	Model::resetTime();
-	g_camera.reset();
 }
 
 Viewer::~Viewer()
@@ -241,12 +240,12 @@ void Viewer::setWidth()
 
 void Viewer::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	g_camera.turnCamera(xpos, ypos);
+	m_cameraControl.turnCamera(xpos, ypos);
 }
 
 void Viewer::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	g_camera.zoom(xoffset, yoffset);
+	m_cameraControl.zoom(xoffset, yoffset);
 }
 
 int Viewer::view()
@@ -300,12 +299,12 @@ void Viewer_XGM::update(float current)
 			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
 			glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
-			g_camera.setFirstMouse();
+			m_cameraControl.setFirstMouse();
 		}
 	}
 
 	if (m_isMouseActive)
-		g_camera.moveCamera(current - m_previous);
+		m_cameraControl.moveCamera(current - m_previous);
 
 	if (InputHandling::g_input_keyboard.KEY_L.isPressed())
 		Model::toggleLoop();
@@ -382,12 +381,12 @@ void Viewer_XGM::update(float current)
 
 	// Update view matrix buffer
 	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
-	m_view = g_camera.getViewMatrix();
+	m_view = m_cameraControl.getViewMatrix();
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(m_view));
 
 	// Update projection matrix buffer
 	glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
-	glm::mat4 projection = glm::perspective(glm::radians(g_camera.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(m_cameraControl.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
@@ -428,7 +427,7 @@ void Viewer_SSQ::update(float current)
 			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
 			glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
-			g_camera.setFirstMouse();
+			m_cameraControl.setFirstMouse();
 			m_isMouseActive = true;
 		}
 	}
@@ -446,12 +445,12 @@ void Viewer_SSQ::update(float current)
 			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
 			glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
-			g_camera.setFirstMouse();
+			m_cameraControl.setFirstMouse();
 		}
 	}
 
 	if (m_hasFreeMovement && m_isMouseActive)
-		g_camera.moveCamera(current - m_previous);
+		m_cameraControl.moveCamera(current - m_previous);
 
 	if (InputHandling::g_input_keyboard.KEY_P.isPressed())
 	{
@@ -478,7 +477,7 @@ void Viewer_SSQ::update(float current)
 
 	if (m_hasFreeMovement)
 	{
-		m_view = g_camera.getViewMatrix();
+		m_view = m_cameraControl.getViewMatrix();
 		m_view[2] *= -1.0f;
 	}
 	else
@@ -492,7 +491,7 @@ void Viewer_SSQ::update(float current)
 	glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
 
 	if (m_hasFreeMovement)
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(glm::perspective(glm::radians(g_camera.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f)));
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(glm::perspective(glm::radians(m_cameraControl.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f)));
 	else
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(m_ssq->getProjectionMatrix(s_screenWidth, s_screenHeight)));
 	

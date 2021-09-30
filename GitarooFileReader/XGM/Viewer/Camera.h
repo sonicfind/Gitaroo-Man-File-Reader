@@ -25,19 +25,17 @@ private:
 	float m_lastY;
 	float m_yaw;
 	float m_pitch;
-	float m_sens;
+	static float s_sens;
 
 public:
 	glm::vec3 m_position;
 	float m_fov;
+	static Camera* s_currentCamera;
 	
-	Camera() : m_sens(500.0f) {}
-	void reset();
+	Camera();
 	glm::mat4 getViewMatrix();
 	void setFirstMouse() { m_firstMouse = true; }
 	void moveCamera(float delta);
 	void turnCamera(double xpos, double ypos);
 	void zoom(double xoffset, double yoffset);
 };
-
-extern Camera g_camera;

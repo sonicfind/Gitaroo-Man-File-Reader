@@ -16,20 +16,21 @@
 #include "Camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 using namespace InputHandling;
+float Camera::s_sens = 500;
+Camera* Camera::s_currentCamera;
 
-Camera g_camera;
-
-void Camera::reset()
+Camera::Camera()
+	: m_position(glm::vec3(0.0f, 40.0f, 200.0f))
+	, m_front(glm::vec3(0.0f, 0.0f, 1.0f))
+	, m_up(glm::vec3(0.0f, 1.0f, 0.0f))
+	, m_yaw(89.9f)
+	, m_pitch(0.0f)
+	, m_fov(45.0f)
+	, m_firstMouse(true)
+	, m_lastX(400)
+	, m_lastY(300)
 {
-	m_position = glm::vec3(0.0f, 40.0f, 200.0f);
-	m_front = glm::vec3(0.0f, 0.0f, 1.0f);
-	m_up = glm::vec3(0.0f, 1.0f, 0.0f);
-	m_yaw = 89.9f;
-	m_pitch = 0.0f;
-	m_fov = 45.0f;
-	m_firstMouse = true;
-	m_lastX = 400;
-	m_lastY = 300;
+	s_currentCamera = this;
 }
 
 glm::mat4 Camera::getViewMatrix()
@@ -39,7 +40,7 @@ glm::mat4 Camera::getViewMatrix()
 
 void Camera::moveCamera(float delta)
 {
-	const float cameraSpeed = m_sens * delta; // adjust accordingly
+	const float cameraSpeed = s_sens * delta; // adjust accordingly
 	if (g_input_keyboard.KEY_W.isActive())
 		m_position -= cameraSpeed * m_front;
 
@@ -61,19 +62,19 @@ void Camera::moveCamera(float delta)
 	if (g_input_keyboard.KEY_UP.isActive())
 	{
 		float sensChange = 1000 * delta;
-		if (m_sens + sensChange < 100) // Overflow handling
-			m_sens = 100;
+		if (s_sens + sensChange < 100) // Overflow handling
+			s_sens = 100;
 		else
-			m_sens += sensChange;
+			s_sens += sensChange;
 	}
 
 	if (g_input_keyboard.KEY_DOWN.isActive())
 	{
 		float sensChange = 1000 * delta;
-		if (m_sens - sensChange < 100)
-			m_sens = 100;
+		if (s_sens - sensChange < 100)
+			s_sens = 100;
 		else
-			m_sens -= sensChange;
+			s_sens -= sensChange;
 	}
 }
 

@@ -13,6 +13,7 @@
  *  You should have received a copy of the GNU General Public License along with Gitaroo Man File Reader.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "Camera.h"
 #include "Model.h"
 #include "SSQ/SSQ.h"
 #include <GLFW/glfw3.h>
@@ -42,6 +43,8 @@ protected:
 	bool m_isPaused;
 	bool m_showNormals;
 	bool m_isMouseActive;
+
+	Camera m_cameraControl;
 	glm::mat4 m_view;
 
 public:

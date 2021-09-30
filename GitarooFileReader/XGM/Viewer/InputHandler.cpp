@@ -84,12 +84,12 @@ namespace InputHandling
 
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	{
-		g_camera.turnCamera(xpos, ypos);
+		Camera::s_currentCamera->turnCamera(xpos, ypos);
 	}
 
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	{
-		g_camera.zoom(xoffset, yoffset);
+		Camera::s_currentCamera->zoom(xoffset, yoffset);
 	}
 
 	void resetInputs()

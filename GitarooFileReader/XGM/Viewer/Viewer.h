@@ -88,14 +88,9 @@ class Viewer_SSQ : public Viewer
 	SSQ* m_ssq;
 	bool m_hasFreeMovement;
 
-	static float s_startFrame;
-
 public:
 	Viewer_SSQ(SSQ* ssq);
 	~Viewer_SSQ();
-
-	static bool changeStartFrame();
-	static float getStartFrame();
 
 private:
 	void update(float current);

@@ -24,9 +24,10 @@
 class SSQ
 	: public FileType
 {
-	static float s_frame;
 	unsigned long m_headerVersion;
-	char m_unk[12] = { 0 };
+	float m_startFrame;
+	float m_endFrame;
+	float m_currFrame;
 	Val m_junk[4] = { 0 };
 	std::vector<glm::mat4> m_modelMatrices;
 	std::vector<IMXEntry> m_IMXentries;
@@ -37,6 +38,9 @@ class SSQ
 	std::vector<TexAnim> m_texAnimations;
 	PSetup m_pSetup;
 	std::unique_ptr<XGM> m_xgm;
+
+	bool changeStartFrame();
+	bool changeEndFrame();
 
 public:
 	SSQ();
@@ -61,7 +65,7 @@ public:
 	glm::mat4 getProjectionMatrix(unsigned int width, unsigned int height) const;
 	glm::vec4 getClearColor() const;
 	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents);
-	static void setFrame(float frame);
-	static void adjustFrame(float delta);
-	static float getFrame();
+	void setToStart();
+	void adjustFrame(float delta);
+	float getFrame();
 };

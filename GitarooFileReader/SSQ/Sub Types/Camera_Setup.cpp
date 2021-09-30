@@ -129,6 +129,11 @@ void CameraSetup::create(FILE* outFile)
 	}
 }
 
+float CameraSetup::getLastFrame() const
+{
+	return m_positions.back().m_frame;
+}
+
 glm::vec4 CameraSetup::getClearColor(const float frame) const
 {
 	// Temporary as I am so sure that something must control the clear color mid-stage

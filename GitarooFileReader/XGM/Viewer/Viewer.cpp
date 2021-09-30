@@ -146,16 +146,12 @@ Viewer_XGM::~Viewer_XGM()
 	Model::resetTime();
 }
 
-float Viewer_SSQ::s_startFrame = 0;
-
 Viewer_SSQ::Viewer_SSQ(SSQ* ssq)
 	: Viewer("SSQ Viewer")
 	, m_ssq(ssq)
 	, m_hasFreeMovement(false)
 {
 	ssq->loadbuffers();
-
-	SSQ::setFrame(s_startFrame);
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	glfwSetCursorPosCallback(m_window, NULL);
 	glfwSetScrollCallback(m_window, NULL);
@@ -238,37 +234,6 @@ void Viewer::setWidth()
 	case AspectRatioMode::UltraWide:
 		s_screenWidth = (unsigned int)round((21.0 * s_screenHeight) / 9);
 	}
-}
-
-bool Viewer_SSQ::changeStartFrame()
-{
-	while (true)
-	{
-		GlobalFunctions::printf_tab("Current Starting Fame: %g ['B' to leave unchanged]\n", s_startFrame);
-		GlobalFunctions::printf_tab("Input: ");
-		switch (GlobalFunctions::valueInsert(s_startFrame, false, "b"))
-		{
-		case GlobalFunctions::ResultType::Quit:
-			return true;
-		case GlobalFunctions::ResultType::Success:
-		case GlobalFunctions::ResultType::SpecialCase:
-			return false;
-		case GlobalFunctions::ResultType::InvalidNegative:
-			GlobalFunctions::printf_tab("Value must be positive.\n");
-			GlobalFunctions::printf_tab("\n");
-			GlobalFunctions::clearIn();
-			break;
-		case GlobalFunctions::ResultType::Failed:
-			GlobalFunctions::printf_tab("\"%s\" is not a valid response.\n", g_global.invalid.c_str());
-			GlobalFunctions::printf_tab("\n");
-			GlobalFunctions::clearIn();
-		}
-	}
-}
-
-float Viewer_SSQ::getStartFrame()
-{
-	return s_startFrame;
 }
 
 void Viewer::mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -477,20 +442,20 @@ void Viewer_SSQ::update(float current)
 	{
 		m_isPaused = !m_isPaused;
 		if (m_isPaused)
-			GlobalFunctions::printf_tab("%g\n",SSQ::getFrame());
+			GlobalFunctions::printf_tab("%g\n", m_ssq->getFrame());
 	}
 
 	if (InputHandling::g_input_keyboard.KEY_R.isHeld())
 	{
-		SSQ::setFrame(s_startFrame);
 		m_ssq->update();
+		m_ssq->setToStart();
 	}
 	// Animates model data as normal
 	else if (!m_isPaused)
 	{
 		// Update animations, obviously
-		SSQ::adjustFrame(current - m_previous);
 		m_ssq->update();
+		m_ssq->adjustFrame(current - m_previous);
 	}
 
 	// Update view matrix buffer

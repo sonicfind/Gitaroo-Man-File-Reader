@@ -28,8 +28,6 @@ void flipHand(std::vector<Rotation>& rotations)
 	}
 }
 
-float SSQ::s_frame = 0;
-
 SSQ::SSQ() : FileType(".SSQ") {}
 
 SSQ::SSQ(std::string filename, bool unused)
@@ -45,7 +43,9 @@ SSQ::SSQ(std::string filename, bool unused)
 	}
 
 	fread(&m_headerVersion, 4, 1, m_filePtr);
-	fread(m_unk, 1, 12, m_filePtr);
+	fread(&m_startFrame, 4, 1, m_filePtr);
+	fread(&m_endFrame, 4, 1, m_filePtr);
+	fread(&m_currFrame, 4, 1, m_filePtr);
 	fread(m_junk, 1, 16, m_filePtr);
 
 	unsigned long numMatrices = 0;
@@ -89,6 +89,7 @@ SSQ::SSQ(std::string filename, bool unused)
 	}
 
 	m_camera.read(m_filePtr);
+	m_endFrame = m_camera.getLastFrame();
 
 	m_sprites.read(m_filePtr);
 
@@ -123,7 +124,8 @@ bool SSQ::create(std::string filename)
 		// Block Tag
 		fprintf(m_filePtr, "GMSX");
 		fwrite(&m_headerVersion, 4, 1, m_filePtr);
-		fwrite(m_unk, 1, 12, m_filePtr);
+		unsigned long zero[3] = { 0 };
+		fwrite(zero, sizeof(unsigned long), 3, m_filePtr);
 		fwrite(m_junk, 1, 16, m_filePtr);
 
 		unsigned long size = (unsigned long)m_modelSetups.size();
@@ -174,9 +176,10 @@ bool SSQ::viewSequence()
 		printf_tab("B - Change BPM for tempo-base animations: %g\n", Animation::getTempo());
 		printf_tab("A - Switch aspect ratio: %s\n", Viewer::getAspectRatioString().c_str());
 		printf_tab("H - Change viewer resolution, Height: %u\n", Viewer::getScreenHeight());
-		printf_tab("F - Change Starting Frame: %g\n", Viewer_SSQ::getStartFrame());
+		printf_tab("S - Change Starting Frame: %g\n", m_startFrame);
+		printf_tab("E - Change Ending Frame: %g\n", m_endFrame);
 		printf_tab("? - Show list of controls\n");
-		switch (menuChoices("vbahf"))
+		switch (menuChoices("vbahse"))
 		{
 		case ResultType::Help:
 			printf_tab("\n");
@@ -226,16 +229,81 @@ bool SSQ::viewSequence()
 				if (Viewer::changeHeight())
 					return true;
 				break;
-			case 'f':
-				if (Viewer_SSQ::changeStartFrame())
+			case 's':
+				if (changeStartFrame())
+					return true;
+				break;
+			case 'e':
+				if (changeEndFrame())
 					return true;
 			}
 		}
 	}
 }
 
+bool SSQ::changeStartFrame()
+{
+	while (true)
+	{
+		GlobalFunctions::printf_tab("Current Starting Fame: %g ['B' to leave unchanged]\n", m_startFrame);
+		GlobalFunctions::printf_tab("Input: ");
+		switch (GlobalFunctions::valueInsert(m_startFrame, false, 0.0f, m_endFrame, "b"))
+		{
+		case GlobalFunctions::ResultType::Quit:
+			return true;
+		case GlobalFunctions::ResultType::MaxExceeded:
+			m_startFrame = m_endFrame;
+		case GlobalFunctions::ResultType::Success:
+		case GlobalFunctions::ResultType::SpecialCase:
+			return false;
+		case GlobalFunctions::ResultType::InvalidNegative:
+			GlobalFunctions::printf_tab("Value must be positive.\n");
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+			break;
+		case GlobalFunctions::ResultType::Failed:
+			GlobalFunctions::printf_tab("\"%s\" is not a valid response.\n", g_global.invalid.c_str());
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+		}
+	}
+}
+
+bool SSQ::changeEndFrame()
+{
+	const float last = m_camera.getLastFrame();
+	while (true)
+	{
+		GlobalFunctions::printf_tab("Current Ending Fame: %g ['B' to leave unchanged]\n", m_endFrame);
+		GlobalFunctions::printf_tab("Input: ");
+		switch (GlobalFunctions::valueInsert(m_endFrame, false, m_startFrame, last, "b"))
+		{
+		case GlobalFunctions::ResultType::Quit:
+			return true;
+		case GlobalFunctions::ResultType::MaxExceeded:
+			m_endFrame = last;
+		case GlobalFunctions::ResultType::Success:
+		case GlobalFunctions::ResultType::SpecialCase:
+			return false;
+		case GlobalFunctions::ResultType::MinExceeded:
+			m_endFrame = m_startFrame;
+			return false;
+		case GlobalFunctions::ResultType::InvalidNegative:
+			GlobalFunctions::printf_tab("Value must be positive.\n");
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+			break;
+		case GlobalFunctions::ResultType::Failed:
+			GlobalFunctions::printf_tab("\"%s\" is not a valid response.\n", g_global.invalid.c_str());
+			GlobalFunctions::printf_tab("\n");
+			GlobalFunctions::clearIn();
+		}
+	}
+}
+
 void SSQ::loadbuffers()
 {
+	m_currFrame = m_startFrame;
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 		if (!m_XGentries[i].m_isClone)
 			m_XGentries[i].m_xg->initializeViewerState();
@@ -267,34 +335,33 @@ void SSQ::update()
 		else
 			xg = m_XGentries[entry.m_cloneID].m_xg;
 
-		if (m_modelSetups[i]->animate(xg, s_frame))
+		if (m_modelSetups[i]->animate(xg, m_currFrame))
 		{
 			entry.m_isActive = 1;
-			m_modelMatrices[i] = m_modelSetups[i]->getModelMatrix(s_frame);
+			m_modelMatrices[i] = m_modelSetups[i]->getModelMatrix(m_currFrame);
 		}
 		else
 			entry.m_isActive = 0;
 	}
 
-	for (auto& texAnim : m_texAnimations)
-		texAnim.substitute(s_frame);
 
-	// Insert Light stuff here
+	for (auto& texAnim : m_texAnimations)
+		texAnim.substitute(m_currFrame);
 }
 
 glm::mat4 SSQ::getViewMatrix() const
 {
-	return m_camera.getViewMatrix(s_frame);
+	return m_camera.getViewMatrix(m_currFrame);
 }
 
 glm::mat4 SSQ::getProjectionMatrix(unsigned int width, unsigned int height) const
 {
-	return m_camera.getProjectionMatrix(s_frame, width, height);
+	return m_camera.getProjectionMatrix(m_currFrame, width, height);
 }
 
 glm::vec4 SSQ::getClearColor() const
 {
-	return m_camera.getClearColor(s_frame);
+	return m_camera.getClearColor(m_currFrame);
 }
 
 void SSQ::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents)
@@ -321,17 +388,20 @@ void SSQ::draw(const glm::mat4 view, const bool showNormals, const bool doTransp
 	}
 }
 
-void SSQ::setFrame(float frame)
+void SSQ::setToStart()
 {
-	s_frame = frame;
+	m_currFrame = m_startFrame;
 }
 
 void SSQ::adjustFrame(float delta)
 {
-	s_frame += 30 * delta;
+	m_currFrame += 30 * delta;
+	// Set this to the max for now
+	if (m_currFrame >= m_endFrame)
+		m_currFrame = m_endFrame;
 }
 
 float SSQ::getFrame()
 {
-	return s_frame;
+	return m_currFrame;
 }

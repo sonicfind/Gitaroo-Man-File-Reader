@@ -24,13 +24,12 @@ out VS_OUT
 
 void main()
 {
-	vec4 finalPos = vec4(aPos.xyz, 1);
-	finalPos.xy -= .5 * aSize;
-	gl_Position = finalPos;
 	vs_out.textureIndex = aTextureIndex;
 	vs_out.texCoord = aTexCoord;
 	vs_out.texOffset = aTexOffset;
 	vs_out.colors = aColors;
-	vs_out.rightVector = vec4(aSize.x * rightVector, 0);
-	vs_out.upVector = vec4(aSize.y * upVector, 0);
+	vs_out.rightVector = vec4(aSize.x * rightVector.x, 0, aSize.x * rightVector.z, 0);
+	vs_out.upVector = vec4(0, aSize.y * upVector.y, 0, 0);
+
+	gl_Position = vec4(aPos.xyz, 1) - .5 * (vs_out.rightVector + vs_out.upVector);
 }

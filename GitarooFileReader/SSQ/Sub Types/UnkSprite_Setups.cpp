@@ -16,7 +16,7 @@
 #include "UnkSprite_Setups.h"
 void Unk1SpriteSetup::read(FILE* inFile)
 {
-	m_used = true;
+
 }
 
 void Unk1SpriteSetup::create(FILE* outFile)
@@ -26,7 +26,7 @@ void Unk1SpriteSetup::create(FILE* outFile)
 
 void Unk2SpriteSetup::read(FILE* inFile)
 {
-	m_used = true;
+
 }
 
 void Unk2SpriteSetup::create(FILE* outFile)

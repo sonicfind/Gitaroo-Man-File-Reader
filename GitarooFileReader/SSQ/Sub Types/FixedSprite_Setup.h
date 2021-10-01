@@ -16,7 +16,6 @@
 #include "FixedSprite.h"
 class FixedSpriteSetup
 {
-	bool m_used = false;
 	// 
 	unsigned long m_headerVersion;
 
@@ -47,7 +46,6 @@ class FixedSpriteSetup
 	std::vector<FixedSprite> m_fixedSprites;
 
 public:
-	bool used() { return m_used; }
 	void read(FILE* inFile);
 	void create(FILE* outFile);
 };

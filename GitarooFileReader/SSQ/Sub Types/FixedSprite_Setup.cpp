@@ -16,7 +16,6 @@
 #include "FixedSprite_Setup.h"
 void FixedSpriteSetup::read(FILE* inFile)
 {
-	m_used = true;
 	char tmp[5] = { 0 };
 
 	fread(tmp, 1, 4, inFile);
@@ -36,8 +35,6 @@ void FixedSpriteSetup::read(FILE* inFile)
 
 	m_80bytes.resize(fixed);
 	fread(&m_80bytes.front(), sizeof(Struct80_7f), fixed, inFile);
-	for (auto& b : m_80bytes)
-		b.float_m = 0;
 
 	for (size_t i = 0; i < fixed; ++i)
 		m_fixedSprites.emplace_back(inFile);

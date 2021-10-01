@@ -30,19 +30,18 @@ void SpritesSetup::read(FILE* inFile)
 	fread(m_unk, 1, 12, inFile);
 	fread(m_junk, 1, 16, inFile);
 
-	unsigned long fixed, unk1, unk2;
-	fread(&fixed, 4, 1, inFile);
-	fread(&unk1, 4, 1, inFile);
-	fread(&unk2, 4, 1, inFile);
+	fread(&m_numFixedSprites, 4, 1, inFile);
+	fread(&m_numUnkSprites_1, 4, 1, inFile);
+	fread(&m_numUnkSprites_2, 4, 1, inFile);
 	fread(&m_unused, 4, 1, inFile);
 
-	if (fixed)
+	if (m_numFixedSprites)
 		m_fixedSpriteSetup.read(inFile);
 
-	if (unk1)
+	if (m_numUnkSprites_1)
 		m_unk1SpriteSetup.read(inFile);
 
-	if (unk2)
+	if (m_numUnkSprites_2)
 		m_unk2SpriteSetup.read(inFile);
 }
 
@@ -54,18 +53,17 @@ void SpritesSetup::create(FILE* outFile)
 	fwrite(m_unk, 1, 12, outFile);
 	fwrite(m_junk, 1, 16, outFile);
 
-	unsigned long fixed = m_fixedSpriteSetup.used(), unk1 = m_unk1SpriteSetup.used(), unk2 = m_unk2SpriteSetup.used();
-	fwrite(&fixed, 4, 1, outFile);
-	fwrite(&unk1, 4, 1, outFile);
-	fwrite(&unk2, 4, 1, outFile);
+	fwrite(&m_numFixedSprites, 4, 1, outFile);
+	fwrite(&m_numUnkSprites_1, 4, 1, outFile);
+	fwrite(&m_numUnkSprites_2, 4, 1, outFile);
 	fwrite(&m_unused, 4, 1, outFile);
 
-	if (fixed)
+	if (m_numFixedSprites)
 		m_fixedSpriteSetup.create(outFile);
 
-	if (unk1)
+	if (m_numUnkSprites_1)
 		m_unk1SpriteSetup.create(outFile);
 
-	if (unk2)
+	if (m_numUnkSprites_2)
 		m_unk2SpriteSetup.create(outFile);
 }

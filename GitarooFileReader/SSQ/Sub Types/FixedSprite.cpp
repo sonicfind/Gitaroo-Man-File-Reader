@@ -44,8 +44,8 @@ FixedSprite::FixedSprite(FILE* inFile)
 
 	if (pair1 > 1)
 	{
-		m_32Pair_1.resize(pair1);
-		fread(&m_32Pair_1.front(), sizeof(Struct32_6f), pair1, inFile);
+		m_colors.resize(pair1);
+		fread(&m_colors.front(), sizeof(ColorMultipliers), pair1, inFile);
 	}
 
 	if (numFrames > 1)
@@ -64,25 +64,25 @@ void FixedSprite::create(FILE* outFile)
 	fwrite(m_junk, 1, 16, outFile);
 	fwrite(&m_64bytes, sizeof(Struct64_7f), 1, outFile);
 
-	unsigned long num48 = (unsigned long)m_48bytes.size(), pair1 = (unsigned long)m_32Pair_1.size(), numFrames = (unsigned long)m_spriteFrames.size();
+	unsigned long num48 = (unsigned long)m_48bytes.size(), colors = (unsigned long)m_colors.size(), numFrames = (unsigned long)m_spriteFrames.size();
 	if (!num48)
 		num48 = 1;
 
-	if (!pair1)
-		pair1 = 1;
+	if (!colors)
+		colors = 1;
 
 	if (!numFrames)
 		numFrames = 1;
 
 	fwrite(&num48, 4, 1, outFile);
-	fwrite(&pair1, 4, 1, outFile);
+	fwrite(&colors, 4, 1, outFile);
 	fwrite(&numFrames, 4, 1, outFile);
 
 	if (num48 > 1)
 		fwrite(&m_48bytes.front(), sizeof(Struct48_8f), num48, outFile);
 
-	if (pair1 > 1)
-		fwrite(&m_32Pair_1.front(), sizeof(Struct32_6f), pair1, outFile);
+	if (colors > 1)
+		fwrite(&m_colors.front(), sizeof(ColorMultipliers), colors, outFile);
 
 	if (numFrames > 1)
 		fwrite(&m_spriteFrames.front(), sizeof(SpriteFrame), numFrames, outFile);

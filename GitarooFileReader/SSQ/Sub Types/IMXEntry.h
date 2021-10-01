@@ -19,7 +19,7 @@ struct IMXEntry
 	char m_name[16] = { 0 };
 	unsigned long m_unused_1;
 	unsigned long m_unused_2;
-	Val m_unused_3[2] = { 0 };
+	char m_junk[8];
 
 	IMXEntry(FILE* inFile);
 	void create(FILE* outFile);

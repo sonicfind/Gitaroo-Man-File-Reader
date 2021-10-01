@@ -19,7 +19,7 @@ IMXEntry::IMXEntry(FILE* inFile)
 	fread(m_name, 1, 16, inFile);
 	fread(&m_unused_1, 4, 1, inFile);
 	fread(&m_unused_2, 4, 1, inFile);
-	fread(m_unused_3, 8, 1, inFile);
+	fread(m_junk, 1, 8, inFile);
 }
 
 void IMXEntry::create(FILE* outFile)
@@ -27,5 +27,5 @@ void IMXEntry::create(FILE* outFile)
 	fwrite(m_name, 1, 16, outFile);
 	fwrite(&m_unused_1, 4, 1, outFile);
 	fwrite(&m_unused_2, 4, 1, outFile);
-	fwrite(m_unused_3, 8, 1, outFile);
+	fwrite(m_junk, 1, 8, outFile);
 }

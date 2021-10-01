@@ -16,20 +16,16 @@
 
 class Unk1SpriteSetup
 {
-	bool m_used = false;
 
 public:
-	bool used() { return m_used; }
 	void read(FILE* inFile);
 	void create(FILE* outFile);
 };
 
 class Unk2SpriteSetup
 {
-	bool m_used = false;
 
 public:
-	bool used() { return m_used; }
 	void read(FILE* inFile);
 	void create(FILE* outFile);
 };

@@ -24,12 +24,13 @@ class SpritesSetup
 
 	Val m_junk[4] = { 0 };
 
+	unsigned long m_numFixedSprites;
+	unsigned long m_numUnkSprites_1;
+	unsigned long m_numUnkSprites_2;
 	unsigned long m_unused;
 
 	FixedSpriteSetup m_fixedSpriteSetup;
-
 	Unk1SpriteSetup m_unk1SpriteSetup;
-
 	Unk2SpriteSetup m_unk2SpriteSetup;
 
 public:

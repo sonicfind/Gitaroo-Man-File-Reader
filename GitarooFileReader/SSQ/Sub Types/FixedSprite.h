@@ -47,7 +47,7 @@ class FixedSprite
 	{
 		glm::vec3 m_position;
 		glm::vec2 m_worldScale;
-		unsigned long ulong_a;
+		unsigned long m_noDrawing;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
 		unsigned long ulong_d;
@@ -57,17 +57,14 @@ class FixedSprite
 
 	std::vector<Struct48_8f> m_48bytes;
 
-	struct Struct32_6f : public Frame
+	struct ColorMultipliers : public Frame
 	{
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		unsigned long ulong_a;
+		glm::vec4 m_colors;
+		unsigned long m_doInterpolation;
 		unsigned long ulong_b;
 	};
 
-	std::vector<Struct32_6f> m_32Pair_1;
+	std::vector<ColorMultipliers> m_colors;
 
 	struct SpriteFrame : public Frame
 	{

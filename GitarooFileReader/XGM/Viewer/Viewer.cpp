@@ -478,13 +478,12 @@ void Viewer_SSQ::update(float current)
 		m_ssq->update(m_useLights);
 	}
 
+	m_view = m_ssq->getViewMatrix();
 	if (m_hasFreeMovement)
 	{
 		m_view = m_cameraControl.getViewMatrix();
 		m_view[2] *= -1.0f;
 	}
-	else
-		m_view = m_ssq->getViewMatrix();
 
 	// Update view matrix buffer
 	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);

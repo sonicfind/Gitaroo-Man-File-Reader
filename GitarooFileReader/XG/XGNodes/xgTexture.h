@@ -30,7 +30,7 @@ public:
 	const size_t getSize() const;
 
 	void connectTexture(std::vector<IMX>& textures);
-	void generateTextureBuffer();
-	void bindTextureBuffer() const;
-	void deleteTextureBuffer();
+	void generateTexture();
+	void bindTexture() const;
+	void deleteTexture();
 };

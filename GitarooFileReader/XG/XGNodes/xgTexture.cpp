@@ -65,17 +65,17 @@ void xgTexture::connectTexture(std::vector<IMX>& textures)
 		}
 }
 
-void xgTexture::generateTextureBuffer()
+void xgTexture::generateTexture()
 {
-	m_imxPtr->generateTextureBuffer();
+	m_imxPtr->m_data->generateTexture();
 }
 
-void xgTexture::bindTextureBuffer() const
+void xgTexture::bindTexture() const
 {
-	m_imxPtr->bindTextureBuffer();
+	m_imxPtr->m_data->bindTexture();
 }
 
-void xgTexture::deleteTextureBuffer()
+void xgTexture::deleteTexture()
 {
-	m_imxPtr->deleteTextureBuffer();
+	m_imxPtr->m_data->deleteTexture();
 }

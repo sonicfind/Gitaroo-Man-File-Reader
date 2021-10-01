@@ -52,9 +52,4 @@ public:
 
 private:
 	void write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, size_t& sizes);
-
-public:
-	void generateTextureBuffer();
-	void bindTextureBuffer() const;
-	void deleteTextureBuffer();
 };

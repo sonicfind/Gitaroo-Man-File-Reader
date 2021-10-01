@@ -55,8 +55,7 @@ private:
 	unsigned m_textureID = 0;
 
 public:
-	unsigned getTextureID() const;
-	void generateBuffer();
-	void bindBuffer() const;
-	void deleteBuffer();
+	void generateTexture();
+	void bindTexture() const;
+	void deleteTexture();
 };

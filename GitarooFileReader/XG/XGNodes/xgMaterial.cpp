@@ -180,20 +180,20 @@ bool xgMaterial::hasTransparency() const
 void xgMaterial::intializeBuffers()
 {
 	if (m_inputTexture)
-		m_inputTexture->generateTextureBuffer();
+		m_inputTexture->generateTexture();
 }
 
 void xgMaterial::deleteBuffers()
 {
 	if (m_inputTexture)
-		m_inputTexture->deleteTextureBuffer();
+		m_inputTexture->deleteTexture();
 }
 
 void xgMaterial::setShaderValues(Shader* shader, const std::string index) const
 {
 	if (m_inputTexture)
 	{
-		m_inputTexture->bindTextureBuffer();
+		m_inputTexture->bindTexture();
 		// If both a texture and vertex color are applicable
 		if (m_shadingType >= 3)
 			shader->setInt("materials" + index + ".shadingType", m_shadingType + 2);

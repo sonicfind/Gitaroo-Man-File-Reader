@@ -15,27 +15,7 @@
 #include "pch.h"
 #include "IMX.h"
 #include <glad/glad.h>
-void IMX::generateTextureBuffer()
-{
-	m_data->generateBuffer();
-}
-
-void IMX::bindTextureBuffer() const
-{
-	m_data->bindBuffer();
-}
-
-void IMX::deleteTextureBuffer()
-{
-	m_data->deleteBuffer();
-}
-
-unsigned IMX_Data::getTextureID() const
-{
-	return m_textureID;
-}
-
-void IMX_Data::generateBuffer()
+void IMX_Data::generateTexture()
 {
 	if (!m_textureID)
 	{
@@ -80,7 +60,7 @@ void IMX_Data::generateBuffer()
 	}
 }
 
-void IMX_Data::deleteBuffer()
+void IMX_Data::deleteTexture()
 {
 	if (m_textureID)
 	{
@@ -94,7 +74,7 @@ void IMX_Data::deleteBuffer()
 	}
 }
 
-void IMX_Data::bindBuffer() const
+void IMX_Data::bindTexture() const
 {
 	glBindTexture(GL_TEXTURE_2D, m_textureID);
 }

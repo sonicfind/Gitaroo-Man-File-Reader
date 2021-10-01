@@ -356,6 +356,9 @@
     <None Include="geometry.geo" />
     <None Include="geometry.vert" />
     <None Include="material.frag" />
+    <None Include="sprite.frag" />
+    <None Include="sprite.geo" />
+    <None Include="sprite.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

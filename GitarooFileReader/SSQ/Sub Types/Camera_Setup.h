@@ -90,14 +90,15 @@ private:
 
 
 	unsigned int m_lightUBO = 0;
+	unsigned int m_spriteVectorUBO = 0;
 
 public:
 	void read(FILE* inFile);
 	void create(FILE* outFile);
 	float getLastFrame() const;
 
-	void generateLightBuffer();
-	void deleteLightBuffer();
+	void generateBuffers();
+	void deleteBuffers();
 	glm::vec4 getClearColor(const float frame) const;
 	glm::mat4 getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const;
 	glm::mat4 getViewMatrix(const float frame) const;

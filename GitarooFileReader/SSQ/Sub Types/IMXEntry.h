@@ -14,6 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "SSQ_BaseStructs.h"
+#include "IMX/IMX.h"
 struct IMXEntry
 {
 	char m_name[16] = { 0 };
@@ -21,6 +22,15 @@ struct IMXEntry
 	unsigned long m_unused_2;
 	char m_junk[8];
 
+	IMX* m_imxPtr = nullptr;
+
 	IMXEntry(FILE* inFile);
 	void create(FILE* outFile);
+
+private:
+	static unsigned s_spriteTextureUBO;
+
+public:
+	static void generateSpriteBuffer(const std::vector<IMXEntry>& entries);
+	static void deleteSpriteBuffer();
 };

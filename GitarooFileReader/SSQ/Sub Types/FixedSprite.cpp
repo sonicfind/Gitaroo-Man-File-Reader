@@ -87,3 +87,62 @@ void FixedSprite::create(FILE* outFile)
 	if (numFrames > 1)
 		fwrite(&m_spriteFrames.front(), sizeof(SpriteFrame), numFrames, outFile);
 }
+
+#include <math.h>
+bool FixedSprite::update(const float frame, SpriteValues& values)
+{
+	if (!m_48bytes.empty())
+	{
+		auto iter = getIter(m_48bytes, frame);
+		if (iter->m_noDrawing)
+			return false;
+
+		if (!iter->m_doInterpolation || iter + 1 == m_48bytes.end())
+		{
+			values.position = iter->m_position;
+			values.worldSize = iter->m_worldScale;
+		}
+		else
+		{
+			const float coefficient = (frame - iter->m_frame) * iter->m_coefficient;
+			values.position = glm::mix(iter->m_position, (iter + 1)->m_position, coefficient);
+			values.worldSize = glm::mix(iter->m_worldScale, (iter + 1)->m_worldScale, coefficient);
+		}
+	}
+
+	if (!m_colors.empty())
+	{
+		auto iter = getIter(m_colors, frame);
+		if (!iter->m_doInterpolation || iter + 1 == m_colors.end())
+			values.colorMultipliers = iter->m_colors;
+		else
+			values.colorMultipliers = glm::mix(iter->m_colors, (iter + 1)->m_colors, (frame - iter->m_frame) * iter->m_coefficient);
+	}
+
+	if (!m_spriteFrames.empty())
+	{
+		const float spriteFrame = fmod(frame, float(m_spriteFrames.size()));
+		auto iter = m_spriteFrames.begin() + (size_t)spriteFrame;
+		if (!iter->m_doInterpolation)
+		{
+			values.texCoord = iter->m_initial_BottomLeft;
+			values.texOffsets = iter->m_boxSize;
+		}
+		else
+		{
+			const float coefficient = (spriteFrame - (size_t)spriteFrame) * iter->m_coefficient;
+			if (iter + 1 != m_spriteFrames.end())
+			{
+				values.texCoord = glm::mix(iter->m_initial_BottomLeft, (iter + 1)->m_initial_BottomLeft, coefficient);
+				values.texOffsets = glm::mix(iter->m_boxSize, (iter + 1)->m_boxSize, coefficient);
+			}
+			else
+			{
+				values.texCoord = glm::mix(iter->m_initial_BottomLeft, m_spriteFrames.front().m_initial_BottomLeft, coefficient);
+				values.texOffsets = glm::mix(iter->m_boxSize, m_spriteFrames.front().m_boxSize, coefficient);
+			}
+		}
+	}
+
+	return true;
+}

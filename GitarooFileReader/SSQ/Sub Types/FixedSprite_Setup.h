@@ -42,10 +42,10 @@ class FixedSpriteSetup
 	};
 
 	std::vector<Struct80_7f> m_80bytes;
-
 	std::vector<FixedSprite> m_fixedSprites;
 
 public:
 	void read(FILE* inFile);
 	void create(FILE* outFile);
+	void update(const float frame, std::vector<SpriteValues>& values);
 };

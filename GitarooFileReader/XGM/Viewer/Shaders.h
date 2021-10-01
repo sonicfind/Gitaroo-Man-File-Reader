@@ -38,6 +38,7 @@ public:
 	void setBool(const std::string& name, bool value) const;
 	void setInt(const std::string& name, int value) const;
 	void setFloat(const std::string& name, float value) const;
+	void setIVec2(const std::string& name, int* vect, const int size = 1) const;
 	void setVec3(const std::string& name, float* vect, const int size = 1) const;
 	void setVec4(const std::string& name, float* vect, const int size = 1) const;
 	void setMat3(const std::string& name, float* matrix, const int size = 1) const;
@@ -57,3 +58,4 @@ struct ShaderCombo
 
 extern ShaderCombo g_shaders;
 extern ShaderCombo g_boneShaders;
+extern Shader g_spriteShader;

@@ -51,6 +51,7 @@ Viewer::Viewer(const char* windowName)
 
 	g_shaders.createPrograms("base.vert", "material.frag", "geometry.vert", "geometry.geo", "geometry.frag");
 	g_boneShaders.createPrograms("bones.vert", "material.frag", "geometry - bones.vert", "geometry.geo", "geometry.frag");
+	g_spriteShader.createProgram("sprite.vert", "sprite.geo", "sprite.frag");
 
 	glfwSetFramebufferSizeCallback(m_window, InputHandling::framebuffer_size_callback);
 
@@ -69,6 +70,7 @@ Viewer::Viewer(const char* windowName)
 
 	g_shaders.bindUniformBlock(1, "View");
 	g_boneShaders.bindUniformBlock(1, "View");
+	g_spriteShader.bindUniformBlock(1, "View");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_viewUBO);
 
@@ -79,6 +81,7 @@ Viewer::Viewer(const char* windowName)
 
 	g_shaders.bindUniformBlock(2, "Projection");
 	g_boneShaders.bindUniformBlock(2, "Projection");
+	g_spriteShader.bindUniformBlock(2, "Projection");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_projectionUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);

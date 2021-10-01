@@ -55,3 +55,21 @@ void FixedSpriteSetup::create(FILE* outFile)
 	for (auto& fixed : m_fixedSprites)
 		fixed.create(outFile);
 }
+
+void FixedSpriteSetup::update(const float frame, std::vector<SpriteValues>& values)
+{
+	for (size_t index = 0; index < m_80bytes.size(); ++index)
+	{
+		SpriteValues vals{
+			m_80bytes[index].m_IMXindex,
+			m_80bytes[index].m_worldPosition,
+			m_80bytes[index].m_initial_BottomLeft,
+			m_80bytes[index].m_boxSize,
+			m_80bytes[index].m_worldScale,
+			glm::vec4(1)
+		};
+
+		if (m_fixedSprites[index].update(frame, vals))
+			values.push_back(vals);
+	}
+}

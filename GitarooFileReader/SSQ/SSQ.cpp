@@ -109,9 +109,13 @@ bool SSQ::loadXGM()
 {
 	// Note: Gitaroo Man uses Albumdef.txt to specify an XGM
 	m_xgm = std::make_unique<XGM>(m_directory + m_filename);
+	for (auto& entry : m_IMXentries)
+		entry.m_imxPtr = m_xgm->getTexture(entry.m_name);
+
 	for (auto& entry : m_XGentries)
 		if (!entry.m_isClone)
 			entry.m_xg = m_xgm->getModel(entry.m_name);
+
 	for (auto& texAnim : m_texAnimations)
 		texAnim.connectTexture(m_xgm->getTexture(texAnim.getTextureName()));
 	return true;
@@ -304,23 +308,36 @@ bool SSQ::changeEndFrame()
 void SSQ::loadbuffers()
 {
 	m_currFrame = m_startFrame;
+	IMXEntry::generateSpriteBuffer(m_IMXentries);
+	for (auto& entry : m_IMXentries)
+		entry.m_imxPtr->m_data->generateTexture();
+
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 		if (!m_XGentries[i].m_isClone)
 			m_XGentries[i].m_xg->initializeViewerState();
 
-	m_camera.generateLightBuffer();
+	m_camera.generateBuffers();
 	for (auto& texAnim : m_texAnimations)
 		texAnim.loadCuts();
+	
+	m_sprites.generateSpriteBuffer();
 }
 
 void SSQ::unloadBuffers()
 {
+	IMXEntry::deleteSpriteBuffer();
+	for (auto& entry : m_IMXentries)
+		entry.m_imxPtr->m_data->deleteTexture();
+
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 		if (!m_XGentries[i].m_isClone)
 			m_XGentries[i].m_xg->uninitializeViewerState();
-	m_camera.deleteLightBuffer();
+
+	m_camera.deleteBuffers();
 	for (auto& texAnim : m_texAnimations)
 		texAnim.unloadCuts();
+
+	m_sprites.deleteSpriteBuffer();
 }
 
 void SSQ::update(const unsigned int doLights)
@@ -350,6 +367,8 @@ void SSQ::update(const unsigned int doLights)
 
 	for (auto& texAnim : m_texAnimations)
 		texAnim.substitute(m_currFrame);
+
+	m_sprites.updateSprites(m_currFrame);
 }
 
 glm::mat4 SSQ::getViewMatrix() const
@@ -388,6 +407,26 @@ void SSQ::draw(const glm::mat4 view, const bool showNormals, const bool doTransp
 			}
 			entry.m_xg->draw(view, matrixBuffer, showNormals, doTransparents);
 		}
+	}
+
+	// Temporary solution for blending
+	// Full solution will require figuring out how it decides if a sprite a blends or not
+	if (doTransparents && m_sprites.hasBuffers())
+	{
+		static const std::string textures[] =
+		{
+			"textures[0]", "textures[1]", "textures[2]", "textures[3]", "textures[4]", "textures[5]", "textures[6]", "textures[7]",
+		};
+
+		g_spriteShader.use();
+		for (size_t i = 0; i < m_IMXentries.size(); ++i)
+		{
+			glActiveTexture(GL_TEXTURE0 + int(i));
+			m_IMXentries[i].m_imxPtr->m_data->bindTexture();
+			g_spriteShader.setInt(textures[i], i);
+		}
+			
+		m_sprites.draw();
 	}
 }
 

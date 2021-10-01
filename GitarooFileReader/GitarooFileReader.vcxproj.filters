@@ -97,6 +97,9 @@
     <Filter Include="Visual-Based Types\SSQ\Sub Types\Model Setups">
       <UniqueIdentifier>{e7dc9633-b013-4e3b-ae5c-4bc5274f84a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Viewer\Shaders\Sprite">
+      <UniqueIdentifier>{29b8eb95-5f8a-49cf-80ed-1130e96c7ca6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main\pch.cpp">
@@ -554,6 +557,15 @@
     </None>
     <None Include="material.frag">
       <Filter>Viewer\Shaders\Base</Filter>
+    </None>
+    <None Include="sprite.vert">
+      <Filter>Viewer\Shaders\Sprite</Filter>
+    </None>
+    <None Include="sprite.geo">
+      <Filter>Viewer\Shaders\Sprite</Filter>
+    </None>
+    <None Include="sprite.frag">
+      <Filter>Viewer\Shaders\Sprite</Filter>
     </None>
   </ItemGroup>
 </Project>

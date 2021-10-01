@@ -67,3 +67,77 @@ void SpritesSetup::create(FILE* outFile)
 	if (m_numUnkSprites_2)
 		m_unk2SpriteSetup.create(outFile);
 }
+
+#include <glad/glad.h>
+void SpritesSetup::generateSpriteBuffer()
+{
+	if (m_numFixedSprites || m_numUnkSprites_1 || m_numUnkSprites_2)
+	{
+		glGenBuffers(1, &m_spriteVBO);
+		glGenVertexArrays(1, &m_spriteVAO);
+		glBindVertexArray(m_spriteVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_spriteVBO);
+		glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(SpriteValues), (void*)0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(1 * sizeof(float)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(4 * sizeof(float)));
+		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(6 * sizeof(float)));
+		glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(8 * sizeof(float)));
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(10 * sizeof(float)));
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+		glEnableVertexAttribArray(3);
+		glEnableVertexAttribArray(4);
+		glEnableVertexAttribArray(5);
+
+		glBufferData(GL_ARRAY_BUFFER, ((size_t)m_numFixedSprites + m_numUnkSprites_1 + m_numUnkSprites_2) * sizeof(SpriteValues), NULL, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+}
+
+void SpritesSetup::deleteSpriteBuffer()
+{
+	if (m_spriteVAO)
+	{
+		glDeleteVertexArrays(1, &m_spriteVAO);
+		glDeleteBuffers(1, &m_spriteVBO);
+	}
+}
+
+void SpritesSetup::updateSprites(const float frame)
+{
+	if (m_spriteVAO)
+	{
+		std::vector<SpriteValues> values;
+		if (m_numFixedSprites)
+			m_fixedSpriteSetup.update(frame, values);
+
+		/*if (m_numUnkSprites_1)
+			m_unk1SpriteSetup.update(frame, values);
+
+		if (m_numUnkSprites_2)
+			m_unk2SpriteSetup.update(frame, values);*/
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_spriteVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, values.size() * sizeof(SpriteValues), values.data());
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		m_unused = (unsigned long)values.size();
+	}
+}
+
+bool SpritesSetup::hasBuffers()
+{
+	return m_spriteVAO > 0;
+}
+
+void SpritesSetup::draw()
+{
+	if (m_spriteVAO)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, m_spriteVBO);
+		glBindVertexArray(m_spriteVAO);
+		glDrawArrays(GL_POINTS, 0, m_unused);
+	}
+}

@@ -14,6 +14,16 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "SSQ_BaseStructs.h"
+struct SpriteValues
+{
+	unsigned int index;
+	glm::vec3 position;
+	glm::vec2 texCoord;
+	glm::vec2 texOffsets;
+	glm::vec2 worldSize;
+	glm::vec4 colorMultipliers;
+};
+
 class FixedSprite
 {
 	// 
@@ -50,7 +60,7 @@ class FixedSprite
 		unsigned long m_noDrawing;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
-		unsigned long ulong_d;
+		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 	};
@@ -70,7 +80,7 @@ class FixedSprite
 	{
 		glm::vec2 m_initial_BottomLeft;
 		glm::vec2 m_boxSize;
-		unsigned long ulong_a;
+		unsigned long m_doInterpolation;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 	};
@@ -80,4 +90,6 @@ class FixedSprite
 public:
 	FixedSprite(FILE* inFile);
 	void create(FILE* outFile);
+
+	bool update(const float frame, SpriteValues& values);
 };

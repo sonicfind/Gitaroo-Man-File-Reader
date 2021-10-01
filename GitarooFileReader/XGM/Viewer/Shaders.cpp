@@ -21,6 +21,7 @@
 unsigned int Shader::s_activeID = 0;
 ShaderCombo g_shaders;
 ShaderCombo g_boneShaders;
+Shader g_spriteShader;
 
 void Shader::createProgram(const char* vertexPath, const char* fragmentPath)
 {
@@ -226,6 +227,10 @@ void Shader::setInt(const std::string& name, int value) const
 void Shader::setFloat(const std::string& name, float value) const
 {
 	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+}
+void Shader::setIVec2(const std::string& name, int* vect, const int size) const
+{
+	glUniform2iv(glGetUniformLocation(ID, name.c_str()), size, vect);
 }
 void Shader::setVec3(const std::string& name, float* vect, const int size) const
 {

@@ -137,9 +137,10 @@ float CameraSetup::getLastFrame() const
 #include "XGM/Viewer/Shaders.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
-void CameraSetup::generateLightBuffer()
+void CameraSetup::generateBuffers()
 {
-	glGenBuffers(1, &m_lightUBO);
+	// Fills both light and sprite UBOs
+	glGenBuffers(2, &m_lightUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 256, NULL, GL_DYNAMIC_DRAW);
 
@@ -152,12 +153,22 @@ void CameraSetup::generateLightBuffer()
 	glBufferSubData(GL_UNIFORM_BUFFER, 8, 4, &m_baseGlobalValues.m_useDiffuse);
 	glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(glm::vec3(m_baseGlobalValues.m_vertColorDiffuse) / 255.0f));
 	glBufferSubData(GL_UNIFORM_BUFFER, 32, sizeof(glm::vec3), glm::value_ptr(glm::vec3(m_baseGlobalValues.m_baseAmbience) / 255.0f));
+
+	// Uniform 4 belongs to xgEnvelope
+
+	glBindBuffer(GL_UNIFORM_BUFFER, m_spriteVectorUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 32, NULL, GL_DYNAMIC_DRAW);
+
+	g_spriteShader.bindUniformBlock(5, "SpriteVectors");
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 5, m_spriteVectorUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void CameraSetup::deleteLightBuffer()
+void CameraSetup::deleteBuffers()
 {
-	glDeleteBuffers(1, &m_lightUBO);
+	// Deletes both light and sprite UBOs
+	glDeleteBuffers(2, &m_lightUBO);
 }
 
 glm::vec4 CameraSetup::getClearColor(const float frame) const
@@ -206,6 +217,14 @@ glm::mat4 CameraSetup::getViewMatrix(const float frame) const
 		rotation = rotIter->m_rotation;
 	else
 		rotation = glm::slerp(rotIter->m_rotation, (rotIter + 1)->m_rotation, (frame - rotIter->m_frame) * rotIter->m_coefficient);
+
+	// If this function is being called, then set sprite vectors at the same time
+	glBindBuffer(GL_UNIFORM_BUFFER, m_spriteVectorUBO);
+	{
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, 12, glm::value_ptr(glm::rotate(rotation, glm::vec3(1, 0, 0))));
+		glBufferSubData(GL_UNIFORM_BUFFER, 16, 12, glm::value_ptr(glm::rotate(rotation, glm::vec3(0, 1, 0))));
+	}
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glm::mat4 result = glm::toMat4(rotation) * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 	result[2] *= -1.0f;

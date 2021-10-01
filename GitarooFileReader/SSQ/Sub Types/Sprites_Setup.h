@@ -33,7 +33,16 @@ class SpritesSetup
 	Unk1SpriteSetup m_unk1SpriteSetup;
 	Unk2SpriteSetup m_unk2SpriteSetup;
 
+	unsigned m_spriteVAO;
+	unsigned m_spriteVBO;
+
 public:
 	void read(FILE* inFile);
 	void create(FILE* outFile);
+
+	void generateSpriteBuffer();
+	void deleteSpriteBuffer();
+	void updateSprites(const float frame);
+	bool hasBuffers();
+	void draw();
 };

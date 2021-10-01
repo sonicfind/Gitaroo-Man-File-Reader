@@ -65,7 +65,7 @@ void FixedSpriteSetup::update(const float frame, std::vector<SpriteValues>& valu
 			m_80bytes[index].m_worldPosition,
 			m_80bytes[index].m_initial_BottomLeft,
 			m_80bytes[index].m_boxSize,
-			m_80bytes[index].m_worldScale,
+			m_80bytes[index].m_worldSize,
 			glm::vec4(1)
 		};
 

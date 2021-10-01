@@ -56,7 +56,7 @@ class FixedSprite
 	struct Struct48_8f : public Frame
 	{
 		glm::vec3 m_position;
-		glm::vec2 m_worldScale;
+		glm::vec2 m_worldSize;
 		unsigned long m_noDrawing;
 		unsigned long ulong_b;
 		unsigned long ulong_c;

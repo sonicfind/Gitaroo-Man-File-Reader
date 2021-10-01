@@ -29,8 +29,8 @@ class FixedSpriteSetup
 		glm::vec2 m_initial_BottomLeft;
 		glm::vec2 m_boxSize;
 		glm::vec3 m_worldPosition;
-		glm::vec2 m_worldScale;
-		glm::vec2 m_worldScale_ZW_maybe;
+		glm::vec2 m_worldSize;
+		glm::vec2 m_worldSize_ZW_maybe;
 		float float_l;
 		unsigned long ulong_b;
 		float float_m;

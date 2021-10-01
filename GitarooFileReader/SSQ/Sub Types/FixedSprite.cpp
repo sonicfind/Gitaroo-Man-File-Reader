@@ -100,13 +100,13 @@ bool FixedSprite::update(const float frame, SpriteValues& values)
 		if (!iter->m_doInterpolation || iter + 1 == m_48bytes.end())
 		{
 			values.position = iter->m_position;
-			values.worldSize = iter->m_worldScale;
+			values.worldSize = iter->m_worldSize;
 		}
 		else
 		{
 			const float coefficient = (frame - iter->m_frame) * iter->m_coefficient;
 			values.position = glm::mix(iter->m_position, (iter + 1)->m_position, coefficient);
-			values.worldSize = glm::mix(iter->m_worldScale, (iter + 1)->m_worldScale, coefficient);
+			values.worldSize = glm::mix(iter->m_worldSize, (iter + 1)->m_worldSize, coefficient);
 		}
 	}
 

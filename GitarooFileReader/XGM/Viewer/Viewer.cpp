@@ -477,6 +477,8 @@ void Viewer_SSQ::update(float current)
 		m_ssq->adjustFrame(current - m_previous);
 		m_ssq->update(m_useLights);
 	}
+	else if (InputHandling::g_input_keyboard.KEY_U.isPressed())
+		m_ssq->update(m_useLights);
 
 	m_view = m_ssq->getViewMatrix();
 	if (m_hasFreeMovement)

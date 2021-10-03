@@ -59,8 +59,8 @@ class FixedSprite
 		glm::vec2 m_worldSize;
 		unsigned long m_noDrawing;
 		unsigned long ulong_b;
-		unsigned long ulong_c;
 		unsigned long m_doInterpolation;
+		unsigned long ulong_d;
 		// Essentially m_frame * 160
 		unsigned long m_otherPos;
 	};
@@ -70,8 +70,8 @@ class FixedSprite
 	struct ColorMultipliers : public Frame
 	{
 		glm::vec4 m_colors;
+		unsigned long ulong_a;
 		unsigned long m_doInterpolation;
-		unsigned long ulong_b;
 	};
 
 	std::vector<ColorMultipliers> m_colors;

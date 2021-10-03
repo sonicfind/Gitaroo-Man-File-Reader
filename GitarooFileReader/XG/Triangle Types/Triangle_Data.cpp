@@ -21,9 +21,6 @@ Triangle_Data::Triangle_Data(FILE* inFile)
 	fread(&m_numPrimitives, 4, 1, inFile);
 }
 
-Triangle_Data::Triangle_Data(const unsigned long numPrimitives)
-	: m_numPrimitives(numPrimitives) {}
-
 void Triangle_Data::createCount(FILE* outFile) const
 {
 	fwrite(&m_numPrimitives, 4, 1, outFile);

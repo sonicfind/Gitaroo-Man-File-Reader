@@ -29,10 +29,6 @@ Triangle_Group::Triangle_Group(FILE* inFile)
 	}
 }
 
-Triangle_Group::Triangle_Group(unsigned long index, const unsigned long numPrimitives)
-	: Triangle_Data(numPrimitives)
-	, m_initialIndex(index) {}
-
 void Triangle_Group::create(FILE* outFile) const
 {
 	unsigned long size = 0;

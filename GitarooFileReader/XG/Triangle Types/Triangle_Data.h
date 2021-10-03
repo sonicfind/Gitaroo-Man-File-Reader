@@ -23,7 +23,6 @@ protected:
 public:
 	Triangle_Data() = default;
 	Triangle_Data(FILE* inFile);
-	Triangle_Data(const unsigned long numPrimitives);
 	void createCount(FILE* outFile) const;
 	virtual void create(FILE* outFile) const {}
 	virtual void write_to_txt(FILE* txtFile, const char* tabs = "") const;

@@ -36,9 +36,6 @@ Triangle_Prim::Triangle_Prim(FILE* inFile, unsigned long type)
 	}
 }
 
-Triangle_Prim::Triangle_Prim(unsigned long index, const unsigned long numPrimitives)
-	: m_data(std::make_unique<Triangle_Group>(index, numPrimitives)) {}
-
 void Triangle_Prim::create(FILE* outFile) const
 {
 	PString::push("primCount", outFile);

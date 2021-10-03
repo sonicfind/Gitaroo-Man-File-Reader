@@ -28,7 +28,6 @@ class Triangle_Group : public Triangle_Data
 public:
 	Triangle_Group() = default;
 	Triangle_Group(FILE* inFile);
-	Triangle_Group(unsigned long index, const unsigned long numPrimitives);
 	void create(FILE* outFile) const;
 	void write_to_txt(FILE* txtFile, const char* tabs = "") const;
 	std::vector<std::vector<unsigned long>> extract() const;

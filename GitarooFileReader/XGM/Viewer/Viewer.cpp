@@ -254,19 +254,24 @@ void Viewer::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 int Viewer::view()
 {
 	m_previous = (float)glfwGetTime();
+#ifdef _DEBUG
 	double lastFPSTime = glfwGetTime();
 	int nbFrames = 0;
+#endif
 	
 	while (!glfwWindowShouldClose(m_window))
 	{
 		float currentTime = (float)glfwGetTime();
+#ifdef _DEBUG
 		nbFrames++;
 		if (currentTime - lastFPSTime >= 1.0) { // If last prinf() was more than 1 sec ago
 			// printf and reset timer
 			GlobalFunctions::printf_tab("%f ms/frame\n", 1000.0 / double(nbFrames));
+			GlobalFunctions::printf_tab("%i frames\n", nbFrames);
 			nbFrames = 0;
 			lastFPSTime += 1.0;
 		}
+#endif
 		InputHandling::processInputs(m_window, currentTime);
 
 		if (InputHandling::g_input_keyboard.KEY_ESCAPE.isPressed())

@@ -27,6 +27,12 @@ Dag::Dag(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList, bool 
 	{
 		// Extract '[' character
 		pstr.fill(inFile);
+		// Fixes the COMPLETELY UNNECESSARY BRANCHES
+		// IN ST08'S NOREN'S MODEL
+		// SERIOUSLY DEVS?!?!
+		// (Part 1)
+		if (pstr.m_pstring[0] == ']')
+			throw "wtf Inis. WHY IS THERE AN XGDAGTRANSFORM HERE?!?!";
 		// Loops through all connected nodes
 		while (true)
 		{

@@ -46,6 +46,7 @@ protected:
 
 	Camera m_cameraControl;
 	glm::mat4 m_view;
+	glm::mat4 m_projection;
 
 public:
 	Viewer(const char* windowName);

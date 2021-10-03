@@ -57,8 +57,7 @@ void Model::update()
 	}
 
 	m_xg->resetInstanceCount();
-	// Necessary to flip the z value of all coordinates
-	m_xg->animate(s_currentFrame - m_currAnimStartFrame, m_animIndex, glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1));
+	m_xg->animate(s_currentFrame - m_currAnimStartFrame, m_animIndex, glm::identity<glm::mat4>());
 }
 
 // Sets the handler to the provided animation index
@@ -75,8 +74,7 @@ void Model::setAnimation(size_t animIndex, float frame, bool animate)
 	if (animate)
 	{
 		m_xg->resetInstanceCount();
-		// Necessary to flip the z value of all coordinates
-		m_xg->animate(0, m_animIndex, glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1));
+		m_xg->animate(0, m_animIndex, glm::identity<glm::mat4>());
 	}
 }
 

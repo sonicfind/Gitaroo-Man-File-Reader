@@ -225,10 +225,7 @@ glm::mat4 CameraSetup::getViewMatrix(const float frame) const
 		glBufferSubData(GL_UNIFORM_BUFFER, 16, 12, glm::value_ptr(glm::rotate(rotation, glm::vec3(0, 1, 0))));
 	}
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	glm::mat4 result = glm::toMat4(rotation) * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
-	result[2] *= -1.0f;
-	return result;
+	return glm::toMat4(rotation) * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 }
 
 glm::vec3 CameraSetup::getAmbientColor(const float frame) const

@@ -153,41 +153,34 @@ glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 }
 
 #include <math.h>
-bool ModelSetup::animate(XG* xg, const float frame) const
+void ModelSetup::animate(XG* xg, const float frame) const
 {
 	if (!m_animations.empty())
 	{
 		auto iter = getIter(m_animations, frame);
-		if (iter->m_noDrawing)
-			return false;
-		else
+		if (!iter->m_noDrawing)
 		{
-			float length = xg->getAnimationLength(iter->m_animIndex);
+			const glm::mat4 matrix = getModelMatrix(frame);
+			/*if (iter->m_firstAnimofSection_maybe)
+				iter = m_animations.begin();
+			else*/
+				while (iter != m_animations.begin() && !iter->m_startOverride && (iter - 1)->m_animIndex == iter->m_animIndex)
+					--iter;
 
+			float length = xg->getAnimationLength(iter->m_animIndex);
 			if (frame < length + iter->m_frame)
-				xg->animate(frame - iter->m_frame, iter->m_animIndex);
-			else if (iter->m_holdLastFrame)
-				xg->animate(length, iter->m_animIndex);
+				xg->animate(frame - iter->m_frame, iter->m_animIndex, matrix);
 			else if (iter->m_loop)
-				xg->animate(fmod(frame - iter->m_frame, length), iter->m_animIndex);
+				xg->animate(fmod(frame - iter->m_frame, length), iter->m_animIndex, matrix);
+			else if (iter->m_holdLastFrame)
+				xg->animate(length - 1, iter->m_animIndex, matrix);
 			else
-			{
-				unsigned long animIndex = iter->m_animIndex;
-				float start = iter->m_frame;
-				do
-				{
-					if (animIndex < xg->m_animations.size() - 1)
-						++animIndex;
-					else
-						animIndex = 0;
-					start += length;
-					length = xg->getAnimationLength(animIndex);
-				} while (frame >= length + start);
-				xg->animate(frame - start, animIndex);
-			}
+				xg->animate(length, iter->m_animIndex, matrix);
 		}
 	}
 	else
-		xg->animate(frame, m_baseValues.m_baseAnimIndex_maybe);
-	return true;
+	{
+		const glm::mat4 matrix = getModelMatrix(frame);
+		xg->animate(fmod(frame, xg->getAnimationLength(m_baseValues.m_baseAnimIndex_maybe)), m_baseValues.m_baseAnimIndex_maybe, matrix);
+	}
 }

@@ -57,7 +57,8 @@ void Model::update()
 	}
 
 	m_xg->resetInstanceCount();
-	m_xg->animate(s_currentFrame - m_currAnimStartFrame, m_animIndex);
+	// Necessary to flip the z value of all coordinates
+	m_xg->animate(s_currentFrame - m_currAnimStartFrame, m_animIndex, glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1));
 }
 
 // Sets the handler to the provided animation index
@@ -74,7 +75,8 @@ void Model::setAnimation(size_t animIndex, float frame, bool animate)
 	if (animate)
 	{
 		m_xg->resetInstanceCount();
-		m_xg->animate(0, m_animIndex);
+		// Necessary to flip the z value of all coordinates
+		m_xg->animate(0, m_animIndex, glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1));
 	}
 }
 
@@ -111,9 +113,7 @@ void Model::resetModel()
 // Draws all vertex data to the current framebuffer
 void Model::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
-	// Necessary to flip the z value of all coordinates
-	static const glm::mat4 model(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1);
-	m_xg->draw(view, &model, showNormals, doTransparents, isAnimated);
+	m_xg->draw(view, showNormals, doTransparents, isAnimated);
 }
 
 void Model::resetTime()

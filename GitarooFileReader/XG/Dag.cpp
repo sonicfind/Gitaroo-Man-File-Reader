@@ -119,35 +119,25 @@ void Dag::restPose() const
 	}
 }
 
-void Dag::animate(unsigned long instance)
+void Dag::animate(unsigned long instance, glm::mat4 matrix)
 {
 	if (auto mesh = m_base.get<xgDagMesh>())
-		mesh->animate(instance);
+		mesh->animate(instance, matrix);
 	else
 	{
-		m_matrices[instance] = m_base.get<xgDagTransform>()->getModelMatrix();
+		matrix *= m_base.get<xgDagTransform>()->getModelMatrix();
 		for (auto& dag : m_connected)
-			dag.animate(instance);
+			dag.animate(instance, matrix);
 	}
 }
 
-void Dag::draw(const glm::mat4 view, const glm::mat4* models, const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated) const
+void Dag::draw(const glm::mat4 view, const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
 	if (auto mesh = m_base.get<xgDagMesh>())
-		mesh->draw(view, models, numInstances, showNormals, doTransparents);
+		mesh->draw(view, numInstances, showNormals, doTransparents);
 	else
 	{
-		glm::mat4* transforms = new glm::mat4[numInstances];
-		if (isAnimated)
-		{
-			for (size_t i = 0; i < numInstances; ++i)
-				transforms[i] = models[i] * m_matrices[i];
-		}
-		else
-			memcpy(transforms, models, sizeof(glm::mat4) * numInstances);
-
 		for (const auto& dag : m_connected)
-			dag.draw(view, transforms, numInstances, showNormals, doTransparents, isAnimated);
-		delete[numInstances] transforms;
+			dag.draw(view, numInstances, showNormals, doTransparents, isAnimated);
 	}
 }

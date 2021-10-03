@@ -307,7 +307,7 @@ void XG::restPose()
 }
 
 // Updates all data to the current frame
-void XG::animate(float frame, size_t index)
+void XG::animate(float frame, size_t index, const glm::mat4 matrix)
 {
 	try
 	{
@@ -318,7 +318,7 @@ void XG::animate(float frame, size_t index)
 		else
 			key = m_animations.back().getTime(frame);
 		// Increment count for if another instance is needed
-		m_data->animate(key, m_instanceCount++);
+		m_data->animate(key, m_instanceCount++, matrix);
 	}
 	catch (...)
 	{
@@ -328,9 +328,9 @@ void XG::animate(float frame, size_t index)
 }
 
 // Draws all vertex data to the current framebuffer
-void XG::draw(const glm::mat4 view, const glm::mat4* models, const bool showNormals, const bool doTransparents, const bool isAnimated) const
+void XG::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
-	m_data->draw(view, models, m_instanceCount, showNormals, doTransparents, isAnimated);
+	m_data->draw(view, m_instanceCount, showNormals, doTransparents, isAnimated);
 }
 
 unsigned long XG::getInstanceCount() const

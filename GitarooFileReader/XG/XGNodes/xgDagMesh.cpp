@@ -190,26 +190,27 @@ void xgDagMesh::restPose() const
 		m_inputGeometry->restPose();
 }
 
-void xgDagMesh::animate(unsigned long instance)
+void xgDagMesh::animate(unsigned long instance, const glm::mat4 matrix)
 {
 	if (m_doGeometryAnimation)
 		m_inputGeometry->animate(instance);
+	m_matrices[instance] = matrix;
 }
 
 #include "XGM/Viewer/Camera.h"
 #include <glm/gtc/type_ptr.hpp>
 unsigned long xgDagMesh::s_currentCulling = 0;
-void xgDagMesh::draw(const glm::mat4 view, const glm::mat4* models, const unsigned long numInstances, const bool showNormals, const bool doTransparents) const
+void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, const bool showNormals, const bool doTransparents) const
 {
 	if (doTransparents == m_inputMaterial->hasTransparency())
 	{
 		std::vector<glm::mat3> normals;
 		for (size_t i = 0; i < numInstances; ++i)
-			normals.push_back(glm::mat3(glm::transpose(glm::inverse(view * models[i]))));
+			normals.push_back(glm::mat3(glm::transpose(glm::inverse(view * m_matrices[i]))));
 
 		ShaderCombo* active = m_inputGeometry->activateShader();
 		m_inputMaterial->setShaderValues(&active->m_base);
-		active->m_base.setMat4("models[0]", (float*)models, numInstances);
+		active->m_base.setMat4("models[0]", (float*)m_matrices, numInstances);
 		active->m_base.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
 
 		m_inputGeometry->bindVertexBuffer(numInstances);
@@ -241,7 +242,7 @@ void xgDagMesh::draw(const glm::mat4 view, const glm::mat4* models, const unsign
 		if (showNormals)
 		{
 			active->m_geometry.use();
-			active->m_geometry.setMat4("models[0]", (float*)models, numInstances);
+			active->m_geometry.setMat4("models[0]", (float*)m_matrices, numInstances);
 			active->m_geometry.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
 
 			m_triFan->draw(numInstances);

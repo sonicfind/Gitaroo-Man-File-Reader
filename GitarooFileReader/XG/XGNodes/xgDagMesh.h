@@ -31,6 +31,7 @@ class xgDagMesh : public DagNode
 	SharedNode<MaterialNode> m_inputMaterial;
 
 	bool m_doGeometryAnimation = true;
+	glm::mat4 m_matrices[MAX_INSTANCES];
 public:
 	using DagNode::DagNode;
 	unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList);
@@ -50,6 +51,6 @@ public:
 	void intializeBuffers();
 	void deleteBuffers();
 	void restPose() const;
-	void animate(unsigned long instance);
-	void draw(const glm::mat4 view, const glm::mat4* models, const unsigned long numInstances, const bool showNormals, const bool doTransparents) const;
+	void animate(unsigned long instance, const glm::mat4 matrix);
+	void draw(const glm::mat4 view, const unsigned long numInstances, const bool showNormals, const bool doTransparents) const;
 };

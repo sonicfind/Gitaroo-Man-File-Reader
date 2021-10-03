@@ -171,22 +171,21 @@ void XG_Data::restPose() const
 }
 
 // Updates all data to the current frame
-void XG_Data::animate(float frame, unsigned long instance)
+void XG_Data::animate(float frame, unsigned long instance, const glm::mat4 matrix)
 {
+	// Sets the xgTime node to the current frame
+	// All interpolators will then be able to pull time values from this node
 	if (m_timeNode)
-	{
-		// Sets the xgTime node to the current frame
-		// All interpolators will then be able to pull time values from this node
 		m_timeNode->setTime(frame);
-		for (Dag& dag : m_dagMap)
-			dag.animate(instance);
-	}
+
+	for (Dag& dag : m_dagMap)
+		dag.animate(instance, matrix);
 }
 
 #include <glm/gtx/transform.hpp>
 // Draws all vertex data to the current framebuffer
-void XG_Data::draw(const glm::mat4 view, const glm::mat4* models, const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated) const
+void XG_Data::draw(const glm::mat4 view, const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
 	for (const Dag& dag : m_dagMap)
-		dag.draw(view, models, numInstances, showNormals, doTransparents, isAnimated);
+		dag.draw(view, numInstances, showNormals, doTransparents, isAnimated);
 }

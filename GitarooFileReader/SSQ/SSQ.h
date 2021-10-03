@@ -29,7 +29,6 @@ class SSQ
 	float m_endFrame;
 	float m_currFrame;
 	Val m_junk[4] = { 0 };
-	std::vector<glm::mat4> m_modelMatrices;
 	std::vector<IMXEntry> m_IMXentries;
 	std::vector<XGEntry> m_XGentries;
 	std::vector<std::unique_ptr<ModelSetup>> m_modelSetups;

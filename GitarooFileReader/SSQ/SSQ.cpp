@@ -50,7 +50,6 @@ SSQ::SSQ(std::string filename, bool unused)
 
 	unsigned long numMatrices = 0;
 	fread(&numMatrices, 4, 1, m_filePtr);
-	m_modelMatrices.resize(numMatrices);
 
 	unsigned long numIMX = 0;
 	fread(&numIMX, 4, 1, m_filePtr);
@@ -354,13 +353,7 @@ void SSQ::update(const unsigned int doLights)
 		else
 			xg = m_XGentries[entry.m_cloneID].m_xg;
 
-		if (m_modelSetups[i]->animate(xg, m_currFrame))
-		{
-			entry.m_isActive = 1;
-			m_modelMatrices[i] = m_modelSetups[i]->getModelMatrix(m_currFrame);
-		}
-		else
-			entry.m_isActive = 0;
+		m_modelSetups[i]->animate(xg, m_currFrame);
 	}
 
 	m_camera.setLights(m_currFrame, doLights);
@@ -388,25 +381,11 @@ glm::vec4 SSQ::getClearColor() const
 
 void SSQ::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents)
 {
-	static glm::mat4 matrixBuffer[32];
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 	{
 		auto& entry = m_XGentries[i];
 		if (!entry.m_isClone && entry.m_xg->getInstanceCount())
-		{
-			unsigned count = 0;
-			if (entry.m_isActive)
-				matrixBuffer[count++] = m_modelMatrices[i];
-
-			for (size_t j = i + 1; count < entry.m_xg->getInstanceCount(); ++j)
-			{
-				if (m_XGentries[j].m_isClone
-					&& m_XGentries[j].m_cloneID == i
-					&& m_XGentries[j].m_isActive)
-					matrixBuffer[count++] = m_modelMatrices[j];
-			}
-			entry.m_xg->draw(view, matrixBuffer, showNormals, doTransparents);
-		}
+			entry.m_xg->draw(view, showNormals, doTransparents);
 	}
 
 	// Temporary solution for blending

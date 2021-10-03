@@ -103,6 +103,7 @@ void TexAnim::unloadCuts()
 		{
 			const size_t size = (size_t)roundf(m_bytesPerPixel * (cut.m_bottomRight.x - cut.m_topLeft.x)) * (size_t)roundf(cut.m_bottomRight.y - cut.m_topLeft.y);
 			delete[size] cut.m_subImage;
+			cut.m_subImage = nullptr;
 		}
 	}
 }
@@ -113,7 +114,7 @@ void TexAnim::substitute(const float frame)
 	if (!m_imxPtr)
 		return;
 
-	auto iter = getIter(m_textureFrames, frame);
+	auto iter = getIter(m_textureFrames, fmod(frame, m_textureFrames.back().m_frame));
 	if (iter->m_cutOutIndex != m_cutOutIndex)
 	{
 		m_cutOutIndex = iter->m_cutOutIndex;

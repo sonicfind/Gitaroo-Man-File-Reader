@@ -389,7 +389,7 @@ void Viewer_XGM::update(float current)
 
 	// Update projection matrix buffer
 	glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
-	glm::mat4 projection = glm::perspective(glm::radians(m_cameraControl.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(m_cameraControl.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 500000.0f);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
@@ -495,7 +495,7 @@ void Viewer_SSQ::update(float current)
 	glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
 
 	if (m_hasFreeMovement)
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(glm::perspective(glm::radians(m_cameraControl.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 40000.0f)));
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(glm::perspective(glm::radians(m_cameraControl.m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 500000.0f)));
 	else
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(m_ssq->getProjectionMatrix(s_screenWidth, s_screenHeight)));
 	

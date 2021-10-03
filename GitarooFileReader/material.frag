@@ -69,15 +69,18 @@ void main()
 	if (doMulti == 1)
 	{
 		vec4 col2 = doColor(1);
-		FragColor = vec4(result.rgb * (1 - col2.a) + col2.rgb * col2.a, result.a);
+		FragColor = vec4(result.rgb + col2.rgb, result.a);
 	}
 	else
 		FragColor = result;
+
+	if (FragColor.a < .01)
+		discard;
 }
 
 vec4 doColor(const int index)
 {
-	vec4 result = vec4(1);
+	vec4 result = vec4(0);
 	if (useTexture[index] == 1)
 	{
 		vec4 texColor = texture(textures[index], vs_in.texCoord[index]);
@@ -85,12 +88,16 @@ vec4 doColor(const int index)
 
 		if (materials[index].flags > 2)
 			result.a *= 2 * texColor.a;
-	}
-	
-	if (materials[index].shadingType == 3)
-	{
-		result *= getBlendColor(materials[index], globalVertexColor + vs_in.color);
-	}
+		
+		if (materials[index].shadingType == 3)
+			result *= getBlendColor(materials[index], vs_in.color);
+	}	
+	else if (materials[index].shadingType == 3)
+		result = getBlendColor(materials[index], globalVertexColor + vs_in.color);
+	else if (useGlobal == 1)
+		result = getBlendColor(materials[index], globalVertexColor);
+	else
+		result = getBlendColor(materials[index], result);
 
 	return applyShading(materials[index], result);
 };
@@ -126,7 +133,7 @@ vec4 applyShading(const Material material, vec4 baseColor)
 		if (material.shadingType < 3)
 			diffuse = material.diffuse.rgb;
 		else
-			diffuse = vs_in.color.rgb;
+			diffuse = globalVertexColor.rgb + vs_in.color.rgb;
 
 		for (int i = 0; i < numLights; ++i)
 		{

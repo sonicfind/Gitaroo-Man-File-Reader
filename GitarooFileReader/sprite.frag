@@ -14,6 +14,13 @@ layout (std140) uniform SpriteSizes
 void main()
 {
     vec4 texColor = texture(textures[fTextureIndex], fTexCoord / sizes[fTextureIndex]);
-    texColor.a *= 2 * (texColor.r + texColor.g + texColor.b) / 3;
+
+    if (texColor.a == 1)
+         texColor.a = (texColor.r + texColor.g + texColor.b) / 3;
+
+    texColor.a *= 2;
     FragColor = texColor * fColors;
+
+    if (FragColor.a < .01)
+		discard;
 }

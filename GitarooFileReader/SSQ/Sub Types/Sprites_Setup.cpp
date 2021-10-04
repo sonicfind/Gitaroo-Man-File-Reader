@@ -110,6 +110,8 @@ void SpritesSetup::deleteSpriteBuffer()
 	{
 		glDeleteVertexArrays(1, &m_spriteVAO);
 		glDeleteBuffers(1, &m_spriteVBO);
+		m_spriteVAO = 0;
+		m_spriteVBO = 0;
 
 		m_spritesToDraw = 0;
 		m_spritesToDraw_NoDepth = 0;

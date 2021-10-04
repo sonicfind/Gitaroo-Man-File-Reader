@@ -48,9 +48,9 @@ class LightSetup
 		glm::vec3 m_diffuse;
 		glm::vec3 m_specular;
 		unsigned long m_doInterpolation;
-		unsigned long m_min;
+		long m_min;
 		float m_specular_coeff_maybe;
-		unsigned long m_max;
+		long m_max;
 	};
 
 	std::vector<LightColors> m_colors;

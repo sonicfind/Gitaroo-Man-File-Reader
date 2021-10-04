@@ -109,7 +109,7 @@ Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
 	// Generate light structure uniform
 	glGenBuffers(1, &m_lightUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 112, NULL, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, 128, NULL, GL_STATIC_DRAW);
 
 	g_shaders.m_base.bindUniformBlock(3, "Lights");
 	g_boneShaders.m_base.bindUniformBlock(3, "Lights");
@@ -136,15 +136,6 @@ Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
 	glBufferSubData(GL_UNIFORM_BUFFER, 112, 4, &coeff);
 	unsigned long max = 1;
 	glBufferSubData(GL_UNIFORM_BUFFER, 116, 4, &max);
-
-	glBindBuffer(GL_UNIFORM_BUFFER, m_positionUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 16, NULL, GL_DYNAMIC_DRAW);
-
-	g_shaders.m_base.bindUniformBlock(5, "CamPosition");
-	g_boneShaders.m_base.bindUniformBlock(5, "CamPosition");
-	g_spriteShaders.bindUniformBlock(5, "CamPosition");
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, 5, m_positionUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -399,15 +390,11 @@ void Viewer_XGM::update(float current)
 	}
 
 	if (InputHandling::g_input_keyboard.KEY_U.isPressed())
-	{
 		m_useLights = m_useLights ? 0 : 1;
-		glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, 1, &m_useLights);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	}
 
-	glBindBuffer(GL_UNIFORM_BUFFER, m_positionUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, 12, glm::value_ptr(m_cameraControl.m_position));
+	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, &m_useLights);
+	glBufferSubData(GL_UNIFORM_BUFFER, 48, 12, glm::value_ptr(m_cameraControl.m_position));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	
 	m_view = m_cameraControl.getViewMatrix();

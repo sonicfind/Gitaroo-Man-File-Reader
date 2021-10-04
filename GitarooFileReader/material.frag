@@ -41,11 +41,6 @@ struct Light
 	float max;
 };
 
-layout (std140) uniform CamPosition
-{
-	vec3 camPosition;
-};
-
 layout (std140) uniform Lights
 {
 	int doLights;
@@ -55,6 +50,7 @@ layout (std140) uniform Lights
 	vec4 globalVertexColor;
 	
 	vec3 sceneAmbience;
+	vec3 camPosition;
 	Light lights[MAX_LIGHTS];
 };
 

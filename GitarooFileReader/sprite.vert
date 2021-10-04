@@ -6,9 +6,9 @@ layout(location = 3) in vec2 aTexOffset;
 layout(location = 4) in vec2 aSize;
 layout(location = 5) in vec4 aColors;
 
-layout (std140) uniform CamPosition
+layout (std140) uniform View
 {
-	vec3 camPosition;
+	mat4 view;
 };
 
 out VS_OUT
@@ -28,9 +28,8 @@ void main()
 	vs_out.texOffset = aTexOffset;
 	vs_out.colors = aColors;
 
-	vec3 camToPos = normalize(aPos - camPosition);
-	vs_out.rightVector = vec4(aSize.x * camToPos.z, 0, aSize.x * -camToPos.x, 0);
-	vs_out.upVector = vec4(0, aSize.y, 0, 0);
+	vs_out.rightVector = vec4(aSize.x * view[0][0], aSize.x * view[1][0], aSize.x * view[2][0], 0);
+	vs_out.upVector = vec4(aSize.y * view[0][1], aSize.y * view[1][1], aSize.y * view[2][1], 0);
 
 	gl_Position = vec4(aPos.xyz, 1) - .5 * (vs_out.rightVector + vs_out.upVector);
 }

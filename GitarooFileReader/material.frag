@@ -143,7 +143,7 @@ vec4 applyShading(const Material material, vec4 baseColor)
 		for (int i = 0; i < numLights; ++i)
 		{
 			// diffuse shading
-			float diff = max(dot(vs_in.normal, -lights[i].direction), 0.0);
+			float diff = min(max(dot(vs_in.normal, -lights[i].direction), lights[i].min), lights[i].max);
 			result += globalCoefficient * diff * lights[i].diffuse * diffuse;
 
 			if (material.shadingType == 1 || material.shadingType == 4)

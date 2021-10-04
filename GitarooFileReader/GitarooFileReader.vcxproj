@@ -351,11 +351,14 @@
   <ItemGroup>
     <None Include="base.vert" />
     <None Include="bones.vert" />
-    <None Include="geometry - bones.vert" />
-    <None Include="geometry.frag" />
-    <None Include="geometry.geo" />
-    <None Include="geometry.vert" />
     <None Include="material.frag" />
+    <None Include="normals - bone.vert" />
+    <None Include="normals.frag" />
+    <None Include="normals.geo" />
+    <None Include="normals.vert" />
+    <None Include="sprite - vectors.frag" />
+    <None Include="sprite - vectors.geo" />
+    <None Include="sprite - vectors.vert" />
     <None Include="sprite.frag" />
     <None Include="sprite.geo" />
     <None Include="sprite.vert" />

@@ -241,9 +241,9 @@ void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, con
 		glBindTexture(GL_TEXTURE_2D, 0);
 		if (showNormals)
 		{
-			active->m_geometry.use();
-			active->m_geometry.setMat4("models[0]", (float*)m_matrices, numInstances);
-			active->m_geometry.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
+			active->m_normals.use();
+			active->m_normals.setMat4("models[0]", (float*)m_matrices, numInstances);
+			active->m_normals.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
 
 			m_triFan->draw(numInstances);
 			m_triStrip->draw(numInstances);

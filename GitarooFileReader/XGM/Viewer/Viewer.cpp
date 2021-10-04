@@ -49,9 +49,9 @@ Viewer::Viewer(const char* windowName)
 
 	glViewport(0, 0, s_screenWidth, s_screenHeight);
 
-	g_shaders.createPrograms("base.vert", "material.frag", "geometry.vert", "geometry.geo", "geometry.frag");
-	g_boneShaders.createPrograms("bones.vert", "material.frag", "geometry - bones.vert", "geometry.geo", "geometry.frag");
-	g_spriteShader.createProgram("sprite.vert", "sprite.geo", "sprite.frag");
+	g_shaders.createPrograms("base.vert", "material.frag", "normals.vert", "normals.geo", "normals.frag");
+	g_boneShaders.createPrograms("bones.vert", "material.frag", "normals - bones.vert", "normals.geo", "normals.frag");
+	g_spriteShaders.createPrograms("sprite.vert", "sprite.geo", "sprite.frag", "sprite - vectors.vert", "sprite - vectors.geo", "sprite - vectors.frag");
 
 	glfwSetFramebufferSizeCallback(m_window, InputHandling::framebuffer_size_callback);
 
@@ -70,7 +70,7 @@ Viewer::Viewer(const char* windowName)
 
 	g_shaders.bindUniformBlock(1, "View");
 	g_boneShaders.bindUniformBlock(1, "View");
-	g_spriteShader.bindUniformBlock(1, "View");
+	g_spriteShaders.bindUniformBlock(1, "View");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_viewUBO);
 
@@ -81,7 +81,7 @@ Viewer::Viewer(const char* windowName)
 
 	g_shaders.bindUniformBlock(2, "Projection");
 	g_boneShaders.bindUniformBlock(2, "Projection");
-	g_spriteShader.bindUniformBlock(2, "Projection");
+	g_spriteShaders.bindUniformBlock(2, "Projection");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_projectionUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -137,6 +137,14 @@ Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
 	unsigned long max = 1;
 	glBufferSubData(GL_UNIFORM_BUFFER, 116, 4, &max);
 
+	glBindBuffer(GL_UNIFORM_BUFFER, m_positionUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 16, NULL, GL_DYNAMIC_DRAW);
+
+	g_shaders.m_base.bindUniformBlock(5, "CamPosition");
+	g_boneShaders.m_base.bindUniformBlock(5, "CamPosition");
+	g_spriteShaders.bindUniformBlock(5, "CamPosition");
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 5, m_positionUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

@@ -41,6 +41,11 @@ struct Light
 	float max;
 };
 
+layout (std140) uniform CamPosition
+{
+	vec3 camPosition;
+};
+
 layout (std140) uniform Lights
 {
 	int doLights;
@@ -48,7 +53,6 @@ layout (std140) uniform Lights
 	int useGlobal;
 	vec4 globalVertexColor;
 	
-	vec3 viewPosition;
 	vec3 sceneAmbience;
 	Light lights[MAX_LIGHTS];
 };
@@ -128,7 +132,7 @@ vec4 applyShading(const Material material, vec4 baseColor)
 	if (material.shadingType != 0 && material.shadingType != 3 && doLights == 1)
 	{
 		result = sceneAmbience;
-		vec3 viewDir = normalize(viewPosition - vs_in.fragPos);
+		vec3 viewDir = normalize(camPosition - vs_in.fragPos);
 		vec3 diffuse;
 		if (material.shadingType < 3)
 			diffuse = material.diffuse.rgb;

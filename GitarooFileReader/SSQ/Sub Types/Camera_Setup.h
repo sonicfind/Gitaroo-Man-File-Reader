@@ -90,7 +90,7 @@ private:
 
 
 	unsigned int m_lightUBO = 0;
-	unsigned int m_spriteVectorUBO = 0;
+	unsigned int m_positionUBO = 0;
 
 public:
 	void read(FILE* inFile);

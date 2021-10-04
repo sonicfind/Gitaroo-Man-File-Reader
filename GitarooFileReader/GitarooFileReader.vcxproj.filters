@@ -70,9 +70,6 @@
     <Filter Include="Viewer\Shaders\Base">
       <UniqueIdentifier>{c8be50cb-bb2f-43bc-af4c-fb891bc42303}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Viewer\Shaders\Geometry">
-      <UniqueIdentifier>{e81d4f40-cb7a-4954-8e39-d393b5c8aa66}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Visual-Based Types\XG\XGNodes\Interpolators">
       <UniqueIdentifier>{1375a5aa-c774-4341-9ff2-d52d96dad3b9}</UniqueIdentifier>
     </Filter>
@@ -99,6 +96,12 @@
     </Filter>
     <Filter Include="Viewer\Shaders\Sprite">
       <UniqueIdentifier>{29b8eb95-5f8a-49cf-80ed-1130e96c7ca6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Viewer\Shaders\Base\Normals">
+      <UniqueIdentifier>{e81d4f40-cb7a-4954-8e39-d393b5c8aa66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Viewer\Shaders\Sprite\vectors">
+      <UniqueIdentifier>{973d07e0-8cc1-43ba-af16-5431576a1380}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -540,20 +543,8 @@
     <None Include="base.vert">
       <Filter>Viewer\Shaders\Base</Filter>
     </None>
-    <None Include="geometry.frag">
-      <Filter>Viewer\Shaders\Geometry</Filter>
-    </None>
-    <None Include="geometry.geo">
-      <Filter>Viewer\Shaders\Geometry</Filter>
-    </None>
-    <None Include="geometry.vert">
-      <Filter>Viewer\Shaders\Geometry</Filter>
-    </None>
     <None Include="bones.vert">
       <Filter>Viewer\Shaders\Base</Filter>
-    </None>
-    <None Include="geometry - bones.vert">
-      <Filter>Viewer\Shaders\Geometry</Filter>
     </None>
     <None Include="material.frag">
       <Filter>Viewer\Shaders\Base</Filter>
@@ -566,6 +557,27 @@
     </None>
     <None Include="sprite.frag">
       <Filter>Viewer\Shaders\Sprite</Filter>
+    </None>
+    <None Include="sprite - vectors.frag">
+      <Filter>Viewer\Shaders\Sprite\vectors</Filter>
+    </None>
+    <None Include="sprite - vectors.geo">
+      <Filter>Viewer\Shaders\Sprite\vectors</Filter>
+    </None>
+    <None Include="sprite - vectors.vert">
+      <Filter>Viewer\Shaders\Sprite\vectors</Filter>
+    </None>
+    <None Include="normals - bone.vert">
+      <Filter>Viewer\Shaders\Base\Normals</Filter>
+    </None>
+    <None Include="normals.frag">
+      <Filter>Viewer\Shaders\Base\Normals</Filter>
+    </None>
+    <None Include="normals.geo">
+      <Filter>Viewer\Shaders\Base\Normals</Filter>
+    </None>
+    <None Include="normals.vert">
+      <Filter>Viewer\Shaders\Base\Normals</Filter>
     </None>
   </ItemGroup>
 </Project>

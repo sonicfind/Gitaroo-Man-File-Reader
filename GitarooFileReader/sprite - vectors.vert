@@ -13,21 +13,12 @@ layout (std140) uniform CamPosition
 
 out VS_OUT
 {
-	int textureIndex;
-	vec2 texCoord;
-	vec2 texOffset;
-	vec4 colors;
 	vec4 rightVector;
 	vec4 upVector;
 } vs_out;
 
 void main()
 {
-	vs_out.textureIndex = aTextureIndex;
-	vs_out.texCoord = aTexCoord;
-	vs_out.texOffset = aTexOffset;
-	vs_out.colors = aColors;
-
 	vec3 camToPos = normalize(aPos - camPosition);
 	vs_out.rightVector = vec4(aSize.x * camToPos.z, 0, aSize.x * -camToPos.x, 0);
 	vs_out.upVector = vec4(0, aSize.y, 0, 0);

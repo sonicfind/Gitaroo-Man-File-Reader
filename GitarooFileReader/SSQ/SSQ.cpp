@@ -397,12 +397,18 @@ void SSQ::draw(const glm::mat4 view, const bool showNormals, const bool doTransp
 			"textures[0]", "textures[1]", "textures[2]", "textures[3]", "textures[4]", "textures[5]", "textures[6]", "textures[7]",
 		};
 
-		g_spriteShader.use();
+		if (showNormals)
+		{
+			g_spriteShaders.m_normals.use();
+			m_sprites.draw();
+		}
+
+		g_spriteShaders.m_base.use();
 		for (size_t i = 0; i < m_IMXentries.size(); ++i)
 		{
 			glActiveTexture(GL_TEXTURE0 + int(i));
 			m_IMXentries[i].m_imxPtr->m_data->bindTexture();
-			g_spriteShader.setInt(textures[i], i);
+			g_spriteShaders.m_base.setInt(textures[i], i);
 		}
 			
 		m_sprites.draw();

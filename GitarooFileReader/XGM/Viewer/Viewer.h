@@ -69,6 +69,7 @@ protected:
 class Viewer_XGM : public Viewer
 {
 	unsigned int m_lightUBO;
+	unsigned int m_positionUBO;
 
 	bool m_showAnimation;
 	std::list<Model> m_models;

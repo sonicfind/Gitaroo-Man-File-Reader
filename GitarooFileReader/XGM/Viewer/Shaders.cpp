@@ -21,7 +21,7 @@
 unsigned int Shader::s_activeID = 0;
 ShaderCombo g_shaders;
 ShaderCombo g_boneShaders;
-Shader g_spriteShader;
+ShaderCombo g_spriteShaders;
 
 void Shader::createProgram(const char* vertexPath, const char* fragmentPath)
 {
@@ -250,26 +250,33 @@ void Shader::setMat4(const std::string& name, float* matrix, const int size) con
 }
 
 void ShaderCombo::createPrograms(const char* vertexPath, const char* fragmentPath
-								, const char* geoVertexPath, const char* geoGeometryPath, const char* geoFragmentPath)
+								, const char* normalsVertexPath, const char* normalsGeometryPath, const char* normalsFragmentPath)
 {
 	m_base.createProgram(vertexPath, fragmentPath);
-	m_geometry.createProgram(geoVertexPath, geoGeometryPath, geoFragmentPath);
+	m_normals.createProgram(normalsVertexPath, normalsGeometryPath, normalsFragmentPath);
+}
+
+void ShaderCombo::createPrograms(const char* vertexPath, const char* geometryPath, const char* fragmentPath
+								, const char* normalsVertexPath, const char* normalsGeometryPath, const char* normalsFragmentPath)
+{
+	m_base.createProgram(vertexPath, geometryPath, fragmentPath);
+	m_normals.createProgram(normalsVertexPath, normalsGeometryPath, normalsFragmentPath);
 }
 
 void ShaderCombo::closePrograms()
 {
 	m_base.closeProgram();
-	m_geometry.closeProgram();
+	m_normals.closeProgram();
 }
 
 void ShaderCombo::bindUniformBlock(unsigned int bufferIndex, const char* const blockName)
 {
 	m_base.bindUniformBlock(bufferIndex, blockName);
-	m_geometry.bindUniformBlock(bufferIndex, blockName);
+	m_normals.bindUniformBlock(bufferIndex, blockName);
 }
 
 void ShaderCombo::bindStorageBlock(unsigned int bufferIndex, const char* const blockName)
 {
 	m_base.bindStorageBlock(bufferIndex, blockName);
-	m_geometry.bindStorageBlock(bufferIndex, blockName);
+	m_normals.bindStorageBlock(bufferIndex, blockName);
 }

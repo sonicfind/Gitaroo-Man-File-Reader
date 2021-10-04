@@ -48,9 +48,11 @@ public:
 struct ShaderCombo
 {
 	Shader m_base;
-	Shader m_geometry;
+	Shader m_normals;
 	void createPrograms(const char* vertexPath, const char* fragmentPath
-						, const char* geoVertexPath, const char* geoGeometryPath, const char* geoFragmentPath);
+						, const char* normalsVertexPath, const char* normalsGeometryPath, const char* normalsFragmentPath);
+	void createPrograms(const char* vertexPath, const char* geometryPath, const char* fragmentPath
+						, const char* normalsVertexPath, const char* normalsGeometryPath, const char* normalsFragmentPath);
 	void closePrograms();
 	void bindUniformBlock(unsigned int bufferIndex, const char* const blockName);
 	void bindStorageBlock(unsigned int bufferIndex, const char* const blockName);
@@ -58,4 +60,4 @@ struct ShaderCombo
 
 extern ShaderCombo g_shaders;
 extern ShaderCombo g_boneShaders;
-extern Shader g_spriteShader;
+extern ShaderCombo g_spriteShaders;

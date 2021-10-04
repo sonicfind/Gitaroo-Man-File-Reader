@@ -142,7 +142,7 @@ void CameraSetup::generateBuffers()
 	// Fills both light and sprite UBOs
 	glGenBuffers(2, &m_lightUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 256, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, 304, NULL, GL_DYNAMIC_DRAW);
 
 	g_shaders.m_base.bindUniformBlock(3, "Lights");
 	g_boneShaders.m_base.bindUniformBlock(3, "Lights");
@@ -150,18 +150,21 @@ void CameraSetup::generateBuffers()
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
 	unsigned long numLights = (unsigned long)m_lights.size();
 	glBufferSubData(GL_UNIFORM_BUFFER, 4, 4, &numLights);
-	glBufferSubData(GL_UNIFORM_BUFFER, 8, 4, &m_baseGlobalValues.m_useDiffuse);
+	glBufferSubData(GL_UNIFORM_BUFFER, 8, 4, &m_baseGlobalValues.m_coefficient);
+	glBufferSubData(GL_UNIFORM_BUFFER, 12, 4, &m_baseGlobalValues.m_useDiffuse);
 	glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(glm::vec3(m_baseGlobalValues.m_vertColorDiffuse) / 255.0f));
 	glBufferSubData(GL_UNIFORM_BUFFER, 32, sizeof(glm::vec3), glm::value_ptr(glm::vec3(m_baseGlobalValues.m_baseAmbience) / 255.0f));
 
 	// Uniform 4 belongs to xgEnvelope
 
-	glBindBuffer(GL_UNIFORM_BUFFER, m_spriteVectorUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 32, NULL, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_positionUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 16, NULL, GL_DYNAMIC_DRAW);
+	
+	g_shaders.m_base.bindUniformBlock(3, "CamPosition");
+	g_boneShaders.m_base.bindUniformBlock(3, "CamPosition");
+	g_spriteShaders.bindUniformBlock(5, "CamPosition");
 
-	g_spriteShader.bindUniformBlock(5, "SpriteVectors");
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, 5, m_spriteVectorUBO);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 5, m_positionUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -206,9 +209,8 @@ glm::mat4 CameraSetup::getViewMatrix(const float frame) const
 	else
 		position = glm::mix(posIter->m_position, (posIter + 1)->m_position, (frame - posIter->m_frame) * posIter->m_coefficient);
 
-	// If this function is being called, then set light viewPosition at the same time
-	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 32, 12, glm::value_ptr(position));
+	glBindBuffer(GL_UNIFORM_BUFFER, m_positionUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, 12, glm::value_ptr(glm::vec3(position.x, position.y, -position.z)));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	auto rotIter = getIter(m_rotations, frame);
@@ -217,14 +219,6 @@ glm::mat4 CameraSetup::getViewMatrix(const float frame) const
 		rotation = rotIter->m_rotation;
 	else
 		rotation = glm::slerp(rotIter->m_rotation, (rotIter + 1)->m_rotation, (frame - rotIter->m_frame) * rotIter->m_coefficient);
-
-	// If this function is being called, then set sprite vectors at the same time
-	glBindBuffer(GL_UNIFORM_BUFFER, m_spriteVectorUBO);
-	{
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, 12, glm::value_ptr(glm::rotate(rotation, glm::vec3(1, 0, 0))));
-		glBufferSubData(GL_UNIFORM_BUFFER, 16, 12, glm::value_ptr(glm::rotate(rotation, glm::vec3(0, 1, 0))));
-	}
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	return glm::toMat4(rotation) * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 }
 
@@ -249,7 +243,7 @@ void CameraSetup::setLights(const float frame, const unsigned int doLights)
 	if (doLights)
 	{
 		// Scene Ambience
-		glBufferSubData(GL_UNIFORM_BUFFER, 48, 12, glm::value_ptr(getAmbientColor(frame)));
+		glBufferSubData(GL_UNIFORM_BUFFER, 32, 12, glm::value_ptr(getAmbientColor(frame)));
 
 		std::vector<LightSetup::LightForBuffer> lightStructs;
 		for (auto& light : m_lights)
@@ -259,7 +253,7 @@ void CameraSetup::setLights(const float frame, const unsigned int doLights)
 			lightStructs.push_back(light.getLight(frame));
 		}
 		// All lights
-		glBufferSubData(GL_UNIFORM_BUFFER, 64, sizeof(LightSetup::LightForBuffer) * lightStructs.size(), lightStructs.data());
+		glBufferSubData(GL_UNIFORM_BUFFER, 48, sizeof(LightSetup::LightForBuffer) * lightStructs.size(), lightStructs.data());
 	}
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

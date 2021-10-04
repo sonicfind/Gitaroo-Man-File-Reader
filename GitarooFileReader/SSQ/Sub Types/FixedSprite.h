@@ -43,7 +43,7 @@ class FixedSprite
 		unsigned long ulong_f;
 		unsigned long ulong_g;
 		unsigned long ulong_h;
-		unsigned long m_transparent_2;
+		unsigned long m_blendingType;
 		unsigned long m_mipmapDepth;
 		unsigned long ulong_k;
 		unsigned long ulong_l;

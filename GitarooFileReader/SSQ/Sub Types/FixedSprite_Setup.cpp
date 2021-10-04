@@ -56,7 +56,7 @@ void FixedSpriteSetup::create(FILE* outFile)
 		fixed.create(outFile);
 }
 
-void FixedSpriteSetup::update(const float frame, std::vector<SpriteValues>& values)
+void FixedSpriteSetup::update(const float frame, std::vector<SpriteValues>& sprites, std::vector<SpriteValues>& sprites_noDepth)
 {
 	for (size_t index = 0; index < m_80bytes.size(); ++index)
 	{
@@ -70,6 +70,11 @@ void FixedSpriteSetup::update(const float frame, std::vector<SpriteValues>& valu
 		};
 
 		if (m_fixedSprites[index].update(frame, vals))
-			values.push_back(vals);
+		{
+			if (m_80bytes[index].m_depthTest)
+				sprites.push_back(vals);
+			else
+				sprites_noDepth.push_back(vals);
+		}
 	}
 }

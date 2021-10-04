@@ -47,5 +47,5 @@ class FixedSpriteSetup
 public:
 	void read(FILE* inFile);
 	void create(FILE* outFile);
-	void update(const float frame, std::vector<SpriteValues>& values);
+	void update(const float frame, std::vector<SpriteValues>& values, std::vector<SpriteValues>& sprites_noDepth);
 };

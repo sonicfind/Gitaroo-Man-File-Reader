@@ -20,7 +20,9 @@ class SpritesSetup
 	// 
 	unsigned long m_headerVersion;
 
-	char m_unk[12] = { 0 };
+	unsigned long m_spritesToDraw;
+	unsigned long m_spritesToDraw_NoDepth;
+	unsigned long m_unk;
 
 	Val m_junk[4] = { 0 };
 

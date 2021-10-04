@@ -27,7 +27,11 @@ void SpritesSetup::read(FILE* inFile)
 	}
 
 	fread(&m_headerVersion, 4, 1, inFile);
-	fread(m_unk, 1, 12, inFile);
+
+	fread(&m_spritesToDraw, 4, 1, inFile);
+	fread(&m_spritesToDraw_NoDepth, 4, 1, inFile);
+	fread(&m_unk, 4, 1, inFile);
+
 	fread(m_junk, 1, 16, inFile);
 
 	fread(&m_numFixedSprites, 4, 1, inFile);
@@ -50,7 +54,11 @@ void SpritesSetup::create(FILE* outFile)
 	fprintf(outFile, "GMSP");
 
 	fwrite(&m_headerVersion, 4, 1, outFile);
-	fwrite(m_unk, 1, 12, outFile);
+
+	fwrite(&m_spritesToDraw, 4, 1, outFile);
+	fwrite(&m_spritesToDraw_NoDepth, 4, 1, outFile);
+	fwrite(&m_unk, 4, 1, outFile);
+
 	fwrite(m_junk, 1, 16, outFile);
 
 	fwrite(&m_numFixedSprites, 4, 1, outFile);
@@ -102,6 +110,10 @@ void SpritesSetup::deleteSpriteBuffer()
 	{
 		glDeleteVertexArrays(1, &m_spriteVAO);
 		glDeleteBuffers(1, &m_spriteVBO);
+
+		m_spritesToDraw = 0;
+		m_spritesToDraw_NoDepth = 0;
+		m_unk = 0;
 	}
 }
 
@@ -109,9 +121,9 @@ void SpritesSetup::updateSprites(const float frame)
 {
 	if (m_spriteVAO)
 	{
-		std::vector<SpriteValues> values;
+		std::vector<SpriteValues> sprites, noDepth;
 		if (m_numFixedSprites)
-			m_fixedSpriteSetup.update(frame, values);
+			m_fixedSpriteSetup.update(frame, sprites, noDepth);
 
 		/*if (m_numUnkSprites_1)
 			m_unk1SpriteSetup.update(frame, values);
@@ -120,10 +132,12 @@ void SpritesSetup::updateSprites(const float frame)
 			m_unk2SpriteSetup.update(frame, values);*/
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_spriteVBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, values.size() * sizeof(SpriteValues), values.data());
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sprites.size() * sizeof(SpriteValues), sprites.data());
+		glBufferSubData(GL_ARRAY_BUFFER, sprites.size() * sizeof(SpriteValues), noDepth.size() * sizeof(SpriteValues), noDepth.data());
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		m_unused = (unsigned long)values.size();
+		m_spritesToDraw = (unsigned long)sprites.size();
+		m_spritesToDraw_NoDepth = (unsigned long)noDepth.size();
 	}
 }
 
@@ -138,6 +152,18 @@ void SpritesSetup::draw()
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_spriteVBO);
 		glBindVertexArray(m_spriteVAO);
-		glDrawArrays(GL_POINTS, 0, m_unused);
+		if (m_spritesToDraw)
+		{
+			glEnable(GL_DEPTH_TEST);
+			glDrawArrays(GL_POINTS, 0, m_spritesToDraw);
+		}
+
+		if (m_spritesToDraw_NoDepth)
+		{
+			glDisable(GL_DEPTH_TEST);
+			glDrawArrays(GL_POINTS, m_spritesToDraw, m_spritesToDraw_NoDepth);
+			glEnable(GL_DEPTH_TEST);
+		}
+
 	}
 }

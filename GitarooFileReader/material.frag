@@ -50,6 +50,7 @@ layout (std140) uniform Lights
 {
 	int doLights;
 	int numLights;
+	float globalCoefficient;
 	int useGlobal;
 	vec4 globalVertexColor;
 	
@@ -143,7 +144,7 @@ vec4 applyShading(const Material material, vec4 baseColor)
 		{
 			// diffuse shading
 			float diff = max(dot(vs_in.normal, -lights[i].direction), 0.0);
-			result += diff * lights[i].diffuse *  diffuse;
+			result += globalCoefficient * diff * lights[i].diffuse * diffuse;
 
 			if (material.shadingType == 1 || material.shadingType == 4)
 			{

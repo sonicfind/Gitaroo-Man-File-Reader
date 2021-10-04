@@ -374,7 +374,7 @@ glm::mat4 SSQ::getProjectionMatrix(unsigned int width, unsigned int height) cons
 	return m_camera.getProjectionMatrix(m_currFrame, width, height);
 }
 
-glm::vec4 SSQ::getClearColor() const
+glm::vec3 SSQ::getClearColor() const
 {
 	return m_camera.getClearColor(m_currFrame);
 }

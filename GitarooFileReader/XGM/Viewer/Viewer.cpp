@@ -513,8 +513,8 @@ void Viewer_SSQ::update(float current)
 void Viewer_SSQ::draw()
 {
 	// Clear color and depth buffers
-	glm::vec4 color = m_ssq->getClearColor();
-	glClearColor(color.r, color.g, color.b, color.a);
+	glm::vec3 color = m_ssq->getClearColor();
+	glClearColor(color.r, color.g, color.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Draw opaque meshes

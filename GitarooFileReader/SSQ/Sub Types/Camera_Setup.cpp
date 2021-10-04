@@ -174,7 +174,7 @@ void CameraSetup::deleteBuffers()
 	glDeleteBuffers(2, &m_lightUBO);
 }
 
-glm::vec4 CameraSetup::getClearColor(const float frame) const
+glm::vec3 CameraSetup::getClearColor(const float frame) const
 {
 	// Temporary as I am so sure that something must control the clear color mid-stage
 	return m_baseGlobalValues.m_clearColor;

@@ -62,7 +62,7 @@ public:
 	void update(const unsigned int doLights);
 	glm::mat4 getViewMatrix() const;
 	glm::mat4 getProjectionMatrix(unsigned int width, unsigned int height) const;
-	glm::vec4 getClearColor() const;
+	glm::vec3 getClearColor() const;
 	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents);
 	void setToStart();
 	void adjustFrame(float delta);

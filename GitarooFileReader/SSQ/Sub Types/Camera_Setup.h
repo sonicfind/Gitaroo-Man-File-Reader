@@ -19,7 +19,8 @@ class CameraSetup
 public:
 	struct BaseGlobalValues
 	{
-		glm::vec4 m_clearColor;
+		glm::vec3 m_clearColor;
+		float m_coefficient;
 		glm::u32vec3 m_baseAmbience;
 		unsigned long m_useDiffuse;
 		glm::u32vec3 m_vertColorDiffuse;
@@ -99,7 +100,7 @@ public:
 
 	void generateBuffers();
 	void deleteBuffers();
-	glm::vec4 getClearColor(const float frame) const;
+	glm::vec3 getClearColor(const float frame) const;
 	glm::mat4 getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const;
 	glm::mat4 getViewMatrix(const float frame) const;
 	glm::vec3 getAmbientColor(const float frame) const;

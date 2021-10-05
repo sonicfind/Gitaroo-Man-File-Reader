@@ -123,7 +123,7 @@ Viewer_XGM::Viewer_XGM(const std::vector<XG*>& models)
 	// Vertex Color Diffuse
 	glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(glm::vec3(0)));
 	// Stage Ambience
-	glBufferSubData(GL_UNIFORM_BUFFER, 48, sizeof(glm::vec3), glm::value_ptr(glm::vec3(59.0f / 255, 62.0f / 255, 66.0f / 255)));
+	glBufferSubData(GL_UNIFORM_BUFFER, 32, sizeof(glm::vec3), glm::value_ptr(glm::vec3(92.0f / 255, 104.0f / 255, 111.0f / 255)));
 	// Light Direction
 	glBufferSubData(GL_UNIFORM_BUFFER, 64, 12, glm::value_ptr(glm::vec3(0, 0, -1)));
 	// Light Diffuse

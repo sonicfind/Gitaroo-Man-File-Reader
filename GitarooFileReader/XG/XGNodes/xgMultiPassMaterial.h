@@ -26,9 +26,10 @@ public:
 	static bool compareType(const PString& str) { return strcmp("xgMultiPassMaterial", str.m_pstring) == 0; }
 	const size_t getSize() const;
 	bool hasTransparency() const;
+	size_t getNumMaterials() const;
 
 	void connectTextures(std::vector<IMX>& textures);
 	void intializeBuffers();
 	void deleteBuffers();
-	void setShaderValues(Shader* shader, const size_t index = 0) const;
+	void setShaderValues(const size_t index = 0) const;
 };

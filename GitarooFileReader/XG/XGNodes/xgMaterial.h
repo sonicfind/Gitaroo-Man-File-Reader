@@ -14,7 +14,6 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "xgTexture.h"
-#include "XGM/Viewer/Shaders.h"
 class MaterialNode : public XGNode
 {
 public:
@@ -22,7 +21,8 @@ public:
 	virtual bool hasTransparency() const = 0;
 	virtual void intializeBuffers() = 0;
 	virtual void deleteBuffers() = 0;
-	virtual void setShaderValues(Shader* shader, const size_t index = 0) const = 0;
+	virtual void setShaderValues(const size_t index = 0) const = 0;
+	virtual size_t getNumMaterials() const = 0;
 };
 
 class xgMaterial : public MaterialNode
@@ -60,9 +60,13 @@ public:
 	static bool compareType(const PString& str) { return strcmp("xgMaterial", str.m_pstring) == 0; }
 	const size_t getSize() const;
 	bool hasTransparency() const;
+	size_t getNumMaterials() const;
 
 	void connectTexture(std::vector<IMX>& textures);
 	void intializeBuffers();
 	void deleteBuffers();
-	void setShaderValues(Shader* shader, const size_t index = 0) const;
+	void setShaderValues(const size_t index = 0) const;
+
+	static void generateMaterialUniform();
+	static void deleteMaterialUniform();
 };

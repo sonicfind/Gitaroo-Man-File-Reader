@@ -178,55 +178,69 @@ bool xgMaterial::hasTransparency() const
 	return (m_blendType != 0 && m_blendType != 4) || m_flags & 1;
 }
 
+size_t xgMaterial::getNumMaterials() const
+{
+	return 1;
+}
+
+#include "XGM/Viewer/Shaders.h"
+void xgMaterial::generateMaterialUniform()
+{
+	glGenBuffers(1, &s_MaterialUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, s_MaterialUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_DYNAMIC_DRAW);
+
+	g_shaders.m_base.bindUniformBlock(4, "Material");
+	g_boneShaders.m_base.bindUniformBlock(4, "Material");
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 4, s_MaterialUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void xgMaterial::deleteMaterialUniform()
+{
+	glDeleteBuffers(1, &s_MaterialUBO);
+	s_MaterialUBO = 0;
+}
+
 void xgMaterial::intializeBuffers()
 {
 	if (m_inputTexture)
 		m_inputTexture->generateTexture();
-
-	if (!s_MaterialUBO)
-	{
-		glGenBuffers(1, &s_MaterialUBO);
-		glBindBuffer(GL_UNIFORM_BUFFER, s_MaterialUBO);
-		glBufferData(GL_UNIFORM_BUFFER, 128, NULL, GL_DYNAMIC_DRAW);
-		
-		g_shaders.m_base.bindUniformBlock(4, "Materials");
-		g_boneShaders.m_base.bindUniformBlock(4, "Materials");
-		
-		glBindBufferBase(GL_UNIFORM_BUFFER, 4, s_MaterialUBO);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	}
 }
 
 void xgMaterial::deleteBuffers()
 {
 	if (m_inputTexture)
 		m_inputTexture->deleteTexture();
-
-	if (s_MaterialUBO)
-	{
-		glDeleteBuffers(1, &s_MaterialUBO);
-		s_MaterialUBO = 0;
-	}
 }
 
-void xgMaterial::setShaderValues(Shader* shader, const size_t index) const
+void xgMaterial::setShaderValues(const size_t index) const
 {
-	static const std::string textures[] = { "textures[0]", "textures[1]" };
-	static const std::string use[] = { "useTexture[0]", "useTexture[1]" };
-	shader->setInt("doMulti", int(index));
-	if (m_textureEnv)
-		printf("");
 	if (m_inputTexture)
 	{
-		glActiveTexture(GL_TEXTURE0 + int(index));
 		m_inputTexture->bindTexture();
-		shader->setInt(textures[index], int(index));
-		shader->setInt(use[index], 1);
+		Shader::setInt("useTexture", 1);
 	}
 	else
-		shader->setInt(use[index], 0);
+		Shader::setInt("useTexture", 0);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, s_MaterialUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 64 * index, 64, (float*)&m_blendType);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, &m_blendType);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	switch (m_blendType)
+	{
+	case 1:
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
+		break;
+	case 2:
+		glBlendFunc(GL_DST_COLOR, GL_ZERO);
+		break;
+	case 3:
+		glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+		break;
+	default:
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+	}
 }

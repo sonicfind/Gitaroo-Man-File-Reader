@@ -96,8 +96,12 @@ void xgMultiPassMaterial::deleteBuffers()
 		mat->deleteBuffers();
 }
 
-void xgMultiPassMaterial::setShaderValues(Shader* shader, const size_t index) const
+void xgMultiPassMaterial::setShaderValues(const size_t index) const
 {
-	for (size_t i = 0; i < m_inputMaterials.size(); ++i)
-		m_inputMaterials[i]->setShaderValues(shader, i);
+	m_inputMaterials[index]->setShaderValues();
+}
+
+size_t xgMultiPassMaterial::getNumMaterials() const
+{
+	return m_inputMaterials.size();
 }

@@ -212,7 +212,6 @@ void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, con
 			normals.push_back(glm::mat3(glm::transpose(glm::inverse(view * m_matrices[i]))));
 
 		ShaderCombo* active = m_inputGeometry->activateShader();
-		m_inputMaterial->setShaderValues(&active->m_base);
 		active->m_base.setMat4("models[0]", (float*)m_matrices, numInstances);
 		active->m_base.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
 
@@ -236,12 +235,22 @@ void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, con
 			}
 			s_currentCulling = m_cullFunc;
 		}
-		
-		m_triFan->draw(numInstances);
-		m_triStrip->draw(numInstances);
-		m_triList->draw(numInstances);
 
+		glActiveTexture(GL_TEXTURE0);
+		for (int index = 0; index < m_inputMaterial->getNumMaterials(); ++index)
+		{
+			m_inputMaterial->setShaderValues(index);
+
+			m_triFan->draw(numInstances);
+			m_triStrip->draw(numInstances);
+			m_triList->draw(numInstances);
+
+			// Allows for multipass materials to be applied to the same vertex
+			glDepthFunc(GL_LEQUAL);
+		}
 		glBindTexture(GL_TEXTURE_2D, 0);
+		glDepthFunc(GL_LESS);
+		
 		if (showNormals)
 		{
 			active->m_normals.use();

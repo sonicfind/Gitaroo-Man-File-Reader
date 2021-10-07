@@ -86,12 +86,14 @@ Viewer::Viewer(const char* windowName)
 	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_projectionUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+	xgMaterial::generateMaterialUniform();
 	xgEnvelope::generateBoneUniform();
 	Model::resetTime();
 }
 
 Viewer::~Viewer()
 {
+	xgMaterial::deleteMaterialUniform();
 	xgEnvelope::deleteBoneUniform();
 	g_shaders.closePrograms();
 	g_boneShaders.closePrograms();

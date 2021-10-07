@@ -10,7 +10,7 @@ out VS_OUT
 {
 	vec3 fragPos;
 	vec3 normal;
-	vec2 texCoord[2];
+	vec2 texCoord;
 	vec4 color;
 } vs_out;
 
@@ -27,7 +27,7 @@ layout (std140) uniform Projection
 uniform mat4 models[MAX_INSTANCES];
 uniform mat3 normalMatrices[MAX_INSTANCES];
 
-struct Material
+layout (std140) uniform Material
 {
 	int blendType;
 	int shadingType;
@@ -38,12 +38,6 @@ struct Material
 	int uTile;
 	int vTile;
 };
-
-layout (std140) uniform Materials
-{
-	Material materials[2];
-};
-uniform int doMulti;
 
 void main()
 {
@@ -56,26 +50,12 @@ void main()
 	vs_out.normal = normalize(normalMatrix * aNorm);
 	vs_out.color = aColor;
 
-	if (materials[0].textEnv == 0)
-		vs_out.texCoord[0] = aTexCoord;
+	if (textEnv == 0)
+		vs_out.texCoord = aTexCoord;
 	else
 	{
 		vec3 r = reflect(vec3(view * model * finalPos), normalMatrix * aNorm);
 		float m = 2 * sqrt(pow(r.x, 2) + pow(r.y, 2) + pow(r.z + 1, 2));
-		vs_out.texCoord[0] = r.xy / m + .5;
-	}
-	
-	if (doMulti == 1)
-	{
-		if (materials[1].textEnv == materials[0].textEnv)
-			vs_out.texCoord[1] = vs_out.texCoord[0];
-		else if (materials[1].textEnv == 0)
-			vs_out.texCoord[1] = aTexCoord;
-		else
-		{
-			vec3 r = reflect(vec3(view * model * finalPos), normalMatrix * aNorm);
-			float m = 2 * sqrt(pow(r.x, 2) + pow(r.y, 2) + pow(r.z + 1, 2));
-			vs_out.texCoord[1] = r.xy / m + .5;
-		}
+		vs_out.texCoord = r.xy / m + .5;
 	}
 }

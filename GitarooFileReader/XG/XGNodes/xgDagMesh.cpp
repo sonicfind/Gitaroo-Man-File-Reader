@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "xgDagMesh.h"
 #include <glad/glad.h>
+unsigned int xgDagMesh::s_matrixUBO = 0;
 unsigned long xgDagMesh::read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList)
 {
 	PString::pull(inFile);
@@ -163,6 +164,26 @@ void xgDagMesh::connectTextures(std::vector<IMX>& textures)
 		mat->connectTextures(textures);
 }
 
+void xgDagMesh::generateMatrixUniform()
+{
+	glGenBuffers(1, &s_matrixUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, s_matrixUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 2048, NULL, GL_DYNAMIC_DRAW);
+
+	// Block 6 is for sprite sizes
+	g_shaders.bindUniformBlock(7, "Models");
+	g_boneShaders.bindUniformBlock(7, "Models");
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 7, s_matrixUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void xgDagMesh::deleteMatrixUniform()
+{
+	glDeleteBuffers(1, &s_matrixUBO);
+	s_matrixUBO = 0;
+}
+
 void xgDagMesh::intializeBuffers()
 {
 	for (auto& mat : m_matrices)
@@ -207,13 +228,9 @@ void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, con
 {
 	if (doTransparents == m_inputMaterial->hasTransparency())
 	{
-		std::vector<glm::mat3> normals;
-		for (size_t i = 0; i < numInstances; ++i)
-			normals.push_back(glm::mat3(glm::transpose(glm::inverse(view * m_matrices[i]))));
-
-		ShaderCombo* active = m_inputGeometry->activateShader();
-		active->m_base.setMat4("models[0]", (float*)m_matrices, numInstances);
-		active->m_base.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
+		glBindBuffer(GL_UNIFORM_BUFFER, s_matrixUBO);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4) * numInstances, m_matrices);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		m_inputGeometry->bindVertexBuffer(numInstances);
 		if (m_cullFunc != s_currentCulling)
@@ -236,6 +253,7 @@ void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, con
 			s_currentCulling = m_cullFunc;
 		}
 
+		ShaderCombo* active = m_inputGeometry->activateShader();
 		glActiveTexture(GL_TEXTURE0);
 		for (int index = 0; index < m_inputMaterial->getNumMaterials(); ++index)
 		{
@@ -254,8 +272,6 @@ void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, con
 		if (showNormals)
 		{
 			active->m_normals.use();
-			active->m_normals.setMat4("models[0]", (float*)m_matrices, numInstances);
-			active->m_normals.setMat3("normalMatrices[0]", (float*)normals.data(), numInstances);
 
 			m_triFan->draw(numInstances);
 			m_triStrip->draw(numInstances);

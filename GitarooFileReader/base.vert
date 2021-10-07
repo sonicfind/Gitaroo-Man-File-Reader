@@ -24,8 +24,10 @@ layout (std140) uniform Projection
 	mat4 projection;
 };
 
-uniform mat4 models[MAX_INSTANCES];
-uniform mat3 normalMatrices[MAX_INSTANCES];
+layout (std140) uniform Models
+{
+	mat4 models[MAX_INSTANCES];
+};
 
 layout (std140) uniform Material
 {
@@ -42,19 +44,26 @@ layout (std140) uniform Material
 void main()
 {
 	mat4 model = models[gl_InstanceID];
-	mat3 normalMatrix = normalMatrices[gl_InstanceID];
 
 	vec4 finalPos = vec4(aPos.xyz, 1);
+
+	// Position in screen space
 	gl_Position = projection * view * model * finalPos;
+
+	// Position in world space
 	vs_out.fragPos = vec3(model * finalPos);
-	vs_out.normal = normalize(normalMatrix * aNorm);
+
+	// Normalized normal vector
+	// Interpretted as if it starts at (0, 0, 0) as translation do not apply
+	vs_out.normal = normalize(vec3(model * vec4(aNorm, 0)));
 	vs_out.color = aColor;
 
 	if (textEnv == 0)
 		vs_out.texCoord = aTexCoord;
 	else
 	{
-		vec3 r = reflect(vec3(view * model * finalPos), normalMatrix * aNorm);
+		// Spherical texture environment
+		vec3 r = vec3(reflect(view * vec4(vs_out.fragPos, 1), view * vec4(vs_out.normal, 0)));
 		float m = 2 * sqrt(pow(r.x, 2) + pow(r.y, 2) + pow(r.z + 1, 2));
 		vs_out.texCoord = r.xy / m + .5;
 	}

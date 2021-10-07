@@ -18,6 +18,11 @@ layout (std140) uniform View
 	mat4 view;
 };
 
+layout (std140) uniform Models
+{
+	mat4 models[MAX_INSTANCES];
+};
+
 struct Envelope
 {
 	int numBones;
@@ -29,9 +34,6 @@ layout (std430) buffer Envelopes
 	Envelope envelopes[MAX_ENVELOPES];
 };
 
-uniform mat4 models[MAX_INSTANCES];
-uniform mat3 normalMatrices[MAX_INSTANCES];
-
 void main()
 {
 	vec4 finalPos = vec4(0.0);
@@ -39,10 +41,15 @@ void main()
 	
 	for (int i = 0; i < envelopes[aEnvelope].numBones; ++i)
 	{
-		finalPos += envelopes[aEnvelope].bones[gl_InstanceID][i] * vec4(aPos.xyz, 1) * aWeights[i];
-		finalNorm += envelopes[aEnvelope].bones[gl_InstanceID][i] * vec4(aNorm.xyz, 0) * aWeights[i];
+		mat4 weightedMatrix = aWeights[i] * envelopes[aEnvelope].bones[gl_InstanceID][i];
+		finalPos += weightedMatrix * vec4(aPos.xyz, 1);
+		finalNorm += weightedMatrix * vec4(aNorm.xyz, 0);
 	}
-		
-	gl_Position = view * models[gl_InstanceID] * finalPos;
-	vs_out.normal = normalize(normalMatrices[gl_InstanceID] * vec3(finalNorm));
+	
+	const mat4 combo = view * models[gl_InstanceID];
+	// Position relative to the camera
+	gl_Position = combo * finalPos;
+	
+	// Normal vector relative to the camera
+	vs_out.normal = normalize(vec3(combo * finalNorm));
 }

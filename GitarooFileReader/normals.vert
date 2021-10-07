@@ -14,11 +14,17 @@ layout (std140) uniform View
 	mat4 view;
 };
 
-uniform mat4 models[MAX_INSTANCES];
-uniform mat3 normalMatrices[MAX_INSTANCES];
+layout (std140) uniform Models
+{
+	mat4 models[MAX_INSTANCES];
+};
 
 void main()
 {
-	gl_Position = view * models[gl_InstanceID] * vec4(aPos.xyz, 1);
-	vs_out.normal = normalize(normalMatrices[gl_InstanceID] * aNorm);
+	mat4 combo = view * models[gl_InstanceID];
+	// Position relative to the camera
+	gl_Position = combo * vec4(aPos.xyz, 1);
+
+	// Normal vector relative to the camera
+	vs_out.normal = normalize(vec3(combo * vec4(aNorm, 0)));
 }

@@ -39,8 +39,10 @@ layout (std430) buffer Envelopes
 	Envelope envelopes[MAX_ENVELOPES];
 };
 
-uniform mat4 models[MAX_INSTANCES];
-uniform mat3 normalMatrices[MAX_INSTANCES];
+layout (std140) uniform Models
+{
+	mat4 models[MAX_INSTANCES];
+};
 
 layout (std140) uniform Material
 {
@@ -57,26 +59,33 @@ layout (std140) uniform Material
 void main()
 {
 	const mat4 model = models[gl_InstanceID];
-	const mat3 normalMatrix = normalMatrices[gl_InstanceID];
 	vec4 finalPos = vec4(0.0);
 	vec4 finalNorm = vec4(0.0);
 	
 	for (int i = 0; i < envelopes[aEnvelope].numBones; ++i)
 	{
-		finalPos += envelopes[aEnvelope].bones[gl_InstanceID][i] * vec4(aPos.xyz, 1) * aWeights[i];
-		finalNorm += envelopes[aEnvelope].bones[gl_InstanceID][i] * vec4(aNorm.xyz, 0) * aWeights[i];
+		mat4 weightedMatrix = aWeights[i] * envelopes[aEnvelope].bones[gl_InstanceID][i];
+		finalPos += weightedMatrix * vec4(aPos.xyz, 1);
+		finalNorm += weightedMatrix * vec4(aNorm.xyz, 0);
 	}
-
+	
+	// Position relative to the screen
 	gl_Position = projection * view * model * finalPos;
+
+	// Position in world space
 	vs_out.fragPos = vec3(model * finalPos);
-	vs_out.normal = normalize(normalMatrix * vec3(finalNorm));
+
+	// Normalized normal vector
+	// Interpretted as if it starts at (0, 0, 0) as translation do not apply
+	vs_out.normal = normalize(vec3(model * finalNorm));
 	vs_out.color = aColor;
 
 	if (textEnv == 0)
 		vs_out.texCoord = aTexCoord;
 	else
 	{
-		vec3 r = reflect(vec3(view * model * finalPos), normalMatrix * vec3(finalNorm));
+		// Spherical texture environment
+		vec3 r = vec3(reflect(view * vec4(vs_out.fragPos, 1), view * vec4(vs_out.normal, 0)));
 		float m = 2 * sqrt(pow(r.x, 2) + pow(r.y, 2) + pow(r.z + 1, 2));
 		vs_out.texCoord = r.xy / m + .5;
 	}

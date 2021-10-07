@@ -45,6 +45,7 @@ public:
 
 private:
 	static unsigned long s_currentCulling;
+	static unsigned int s_matrixUBO;
 
 public:
 	void connectTextures(std::vector<IMX>& textures);
@@ -53,4 +54,7 @@ public:
 	void restPose() const;
 	void animate(unsigned long instance, const glm::mat4 matrix);
 	void draw(const glm::mat4 view, const unsigned long numInstances, const bool showNormals, const bool doTransparents) const;
+
+	static void generateMatrixUniform();
+	static void deleteMatrixUniform();
 };

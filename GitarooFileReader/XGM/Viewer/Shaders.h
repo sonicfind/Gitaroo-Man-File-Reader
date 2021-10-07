@@ -35,14 +35,14 @@ public:
 	void bindStorageBlock(unsigned int bufferIndex, const char* const blockName);
 
 	// utility uniform functions
-	void setBool(const std::string& name, bool value) const;
-	void setInt(const std::string& name, int value) const;
-	void setFloat(const std::string& name, float value) const;
-	void setIVec2(const std::string& name, int* vect, const int size = 1) const;
-	void setVec3(const std::string& name, float* vect, const int size = 1) const;
-	void setVec4(const std::string& name, float* vect, const int size = 1) const;
-	void setMat3(const std::string& name, float* matrix, const int size = 1) const;
-	void setMat4(const std::string& name, float* matrix, const int size = 1) const;
+	static void setBool(const std::string& name, bool value);
+	static void setInt(const std::string& name, int value);
+	static void setFloat(const std::string& name, float value);
+	static void setIVec2(const std::string& name, int* vect, const int size = 1);
+	static void setVec3(const std::string& name, float* vect, const int size = 1);
+	static void setVec4(const std::string& name, float* vect, const int size = 1);
+	static void setMat3(const std::string& name, float* matrix, const int size = 1);
+	static void setMat4(const std::string& name, float* matrix, const int size = 1);
 };
 
 struct ShaderCombo

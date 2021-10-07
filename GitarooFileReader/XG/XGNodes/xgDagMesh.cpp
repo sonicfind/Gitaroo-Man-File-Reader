@@ -165,6 +165,9 @@ void xgDagMesh::connectTextures(std::vector<IMX>& textures)
 
 void xgDagMesh::intializeBuffers()
 {
+	for (auto& mat : m_matrices)
+		mat = glm::identity<glm::mat4>();
+
 	// If a buffer was made, then this is a unique geometry node
 	m_doGeometryAnimation = m_inputGeometry->generateVertexBuffer();
 	m_inputMaterial->intializeBuffers();

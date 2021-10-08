@@ -19,23 +19,28 @@ PlayerModelSetup::PlayerModelSetup(FILE* inFile, char(&name)[16])
 {
 	if (m_headerVersion >= 0x1300)
 	{
-		unsigned long numControllable;
-		fread(&numControllable, 4, 1, inFile);
-		m_player_controllable.resize(numControllable);
-		fread(&m_player_controllable.front(), sizeof(Struct48_2f), numControllable, inFile);
-		m_player_read4Entry.resize(numControllable);
-		for (auto& r4e : m_player_read4Entry)
+		fread(&m_numControllables, 4, 1, inFile);
+
+		m_controllables.reserve(m_numControllables);
+		m_controllables.resize(m_numControllables);
+		fread(m_controllables.data(), sizeof(Controllable), m_numControllables, inFile);
+		//m_controllables[1].ulong_h = 1;
+
+		m_connections.resize(m_numControllables);
+		m_connections.reserve(m_numControllables);
+		for (auto& set : m_connections)
 		{
-			unsigned long num;
-			fread(&num, 4, 1, inFile);
-			if (num)
+			fread(&set.size, 4, 1, inFile);
+			if (set.size)
 			{
-				r4e.m_vals.resize(num);
-				fread(&r4e.m_vals.front(), 4, num, inFile);
+				set.controllableList.resize(set.size);
+				fread(set.controllableList.data(), 4, set.size, inFile);
 			}
 		}
-		m_player_ulongs.resize(numControllable);
-		fread(&m_player_ulongs.front(), 4, numControllable, inFile);
+
+		m_endings.reserve(m_numControllables);
+		m_endings.resize(m_numControllables);
+		fread(m_endings.data(), 4, m_numControllables, inFile);
 	}
 }
 
@@ -44,16 +49,16 @@ void PlayerModelSetup::create(FILE* outFile) const
 	ModelSetup::create(outFile);
 	if (m_headerVersion >= 0x1300)
 	{
-		unsigned long size = (unsigned long)m_player_controllable.size();
-		fwrite(&size, 4, 1, outFile);
-		fwrite(&m_player_controllable.front(), sizeof(Struct48_2f), size, outFile);
-		for (auto& r4e : m_player_read4Entry)
+		fwrite(&m_numControllables, 4, 1, outFile);
+		fwrite(m_controllables.data(), sizeof(Controllable), m_numControllables, outFile);
+
+		for (auto& set : m_connections)
 		{
-			unsigned long num = (unsigned long)r4e.m_vals.size();
-			fwrite(&num, 4, 1, outFile);
-			if (num)
-				fwrite(&r4e.m_vals.front(), 4, num, outFile);
+			fwrite(&set.size, 4, 1, outFile);
+			if (set.size)
+				fwrite(set.controllableList.data(), 4, set.size, outFile);
 		}
-		fwrite(&m_player_ulongs.front(), 4, size, outFile);
+
+		fwrite(m_endings.data(), 4, m_numControllables, outFile);
 	}
 }

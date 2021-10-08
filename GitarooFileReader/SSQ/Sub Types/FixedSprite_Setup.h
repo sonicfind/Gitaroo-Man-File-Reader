@@ -36,7 +36,7 @@ class FixedSpriteSetup
 		float float_m;
 		unsigned long ulong_c;
 		unsigned long m_depthTest;
-		unsigned long ulong_e;
+		unsigned long m_modelTypeMapping;
 		unsigned long ulong_f;
 		unsigned long ulong_g;
 	};

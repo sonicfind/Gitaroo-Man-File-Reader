@@ -28,8 +28,10 @@ ModelSetup::ModelSetup(FILE* inFile, char(&name)[16])
 	}
 
 	fread(&m_headerVersion, 4, 1, inFile);
-	fread(&m_size, 4, 1, inFile);
-	fread(m_unk, 1, 8, inFile);
+	fread(&m_controllableIndex, 4, 1, inFile);
+	fread(&m_bpmStartFrame, 4, 1, inFile);
+	fread(&m_controllableStartFrame, 4, 1, inFile);
+
 	fread(m_junk, 1, 16, inFile);
 	unsigned long numPositions, numRotations;
 	fread(&numPositions, 4, 1, inFile);
@@ -73,8 +75,10 @@ void ModelSetup::create(FILE* outFile) const
 	fprintf(outFile, "GMPX");
 
 	fwrite(&m_headerVersion, 4, 1, outFile);
-	fwrite(&m_size, 4, 1, outFile);
-	fwrite(m_unk, 1, 8, outFile);
+	fwrite(&m_controllableIndex, 4, 1, outFile);
+	fwrite(&m_bpmStartFrame, 4, 1, outFile);
+	fwrite(&m_controllableStartFrame, 4, 1, outFile);
+
 	fwrite(m_junk, 1, 16, outFile);
 
 	unsigned long numPositions = (unsigned long)m_positions.size(), numRotations = (unsigned long)m_rotations.size();

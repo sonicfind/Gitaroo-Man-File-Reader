@@ -22,11 +22,11 @@ class ModelSetup
 		unsigned long m_animIndex;
 		unsigned long m_startOverride;
 		unsigned long m_noDrawing;
-		unsigned long m_firstAnimofSection_maybe;
+		unsigned long m_pollGameState;
 		unsigned long m_loop;
 		unsigned long ulong_f;
 		unsigned long m_holdLastFrame;
-		unsigned long ulong_h;
+		unsigned long m_dropShadow;
 		unsigned long m_unknown;
 		unsigned long m_otherPos;
 	};
@@ -56,8 +56,9 @@ class ModelSetup
 	const char* m_name;
 	XG* m_xg = nullptr;
 	// Maybe?
-	unsigned long m_size;
-	char m_unk[8] = { 0 };
+	unsigned long m_controllableIndex;
+	float m_bpmStartFrame;
+	float m_controllableStartFrame;
 	Val m_junk[4] = { 0 };
 	std::vector<Position> m_positions;
 	size_t m_posIndex;
@@ -80,33 +81,35 @@ public:
 
 class PlayerModelSetup : public ModelSetup
 {
-	struct Struct48_2f
+	struct Controllable
 	{
-		float float_a;
-		float float_b;
-		unsigned long ulong_a;
-		unsigned long ulong_b;
-		unsigned long ulong_c;
-		unsigned long ulong_d;
-		unsigned long ulong_e;
-		unsigned long ulong_f;
-		unsigned long ulong_g;
-		unsigned long ulong_h;
-		unsigned long ulong_i;
-		unsigned long ulong_j;
+		float m_angleMin;
+		float m_angleMax;
+		unsigned long m_descriptor;
+		unsigned long m_eventFlag;
+		unsigned long m_animIndex;
+		// Length of time to hold onto the last frame of animation
+		unsigned long m_holdTime;
+		// 1 - forwards; 0 - backwards
+		unsigned long m_playbackDirection;
+		unsigned long m_interruptible;
+		unsigned long m_useCurrentFrame_maybe;
+		unsigned long m_randomize;
+		Val m_junk[2];
 	};
 
-	std::vector<Struct48_2f> m_player_controllable;
+	unsigned long m_numControllables;
+	std::vector<Controllable> m_controllables;
 
-	struct Read4Entry
+	struct Connection
 	{
-		unsigned long m_size = 0;
-		std::vector<unsigned long> m_vals;
+		unsigned long size = 0;
+		std::vector<unsigned long> controllableList;
 	};
 
-	std::vector<Read4Entry> m_player_read4Entry;
+	std::vector<Connection> m_connections;
 
-	std::vector<unsigned long> m_player_ulongs;
+	std::vector<long> m_endings;
 
 public:
 	PlayerModelSetup(FILE* inFile, char(&name)[16]);
@@ -119,22 +122,11 @@ class AttDefModelSetup : public ModelSetup
 
 	struct Struct64_9f
 	{
-		float float_a;
-		float float_b;
-		float float_c;
-		float float_d;
-		float float_e;
-		float float_f;
-		float float_g;
-		float float_h;
-		unsigned long ulong_a;
-		unsigned long ulong_b_maybe;
-		unsigned long ulong_c_maybe;
-		unsigned long ulong_d_maybe;
-		unsigned long ulong_e;
-		unsigned long ulong_f_maybe;
-		unsigned long ulong_g_maybe;
-		unsigned long ulong_h_maybe;
+		glm::vec3 m_vec1;
+		glm::vec3 m_vec2;
+		char m_modelName_1[16];
+		char m_modelName_2[16];
+		char m_junk[8];
 	} m_attdef_64bytes;
 
 public:

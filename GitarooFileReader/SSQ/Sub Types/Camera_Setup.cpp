@@ -137,8 +137,9 @@ float CameraSetup::getLastFrame() const
 #include "XGM/Viewer/Shaders.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
-void CameraSetup::generateBuffers()
+void CameraSetup::generateBuffers(float aspectRatio)
 {
+	m_viewerAspectRatio = aspectRatio;
 	// Fills both light and sprite UBOs
 	glGenBuffers(2, &m_lightUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
@@ -172,17 +173,17 @@ glm::vec3 CameraSetup::getClearColor(const float frame) const
 glm::mat4 CameraSetup::getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const
 {
 	if (m_projections.empty())
-		return glm::perspective(glm::radians(m_baseGlobalValues.m_fov), float(width) / height, m_baseGlobalValues.m_zNear, m_baseGlobalValues.m_zFar);
+		return glm::perspective(glm::radians(m_baseGlobalValues.m_fov), m_viewerAspectRatio, m_baseGlobalValues.m_zNear, m_baseGlobalValues.m_zFar);
 	else
 	{
 		auto iter = getIter(m_projections, frame);
 		if (!iter->m_doInterpolation || iter + 1 == m_projections.end())
-			return glm::perspective(glm::radians(iter->m_fov), iter->m_aspectRatio, iter->m_zNear, iter->m_zFar);
+			return glm::perspective(glm::radians(iter->m_fov), m_viewerAspectRatio, iter->m_zNear, iter->m_zFar);
 		else
 		{
 			const float coefficient = (frame - iter->m_frame) * iter->m_coefficient;
 			return glm::perspective(glm::radians(mix(iter->m_fov, (iter + 1)->m_fov, coefficient)),
-									float(width) / height,
+									m_viewerAspectRatio,
 									mix(iter->m_zNear, (iter + 1)->m_zNear, coefficient),
 									mix(iter->m_zFar, (iter + 1)->m_zFar, coefficient));
 		}
@@ -244,7 +245,7 @@ void CameraSetup::setLights(const float frame, const unsigned int doLights)
 			lightStructs.push_back(light.getLight(frame));
 		}
 		// All lights
-		glBufferSubData(GL_UNIFORM_BUFFER, 64, sizeof(LightSetup::LightForBuffer) * lightStructs.size(), lightStructs.data());
+		glBufferSubData(GL_UNIFORM_BUFFER, 48, sizeof(LightSetup::LightForBuffer) * lightStructs.size(), lightStructs.data());
 	}
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

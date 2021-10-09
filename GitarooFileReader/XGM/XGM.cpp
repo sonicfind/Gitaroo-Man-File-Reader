@@ -312,29 +312,29 @@ bool XGM::importOBJs()
 	return false;
 }
 
-bool XGM::viewModel()
+bool XGM::viewModels()
 {
-	std::vector<size_t> sectionIndexes;
+	std::vector<size_t> modelIndexes;
 	while (true)
 	{
 		banner(" " + m_filename + ".XGM - Model Viewer ");
-		printf_tab("Type the number for each model that you wish to look at w/ spaces in-between\n");
+		printf_tab("Type the index for every model that you wish to look at w/ spaces in-between\n");
 		for (size_t index = 0; index < m_models.size(); ++index)
 			printf_tab("%zu - %s\n", index, m_models[index].getName());
 
-		if (sectionIndexes.size())
+		if (modelIndexes.size())
 		{
 			printf("%sCurrent List: ", g_global.tabs.c_str());
-			for (const size_t index : sectionIndexes)
+			for (const size_t index : modelIndexes)
 				printf("%s ", m_models[index].getName());
 			putchar('\n');
 		}
 
 		printf_tab("B - Change BPM for tempo-base animations: %g\n", Animation::getTempo());
-		printf_tab("A - Switch aspect ratio: %s\n", Viewer::getAspectRatioString().c_str());
-		printf_tab("H - Change viewer resolution, Height: %u\n", Viewer::getScreenHeight());
+		printf_tab("A - Switch aspect ratio: %s\n", getAspectRatioString());
+		printf_tab("H - Change viewer resolution, Height: %u\n", s_screenHeight);
 		printf_tab("? - Show list of controls\n");
-		switch (insertIndexValues(sectionIndexes, "bah", m_models.size(), false))
+		switch (insertIndexValues(modelIndexes, "bah", m_models.size(), false))
 		{
 		case ResultType::Help:
 			printf_tab("\n");
@@ -344,6 +344,7 @@ bool XGM::viewModel()
 			printf_tab("Mouse - Camera Aiming\n");
 			printf_tab("Mouse Scroll - Increase/Decrease zoom\n");
 			printf_tab("ESC - exit\n");
+			printf_tab("\n");
 			printf_tab("'M' - Release/Reattach mouse control from/to the window\n");
 			printf_tab("'N' - Toggle displaying vertex normal vectors\n");
 			printf_tab("'O' - Switch between Animation & Pose modes\n");
@@ -353,6 +354,10 @@ bool XGM::viewModel()
 			printf_tab("\tP - Pause/Play\n");
 			printf_tab("\tR (Press) - Reset current animation to frame 0\n");
 			printf_tab("\tR (Hold) - Reset to first animation\n");
+			printf_tab("\tRight/Left - Switch current animation\n");
+			printf_tab("\n");
+			printf_tab("With only one model loaded:\n");
+			printf_tab("\t','/'.' - Change currently viewed model\n");
 			printf_tab("\n");
 			printf_tab("Press 'Enter' when you're done reading\n");
 			printf_tab("");
@@ -370,30 +375,26 @@ bool XGM::viewModel()
 					return true;
 				break;
 			case 'a':
-				Viewer::switchAspectRatio();
+				switchAspectRatio();
 				break;
 			case 'h':
-				if (Viewer::changeHeight())
+				if (changeHeight())
 					return true;
 			}
 			break;
 		case ResultType::Success:
-			if (sectionIndexes.size())
-			{
-				std::vector<XG*> viewer_models;
-				for (const size_t index : sectionIndexes)
-					viewer_models.push_back(&m_models[index]);
+		{
+			std::vector<float> lengths;
+			for (const auto& index : modelIndexes)
+				lengths.push_back(m_models[index].getAnimationLength(0));
 
-				try
-				{
-					Viewer_XGM(viewer_models).view();
-				}
-				catch (char* str)
-				{
-					printf("%s", str);
-				}
-				sectionIndexes.clear();
-			}
+			m_viewerControls.reset(new ViewerControls_XGM(modelIndexes, lengths));
+			if (modelIndexes.size() == 1)
+				startDisplay(m_models[modelIndexes.front()].getName());
+			else
+				startDisplay("Multi-XG Viewer");
+			modelIndexes.clear();
+		}
 		}
 	}
 }

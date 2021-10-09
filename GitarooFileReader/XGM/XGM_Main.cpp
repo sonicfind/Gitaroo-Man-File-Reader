@@ -88,7 +88,7 @@ bool XGM::functionSelection(const char choice, bool isMulti)
 	//case 'f':
 	//	return importOBJs();
 	case 'v':
-		return viewModel();
+		return viewModels();
 	case 't':
 		return selectTexture();
 	case 'm':

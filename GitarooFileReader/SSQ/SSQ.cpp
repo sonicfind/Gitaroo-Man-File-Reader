@@ -15,7 +15,6 @@
  */
 #include "pch.h"
 #include "SSQ.h"
-#include "XGM/Viewer/Viewer.h"
 using namespace GlobalFunctions;
 void flipHand(std::vector<Rotation>& rotations)
 {
@@ -177,8 +176,8 @@ bool SSQ::viewSequence()
 		banner(" " + m_filename + ".SSQ - Sequence Viewer ");
 		printf_tab("V - Enter the Viewer\n");
 		printf_tab("B - Change BPM for tempo-base animations: %g\n", Animation::getTempo());
-		printf_tab("A - Switch aspect ratio: %s\n", Viewer::getAspectRatioString().c_str());
-		printf_tab("H - Change viewer resolution, Height: %u\n", Viewer::getScreenHeight());
+		printf_tab("A - Switch aspect ratio: %s\n", getAspectRatioString());
+		printf_tab("H - Change viewer resolution, Height: %u\n", s_screenHeight);
 		printf_tab("S - Change Starting Frame: %g\n", m_startFrame);
 		printf_tab("E - Change Ending Frame: %g\n", m_endFrame);
 		printf_tab("? - Show list of controls\n");
@@ -212,14 +211,8 @@ bool SSQ::viewSequence()
 			switch (g_global.answer.character)
 			{
 			case 'v':
-				try
-				{
-					Viewer_SSQ(this).view();
-				}
-				catch (char* str)
-				{
-					printf("%s", str);
-				}
+				m_viewerControls.reset(new ViewerControls_SSQ());
+				startDisplay(m_filename.c_str());
 				break;
 			case 'b':
 				if (Animation::setTempo())
@@ -256,6 +249,7 @@ bool SSQ::changeStartFrame()
 			return true;
 		case GlobalFunctions::ResultType::MaxExceeded:
 			m_startFrame = m_endFrame;
+			__fallthrough;
 		case GlobalFunctions::ResultType::Success:
 		case GlobalFunctions::ResultType::SpecialCase:
 			return false;
@@ -285,6 +279,7 @@ bool SSQ::changeEndFrame()
 			return true;
 		case GlobalFunctions::ResultType::MaxExceeded:
 			m_endFrame = last;
+			__fallthrough;
 		case GlobalFunctions::ResultType::Success:
 		case GlobalFunctions::ResultType::SpecialCase:
 			return false;
@@ -304,131 +299,7 @@ bool SSQ::changeEndFrame()
 	}
 }
 
-void SSQ::loadbuffers()
+void SSQ::setFrame(const float frame)
 {
-	m_currFrame = m_startFrame;
-	IMXEntry::generateSpriteBuffer(m_IMXentries);
-	for (auto& entry : m_IMXentries)
-		entry.m_imxPtr->m_data->generateTexture();
-
-	for (size_t i = 0; i < m_modelSetups.size(); ++i)
-		if (!m_XGentries[i].m_isClone)
-			m_XGentries[i].m_xg->initializeViewerState();
-
-	m_camera.generateBuffers();
-	for (auto& texAnim : m_texAnimations)
-		texAnim.loadCuts();
-	
-	m_sprites.generateSpriteBuffer();
-}
-
-void SSQ::unloadBuffers()
-{
-	IMXEntry::deleteSpriteBuffer();
-	for (auto& entry : m_IMXentries)
-		entry.m_imxPtr->m_data->deleteTexture();
-
-	for (size_t i = 0; i < m_modelSetups.size(); ++i)
-		if (!m_XGentries[i].m_isClone)
-			m_XGentries[i].m_xg->uninitializeViewerState();
-
-	m_camera.deleteBuffers();
-	for (auto& texAnim : m_texAnimations)
-		texAnim.unloadCuts();
-
-	m_sprites.deleteSpriteBuffer();
-}
-
-void SSQ::update(const unsigned int doLights)
-{
-	for (size_t i = 0; i < m_modelSetups.size(); ++i)
-	{
-		auto& entry = m_XGentries[i];
-		XG* xg;
-		if (!entry.m_isClone)
-		{
-			xg = entry.m_xg;
-			xg->resetInstanceCount();
-		}
-		else
-			xg = m_XGentries[entry.m_cloneID].m_xg;
-
-		m_modelSetups[i]->animate(xg, m_currFrame);
-	}
-
-	m_camera.setLights(m_currFrame, doLights);
-
-	for (auto& texAnim : m_texAnimations)
-		texAnim.substitute(m_currFrame);
-
-	m_sprites.updateSprites(m_currFrame);
-}
-
-glm::mat4 SSQ::getViewMatrix() const
-{
-	return m_camera.getViewMatrix(m_currFrame);
-}
-
-glm::mat4 SSQ::getProjectionMatrix(unsigned int width, unsigned int height) const
-{
-	return m_camera.getProjectionMatrix(m_currFrame, width, height);
-}
-
-glm::vec3 SSQ::getClearColor() const
-{
-	return m_camera.getClearColor(m_currFrame);
-}
-
-void SSQ::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents)
-{
-	for (size_t i = 0; i < m_modelSetups.size(); ++i)
-	{
-		auto& entry = m_XGentries[i];
-		if (!entry.m_isClone && entry.m_xg->getInstanceCount())
-			entry.m_xg->draw(view, showNormals, doTransparents);
-	}
-
-	// Temporary solution for blending
-	// Full solution will require figuring out how it decides if a sprite a blends or not
-	if (doTransparents && m_sprites.hasBuffers())
-	{
-		static const std::string textures[] =
-		{
-			"textures[0]", "textures[1]", "textures[2]", "textures[3]", "textures[4]", "textures[5]", "textures[6]", "textures[7]",
-		};
-
-		if (showNormals)
-		{
-			g_spriteShaders.m_normals.use();
-			m_sprites.draw();
-		}
-
-		g_spriteShaders.m_base.use();
-		for (size_t i = 0; i < m_IMXentries.size(); ++i)
-		{
-			glActiveTexture(GL_TEXTURE0 + int(i));
-			m_IMXentries[i].m_imxPtr->m_data->bindTexture();
-			g_spriteShaders.m_base.setInt(textures[i], i);
-		}
-			
-		m_sprites.draw();
-	}
-}
-
-void SSQ::setToStart()
-{
-	m_currFrame = m_startFrame;
-}
-
-void SSQ::adjustFrame(float delta)
-{
-	m_currFrame += 30 * delta;
-	// Set this to the max for now
-	if (m_currFrame >= m_endFrame)
-		m_currFrame = m_endFrame;
-}
-
-float SSQ::getFrame()
-{
-	return m_currFrame;
+	m_currFrame = frame;
 }

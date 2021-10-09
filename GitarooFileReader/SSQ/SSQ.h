@@ -21,8 +21,10 @@
 #include "Sub Types/TextureAnimation.h"
 #include "Sub Types/PSetup.h"
 #include "XGM/XGM.h"
+#include "XGM/Viewer/Viewer.h"
 class SSQ
 	: public FileType
+	, public Viewer
 {
 	unsigned long m_headerVersion;
 	float m_startFrame;
@@ -36,7 +38,14 @@ class SSQ
 	SpritesSetup m_sprites;
 	std::vector<TexAnim> m_texAnimations;
 	PSetup m_pSetup;
+
 	std::unique_ptr<XGM> m_xgm;
+
+	struct ViewerControls_SSQ : public ViewerControls
+	{
+		bool hasFreeMovement = false;
+		ViewerControls_SSQ() : ViewerControls(false) {}
+	};
 
 	bool changeStartFrame();
 	bool changeEndFrame();
@@ -57,14 +66,10 @@ public:
 	static void displayMultiHelp();
 	static const std::string multiChoiceString;
 
-	void loadbuffers();
-	void unloadBuffers();
-	void update(const unsigned int doLights);
-	glm::mat4 getViewMatrix() const;
-	glm::mat4 getProjectionMatrix(unsigned int width, unsigned int height) const;
-	glm::vec3 getClearColor() const;
-	void draw(const glm::mat4 view, const bool showNormals, const bool doTransparents);
-	void setToStart();
-	void adjustFrame(float delta);
-	float getFrame();
+	void initialize(const char* windowName);
+	void uninitialize();
+	void update(float current);
+	void draw();
+
+	void setFrame(const float frame);
 };

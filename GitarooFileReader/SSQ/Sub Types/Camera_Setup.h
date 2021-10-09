@@ -78,6 +78,8 @@ private:
 
 	Val m_junk[4] = { 0 };
 
+	float m_viewerAspectRatio;
+
 public:
 	BaseGlobalValues m_baseGlobalValues;
 
@@ -97,7 +99,7 @@ public:
 	void create(FILE* outFile);
 	float getLastFrame() const;
 
-	void generateBuffers();
+	void generateBuffers(float aspectRatio);
 	void deleteBuffers();
 	glm::vec3 getClearColor(const float frame) const;
 	glm::mat4 getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const;

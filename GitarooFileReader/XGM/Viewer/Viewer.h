@@ -14,22 +14,22 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Camera.h"
-#include "Model.h"
-#include "SSQ/SSQ.h"
 #include <GLFW/glfw3.h>
-
-enum class AspectRatioMode
-{
-	SDTV,
-	Widescreen,
-	UltraWide
-};
-
 class Viewer
 {
 protected:
+	struct ViewerControls
+	{
+		unsigned int useLights = 1;
+
+		bool isPaused = false;
+		bool showNormals = false;
+		bool isMouseActive;
+		ViewerControls(bool mouse) : isMouseActive(mouse) {}
+	};
+
 	// settings
-	static AspectRatioMode s_aspectRatio;
+	static float s_aspectRatio;
 	static unsigned int s_screenWidth;
 	static unsigned int s_screenHeight;
 
@@ -37,60 +37,24 @@ protected:
 	unsigned int m_viewUBO;
 	unsigned int m_projectionUBO;
 
-	unsigned int m_useLights;
-
-	float m_previous;
-	bool m_isPaused;
-	bool m_showNormals;
-	bool m_isMouseActive;
-
-	Camera m_cameraControl;
+	Camera* m_controlledCamera;
 	glm::mat4 m_view;
 	glm::mat4 m_projection;
 
+	std::unique_ptr<ViewerControls> m_viewerControls;
+
 public:
-	Viewer(const char* windowName);
-	virtual ~Viewer();
-	int view();
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-	static std::string getAspectRatioString();
-	static unsigned int getScreenHeight() { return s_screenHeight; }
+	static const char* getAspectRatioString();
 	static void switchAspectRatio();
 	static bool changeHeight();
 
 protected:
-	virtual void update(float current) = 0;
+	int startDisplay(const char* windowName);
+	virtual void initialize(const char* windowName);
+	virtual void uninitialize();
+	virtual void update(float delta) = 0;
 	virtual void draw() = 0;
-	static void setWidth();
-};
-
-class Viewer_XGM : public Viewer
-{
-	unsigned int m_lightUBO;
-
-	bool m_showAnimation;
-	std::list<Model> m_models;
-public:
-	Viewer_XGM(const std::vector<XG*>& models);
-	~Viewer_XGM();
-
-private:
-	void update(float current);
-	void draw();
-};
-
-class Viewer_SSQ : public Viewer
-{
-	SSQ* m_ssq;
-	bool m_hasFreeMovement;
-
-public:
-	Viewer_SSQ(SSQ* ssq);
-	~Viewer_SSQ();
-
-private:
-	void update(float current);
-	void draw();
 };

@@ -15,12 +15,41 @@
  */
 #include "IMX\IMX.h"
 #include "XG\XG.h"
+#include "Viewer\Viewer.h"
 
 class XGM
 	: public FileType
+	, public Viewer
 {
 	std::vector<IMX> m_textures;
 	std::vector<XG> m_models;
+
+	unsigned int m_lightUBO;
+
+	struct ViewerControls_XGM : public ViewerControls
+	{
+		bool animate = true;
+		bool loop = false;
+
+		struct ModelInfo
+		{
+			size_t modelIndex;
+			size_t animIndex = 0;
+			float length;
+			float frame = 0;
+			ModelInfo(size_t index, float length)
+				: modelIndex(index)
+				, length(length) {}
+		};
+		std::vector<ModelInfo> m_models;
+
+		ViewerControls_XGM(const std::vector<size_t>& indices, const std::vector<float>& lengths)
+			: ViewerControls(true)
+		{
+			for (size_t i = 0; i < indices.size(); ++i)
+				m_models.emplace_back(indices[i], lengths[i]);
+		}
+	};
 
 public:
 	XGM();
@@ -33,7 +62,7 @@ public:
 	bool importPNGs();
 	bool exportOBJs();
 	bool importOBJs();
-	bool viewModel();
+	bool viewModels();
 	bool selectTexture();
 	bool selectModel();
 	IMX* getTexture(const char* name);
@@ -44,4 +73,11 @@ public:
 	static void displayMultiChoices();
 	static void displayMultiHelp();
 	static const std::string multiChoiceString;
+
+protected:
+	void initialize(const char* windowName);
+	void uninitialize();
+
+	void update(float current);
+	void draw();
 };

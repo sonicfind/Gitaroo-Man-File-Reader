@@ -23,6 +23,7 @@ class XG
 	friend class Model;
 	friend class SSQ;
 	friend class ModelSetup;
+	friend class PlayerModelSetup;
 
 	char m_filepath[257] = { 0 };
 	char m_name[17] = { 0 };

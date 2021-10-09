@@ -62,3 +62,63 @@ void PlayerModelSetup::create(FILE* outFile) const
 		fwrite(m_endings.data(), 4, m_numControllables, outFile);
 	}
 }
+
+#include <time.h>
+void PlayerModelSetup::animateFromGameState(XG* xg, const float frame)
+{
+	// Insert check to see if an uninterruptible animation isn't finished
+	int flag = 0;
+	float ang = 0;
+	int descriptor = 0;
+
+	const Controllable* current = &m_controllables[m_controllableIndex];
+	float length = xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
+
+	if (current->m_interruptible || frame >= length + m_controllableStartFrame)
+	{
+		do
+		{
+			if (!current->m_interruptible)
+			{
+				m_controllableIndex = m_endings[m_controllableIndex];
+				current = &m_controllables[m_controllableIndex];
+			}
+
+			bool connectionMade = current->m_randomize;
+			if (!connectionMade)
+			{
+				for (const auto& connection : m_connections[m_controllableIndex].controllableList)
+				{
+					if (m_controllables[connection].m_angleMin <= ang
+						&& ang < m_controllables[connection].m_angleMax
+						&& flag == m_controllables[connection].m_eventFlag
+						&& descriptor == m_controllables[connection].m_descriptor)
+					{
+						m_controllableIndex = connection;
+						connectionMade = true;
+						break;
+					}
+				}
+			}
+			else
+			{
+				srand(unsigned int(time(0)));
+				m_controllableIndex = m_connections[m_controllableIndex].controllableList[rand() % m_connections[m_controllableIndex].size];
+			}
+
+			if (connectionMade)
+			{
+				current = &m_controllables[m_controllableIndex];
+				if (current->m_useCurrentFrame_maybe)
+					m_controllableStartFrame = length + m_controllableStartFrame;
+				else
+					m_controllableStartFrame = m_bpmStartFrame;
+
+				length = xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
+			}
+		} while (!current->m_interruptible && frame >= length + m_controllableStartFrame);
+	}
+
+	const glm::mat4 matrix = getModelMatrix(frame);
+	xg->animate(fmod(frame - m_controllableStartFrame, length), current->m_animIndex, matrix);
+}

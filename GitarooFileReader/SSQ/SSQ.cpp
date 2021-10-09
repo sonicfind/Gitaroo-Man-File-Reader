@@ -302,4 +302,6 @@ bool SSQ::changeEndFrame()
 void SSQ::setFrame(const float frame)
 {
 	m_currFrame = frame;
+	for (auto& model : m_modelSetups)
+		model->setBPMFrame(frame);
 }

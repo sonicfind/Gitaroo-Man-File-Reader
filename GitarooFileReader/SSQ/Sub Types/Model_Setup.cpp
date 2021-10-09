@@ -107,6 +107,17 @@ void ModelSetup::create(FILE* outFile) const
 	}
 }
 
+void ModelSetup::setBPMFrame(const float frame)
+{
+	m_bpmStartFrame = frame;
+}
+
+void ModelSetup::reset()
+{
+	m_controllableIndex = 0;
+	m_controllableStartFrame = m_bpmStartFrame;
+}
+
 #include <glm/gtx/transform.hpp>
 glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 {
@@ -152,30 +163,33 @@ glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 	return result;
 }
 
-#include <math.h>
-void ModelSetup::animate(XG* xg, const float frame) const
+void ModelSetup::animate(XG* xg, const float frame)
 {
 	if (!m_animations.empty())
 	{
 		auto iter = getIter(m_animations, frame);
 		if (!iter->m_noDrawing)
 		{
-			const glm::mat4 matrix = getModelMatrix(frame);
-			/*if (iter->m_firstAnimofSection_maybe)
-				iter = m_animations.begin();
-			else*/
-				while (iter != m_animations.begin() && !iter->m_startOverride && (iter - 1)->m_animIndex == iter->m_animIndex)
-					--iter;
+			const bool looping = iter->m_loop;
+			while (iter != m_animations.begin()
+				&& !iter->m_startOverride
+				&& !iter->m_pollGameState
+				&& (iter - 1)->m_animIndex == iter->m_animIndex)
+				--iter;
 
-			float length = xg->getAnimationLength(iter->m_animIndex);
-			if (frame < length + iter->m_frame)
-				xg->animate(frame - iter->m_frame, iter->m_animIndex, matrix);
-			else if (iter->m_loop)
-				xg->animate(fmod(frame - iter->m_frame, length), iter->m_animIndex, matrix);
-			else if (iter->m_holdLastFrame)
-				xg->animate(length - 1, iter->m_animIndex, matrix);
+			if (iter->m_pollGameState)
+				animateFromGameState(xg, frame);
 			else
-				xg->animate(length, iter->m_animIndex, matrix);
+			{
+				const glm::mat4 matrix = getModelMatrix(frame);
+				const float length = xg->getAnimationLength(iter->m_animIndex);
+				if (frame < length + iter->m_frame)
+					xg->animate(frame - iter->m_frame, iter->m_animIndex, matrix);
+				else if (looping)
+					xg->animate(fmod(frame - iter->m_frame, length), iter->m_animIndex, matrix);
+				else
+					xg->animate(length - 1, iter->m_animIndex, matrix);
+			}
 		}
 	}
 	else

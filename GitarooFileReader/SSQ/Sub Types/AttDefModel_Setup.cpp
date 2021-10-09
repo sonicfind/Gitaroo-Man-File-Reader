@@ -33,3 +33,8 @@ void AttDefModelSetup::create(FILE* outFile) const
 		fwrite(&m_attackValues, sizeof(AttackStreamValues), 1, outFile);
 	}
 }
+
+void AttDefModelSetup::animateFromGameState(XG* xg, const float frame)
+{
+
+}

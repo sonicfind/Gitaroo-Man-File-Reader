@@ -17,6 +17,7 @@
 #include "XG/XG.h"
 class ModelSetup
 {
+protected:
 	struct ModelAnim : public Frame
 	{
 		unsigned long m_animIndex;
@@ -53,8 +54,10 @@ class ModelSetup
 		float float_i;
 		unsigned long ulong_g;
 	};
+
 	const char* m_name;
 	
+	unsigned long m_headerVersion;
 	// Maybe?
 	unsigned long m_controllableIndex;
 	float m_bpmStartFrame;
@@ -66,15 +69,19 @@ class ModelSetup
 	std::vector<ModelScalar> m_scalars;
 	BaseValues m_baseValues;
 
-protected:
-	unsigned long m_headerVersion;
-
 public:
 	ModelSetup(FILE* inFile, char(&name)[16]);
 	virtual void create(FILE* outFile) const;
 
-	void animate(XG* xg, const float frame) const;
+	void reset();
+	void setBPMFrame(const float frame);
+	void animate(XG* xg, const float frame);
 	glm::mat4 getModelMatrix(const float frame) const;
+	std::pair<bool, ModelAnim*> getAnim(const float frame);
+
+
+protected:
+	virtual void animateFromGameState(XG* xg, const float frame) {}
 };
 
 class PlayerModelSetup : public ModelSetup
@@ -112,6 +119,9 @@ class PlayerModelSetup : public ModelSetup
 public:
 	PlayerModelSetup(FILE* inFile, char(&name)[16]);
 	void create(FILE* outFile) const;
+
+private:
+	virtual void animateFromGameState(XG* xg, const float frame);
 };
 
 class AttDefModelSetup : public ModelSetup
@@ -134,6 +144,9 @@ class AttDefModelSetup : public ModelSetup
 public:
 	AttDefModelSetup(FILE* inFile, char(&name)[16]);
 	void create(FILE* outFile) const;
+
+private:
+	virtual void animateFromGameState(XG* xg, const float frame);
 };
 
 class SnakeModelSetup : public ModelSetup

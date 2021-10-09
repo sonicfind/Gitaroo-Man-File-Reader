@@ -344,6 +344,7 @@
     <Natvis Include="IMX\IMX.natvis" />
     <Natvis Include="Main\SharedPtr.natvis" />
     <Natvis Include="SSQ\Sub Types\Model_Setup.natvis" />
+    <Natvis Include="XG\glm.natvis" />
     <Natvis Include="XG\XG.natvis" />
   </ItemGroup>
   <ItemGroup>

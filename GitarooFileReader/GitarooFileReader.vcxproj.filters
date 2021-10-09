@@ -532,6 +532,9 @@
     <Natvis Include="SSQ\Sub Types\Model_Setup.natvis">
       <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
     </Natvis>
+    <Natvis Include="XG\glm.natvis">
+      <Filter>Visual-Based Types\XG</Filter>
+    </Natvis>
   </ItemGroup>
   <ItemGroup>
     <None Include="base.vert">

@@ -350,7 +350,7 @@
     <None Include="base.vert" />
     <None Include="bones.vert" />
     <None Include="material.frag" />
-    <None Include="normals - bone.vert" />
+    <None Include="normals - bones.vert" />
     <None Include="normals.frag" />
     <None Include="normals.geo" />
     <None Include="normals.vert" />

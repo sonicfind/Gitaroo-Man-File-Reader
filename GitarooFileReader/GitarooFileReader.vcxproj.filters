@@ -561,9 +561,6 @@
     <None Include="sprite - vectors.vert">
       <Filter>Viewer\Shaders\Sprite\vectors</Filter>
     </None>
-    <None Include="normals - bone.vert">
-      <Filter>Viewer\Shaders\Base\Normals</Filter>
-    </None>
     <None Include="normals.frag">
       <Filter>Viewer\Shaders\Base\Normals</Filter>
     </None>
@@ -571,6 +568,9 @@
       <Filter>Viewer\Shaders\Base\Normals</Filter>
     </None>
     <None Include="normals.vert">
+      <Filter>Viewer\Shaders\Base\Normals</Filter>
+    </None>
+    <None Include="normals - bones.vert">
       <Filter>Viewer\Shaders\Base\Normals</Filter>
     </None>
   </ItemGroup>

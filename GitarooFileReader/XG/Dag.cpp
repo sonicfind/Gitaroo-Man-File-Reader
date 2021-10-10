@@ -131,13 +131,13 @@ void Dag::animate(unsigned long instance, glm::mat4 matrix)
 	}
 }
 
-void Dag::draw(const glm::mat4 view, const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated) const
+void Dag::draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
 	if (auto mesh = m_base.get<xgDagMesh>())
-		mesh->draw(view, numInstances, showNormals, doTransparents);
+		mesh->draw(numInstances, showNormals, doTransparents);
 	else
 	{
 		for (const auto& dag : m_connected)
-			dag.draw(view, numInstances, showNormals, doTransparents, isAnimated);
+			dag.draw(numInstances, showNormals, doTransparents, isAnimated);
 	}
 }

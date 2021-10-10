@@ -31,5 +31,5 @@ public:
 	void uninitializeViewerState();
 	void restPose() const;
 	void animate(unsigned long instance, glm::mat4 matrix);
-	void draw(const glm::mat4 view, const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
+	void draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
 };

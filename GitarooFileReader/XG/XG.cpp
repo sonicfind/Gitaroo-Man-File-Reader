@@ -336,9 +336,9 @@ void XG::animate(float frame, size_t index, const glm::mat4 matrix)
 }
 
 // Draws all vertex data to the current framebuffer
-void XG::draw(const glm::mat4 view, const bool showNormals, const bool doTransparents, const bool isAnimated) const
+void XG::draw(const bool showNormals, const bool doTransparents, const bool isAnimated) const
 {
-	m_data->draw(view, m_instanceCount, showNormals, doTransparents, isAnimated);
+	m_data->draw(m_instanceCount, showNormals, doTransparents, isAnimated);
 }
 
 unsigned long XG::getInstanceCount() const

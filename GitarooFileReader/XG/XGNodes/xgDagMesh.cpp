@@ -223,7 +223,7 @@ void xgDagMesh::animate(unsigned long instance, const glm::mat4 matrix)
 
 #include "XGM/Viewer/Camera.h"
 unsigned long xgDagMesh::s_currentCulling = 0;
-void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, const bool showNormals, const bool doTransparents) const
+void xgDagMesh::draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents) const
 {
 	auto drawTriangles = [&] {
 		m_triFan->draw(numInstances);

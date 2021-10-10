@@ -172,10 +172,11 @@ void ModelSetup::animate(XG* xg, const float frame)
 		if (!iter->m_noDrawing)
 		{
 			const bool looping = iter->m_loop;
+			const unsigned long animIndex = xg->getValidatedAnimationIndex(iter->m_animIndex);
 			while (iter != m_animations.begin()
 				&& !iter->m_startOverride
 				&& !iter->m_pollGameState
-				&& (iter - 1)->m_animIndex == iter->m_animIndex)
+				&& xg->getValidatedAnimationIndex((iter - 1)->m_animIndex) == animIndex)
 				--iter;
 
 			if (iter->m_pollGameState)
@@ -183,13 +184,13 @@ void ModelSetup::animate(XG* xg, const float frame)
 			else
 			{
 				const glm::mat4 matrix = getModelMatrix(frame);
-				const float length = xg->getAnimationLength(iter->m_animIndex);
+				const float length = xg->getAnimationLength(animIndex);
 				if (frame < length + iter->m_frame)
-					xg->animate(frame - iter->m_frame, iter->m_animIndex, matrix);
+					xg->animate(frame - iter->m_frame, animIndex, matrix);
 				else if (looping)
-					xg->animate(fmod(frame - iter->m_frame, length), iter->m_animIndex, matrix);
+					xg->animate(fmod(frame - iter->m_frame, length), animIndex, matrix);
 				else
-					xg->animate(length - 1, iter->m_animIndex, matrix);
+					xg->animate(length - 1, animIndex, matrix);
 			}
 		}
 	}

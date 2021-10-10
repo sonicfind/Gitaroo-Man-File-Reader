@@ -290,6 +290,14 @@ void XG::uninitializeViewerState()
 	m_instanceCount = 0;
 }
 
+unsigned long XG::getValidatedAnimationIndex(size_t index) const
+{
+	if (index < m_animations.size())
+		return (unsigned long)index;
+	else
+		return (unsigned long)m_animations.size() - 1;
+}
+
 // Returns the total duration of the chosen animation in seconds 
 float XG::getAnimationLength(size_t index) const
 {

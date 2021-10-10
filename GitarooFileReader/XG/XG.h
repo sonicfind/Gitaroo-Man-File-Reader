@@ -61,6 +61,8 @@ private:
 	void initializeViewerState();
 	// Deletes all the vertex and uniform buffers created for the OpenGL viewer
 	void uninitializeViewerState();
+	// Returns the actual index to be used for animating
+	unsigned long getValidatedAnimationIndex(size_t index) const;
 	// Returns the total duration of the chosen animation in seconds 
 	float getAnimationLength(size_t index) const;
 	// Sets all vertex and bone matrix values to their defaults

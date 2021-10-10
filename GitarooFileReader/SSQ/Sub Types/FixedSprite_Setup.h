@@ -36,7 +36,7 @@ class FixedSpriteSetup
 		float float_m;
 		unsigned long ulong_c;
 		unsigned long m_depthTest;
-		unsigned long m_modelTypeMapping;
+		ModelType m_modelTypeMapping = ModelType::Normal;
 		unsigned long ulong_f;
 		unsigned long ulong_g;
 	};

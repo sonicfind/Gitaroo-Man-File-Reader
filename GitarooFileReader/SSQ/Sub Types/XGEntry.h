@@ -14,19 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "XG/XG.h"
-enum class ModelType
-{
-	Normal,
-	Player1,
-	Player2,
-	DuetPlayer,
-	Player1AttDef = 5,
-	Player2AttDef,
-	DuetPlayerAttDef,
-	DuetComboAttack,
-	Snake
-};
-
+#include "SSQ_BaseStructs.h"
 struct XGEntry
 {
 	char m_name[16] = { 0 };

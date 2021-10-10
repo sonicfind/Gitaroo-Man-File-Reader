@@ -14,8 +14,9 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-ModelSetup::ModelSetup(FILE* inFile, char(&name)[16])
+ModelSetup::ModelSetup(FILE* inFile, ModelType type, char(&name)[16])
 	: m_name(name)
+	, m_type(type)
 {
 	// Block Tag
 	char tmp[5] = { 0 };

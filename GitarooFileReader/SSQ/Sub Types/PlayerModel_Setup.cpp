@@ -14,8 +14,8 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-PlayerModelSetup::PlayerModelSetup(FILE* inFile, char(&name)[16])
-	: ModelSetup(inFile, name)
+PlayerModelSetup::PlayerModelSetup(FILE* inFile, ModelType type, char(&name)[16])
+	: ModelSetup(inFile, type, name)
 {
 	if (m_headerVersion >= 0x1300)
 	{

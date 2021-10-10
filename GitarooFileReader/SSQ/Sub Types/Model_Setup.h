@@ -57,6 +57,7 @@ protected:
 
 	const char* m_name;
 	
+	ModelType m_type = ModelType::Normal;
 	unsigned long m_headerVersion;
 	// Maybe?
 	unsigned long m_controllableIndex;
@@ -70,7 +71,7 @@ protected:
 	BaseValues m_baseValues;
 
 public:
-	ModelSetup(FILE* inFile, char(&name)[16]);
+	ModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
 	virtual void create(FILE* outFile) const;
 
 	void reset();
@@ -117,7 +118,7 @@ class PlayerModelSetup : public ModelSetup
 	std::vector<long> m_endings;
 
 public:
-	PlayerModelSetup(FILE* inFile, char(&name)[16]);
+	PlayerModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
 	void create(FILE* outFile) const;
 
 private:
@@ -142,7 +143,7 @@ class AttDefModelSetup : public ModelSetup
 	} m_attackValues;
 
 public:
-	AttDefModelSetup(FILE* inFile, char(&name)[16]);
+	AttDefModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
 	void create(FILE* outFile) const;
 
 private:
@@ -152,6 +153,6 @@ private:
 class SnakeModelSetup : public ModelSetup
 {
 public:
-	SnakeModelSetup(FILE* inFile, char(&name)[16]);
+	SnakeModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
 	void create(FILE* outFile) const;
 };

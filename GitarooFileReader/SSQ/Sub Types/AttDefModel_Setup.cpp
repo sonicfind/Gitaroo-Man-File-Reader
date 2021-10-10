@@ -14,8 +14,8 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-AttDefModelSetup::AttDefModelSetup(FILE* inFile, char(&name)[16])
-	: ModelSetup(inFile, name)
+AttDefModelSetup::AttDefModelSetup(FILE* inFile, ModelType type, char(&name)[16])
+	: ModelSetup(inFile, type, name)
 {
 	if (m_headerVersion >= 0x1200)
 	{

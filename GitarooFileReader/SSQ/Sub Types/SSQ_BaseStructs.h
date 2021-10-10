@@ -45,6 +45,19 @@ struct Rotation : public Frame
 	unsigned long m_otherPos;
 };
 
+enum class ModelType
+{
+	Normal,
+	Player1,
+	Player2,
+	DuetPlayer,
+	Player1AttDef = 5,
+	Player2AttDef,
+	DuetPlayerAttDef,
+	DuetComboAttack,
+	Snake
+};
+
 template <typename T>
 auto getIter(const std::vector<T>& vect, const float time)
 {

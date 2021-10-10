@@ -24,6 +24,7 @@ class XG
 	friend class SSQ;
 	friend class ModelSetup;
 	friend class PlayerModelSetup;
+	friend class AttDefModelSetup;
 
 	char m_filepath[257] = { 0 };
 	char m_name[17] = { 0 };

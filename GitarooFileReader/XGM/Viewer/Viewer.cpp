@@ -557,30 +557,32 @@ void SSQ::update(float delta)
 			m_currFrame = m_endFrame;
 	}
 
+	g_gameState[5] = InputHandling::g_input_keyboard.KEY_5.isActive();
+	g_gameState[6] = InputHandling::g_input_keyboard.KEY_6.isActive();
+	g_gameState[7] = InputHandling::g_input_keyboard.KEY_7.isActive();
+	g_gameState[8] = InputHandling::g_input_keyboard.KEY_8.isActive();
+
 	m_camera.setLights(m_currFrame, controls->useLights);
 
-	if (doFullUpdate)
+	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 	{
-		for (size_t i = 0; i < m_modelSetups.size(); ++i)
+		auto& entry = m_XGentries[i];
+		XG* xg;
+		if (!entry.m_isClone)
 		{
-			auto& entry = m_XGentries[i];
-			XG* xg;
-			if (!entry.m_isClone)
-			{
-				xg = entry.m_xg;
-				xg->resetInstanceCount();
-			}
-			else
-				xg = m_XGentries[entry.m_cloneID].m_xg;
-
-			m_modelSetups[i]->animate(xg, m_currFrame);
+			xg = entry.m_xg;
+			xg->resetInstanceCount();
 		}
+		else
+			xg = m_XGentries[entry.m_cloneID].m_xg;
 
-		for (auto& texAnim : m_texAnimations)
-			texAnim.substitute(m_currFrame);
-
-		m_sprites.update(m_currFrame);
+		m_modelSetups[i]->animate(xg, m_currFrame);
 	}
+
+	for (auto& texAnim : m_texAnimations)
+		texAnim.substitute(m_currFrame);
+
+	m_sprites.update(m_currFrame);
 
 	if (!controls->hasFreeMovement)
 	{

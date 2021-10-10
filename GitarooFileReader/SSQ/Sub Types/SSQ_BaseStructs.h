@@ -74,3 +74,4 @@ T mix(const T a, const T b, const float coefficient)
 }
 
 void flipHand(std::vector<Rotation>& rotations);
+extern bool g_gameState[10];

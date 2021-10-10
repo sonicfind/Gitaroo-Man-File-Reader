@@ -27,6 +27,8 @@ void flipHand(std::vector<Rotation>& rotations)
 	}
 }
 
+bool g_gameState[10] = { false };
+
 SSQ::SSQ() : FileType(".SSQ") {}
 
 SSQ::SSQ(std::string filename, bool unused)

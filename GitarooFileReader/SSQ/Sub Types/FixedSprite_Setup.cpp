@@ -100,23 +100,27 @@ void FixedSpriteSetup::update(const float frame)
 	m_depthlessDraws.clear();
 	for (size_t index = 0; index < m_80bytes.size(); ++index)
 	{
-		SpriteValues vals{
-			m_80bytes[index].m_IMXindex,
-			m_80bytes[index].m_worldPosition,
-			m_80bytes[index].m_initial_BottomLeft,
-			m_80bytes[index].m_boxSize,
-			m_80bytes[index].m_worldSize,
-			glm::vec4(1),
-			// Additive blending default
-			1
-		};
-
-		if (m_fixedSprites[index].update(frame, vals))
+		if (m_80bytes[index].m_modelTypeMapping < ModelType::Player1AttDef ||
+			g_gameState[static_cast<int>(m_80bytes[index].m_modelTypeMapping)])
 		{
-			if (m_80bytes[index].m_depthTest)
-				m_spritesToDraw.push_back(vals);
-			else
-				m_depthlessDraws.push_back(vals);
+			SpriteValues vals{
+				m_80bytes[index].m_IMXindex,
+				m_80bytes[index].m_worldPosition,
+				m_80bytes[index].m_initial_BottomLeft,
+				m_80bytes[index].m_boxSize,
+				m_80bytes[index].m_worldSize,
+				glm::vec4(1),
+				// Additive blending default
+				1
+			};
+
+			if (m_fixedSprites[index].update(frame, vals))
+			{
+				if (m_80bytes[index].m_depthTest)
+					m_spritesToDraw.push_back(vals);
+				else
+					m_depthlessDraws.push_back(vals);
+			}
 		}
 	}
 

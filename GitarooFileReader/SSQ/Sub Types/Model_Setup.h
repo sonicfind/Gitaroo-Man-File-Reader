@@ -76,13 +76,13 @@ public:
 
 	void reset();
 	void setBPMFrame(const float frame);
-	void animate(XG* xg, const float frame);
+	std::pair<bool, glm::mat4> animate(XG* xg, const float frame);
 	glm::mat4 getModelMatrix(const float frame) const;
 	std::pair<bool, ModelAnim*> getAnim(const float frame);
 
 
 protected:
-	virtual void animateFromGameState(XG* xg, const float frame) {}
+	virtual glm::mat4 animateFromGameState(XG* xg, const float frame) { return glm::mat4(); }
 };
 
 class PlayerModelSetup : public ModelSetup
@@ -122,7 +122,7 @@ public:
 	void create(FILE* outFile) const;
 
 private:
-	virtual void animateFromGameState(XG* xg, const float frame);
+	virtual glm::mat4 animateFromGameState(XG* xg, const float frame);
 };
 
 class AttDefModelSetup : public ModelSetup
@@ -147,7 +147,7 @@ public:
 	void create(FILE* outFile) const;
 
 private:
-	virtual void animateFromGameState(XG* xg, const float frame);
+	virtual glm::mat4 animateFromGameState(XG* xg, const float frame);
 };
 
 class SnakeModelSetup : public ModelSetup

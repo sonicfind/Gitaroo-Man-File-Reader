@@ -51,6 +51,8 @@ SSQ::SSQ(std::string filename, bool unused)
 
 	unsigned long numMatrices = 0;
 	fread(&numMatrices, 4, 1, m_filePtr);
+	m_modelMatrices.reserve(numMatrices);
+	m_modelMatrices.resize(numMatrices);
 
 	unsigned long numIMX = 0;
 	fread(&numIMX, 4, 1, m_filePtr);

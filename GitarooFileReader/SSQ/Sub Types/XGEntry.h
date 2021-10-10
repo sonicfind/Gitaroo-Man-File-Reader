@@ -20,7 +20,7 @@ struct XGEntry
 	char m_name[16] = { 0 };
 	unsigned long m_isClone;
 	unsigned long m_cloneID;
-	unsigned long m_isActive;
+	unsigned long m_dropShadow;
 	ModelType m_type = ModelType::Normal;
 	float m_length;
 	float m_speed;

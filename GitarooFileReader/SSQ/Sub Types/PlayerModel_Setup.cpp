@@ -64,7 +64,7 @@ void PlayerModelSetup::create(FILE* outFile) const
 }
 
 #include <time.h>
-void PlayerModelSetup::animateFromGameState(XG* xg, const float frame)
+glm::mat4 PlayerModelSetup::animateFromGameState(XG* xg, const float frame)
 {
 	// Insert check to see if an uninterruptible animation isn't finished
 	int flag = 0;
@@ -121,4 +121,5 @@ void PlayerModelSetup::animateFromGameState(XG* xg, const float frame)
 
 	const glm::mat4 matrix = getModelMatrix(frame);
 	xg->animate(fmod(frame - m_controllableStartFrame, length), current->m_animIndex, matrix);
+	return matrix;
 }

@@ -34,12 +34,14 @@ void AttDefModelSetup::create(FILE* outFile) const
 	}
 }
 
-void AttDefModelSetup::animateFromGameState(XG* xg, const float frame)
+glm::mat4 AttDefModelSetup::animateFromGameState(XG* xg, const float frame)
 {
 	if (g_gameState[static_cast<int>(m_type)])
 	{
 		const glm::mat4 matrix = getModelMatrix(frame);
 		const float length = xg->getAnimationLength(0);
 		xg->animate(fmod(frame - m_bpmStartFrame, length), 0, matrix);
+		return matrix;
 	}
+	return glm::mat4();
 }

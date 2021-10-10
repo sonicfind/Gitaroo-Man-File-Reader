@@ -19,7 +19,7 @@ XGEntry::XGEntry(FILE* inFile)
 	fread(m_name, 1, 16, inFile);
 	fread(&m_isClone, 4, 1, inFile);
 	fread(&m_cloneID, 4, 1, inFile);
-	fread(&m_isActive, 4, 1, inFile);
+	fread(&m_dropShadow, 4, 1, inFile);
 	fread(&m_type, 4, 1, inFile);
 	fread(&m_length, 4, 1, inFile);
 	fread(&m_speed, 4, 1, inFile);
@@ -32,8 +32,7 @@ void XGEntry::create(FILE* outFile) const
 	fwrite(m_name, 1, 16, outFile);
 	fwrite(&m_isClone, 4, 1, outFile);
 	fwrite(&m_cloneID, 4, 1, outFile);
-	const unsigned long zero = 0;
-	fwrite(&zero, 4, 1, outFile);
+	fwrite(&m_dropShadow, 4, 1, outFile);
 	fwrite(&m_type, 4, 1, outFile);
 	fwrite(&m_length, 4, 1, outFile);
 	fwrite(&m_speed, 4, 1, outFile);

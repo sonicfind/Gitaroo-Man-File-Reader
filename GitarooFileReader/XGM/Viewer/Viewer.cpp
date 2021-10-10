@@ -178,6 +178,8 @@ void SSQ::initialize(const char* windowName)
 void SSQ::uninitialize()
 {
 	Viewer::uninitialize();
+	for (auto& entry : m_XGentries)
+		entry.m_dropShadow = false;
 
 	for (auto& model : m_modelSetups)
 		model->reset();
@@ -576,7 +578,9 @@ void SSQ::update(float delta)
 		else
 			xg = m_XGentries[entry.m_cloneID].m_xg;
 
-		m_modelSetups[i]->animate(xg, m_currFrame);
+		const auto result = m_modelSetups[i]->animate(xg, m_currFrame);
+		m_XGentries[i].m_dropShadow = result.first;
+		m_modelMatrices[i] = result.second;
 	}
 
 	for (auto& texAnim : m_texAnimations)

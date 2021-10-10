@@ -491,8 +491,9 @@ void XGM::draw()
 	// Enable color blending
 	glEnable(GL_BLEND);
 	// Draw transparent meshes
+	// Does not draw normals
 	for (auto& model : ((ViewerControls_XGM*)m_viewerControls.get())->m_models)
-		m_models[model.modelIndex].draw(m_view, controls->showNormals, true, controls->animate);
+		m_models[model.modelIndex].draw(m_view, false, true, controls->animate);
 	glBindVertexArray(0);
 }
 
@@ -613,7 +614,7 @@ void SSQ::draw()
 		{
 			auto& entry = m_XGentries[i];
 			if (!entry.m_isClone && entry.m_xg->getInstanceCount())
-				entry.m_xg->draw(m_view, m_viewerControls->showNormals, doTransparents);
+				entry.m_xg->draw(m_view, !m_viewerControls->showNormals && !doTransparents, doTransparents);
 		}
 
 		// Temporary solution for blending
@@ -644,12 +645,11 @@ void SSQ::draw()
 	};
 
 	// Draw opaque meshes
-	// Disable color blending
 	glDisable(GL_BLEND);
 	sequence(false);
 
 	// Draw transparent meshes
-	// Enable color blending
+	// Does not draw normals
 	glEnable(GL_BLEND);
 	sequence(true);
 	glBindVertexArray(0);

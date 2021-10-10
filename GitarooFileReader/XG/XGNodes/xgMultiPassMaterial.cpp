@@ -77,10 +77,7 @@ const size_t xgMultiPassMaterial::getSize() const
 
 bool xgMultiPassMaterial::hasTransparency() const
 {
-	for (const auto& mat : m_inputMaterials)
-		if (mat->hasTransparency())
-			return true;
-	return false;
+	return m_inputMaterials[0]->hasTransparency();
 }
 
 #include <glad/glad.h>

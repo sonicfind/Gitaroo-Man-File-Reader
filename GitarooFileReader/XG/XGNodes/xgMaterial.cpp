@@ -175,7 +175,7 @@ void xgMaterial::connectTexture(std::vector<IMX>& textures)
 
 bool xgMaterial::hasTransparency() const
 {
-	return (m_blendType != 0 && m_blendType != 4) || m_flags & 1;
+	return m_blendType != 0 || m_flags & 1;
 }
 
 size_t xgMaterial::getNumMaterials() const

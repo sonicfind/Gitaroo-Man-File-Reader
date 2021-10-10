@@ -7,6 +7,7 @@ in VS_OUT
 	vec2 texCoord;
 	vec2 texOffset;
 	vec4 colors;
+	int blendType;
 	vec4 rightVector;
 	vec4 upVector;
 } gs_in[];
@@ -14,6 +15,7 @@ in VS_OUT
 flat out int fTextureIndex;
 out vec2 fTexCoord;
 out vec4 fColors;
+flat out int fBlendType;
 
 layout (std140) uniform View
 {
@@ -30,6 +32,7 @@ void main()
 	mat4 combo = projection * view;
 	fTextureIndex = gs_in[0].textureIndex;
 	fColors = gs_in[0].colors;
+	fBlendType = gs_in[0].blendType;
 
 	gl_Position = combo * gl_in[0].gl_Position;
 	fTexCoord = gs_in[0].texCoord;

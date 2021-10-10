@@ -2,6 +2,7 @@
 flat in int fTextureIndex;
 in vec2 fTexCoord;
 in vec4 fColors;
+flat in int fBlendType;
 
 out vec4 FragColor;
 
@@ -25,8 +26,21 @@ void main()
 	else
 	    texColor.a *= 2;
 	
-	texColor.a *= (fColors.r + fColors.g + fColors.b) / 3;
-
-
-	FragColor = texColor;
+	switch (fBlendType)
+	{
+	case 2:
+		FragColor = fColors;
+		break;
+	case 3:
+		FragColor = vec4(texColor.rgb, 1 - (1 - texColor.r) * (1 - texColor.g) * (1 - texColor.b));
+		break;
+	case 5:
+		FragColor = vec4(texColor.rgb, 1);
+		break;
+	case 4:
+		FragColor = vec4(texColor.rgb * .5, 1);
+		break;
+	default:
+		FragColor = texColor * fColors;
+	}
 }

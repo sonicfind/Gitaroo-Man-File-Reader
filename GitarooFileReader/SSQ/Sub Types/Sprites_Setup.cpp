@@ -28,9 +28,7 @@ void SpritesSetup::read(FILE* inFile)
 
 	fread(&m_headerVersion, 4, 1, inFile);
 
-	fread(&m_spritesToDraw, 4, 1, inFile);
-	fread(&m_spritesToDraw_NoDepth, 4, 1, inFile);
-	fread(&m_unk, 4, 1, inFile);
+	fread(m_unk, 1, 12, inFile);
 
 	fread(m_junk, 1, 16, inFile);
 
@@ -40,13 +38,13 @@ void SpritesSetup::read(FILE* inFile)
 	fread(&m_unused, 4, 1, inFile);
 
 	if (m_numFixedSprites)
-		m_fixedSpriteSetup.read(inFile);
+		m_fixedSpriteSetup = std::make_unique<FixedSpriteSetup>(inFile);
 
 	if (m_numUnkSprites_1)
-		m_unk1SpriteSetup.read(inFile);
+		m_unk1SpriteSetup = std::make_unique<Unk1SpriteSetup>(inFile);
 
 	if (m_numUnkSprites_2)
-		m_unk2SpriteSetup.read(inFile);
+		m_unk2SpriteSetup = std::make_unique<Unk2SpriteSetup>(inFile);
 }
 
 void SpritesSetup::create(FILE* outFile)
@@ -55,9 +53,7 @@ void SpritesSetup::create(FILE* outFile)
 
 	fwrite(&m_headerVersion, 4, 1, outFile);
 
-	fwrite(&m_spritesToDraw, 4, 1, outFile);
-	fwrite(&m_spritesToDraw_NoDepth, 4, 1, outFile);
-	fwrite(&m_unk, 4, 1, outFile);
+	fwrite(m_unk, 1, 12, outFile);
 
 	fwrite(m_junk, 1, 16, outFile);
 
@@ -66,106 +62,65 @@ void SpritesSetup::create(FILE* outFile)
 	fwrite(&m_numUnkSprites_2, 4, 1, outFile);
 	fwrite(&m_unused, 4, 1, outFile);
 
-	if (m_numFixedSprites)
-		m_fixedSpriteSetup.create(outFile);
+	if (m_fixedSpriteSetup)
+		m_fixedSpriteSetup->create(outFile);
 
-	if (m_numUnkSprites_1)
-		m_unk1SpriteSetup.create(outFile);
+	if (m_unk1SpriteSetup)
+		m_unk1SpriteSetup->create(outFile);
 
-	if (m_numUnkSprites_2)
-		m_unk2SpriteSetup.create(outFile);
+	if (m_unk2SpriteSetup)
+		m_unk2SpriteSetup->create(outFile);
 }
 
-#include <glad/glad.h>
-void SpritesSetup::generateSpriteBuffer()
+bool SpritesSetup::hasSprites()
 {
-	if (m_numFixedSprites || m_numUnkSprites_1 || m_numUnkSprites_2)
-	{
-		glGenBuffers(1, &m_spriteVBO);
-		glGenVertexArrays(1, &m_spriteVAO);
-		glBindVertexArray(m_spriteVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, m_spriteVBO);
-		glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(SpriteValues), (void*)0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(1 * sizeof(float)));
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(4 * sizeof(float)));
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(6 * sizeof(float)));
-		glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(8 * sizeof(float)));
-		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(10 * sizeof(float)));
-
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-		glEnableVertexAttribArray(2);
-		glEnableVertexAttribArray(3);
-		glEnableVertexAttribArray(4);
-		glEnableVertexAttribArray(5);
-
-		glBufferData(GL_ARRAY_BUFFER, ((size_t)m_numFixedSprites + m_numUnkSprites_1 + m_numUnkSprites_2) * sizeof(SpriteValues), NULL, GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
+	return m_fixedSpriteSetup || m_unk1SpriteSetup || m_unk2SpriteSetup;
 }
 
-void SpritesSetup::deleteSpriteBuffer()
+void SpritesSetup::generateSpriteBuffers()
 {
-	if (m_spriteVAO)
-	{
-		glDeleteVertexArrays(1, &m_spriteVAO);
-		glDeleteBuffers(1, &m_spriteVBO);
-		m_spriteVAO = 0;
-		m_spriteVBO = 0;
+	if (m_fixedSpriteSetup)
+		m_fixedSpriteSetup->generateSpriteBuffer();
 
-		m_spritesToDraw = 0;
-		m_spritesToDraw_NoDepth = 0;
-		m_unk = 0;
-	}
+	/*if (m_unk1SpriteSetup)
+		m_unk1SpriteSetup->generateSpriteBuffer();
+
+	if (m_unk2SpriteSetup)
+		m_unk2SpriteSetup->generateSpriteBuffer();*/
 }
 
-void SpritesSetup::updateSprites(const float frame)
+void SpritesSetup::deleteSpriteBuffers()
 {
-	if (m_spriteVAO)
-	{
-		std::vector<SpriteValues> sprites, noDepth;
-		if (m_numFixedSprites)
-			m_fixedSpriteSetup.update(frame, sprites, noDepth);
+	if (m_fixedSpriteSetup)
+		m_fixedSpriteSetup->deleteSpriteBuffer();
 
-		/*if (m_numUnkSprites_1)
-			m_unk1SpriteSetup.update(frame, values);
+	/*if (m_unk1SpriteSetup)
+		m_unk1SpriteSetup->deleteSpriteBuffer();
 
-		if (m_numUnkSprites_2)
-			m_unk2SpriteSetup.update(frame, values);*/
-
-		glBindBuffer(GL_ARRAY_BUFFER, m_spriteVBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sprites.size() * sizeof(SpriteValues), sprites.data());
-		glBufferSubData(GL_ARRAY_BUFFER, sprites.size() * sizeof(SpriteValues), noDepth.size() * sizeof(SpriteValues), noDepth.data());
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		m_spritesToDraw = (unsigned long)sprites.size();
-		m_spritesToDraw_NoDepth = (unsigned long)noDepth.size();
-	}
+	if (m_unk2SpriteSetup)
+		m_unk2SpriteSetup->deleteSpriteBuffer();*/
 }
 
-bool SpritesSetup::hasBuffers()
+void SpritesSetup::update(const float frame)
 {
-	return m_spriteVAO > 0;
+	if (m_fixedSpriteSetup)
+		m_fixedSpriteSetup->update(frame);
+
+	/*if (m_unk1SpriteSetup)
+		m_unk1SpriteSetup->update(frame);
+
+	if (m_unk2SpriteSetup)
+		m_unk2SpriteSetup->update(frame);*/
 }
 
-void SpritesSetup::draw()
+void SpritesSetup::draw(const bool doTransparents)
 {
-	if (m_spriteVAO)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, m_spriteVBO);
-		glBindVertexArray(m_spriteVAO);
-		if (m_spritesToDraw)
-		{
-			glEnable(GL_DEPTH_TEST);
-			glDrawArrays(GL_POINTS, 0, m_spritesToDraw);
-		}
+	if (m_fixedSpriteSetup)
+		m_fixedSpriteSetup->draw(doTransparents);
 
-		if (m_spritesToDraw_NoDepth)
-		{
-			glDisable(GL_DEPTH_TEST);
-			glDrawArrays(GL_POINTS, m_spritesToDraw, m_spritesToDraw_NoDepth);
-			glEnable(GL_DEPTH_TEST);
-		}
+	/*if (m_unk1SpriteSetup)
+		m_unk1SpriteSetup->draw(doTransparents);
 
-	}
+	if (m_unk2SpriteSetup)
+		m_unk2SpriteSetup->draw(doTransparents);*/
 }

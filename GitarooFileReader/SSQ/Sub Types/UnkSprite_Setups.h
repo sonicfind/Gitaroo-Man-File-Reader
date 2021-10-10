@@ -18,7 +18,7 @@ class Unk1SpriteSetup
 {
 
 public:
-	void read(FILE* inFile);
+	Unk1SpriteSetup(FILE* inFile);
 	void create(FILE* outFile);
 };
 
@@ -26,6 +26,6 @@ class Unk2SpriteSetup
 {
 
 public:
-	void read(FILE* inFile);
+	Unk2SpriteSetup(FILE* inFile);
 	void create(FILE* outFile);
 };

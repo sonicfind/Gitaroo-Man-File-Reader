@@ -235,7 +235,7 @@ void xgMaterial::setShaderValues(const size_t index) const
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
 		break;
 	case 2:
-		glBlendFunc(GL_DST_COLOR, GL_ZERO);
+		glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 		break;
 	case 3:
 		glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);

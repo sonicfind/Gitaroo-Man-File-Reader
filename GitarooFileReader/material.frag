@@ -71,7 +71,7 @@ void main()
 	else if (useGlobal == 1)
 		result = getBlendColor(globalVertexColor);
 	else
-		result = getBlendColor(vec4(0));
+		result = getBlendColor(vec4(1));
 
 	if (result.a < .01)
 		discard;
@@ -83,17 +83,16 @@ vec4 getBlendColor(const vec4 color)
 {
 	switch (blendType)
 	{
-	case 0:
-	case 1:
-		return color;
 	case 2:
 		return vec4(color.rgb, 1);
 	case 3:
 		return vec4(color.rgb, 1 - diffuse.a * (1 - color.r) * (1 - color.g) * (1 - color.b));
-	case 5:
-		return vec4(color.rgb, diffuse.a);
 	case 4:
-		return vec4(color.rgb * .5, 1);
+		return vec4(color.rgb, color.r);
+	case 5:
+		return vec4(color.rgb, color.r * diffuse.a);
+	default:
+		return color;
 	}
 }
 

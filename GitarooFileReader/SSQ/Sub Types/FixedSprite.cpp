@@ -144,5 +144,9 @@ bool FixedSprite::update(const float frame, SpriteValues& values)
 		}
 	}
 
+	if (m_64bytes.m_transparent)
+		values.blendType = m_64bytes.m_blendingType;
+	else
+		values.blendType = 0;
 	return true;
 }

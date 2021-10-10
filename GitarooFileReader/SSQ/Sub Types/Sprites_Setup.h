@@ -20,9 +20,7 @@ class SpritesSetup
 	// 
 	unsigned long m_headerVersion;
 
-	unsigned long m_spritesToDraw;
-	unsigned long m_spritesToDraw_NoDepth;
-	unsigned long m_unk;
+	char m_unk[12] = { 0 };
 
 	Val m_junk[4] = { 0 };
 
@@ -31,20 +29,17 @@ class SpritesSetup
 	unsigned long m_numUnkSprites_2;
 	unsigned long m_unused;
 
-	FixedSpriteSetup m_fixedSpriteSetup;
-	Unk1SpriteSetup m_unk1SpriteSetup;
-	Unk2SpriteSetup m_unk2SpriteSetup;
-
-	unsigned m_spriteVAO;
-	unsigned m_spriteVBO;
+	std::unique_ptr<FixedSpriteSetup> m_fixedSpriteSetup;
+	std::unique_ptr<Unk1SpriteSetup> m_unk1SpriteSetup;
+	std::unique_ptr<Unk2SpriteSetup> m_unk2SpriteSetup;
 
 public:
 	void read(FILE* inFile);
 	void create(FILE* outFile);
 
-	void generateSpriteBuffer();
-	void deleteSpriteBuffer();
-	void updateSprites(const float frame);
-	bool hasBuffers();
-	void draw();
+	void generateSpriteBuffers();
+	void deleteSpriteBuffers();
+	bool hasSprites();
+	void update(const float frame);
+	void draw(const bool doTransparents);
 };

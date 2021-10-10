@@ -22,6 +22,7 @@ struct SpriteValues
 	glm::vec2 texOffsets;
 	glm::vec2 worldSize;
 	glm::vec4 colorMultipliers;
+	unsigned int blendType;
 };
 
 class FixedSprite

@@ -14,7 +14,7 @@
  */
 #include "pch.h"
 #include "UnkSprite_Setups.h"
-void Unk1SpriteSetup::read(FILE* inFile)
+Unk1SpriteSetup::Unk1SpriteSetup(FILE* inFile)
 {
 
 }
@@ -24,7 +24,7 @@ void Unk1SpriteSetup::create(FILE* outFile)
 
 }
 
-void Unk2SpriteSetup::read(FILE* inFile)
+Unk2SpriteSetup::Unk2SpriteSetup(FILE* inFile)
 {
 
 }

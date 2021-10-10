@@ -172,7 +172,7 @@ void SSQ::initialize(const char* windowName)
 	for (auto& texAnim : m_texAnimations)
 		texAnim.loadCuts();
 
-	m_sprites.generateSpriteBuffer();
+	m_sprites.generateSpriteBuffers();
 }
 
 void SSQ::uninitialize()
@@ -193,7 +193,7 @@ void SSQ::uninitialize()
 	for (auto& texAnim : m_texAnimations)
 		texAnim.unloadCuts();
 
-	m_sprites.deleteSpriteBuffer();
+	m_sprites.deleteSpriteBuffers();
 }
 
 const char* Viewer::getAspectRatioString()
@@ -377,6 +377,9 @@ void XGM::update(float delta)
 					model.animIndex = 0;
 					model.length = m_models[model.modelIndex].getAnimationLength(0);
 				}
+				else
+					m_models[model.modelIndex].restPose();
+				glfwSetWindowTitle(m_window, m_models[model.modelIndex].getName());
 			}
 			delta = 0;
 		}
@@ -576,7 +579,7 @@ void SSQ::update(float delta)
 		for (auto& texAnim : m_texAnimations)
 			texAnim.substitute(m_currFrame);
 
-		m_sprites.updateSprites(m_currFrame);
+		m_sprites.update(m_currFrame);
 	}
 
 	if (!controls->hasFreeMovement)
@@ -609,18 +612,12 @@ void SSQ::draw()
 
 		// Temporary solution for blending
 		// Full solution will require figuring out how it decides if a sprite a blends or not
-		if (doTransparents && m_sprites.hasBuffers())
+		if (m_sprites.hasSprites())
 		{
 			static const std::string textures[] =
 			{
 				"textures[0]", "textures[1]", "textures[2]", "textures[3]", "textures[4]", "textures[5]", "textures[6]", "textures[7]",
 			};
-
-			if (m_viewerControls->showNormals)
-			{
-				g_spriteShaders.m_normals.use();
-				m_sprites.draw();
-			}
 
 			g_spriteShaders.m_base.use();
 			for (size_t i = 0; i < m_IMXentries.size(); ++i)
@@ -630,7 +627,13 @@ void SSQ::draw()
 				g_spriteShaders.m_base.setInt(textures[i], int(i));
 			}
 
-			m_sprites.draw();
+			m_sprites.draw(doTransparents);
+
+			if (!doTransparents && m_viewerControls->showNormals)
+			{
+				g_spriteShaders.m_normals.use();
+				m_sprites.draw(doTransparents);
+			}
 		}
 	};
 

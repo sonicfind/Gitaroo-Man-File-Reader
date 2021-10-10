@@ -14,7 +14,7 @@
  */
 #include "pch.h"
 #include "FixedSprite_Setup.h"
-void FixedSpriteSetup::read(FILE* inFile)
+FixedSpriteSetup::FixedSpriteSetup(FILE* inFile)
 {
 	char tmp[5] = { 0 };
 
@@ -30,13 +30,12 @@ void FixedSpriteSetup::read(FILE* inFile)
 	fread(m_unk, 1, 12, inFile);
 	fread(m_junk, 1, 16, inFile);
 
-	unsigned long fixed;
-	fread(&fixed, 4, 1, inFile);
+	fread(&m_numSprites, 4, 1, inFile);
 
-	m_80bytes.resize(fixed);
-	fread(&m_80bytes.front(), sizeof(Struct80_7f), fixed, inFile);
+	m_80bytes.resize(m_numSprites);
+	fread(&m_80bytes.front(), sizeof(Struct80_7f), m_numSprites, inFile);
 
-	for (size_t i = 0; i < fixed; ++i)
+	for (size_t i = 0; i < m_numSprites; ++i)
 		m_fixedSprites.emplace_back(inFile);
 }
 
@@ -48,16 +47,57 @@ void FixedSpriteSetup::create(FILE* outFile)
 	fwrite(m_unk, 1, 12, outFile);
 	fwrite(m_junk, 1, 16, outFile);
 
-	unsigned long fixed = (unsigned long)m_80bytes.size();
-	fwrite(&fixed, 4, 1, outFile);
-	fwrite(&m_80bytes.front(), sizeof(Struct80_7f), fixed, outFile);
+	fwrite(&m_numSprites, 4, 1, outFile);
+	fwrite(&m_80bytes.front(), sizeof(Struct80_7f), m_numSprites, outFile);
 
 	for (auto& fixed : m_fixedSprites)
 		fixed.create(outFile);
 }
 
-void FixedSpriteSetup::update(const float frame, std::vector<SpriteValues>& sprites, std::vector<SpriteValues>& sprites_noDepth)
+#include <glad/glad.h>
+void FixedSpriteSetup::generateSpriteBuffer()
 {
+	glGenBuffers(1, &m_fixedSpriteVBO);
+	glGenVertexArrays(1, &m_fixedSpriteVAO);
+	glBindVertexArray(m_fixedSpriteVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_fixedSpriteVBO);
+	// Texture index
+	glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(SpriteValues), (void*)0);
+	// Position
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(1 * sizeof(float)));
+	// Base tex coord
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(4 * sizeof(float)));
+	// Texture offsets
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(6 * sizeof(float)));
+	// Size in world space
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(8 * sizeof(float)));
+	// Color multipliers
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(10 * sizeof(float)));
+	// Blend type
+	glVertexAttribIPointer(6, 1, GL_UNSIGNED_INT, sizeof(SpriteValues), (void*)(14 * sizeof(float)));
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
+	glEnableVertexAttribArray(6);
+
+	glBufferData(GL_ARRAY_BUFFER, m_numSprites * sizeof(SpriteValues), NULL, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void FixedSpriteSetup::deleteSpriteBuffer()
+{
+	glDeleteVertexArrays(1, &m_fixedSpriteVAO);
+	glDeleteBuffers(1, &m_fixedSpriteVBO);
+}
+
+void FixedSpriteSetup::update(const float frame)
+{
+	m_spritesToDraw.clear();
+	m_depthlessDraws.clear();
 	for (size_t index = 0; index < m_80bytes.size(); ++index)
 	{
 		SpriteValues vals{
@@ -66,15 +106,82 @@ void FixedSpriteSetup::update(const float frame, std::vector<SpriteValues>& spri
 			m_80bytes[index].m_initial_BottomLeft,
 			m_80bytes[index].m_boxSize,
 			m_80bytes[index].m_worldSize,
-			glm::vec4(1)
+			glm::vec4(1),
+			// Additive blending default
+			1
 		};
 
 		if (m_fixedSprites[index].update(frame, vals))
 		{
 			if (m_80bytes[index].m_depthTest)
-				sprites.push_back(vals);
+				m_spritesToDraw.push_back(vals);
 			else
-				sprites_noDepth.push_back(vals);
+				m_depthlessDraws.push_back(vals);
 		}
 	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_fixedSpriteVBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, m_spritesToDraw.size() * sizeof(SpriteValues), m_spritesToDraw.data());
+	glBufferSubData(GL_ARRAY_BUFFER, m_spritesToDraw.size() * sizeof(SpriteValues), m_depthlessDraws.size() * sizeof(SpriteValues), m_depthlessDraws.data());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void FixedSpriteSetup::draw(const bool doTransparents)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, m_fixedSpriteVBO);
+	glBindVertexArray(m_fixedSpriteVAO);
+
+	unsigned long first = 0;
+	while (first < m_spritesToDraw.size())
+	{
+		const int blend = m_spritesToDraw[first].blendType;
+		bool tmp = blend > 0;
+		if (tmp == doTransparents)
+		{
+			size_t count = 1;
+			while (first + count < m_spritesToDraw.size() && blend == m_spritesToDraw[first + count].blendType)
+				++count;
+			drawSprite(blend, first, count);
+			first += (unsigned long)count;
+		}
+		else
+			++first;
+	}
+
+	glDisable(GL_DEPTH_TEST);
+	for (unsigned long i = 0; i < m_depthlessDraws.size();)
+	{
+		const int blend = m_depthlessDraws[i].blendType;
+		bool tmp = blend > 0;
+		if (tmp == doTransparents)
+		{
+			size_t count = 1;
+			while (i + count < m_depthlessDraws.size() && blend == m_depthlessDraws[i + count].blendType)
+				++count;
+			drawSprite(blend, first + i, count);
+			i += (unsigned long)count;
+		}
+		else
+			++i;
+	}
+	glEnable(GL_DEPTH_TEST);
+}
+
+void FixedSpriteSetup::drawSprite(const unsigned long blend, const unsigned long first, const size_t count)
+{
+	switch (blend)
+	{
+	case 1:
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
+		break;
+	case 2:
+		glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+		break;
+	case 3:
+		glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+		break;
+	default:
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+	}
+	glDrawArrays(GL_POINTS, first, unsigned(count));
 }

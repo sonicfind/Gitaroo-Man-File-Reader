@@ -41,11 +41,24 @@ class FixedSpriteSetup
 		unsigned long ulong_g;
 	};
 
+	unsigned long m_numSprites;
+
 	std::vector<Struct80_7f> m_80bytes;
 	std::vector<FixedSprite> m_fixedSprites;
 
+	unsigned m_fixedSpriteVAO;
+	unsigned m_fixedSpriteVBO;
+	std::vector<SpriteValues> m_spritesToDraw;
+	std::vector<SpriteValues> m_depthlessDraws;
+
 public:
-	void read(FILE* inFile);
+	FixedSpriteSetup(FILE* inFile);
 	void create(FILE* outFile);
-	void update(const float frame, std::vector<SpriteValues>& values, std::vector<SpriteValues>& sprites_noDepth);
+	void generateSpriteBuffer();
+	void deleteSpriteBuffer();
+	void update(const float frame);
+	void draw(const bool doTransparents);
+
+private:
+	void drawSprite(const unsigned long blend, const unsigned long first, const size_t count);
 };

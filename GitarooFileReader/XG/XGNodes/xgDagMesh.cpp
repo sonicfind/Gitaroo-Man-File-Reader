@@ -253,7 +253,7 @@ void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, con
 			s_currentCulling = m_cullFunc;
 		}
 
-		ShaderCombo* active = m_inputGeometry->activateShader();
+		m_inputGeometry->activateShader(false);
 		glActiveTexture(GL_TEXTURE0);
 		for (int index = 0; index < m_inputMaterial->getNumMaterials(); ++index)
 		{
@@ -269,13 +269,25 @@ void xgDagMesh::draw(const glm::mat4 view, const unsigned long numInstances, con
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glDepthFunc(GL_LESS);
 		
-		if (showNormals)
+		if (!doTransparents && showNormals)
 		{
-			active->m_normals.use();
-
+			m_inputGeometry->activateShader(true);
 			m_triFan->draw(numInstances);
 			m_triStrip->draw(numInstances);
 			m_triList->draw(numInstances);
 		}
+	}
+	else if (!doTransparents && showNormals)
+	{
+		glBindBuffer(GL_UNIFORM_BUFFER, s_matrixUBO);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4) * numInstances, m_matrices);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		m_inputGeometry->bindVertexBuffer(numInstances);
+		m_inputGeometry->activateShader(true);
+
+		m_triFan->draw(numInstances);
+		m_triStrip->draw(numInstances);
+		m_triList->draw(numInstances);
 	}
 }

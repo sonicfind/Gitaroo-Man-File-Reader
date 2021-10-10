@@ -194,18 +194,19 @@ void xgBgGeometry::deleteVertexBuffer()
 	m_vertexList.deleteVertexBuffer();
 }
 
-ShaderCombo* xgBgGeometry::activateShader() const
+void xgBgGeometry::activateShader(const bool normals) const
 {
 	if (m_inputEnvelopes.size())
 	{
-		g_boneShaders.m_base.use();
-		return &g_boneShaders;
+		if (!normals)
+			g_boneShaders.m_base.use();
+		else
+			g_boneShaders.m_normals.use();
 	}
-	else
-	{
+	else if (!normals)
 		g_shaders.m_base.use();
-		return &g_shaders;
-	}
+	else
+		g_shaders.m_normals.use();
 }
 
 void xgBgGeometry::restPose() const

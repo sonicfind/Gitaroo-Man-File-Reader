@@ -47,7 +47,7 @@ public:
 	bool generateVertexBuffer();
 	void bindVertexBuffer(const size_t numInstances) const;
 	void deleteVertexBuffer();
-	ShaderCombo* activateShader() const;
+	void activateShader(const bool normals) const;
 	void restPose() const;
 	void animate(unsigned long instance);
 };

@@ -58,7 +58,8 @@ void main()
 	if (useTexture == 1)
 	{
 		vec4 texColor = texture(texture, vs_in.texCoord);
-		result = getBlendColor(texColor);
+		result = getBlendColor(vec4(texColor.rgb, 1));
+		result.a *= texColor.a;
 
 		if (flags > 2)
 			result.a *= 2;
@@ -90,7 +91,7 @@ vec4 getBlendColor(const vec4 color)
 	case 4:
 		return vec4(color.rgb, color.r);
 	case 5:
-		return vec4(color.rgb, color.r * diffuse.a);
+		return vec4(color.rgb, diffuse.a);
 	default:
 		return color;
 	}

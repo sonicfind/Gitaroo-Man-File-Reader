@@ -57,13 +57,13 @@ namespace InputHandling
 		{
 			switch (key->m_status)
 			{
-			case KeyStatus::Held:
-			case KeyStatus::Pressed:
-				key->m_status = KeyStatus::Released;
-				key->m_pressStartTime = 0;
+			case KeyStatus::Released:
+			case KeyStatus::Unheld:
+				key->m_status = KeyStatus::Unheld;
 				break;
 			default:
-				key->m_status = KeyStatus::Unheld;
+				key->m_status = KeyStatus::Released;
+				key->m_pressStartTime = 0;
 			}
 		}
 

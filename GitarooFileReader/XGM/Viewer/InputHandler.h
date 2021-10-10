@@ -32,7 +32,7 @@ namespace InputHandling
 		int m_glfwValue;
 		KeyStatus m_status = KeyStatus::Unheld;
 		float m_pressStartTime = 0;
-		bool isHeld() { return m_status == KeyStatus::Held; }
+		bool isHeld() { return m_status == KeyStatus::Held || m_status == KeyStatus::Heldtick; }
 		bool isUnHeld() { return m_status == KeyStatus::Unheld; }
 		bool isPressed() { return m_status == KeyStatus::Pressed; }
 		bool isReleased() { return m_status == KeyStatus::Released; }

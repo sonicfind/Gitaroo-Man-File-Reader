@@ -78,13 +78,13 @@ void PlayerModelSetup::animateFromGameState(XG* xg, const glm::mat4& matrix, con
 	{
 		do
 		{
-			if (!current->m_interruptible)
+			if (!current->m_interruptible && m_endings[m_controllableIndex] != -1)
 			{
 				m_controllableIndex = m_endings[m_controllableIndex];
 				current = &m_controllables[m_controllableIndex];
 			}
 
-			bool connectionMade = current->m_randomize;
+			bool connectionMade = current->m_randomize == 1;
 			if (!connectionMade)
 			{
 				for (const auto& connection : m_connections[m_controllableIndex].controllableList)

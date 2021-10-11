@@ -154,6 +154,7 @@ void SSQ::initialize(const char* windowName)
 
 	IMXEntry::generateSpriteBuffer(m_IMXentries);
 	for (auto& entry : m_IMXentries)
+		if (entry.m_imxPtr)
 			entry.m_imxPtr->m_data->generateTexture();
 
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
@@ -177,6 +178,7 @@ void SSQ::uninitialize()
 		model->reset();
 	IMXEntry::deleteSpriteBuffer();
 	for (auto& entry : m_IMXentries)
+		if (entry.m_imxPtr)
 			entry.m_imxPtr->m_data->deleteTexture();
 
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)

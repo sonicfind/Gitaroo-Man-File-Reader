@@ -35,19 +35,25 @@ void IMXEntry::create(FILE* outFile)
 #include <glad/glad.h>
 void IMXEntry::generateSpriteBuffer(const std::vector<IMXEntry>& entries)
 {
-	glGenBuffers(1, &s_spriteTextureUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, s_spriteTextureUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 16 * entries.size(), NULL, GL_STATIC_DRAW);
+	for (const auto& entry : entries)
+		if (entry.m_imxPtr)
+		{
+			glGenBuffers(1, &s_spriteTextureUBO);
+			glBindBuffer(GL_UNIFORM_BUFFER, s_spriteTextureUBO);
+			glBufferData(GL_UNIFORM_BUFFER, 16 * entries.size(), NULL, GL_STATIC_DRAW);
 
 			g_shaderList.m_spriteShaders.m_base.bindUniformBlock(6, "SpriteSizes");
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 6, s_spriteTextureUBO);
-	for (size_t i = 0; i < entries.size(); ++i)
-	{
-		// First two values are width and height, so you can just take the base address of the IMX
-		glBufferSubData(GL_UNIFORM_BUFFER, i * 16, 8, entries[i].m_imxPtr->m_data.get());
-	}
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			glBindBufferBase(GL_UNIFORM_BUFFER, 6, s_spriteTextureUBO);
+			for (size_t i = 0; i < entries.size(); ++i)
+			{
+				// First two values are width and height, so you can just take the base address of the IMX
+				if (entries[i].m_imxPtr)
+					glBufferSubData(GL_UNIFORM_BUFFER, i * 16, 8, entries[i].m_imxPtr->m_data.get());
+			}
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			break;
+		}
 }
 
 void IMXEntry::deleteSpriteBuffer()

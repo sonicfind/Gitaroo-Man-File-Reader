@@ -1,5 +1,5 @@
 # Gitaroo-Man-File-Reader
-Gitaroo Man File Reader is a wide-range (Windows-only) program for reading and editing the variety of file types found in the action rhythm games *Gitaroo Man* & *Gitaroo Man Lives*, released in 2001 for the PS2 & 2006 for the PSP respectively.
+Gitaroo Man File Reader is a wide-range program for reading and editing the variety of file types found in the action rhythm games *Gitaroo Man* & *Gitaroo Man Lives*, released in 2001 for the PS2 & 2006 for the PSP respectively.
 
 ## Usage
 Either simply open the application and follow the instructions to go through single files one-by-one or click and drag multiple files onto the .exe to process them all at once (does not support dragging a folder at this time).

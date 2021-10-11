@@ -21,10 +21,10 @@ class Shader
 
 public:
 	// constructor reads and builds the shader
-	void createProgram(const char* vertexPath, const char* fragmentPath);
+	void createProgram(const char* vertex, const char* fragment);
 
 	// constructor reads and builds the shader
-	void createProgram(const char* vertexPath, const char* geometryPath, const char* fragmentPath);
+	void createProgram(const char* vertex, const char* geometry, const char* fragment);
 
 	operator bool() { return ID > 0; }
 
@@ -58,6 +58,75 @@ struct ShaderCombo
 	void bindStorageBlock(unsigned int bufferIndex, const char* const blockName);
 };
 
-extern ShaderCombo g_shaders;
-extern ShaderCombo g_boneShaders;
-extern ShaderCombo g_spriteShaders;
+class ShaderList
+{
+	// For debug, load in the files at runtime to make testing
+	// shader changes simpler to do without a rebuild
+	//
+	// Release will have the shaders embedded in the exe
+#ifdef _DEBUG
+	const char* base_vert = "Viewer/Shaders/base.vert";
+	const char* bones_vert = "Viewer/Shaders/bones.vert";
+	const char* material_frag = "Viewer/Shaders/material.frag";
+	const char* normals_vert = "Viewer/Shaders/normals.vert";
+	const char* normals_bones_vert = "Viewer/Shaders/normals - bones.vert";
+	const char* normals_geo = "Viewer/Shaders/normals.geo";
+	const char* normals_frag = "Viewer/Shaders/normals.frag";
+	const char* sprite_vert = "Viewer/Shaders/sprite.vert";
+	const char* sprite_geo = "Viewer/Shaders/sprite.geo";
+	const char* sprite_frag = "Viewer/Shaders/sprite.frag";
+	const char* vectors_vert = "Viewer/Shaders/sprite - vectors.vert";
+	const char* vectors_geo = "Viewer/Shaders/sprite - vectors.geo";
+	const char* vectors_frag = "Viewer/Shaders/sprite - vectors.frag";
+#else
+	const char* base_vert =
+	#include "base.vert"
+	;
+	const char* bones_vert =
+	#include "bones.vert"
+	;
+	const char* material_frag =
+	#include "material.frag"
+	;
+	const char* normals_vert =
+	#include "normals.vert"
+	;
+	const char* normals_bones_vert =
+	#include "normals - bones.vert"
+	;
+	const char* normals_geo =
+	#include "normals.geo"
+	;
+	const char* normals_frag =
+	#include "normals.frag"
+	;
+	const char* sprite_vert =
+	#include "sprite.vert"
+	;
+	const char* sprite_geo =
+	#include "sprite.geo"
+	;
+	const char* sprite_frag =
+	#include "sprite.frag"
+	;
+	const char* vectors_vert =
+	#include "sprite - vectors.vert"
+	;
+	const char* vectors_geo =
+	#include "sprite - vectors.geo"
+	;
+	const char* vectors_frag =
+	#include "sprite - vectors.frag"
+	;
+#endif
+public:
+	ShaderCombo m_baseShaders;
+	ShaderCombo m_boneShaders;
+	ShaderCombo m_spriteShaders;
+
+	void createPrograms();
+	void closePrograms();
+	void bindUniformBlock(unsigned int bufferIndex, const char* const blockName);
+	void bindStorageBlock(unsigned int bufferIndex, const char* const blockName);
+};
+extern ShaderList g_shaderList;

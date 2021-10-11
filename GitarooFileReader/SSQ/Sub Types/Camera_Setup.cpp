@@ -134,7 +134,7 @@ float CameraSetup::getLastFrame() const
 	return m_positions.back().m_frame;
 }
 
-#include "XGM/Viewer/Shaders.h"
+#include "Viewer/Shaders/Shaders.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
 void CameraSetup::generateBuffers(float aspectRatio)
@@ -145,8 +145,8 @@ void CameraSetup::generateBuffers(float aspectRatio)
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 304, NULL, GL_DYNAMIC_DRAW);
 
-	g_shaders.m_base.bindUniformBlock(3, "Lights");
-	g_boneShaders.m_base.bindUniformBlock(3, "Lights");
+	g_shaderList.m_baseShaders.m_base.bindUniformBlock(3, "Lights");
+	g_shaderList.m_boneShaders.m_base.bindUniformBlock(3, "Lights");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
 	unsigned long numLights = (unsigned long)m_lights.size();

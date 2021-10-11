@@ -183,15 +183,15 @@ size_t xgMaterial::getNumMaterials() const
 	return 1;
 }
 
-#include "XGM/Viewer/Shaders.h"
+#include "Viewer/Shaders/Shaders.h"
 void xgMaterial::generateMaterialUniform()
 {
 	glGenBuffers(1, &s_MaterialUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, s_MaterialUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_DYNAMIC_DRAW);
 
-	g_shaders.m_base.bindUniformBlock(4, "Material");
-	g_boneShaders.m_base.bindUniformBlock(4, "Material");
+	g_shaderList.m_baseShaders.m_base.bindUniformBlock(4, "Material");
+	g_shaderList.m_boneShaders.m_base.bindUniformBlock(4, "Material");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 4, s_MaterialUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);

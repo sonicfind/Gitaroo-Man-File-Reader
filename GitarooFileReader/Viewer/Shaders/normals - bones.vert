@@ -1,4 +1,4 @@
-#version 430 core
+R"(#version 430 core
 layout(location = 0) in vec4 aPos;
 layout(location = 1) in vec3 aNorm;
 layout(location = 4) in int aEnvelope;
@@ -53,3 +53,4 @@ void main()
 	// Normal vector relative to the camera
 	vs_out.normal = normalize(vec3(combo * finalNorm));
 }
+)"

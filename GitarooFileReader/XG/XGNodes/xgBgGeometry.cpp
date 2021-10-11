@@ -199,14 +199,14 @@ void xgBgGeometry::activateShader(const bool normals) const
 	if (m_inputEnvelopes.size())
 	{
 		if (!normals)
-			g_boneShaders.m_base.use();
+			g_shaderList.m_boneShaders.m_base.use();
 		else
-			g_boneShaders.m_normals.use();
+			g_shaderList.m_boneShaders.m_normals.use();
 	}
 	else if (!normals)
-		g_shaders.m_base.use();
+		g_shaderList.m_baseShaders.m_base.use();
 	else
-		g_shaders.m_normals.use();
+		g_shaderList.m_baseShaders.m_normals.use();
 }
 
 void xgBgGeometry::restPose() const

@@ -18,7 +18,7 @@
 #include "xgNormalInterpolator.h"
 #include "xgTexCoordInterpolator.h"
 #include "xgShapeInterpolator.h"
-#include "XGM/Viewer/Shaders.h"
+#include "Viewer/Shaders/Shaders.h"
 class xgBgGeometry : public XGNode
 {
 	float m_density = 0;

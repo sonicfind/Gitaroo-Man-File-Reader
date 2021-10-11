@@ -15,7 +15,6 @@
 #include "pch.h"
 #include "Global_Functions.h"
 #include "XGM.h"
-#include "Viewer/Viewer.h"
 #include <filesystem>
 using namespace std;
 using namespace GlobalFunctions;
@@ -448,8 +447,10 @@ bool XGM::selectModel()
 IMX* XGM::getTexture(const char* name)
 {
 	for (auto& texture : m_textures)
+	{
 		if (strcmp(texture.getName(), name) == 0)
 			return &texture;
+	}
 	return nullptr;
 }
 

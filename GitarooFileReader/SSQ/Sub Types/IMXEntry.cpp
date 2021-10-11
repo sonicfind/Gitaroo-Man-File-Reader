@@ -31,7 +31,7 @@ void IMXEntry::create(FILE* outFile)
 	fwrite(m_junk, 1, 8, outFile);
 }
 
-#include "XGM/Viewer/Shaders.h"
+#include "Viewer/Shaders/Shaders.h"
 #include <glad/glad.h>
 void IMXEntry::generateSpriteBuffer(const std::vector<IMXEntry>& entries)
 {
@@ -39,7 +39,7 @@ void IMXEntry::generateSpriteBuffer(const std::vector<IMXEntry>& entries)
 	glBindBuffer(GL_UNIFORM_BUFFER, s_spriteTextureUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 16 * entries.size(), NULL, GL_STATIC_DRAW);
 
-	g_spriteShaders.m_base.bindUniformBlock(6, "SpriteSizes");
+			g_shaderList.m_spriteShaders.m_base.bindUniformBlock(6, "SpriteSizes");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 6, s_spriteTextureUBO);
 	for (size_t i = 0; i < entries.size(); ++i)

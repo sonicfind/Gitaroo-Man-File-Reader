@@ -165,18 +165,6 @@
     <ClCompile Include="XGM\XGM_Main.cpp">
       <Filter>Visual-Based Types\XGM</Filter>
     </ClCompile>
-    <ClCompile Include="XGM\Viewer\InputHandler.cpp">
-      <Filter>Viewer\Input Control</Filter>
-    </ClCompile>
-    <ClCompile Include="XGM\Viewer\Camera.cpp">
-      <Filter>Viewer\Input Control</Filter>
-    </ClCompile>
-    <ClCompile Include="XGM\Viewer\Shaders.cpp">
-      <Filter>Viewer\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="XGM\Viewer\Viewer.cpp">
-      <Filter>Viewer</Filter>
-    </ClCompile>
     <ClCompile Include="Main\GitarooFileReader.cpp">
       <Filter>GMFR</Filter>
     </ClCompile>
@@ -306,6 +294,18 @@
     <ClCompile Include="SSQ\Sub Types\XGEntry.cpp">
       <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
     </ClCompile>
+    <ClCompile Include="Viewer\Viewer.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewer\Shaders\Shaders.cpp">
+      <Filter>Viewer\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewer\InputHandler.cpp">
+      <Filter>Viewer\Input Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewer\Camera.cpp">
+      <Filter>Viewer\Input Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\Global_Functions.h">
@@ -349,18 +349,6 @@
     </ClInclude>
     <ClInclude Include="XGM\XGM.h">
       <Filter>Visual-Based Types\XGM</Filter>
-    </ClInclude>
-    <ClInclude Include="XGM\Viewer\Viewer.h">
-      <Filter>Viewer</Filter>
-    </ClInclude>
-    <ClInclude Include="XGM\Viewer\InputHandler.h">
-      <Filter>Viewer\Input Control</Filter>
-    </ClInclude>
-    <ClInclude Include="XGM\Viewer\Camera.h">
-      <Filter>Viewer\Input Control</Filter>
-    </ClInclude>
-    <ClInclude Include="XGM\Viewer\Shaders.h">
-      <Filter>Viewer\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="IMX\IMX_Data.h">
       <Filter>Visual-Based Types\IMX</Filter>
@@ -491,6 +479,18 @@
     <ClInclude Include="SSQ\Sub Types\XGEntry.h">
       <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
     </ClInclude>
+    <ClInclude Include="Viewer\Viewer.h">
+      <Filter>Viewer</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewer\Shaders\Shaders.h">
+      <Filter>Viewer\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewer\InputHandler.h">
+      <Filter>Viewer\Input Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewer\Camera.h">
+      <Filter>Viewer\Input Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\pch.h">
@@ -537,44 +537,44 @@
     </Natvis>
   </ItemGroup>
   <ItemGroup>
-    <None Include="base.vert">
-      <Filter>Viewer\Shaders\Base</Filter>
-    </None>
-    <None Include="bones.vert">
-      <Filter>Viewer\Shaders\Base</Filter>
-    </None>
-    <None Include="material.frag">
-      <Filter>Viewer\Shaders\Base</Filter>
-    </None>
-    <None Include="sprite.vert">
+    <None Include="Viewer\Shaders\sprite.frag">
       <Filter>Viewer\Shaders\Sprite</Filter>
     </None>
-    <None Include="sprite.geo">
+    <None Include="Viewer\Shaders\sprite.geo">
       <Filter>Viewer\Shaders\Sprite</Filter>
     </None>
-    <None Include="sprite.frag">
+    <None Include="Viewer\Shaders\sprite.vert">
       <Filter>Viewer\Shaders\Sprite</Filter>
     </None>
-    <None Include="sprite - vectors.frag">
+    <None Include="Viewer\Shaders\sprite - vectors.frag">
       <Filter>Viewer\Shaders\Sprite\vectors</Filter>
     </None>
-    <None Include="sprite - vectors.geo">
+    <None Include="Viewer\Shaders\sprite - vectors.geo">
       <Filter>Viewer\Shaders\Sprite\vectors</Filter>
     </None>
-    <None Include="sprite - vectors.vert">
+    <None Include="Viewer\Shaders\sprite - vectors.vert">
       <Filter>Viewer\Shaders\Sprite\vectors</Filter>
     </None>
-    <None Include="normals.frag">
+    <None Include="Viewer\Shaders\normals - bones.vert">
       <Filter>Viewer\Shaders\Base\Normals</Filter>
     </None>
-    <None Include="normals.geo">
+    <None Include="Viewer\Shaders\normals.frag">
       <Filter>Viewer\Shaders\Base\Normals</Filter>
     </None>
-    <None Include="normals.vert">
+    <None Include="Viewer\Shaders\normals.geo">
       <Filter>Viewer\Shaders\Base\Normals</Filter>
     </None>
-    <None Include="normals - bones.vert">
+    <None Include="Viewer\Shaders\normals.vert">
       <Filter>Viewer\Shaders\Base\Normals</Filter>
+    </None>
+    <None Include="Viewer\Shaders\base.vert">
+      <Filter>Viewer\Shaders\Base</Filter>
+    </None>
+    <None Include="Viewer\Shaders\bones.vert">
+      <Filter>Viewer\Shaders\Base</Filter>
+    </None>
+    <None Include="Viewer\Shaders\material.frag">
+      <Filter>Viewer\Shaders\Base</Filter>
     </None>
   </ItemGroup>
 </Project>

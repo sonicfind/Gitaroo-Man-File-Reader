@@ -171,8 +171,8 @@ void xgDagMesh::generateMatrixUniform()
 	glBufferData(GL_UNIFORM_BUFFER, 2048, NULL, GL_DYNAMIC_DRAW);
 
 	// Block 6 is for sprite sizes
-	g_shaders.bindUniformBlock(7, "Models");
-	g_boneShaders.bindUniformBlock(7, "Models");
+	g_shaderList.m_baseShaders.bindUniformBlock(7, "Models");
+	g_shaderList.m_boneShaders.bindUniformBlock(7, "Models");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 7, s_matrixUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -221,7 +221,6 @@ void xgDagMesh::animate(unsigned long instance, const glm::mat4 matrix)
 	m_matrices[instance] = matrix;
 }
 
-#include "XGM/Viewer/Camera.h"
 unsigned long xgDagMesh::s_currentCulling = 0;
 void xgDagMesh::draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents) const
 {

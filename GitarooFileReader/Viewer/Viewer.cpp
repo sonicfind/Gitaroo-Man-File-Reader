@@ -27,6 +27,7 @@ unsigned int Viewer::s_screenHeight = 720;
 void Viewer::initialize(const char* windowName)
 {
 	glfwInit();
+	// Version 4.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -44,9 +45,7 @@ void Viewer::initialize(const char* windowName)
 
 	glViewport(0, 0, s_screenWidth, s_screenHeight);
 
-	g_shaders.createPrograms("base.vert", "material.frag", "normals.vert", "normals.geo", "normals.frag");
-	g_boneShaders.createPrograms("bones.vert", "material.frag", "normals - bones.vert", "normals.geo", "normals.frag");
-	g_spriteShaders.createPrograms("sprite.vert", "sprite.geo", "sprite.frag", "sprite - vectors.vert", "sprite - vectors.geo", "sprite - vectors.frag");
+	g_shaderList.createPrograms();
 
 	glfwSetFramebufferSizeCallback(m_window, InputHandling::framebuffer_size_callback);
 
@@ -54,8 +53,6 @@ void Viewer::initialize(const char* windowName)
 	glEnable(GL_DEPTH_TEST);
 
 	glFrontFace(GL_CW);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// Generate view matrix uniform
@@ -63,9 +60,7 @@ void Viewer::initialize(const char* windowName)
 	glBindBuffer(GL_UNIFORM_BUFFER, m_viewUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_STATIC_DRAW);
 
-	g_shaders.bindUniformBlock(1, "View");
-	g_boneShaders.bindUniformBlock(1, "View");
-	g_spriteShaders.bindUniformBlock(1, "View");
+	g_shaderList.bindUniformBlock(1, "View");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_viewUBO);
 
@@ -74,9 +69,7 @@ void Viewer::initialize(const char* windowName)
 	glBindBuffer(GL_UNIFORM_BUFFER, m_projectionUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_STATIC_DRAW);
 
-	g_shaders.bindUniformBlock(2, "Projection");
-	g_boneShaders.bindUniformBlock(2, "Projection");
-	g_spriteShaders.bindUniformBlock(2, "Projection");
+	g_shaderList.bindUniformBlock(2, "Projection");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_projectionUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -94,8 +87,7 @@ void Viewer::uninitialize()
 	xgDagMesh::deleteMatrixUniform();
 	xgMaterial::deleteMaterialUniform();
 	xgEnvelope::deleteBoneUniform();
-	g_shaders.closePrograms();
-	g_boneShaders.closePrograms();
+	g_shaderList.closePrograms();
 	InputHandling::resetInputs();
 	glfwTerminate();
 }
@@ -109,8 +101,8 @@ void XGM::initialize(const char* windowName)
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 112, NULL, GL_STATIC_DRAW);
 
-	g_shaders.m_base.bindUniformBlock(3, "Lights");
-	g_boneShaders.m_base.bindUniformBlock(3, "Lights");
+	g_shaderList.m_baseShaders.m_base.bindUniformBlock(3, "Lights");
+	g_shaderList.m_boneShaders.m_base.bindUniformBlock(3, "Lights");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
 
@@ -162,7 +154,7 @@ void SSQ::initialize(const char* windowName)
 
 	IMXEntry::generateSpriteBuffer(m_IMXentries);
 	for (auto& entry : m_IMXentries)
-		entry.m_imxPtr->m_data->generateTexture();
+			entry.m_imxPtr->m_data->generateTexture();
 
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 		if (!m_XGentries[i].m_isClone)
@@ -185,7 +177,7 @@ void SSQ::uninitialize()
 		model->reset();
 	IMXEntry::deleteSpriteBuffer();
 	for (auto& entry : m_IMXentries)
-		entry.m_imxPtr->m_data->deleteTexture();
+			entry.m_imxPtr->m_data->deleteTexture();
 
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 		if (!m_XGentries[i].m_isClone)
@@ -351,7 +343,7 @@ void XGM::update(float delta)
 	}
 
 	m_view = m_controlledCamera->getViewMatrix();
-	m_projection = glm::perspective(glm::radians(m_controlledCamera->m_fov), s_aspectRatio, 1.0f, 500000.0f);
+	m_projection = glm::perspective(glm::radians(m_controlledCamera->m_fov), s_aspectRatio, 1.0f, 1800000.0f);
 
 	if (controls->m_models.size() == 1)
 	{
@@ -613,8 +605,8 @@ void SSQ::update(float delta)
 	else
 	{
 		m_view = m_controlledCamera->getViewMatrix();
-		m_projection = glm::perspective(glm::radians(m_controlledCamera->m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 500000.0f);
-	}	
+		m_projection = glm::perspective(glm::radians(m_controlledCamera->m_fov), float(s_screenWidth) / s_screenHeight, 1.0f, 1800000.0f);
+	}
 }
 
 void SSQ::draw()
@@ -661,19 +653,19 @@ void SSQ::draw()
 				"textures[0]", "textures[1]", "textures[2]", "textures[3]", "textures[4]", "textures[5]", "textures[6]", "textures[7]",
 			};
 
-			g_spriteShaders.m_base.use();
+			g_shaderList.m_spriteShaders.m_base.use();
 			for (size_t i = 0; i < m_IMXentries.size(); ++i)
 			{
 				glActiveTexture(GL_TEXTURE0 + int(i));
 				m_IMXentries[i].m_imxPtr->m_data->bindTexture();
-				g_spriteShaders.m_base.setInt(textures[i], int(i));
+				Shader::setInt(textures[i], int(i));
 			}
 
 			m_sprites.draw(doTransparents);
 
 			if (!doTransparents && m_viewerControls->showNormals)
 			{
-				g_spriteShaders.m_normals.use();
+				g_shaderList.m_spriteShaders.m_normals.use();
 				m_sprites.draw(doTransparents);
 			}
 		}

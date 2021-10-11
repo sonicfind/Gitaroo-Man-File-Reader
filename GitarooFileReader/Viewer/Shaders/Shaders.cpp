@@ -14,15 +14,14 @@
  */
 #include "pch.h"
 #include "Shaders.h"
+#include "Global_Functions.h"
 #include <glad/glad.h>
-#include <fstream>
 #include <iostream>
 
 unsigned int Shader::s_activeID = 0;
-ShaderCombo g_shaders;
-ShaderCombo g_boneShaders;
-ShaderCombo g_spriteShaders;
 
+#ifdef _DEBUG
+#include <fstream>
 void Shader::createProgram(const char* vertexPath, const char* fragmentPath)
 {
 	// 1. retrieve the vertex/fragment source code from filePath
@@ -43,7 +42,9 @@ void Shader::createProgram(const char* vertexPath, const char* fragmentPath)
 		vShaderFile.close();
 		fShaderFile.close();
 		vertexCode = vShaderStream.str();
+		vertexCode = vertexCode.substr(3, vertexCode.length() - 6);
 		fragmentCode = fShaderStream.str();
+		fragmentCode = fragmentCode.substr(3, fragmentCode.length() - 6);
 	}
 	catch (std::ifstream::failure e)
 	{
@@ -94,7 +95,6 @@ void Shader::createProgram(const char* vertexPath, const char* fragmentPath)
 	glDeleteShader(fragmentShader);
 }
 
-// constructor reads and builds the shader
 void Shader::createProgram(const char* vertexPath, const char* geometryPath, const char* fragmentPath)
 {
 	// 1. retrieve the vertex/fragment source code from filePath
@@ -121,8 +121,11 @@ void Shader::createProgram(const char* vertexPath, const char* geometryPath, con
 		gShaderFile.close();
 		fShaderFile.close();
 		vertexCode = vShaderStream.str();
+		vertexCode = vertexCode.substr(3, vertexCode.length() - 6);
 		geometryCode = gShaderStream.str();
+		geometryCode = geometryCode.substr(3, geometryCode.length() - 6);
 		fragmentCode = fShaderStream.str();
+		fragmentCode = fragmentCode.substr(3, fragmentCode.length() - 6);
 	}
 	catch (std::ifstream::failure e)
 	{
@@ -185,7 +188,109 @@ void Shader::createProgram(const char* vertexPath, const char* geometryPath, con
 	glDeleteShader(vertexShader);
 	glDeleteShader(geometryShader);
 	glDeleteShader(fragmentShader);
+	}
+#else
+void Shader::createProgram(const char* vertex, const char* fragment)
+{
+	unsigned int vertexShader = 0, fragmentShader = 0;
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertex, NULL);
+	glCompileShader(vertexShader);
+
+	int success;
+	char infoLog[512] = { 0 };
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragment, NULL);
+	glCompileShader(fragmentShader);
+
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+
+	ID = glCreateProgram();
+	glAttachShader(ID, vertexShader);
+	glAttachShader(ID, fragmentShader);
+	glLinkProgram(ID);
+
+	glGetProgramiv(ID, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(ID, 512, NULL, infoLog);
+		// Stuff
+		std::cout << "ERROR::SHADER::PROGRAM::LINKAGE_FAILED\n" << infoLog << std::endl;
+	}
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
 }
+
+void Shader::createProgram(const char* vertex, const char* geometry, const char* fragment)
+{
+	unsigned int vertexShader = 0, fragmentShader = 0, geometryShader = 0;
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertex, NULL);
+	glCompileShader(vertexShader);
+
+	int success;
+	char infoLog[512] = { 0 };
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+
+	geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+	glShaderSource(geometryShader, 1, &geometry, NULL);
+	glCompileShader(geometryShader);
+
+	glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(geometryShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragment, NULL);
+	glCompileShader(fragmentShader);
+
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+
+	ID = glCreateProgram();
+	glAttachShader(ID, vertexShader);
+	glAttachShader(ID, geometryShader);
+	glAttachShader(ID, fragmentShader);
+	glLinkProgram(ID);
+
+	glGetProgramiv(ID, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(ID, 512, NULL, infoLog);
+		// Stuff
+		std::cout << "ERROR::SHADER::PROGRAM::LINKAGE_FAILED\n" << infoLog << std::endl;
+	}
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(geometryShader);
+	glDeleteShader(fragmentShader);
+}
+#endif // DEBUG
 
 void Shader::use()
 {
@@ -279,4 +384,33 @@ void ShaderCombo::bindStorageBlock(unsigned int bufferIndex, const char* const b
 {
 	m_base.bindStorageBlock(bufferIndex, blockName);
 	m_normals.bindStorageBlock(bufferIndex, blockName);
+}
+
+ShaderList g_shaderList;
+void ShaderList::createPrograms()
+{
+	m_baseShaders.createPrograms(base_vert, material_frag, normals_vert, normals_geo, normals_frag);
+	m_boneShaders.createPrograms(bones_vert, material_frag, normals_bones_vert, normals_geo, normals_frag);
+	m_spriteShaders.createPrograms(sprite_vert, sprite_geo, sprite_frag, vectors_vert, vectors_geo, vectors_frag);
+}
+
+void ShaderList::closePrograms()
+{
+	m_baseShaders.closePrograms();
+	m_boneShaders.closePrograms();
+	m_spriteShaders.closePrograms();
+}
+
+void ShaderList::bindUniformBlock(unsigned int bufferIndex, const char* const blockName)
+{
+	m_baseShaders.bindUniformBlock(bufferIndex, blockName);
+	m_boneShaders.bindUniformBlock(bufferIndex, blockName);
+	m_spriteShaders.bindUniformBlock(bufferIndex, blockName);
+}
+
+void ShaderList::bindStorageBlock(unsigned int bufferIndex, const char* const blockName)
+{
+	m_baseShaders.bindStorageBlock(bufferIndex, blockName);
+	m_boneShaders.bindStorageBlock(bufferIndex, blockName);
+	m_spriteShaders.bindStorageBlock(bufferIndex, blockName);
 }

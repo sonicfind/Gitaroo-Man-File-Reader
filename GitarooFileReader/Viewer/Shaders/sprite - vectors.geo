@@ -1,4 +1,4 @@
-#version 330 core
+R"(#version 330 core
 layout (points) in;
 layout (line_strip, max_vertices = 4) out;
 in VS_OUT
@@ -38,3 +38,4 @@ void main()
 	makeLine(gs_in[0].rightVector, vec4(1.0, 0.0, 0.0, 1.0));
 	makeLine(gs_in[0].upVector, vec4(0.0, 1.0, 0.0, 1.0));
 }
+)"

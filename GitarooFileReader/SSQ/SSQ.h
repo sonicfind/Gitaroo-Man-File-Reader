@@ -21,7 +21,7 @@
 #include "Sub Types/TextureAnimation.h"
 #include "Sub Types/PSetup.h"
 #include "XGM/XGM.h"
-#include "XGM/Viewer/Viewer.h"
+#include "Viewer/Viewer.h"
 class SSQ
 	: public FileType
 	, public Viewer

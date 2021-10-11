@@ -1,4 +1,4 @@
-#version 330 core
+R"(#version 330 core
 out vec4 FragColor;
 
 in VS_OUT
@@ -116,7 +116,7 @@ vec4 applyShading(const vec4 baseColor)
 			else
 				result += globalCoefficient * diff * lights[i].diffuse * (globalVertexColor.rgb + vs_in.color.rgb);
 
-			if (shadingType == 1 || shadingType == 4)
+			if (shadingType == 2 || shadingType == 4)
 			{
 				// specular shading
 				vec3 reflectDir = reflect(lights[i].direction, vs_in.normal);
@@ -127,3 +127,4 @@ vec4 applyShading(const vec4 baseColor)
 	}
 	return vec4(result * baseColor.rgb, baseColor.a);
 };
+)"

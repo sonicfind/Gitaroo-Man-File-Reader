@@ -1,4 +1,4 @@
-#version 330 core
+R"(#version 330 core
 layout(location = 0) in int aTextureIndex;
 layout(location = 1) in vec3 aPos;
 layout(location = 2) in vec2 aTexCoord;
@@ -36,3 +36,4 @@ void main()
 
 	gl_Position = vec4(aPos.xyz, 1) - .5 * (vs_out.rightVector + vs_out.upVector);
 }
+)"

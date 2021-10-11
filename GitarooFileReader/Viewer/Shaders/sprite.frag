@@ -1,4 +1,4 @@
-#version 330 core
+R"(#version 330 core
 flat in int fTextureIndex;
 in vec2 fTexCoord;
 in vec4 fColors;
@@ -44,3 +44,4 @@ void main()
 		FragColor = texColor * fColors;
 	}
 }
+)"

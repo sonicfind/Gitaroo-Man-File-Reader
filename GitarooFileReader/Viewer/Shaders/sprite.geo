@@ -1,4 +1,4 @@
-#version 330 core
+R"(#version 330 core
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 in VS_OUT
@@ -52,3 +52,4 @@ void main()
 
 	EndPrimitive();
 }
+)"

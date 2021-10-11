@@ -43,17 +43,17 @@ layout (std140) uniform Lights
 	float globalCoefficient;
 	int useGlobal;
 
-	vec4 globalVertexColor;
+	vec3 globalVertexColor;
 	vec3 sceneAmbience;
 	Light lights[MAX_LIGHTS];
 };
 
-vec4 getBlendColor(const vec4 color);
 layout (std140) uniform View
 {
 	mat4 view;
 };
 
+vec4 getBlendColor(const vec3 color);
 vec4 applyShading(const vec4 baseColor);
 
 void main()
@@ -62,21 +62,21 @@ void main()
 	if (useTexture == 1)
 	{
 		vec4 texColor = texture(texture, vs_in.texCoord);
-		result = getBlendColor(vec4(texColor.rgb, 1));
+		if (shadingType != 3)
+			result = getBlendColor(texColor.rgb);
+		else
+			result = getBlendColor(texColor.rgb * vs_in.color.rgb);
 		result.a *= texColor.a;
-
-		if (flags > 2)
-			result.a *= 2;
-		
-		if (shadingType == 3)
-			result *= getBlendColor(vs_in.color);
 	}	
 	else if (shadingType == 3)
-		result = getBlendColor(globalVertexColor + vs_in.color);
+		result = getBlendColor(globalVertexColor + vs_in.color.rgb);
 	else if (useGlobal == 1)
 		result = getBlendColor(globalVertexColor);
 	else
-		result = getBlendColor(vec4(1));
+		result = getBlendColor(vec3(1));
+
+	if (flags > 2)
+		result.a *= 2;
 
 	if (result.a < .01)
 		discard;
@@ -84,12 +84,10 @@ void main()
 	FragColor = applyShading(result);
 }
 
-vec4 getBlendColor(const vec4 color)
+vec4 getBlendColor(const vec3 color)
 {
 	switch (blendType)
 	{
-	case 2:
-		return vec4(color.rgb, 1);
 	case 3:
 		return vec4(color.rgb, 1 - diffuse.a * (1 - color.r) * (1 - color.g) * (1 - color.b));
 	case 4:
@@ -97,7 +95,7 @@ vec4 getBlendColor(const vec4 color)
 	case 5:
 		return vec4(color.rgb, diffuse.a);
 	default:
-		return color;
+		return vec4(color, 1);
 	}
 }
 

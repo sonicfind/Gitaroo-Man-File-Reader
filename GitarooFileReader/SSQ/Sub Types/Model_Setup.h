@@ -82,7 +82,7 @@ public:
 
 
 protected:
-	virtual glm::mat4 animateFromGameState(XG* xg, const float frame) { return glm::mat4(); }
+	virtual void animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame) {}
 };
 
 class PlayerModelSetup : public ModelSetup
@@ -122,7 +122,7 @@ public:
 	void create(FILE* outFile) const;
 
 private:
-	virtual glm::mat4 animateFromGameState(XG* xg, const float frame);
+	virtual void animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame);
 };
 
 class AttDefModelSetup : public ModelSetup
@@ -142,12 +142,17 @@ class AttDefModelSetup : public ModelSetup
 		char m_junk[8];
 	} m_attackValues;
 
+	glm::mat4* m_matrix1;
+	glm::mat4* m_matrix2;
+
 public:
 	AttDefModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
+	std::vector<std::string> getConnectedNames() const;
+	void setConnectedMatrices(glm::mat4* mat_1, glm::mat4* mat_2);
 	void create(FILE* outFile) const;
 
 private:
-	virtual glm::mat4 animateFromGameState(XG* xg, const float frame);
+	virtual void animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame);
 };
 
 class SnakeModelSetup : public ModelSetup

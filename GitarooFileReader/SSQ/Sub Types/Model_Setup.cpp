@@ -166,6 +166,7 @@ glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 
 std::pair<bool, glm::mat4> ModelSetup::animate(XG* xg, const float frame)
 {
+	std::pair<bool, glm::mat4> shadowMatrix(false, getModelMatrix(frame));
 	if (!m_animations.empty())
 	{
 		auto iter = getIter(m_animations, frame);
@@ -173,16 +174,16 @@ std::pair<bool, glm::mat4> ModelSetup::animate(XG* xg, const float frame)
 		{
 			const bool looping = iter->m_loop;
 			const unsigned long animIndex = xg->getValidatedAnimationIndex(iter->m_animIndex);
-			std::pair<bool, glm::mat4> shadowMatrix(iter->m_dropShadow, glm::mat4());
+			shadowMatrix.first = iter->m_dropShadow;
+
 			while (iter != m_animations.begin()
 				&& !iter->m_startOverride
 				&& !iter->m_pollGameState
 				&& xg->getValidatedAnimationIndex((iter - 1)->m_animIndex) == animIndex)
 				--iter;
-
+			
 			if (!iter->m_pollGameState)
 			{
-				shadowMatrix.second = getModelMatrix(frame);
 				const float length = xg->getAnimationLength(animIndex);
 				if (frame < length + iter->m_frame)
 					xg->animate(frame - iter->m_frame, animIndex, shadowMatrix.second);
@@ -192,14 +193,10 @@ std::pair<bool, glm::mat4> ModelSetup::animate(XG* xg, const float frame)
 					xg->animate(length - 1, animIndex, shadowMatrix.second);
 			}
 			else
-				shadowMatrix.second = animateFromGameState(xg, frame);
-			return shadowMatrix;
+				animateFromGameState(xg, shadowMatrix.second, frame);
 		}
 	}
 	else
-	{
-		const glm::mat4 matrix = getModelMatrix(frame);
-		xg->animate(fmod(frame, xg->getAnimationLength(m_baseValues.m_baseAnimIndex_maybe)), m_baseValues.m_baseAnimIndex_maybe, matrix);
-	}
-	return { false, glm::mat4() };
+		xg->animate(fmod(frame, xg->getAnimationLength(m_baseValues.m_baseAnimIndex_maybe)), m_baseValues.m_baseAnimIndex_maybe, shadowMatrix.second);
+	return shadowMatrix;
 }

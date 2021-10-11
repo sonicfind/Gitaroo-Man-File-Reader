@@ -614,7 +614,26 @@ void SSQ::draw()
 		{
 			auto& entry = m_XGentries[i];
 			if (!entry.m_isClone && entry.m_xg->getInstanceCount())
-				entry.m_xg->draw(!m_viewerControls->showNormals && !doTransparents, doTransparents);
+			{
+				if (entry.m_type >= ModelType::Player1AttDef && entry.m_type < ModelType::Snake)
+				{
+					// names will be inserted in reverse order
+					std::vector<std::string> names;
+					glm::mat4 matrices[2] = { m_modelMatrices[i], glm::mat4() };
+					for (size_t n = 0; n < names.size(); ++n)
+					{
+						for (size_t e = 0; e < m_XGentries.size(); ++e)
+						{
+							if (names[n].compare(m_XGentries[e].m_name) == 0)
+							{
+								m_modelMatrices[1 - i] = m_modelMatrices[e];
+								break;
+							}
+						}
+					}
+				}
+				entry.m_xg->draw(m_viewerControls->showNormals && !doTransparents, doTransparents);
+			}
 		}
 
 		// Temporary solution for blending

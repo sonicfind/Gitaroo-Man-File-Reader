@@ -90,6 +90,31 @@ SSQ::SSQ(std::string filename, bool unused)
 		}
 	}
 
+	for (size_t i = 0; i < numXG; ++i)
+	{
+		if (AttDefModelSetup* attDef = dynamic_cast<AttDefModelSetup*>(m_modelSetups[i].get()))
+		{
+			// Will be filled in reverse order
+			auto names = attDef->getConnectedNames();
+			if (names.size())
+			{
+				glm::mat4* matrices[2] = { &m_modelMatrices[i], nullptr };
+				for (size_t n = 0; n < names.size(); ++n)
+				{
+					for (size_t e = 0; e < m_XGentries.size(); ++e)
+					{
+						if (names[n].compare(m_XGentries[e].m_name) == 0)
+						{
+							matrices[1 - n] = &m_modelMatrices[e];
+							break;
+						}
+					}
+				}
+				attDef->setConnectedMatrices(matrices[0], matrices[1]);
+			}
+		}
+	}
+
 	m_camera.read(m_filePtr);
 	m_endFrame = m_camera.getLastFrame();
 

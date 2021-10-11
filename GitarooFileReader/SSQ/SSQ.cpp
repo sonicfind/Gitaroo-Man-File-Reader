@@ -220,6 +220,12 @@ bool SSQ::viewSequence()
 			printf_tab("F - Toggle FreeCam movement\n");
 			printf_tab("ESC - exit\n");
 
+			printf_tab("5/6/7/8 - Toggle models that are bound to attack events of the corresponding type\n");
+			printf_tab("\t5 - Player 1 Attack\n");
+			printf_tab("\t6 - Player 2 Attack\n");
+			printf_tab("\t7 - Duet Player Attack (currently unapplicable)\n");
+			printf_tab("\t8 - Duet Combo Attack (currently unapplicable)\n");
+
 			printf_tab("With FreeCam mode active:\n");
 			printf_tab("\tWASD - Move\n");
 			printf_tab("\tSpace/Left Shift - Ascend/Descend\n");

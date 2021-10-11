@@ -196,6 +196,10 @@ void SSQ::uninitialize()
 		texAnim.unloadCuts();
 
 	m_sprites.deleteSpriteBuffers();
+	g_gameState[5] = false;
+	g_gameState[6] = false;
+	g_gameState[7] = false;
+	g_gameState[8] = false;
 }
 
 const char* Viewer::getAspectRatioString()
@@ -560,10 +564,22 @@ void SSQ::update(float delta)
 			m_currFrame = m_endFrame;
 	}
 
-	g_gameState[5] = InputHandling::g_input_keyboard.KEY_5.isActive();
-	g_gameState[6] = InputHandling::g_input_keyboard.KEY_6.isActive();
-	g_gameState[7] = InputHandling::g_input_keyboard.KEY_7.isActive();
-	g_gameState[8] = InputHandling::g_input_keyboard.KEY_8.isActive();
+	// Toggling player attack and damage effects
+	if (InputHandling::g_input_keyboard.KEY_5.isPressed() ||
+		InputHandling::g_input_keyboard.KEY_KP_5.isPressed())
+		g_gameState[5] = !g_gameState[5];
+
+	if (InputHandling::g_input_keyboard.KEY_6.isPressed() ||
+		InputHandling::g_input_keyboard.KEY_KP_6.isPressed())
+		g_gameState[6] = !g_gameState[6];
+
+	if (InputHandling::g_input_keyboard.KEY_7.isPressed() ||
+		InputHandling::g_input_keyboard.KEY_KP_7.isPressed())
+		g_gameState[7] = !g_gameState[7];
+
+	if (InputHandling::g_input_keyboard.KEY_8.isPressed() ||
+		InputHandling::g_input_keyboard.KEY_KP_8.isPressed())
+		g_gameState[8] = !g_gameState[8];
 
 	m_camera.setLights(m_currFrame, controls->useLights);
 
@@ -649,7 +665,7 @@ void SSQ::draw()
 			for (size_t i = 0; i < m_IMXentries.size(); ++i)
 			{
 				glActiveTexture(GL_TEXTURE0 + int(i));
-				m_IMXentries[i].m_imxPtr->bindTexture();
+				m_IMXentries[i].m_imxPtr->m_data->bindTexture();
 				g_spriteShaders.m_base.setInt(textures[i], int(i));
 			}
 

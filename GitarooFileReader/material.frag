@@ -45,11 +45,15 @@ layout (std140) uniform Lights
 
 	vec4 globalVertexColor;
 	vec3 sceneAmbience;
-	vec3 camPosition;
 	Light lights[MAX_LIGHTS];
 };
 
 vec4 getBlendColor(const vec4 color);
+layout (std140) uniform View
+{
+	mat4 view;
+};
+
 vec4 applyShading(const vec4 baseColor);
 
 void main()
@@ -103,7 +107,7 @@ vec4 applyShading(const vec4 baseColor)
 	if (shadingType != 0 && shadingType != 3 && doLights == 1)
 	{
 		result = sceneAmbience;
-		vec3 viewDir = normalize(camPosition - vs_in.fragPos);
+		vec3 viewDir = normalize(vec3(view[0][3], view[1][3], view[2][3]) - vs_in.fragPos);
 
 		for (int i = 0; i < numLights; ++i)
 		{

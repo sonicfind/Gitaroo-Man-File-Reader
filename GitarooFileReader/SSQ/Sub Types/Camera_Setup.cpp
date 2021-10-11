@@ -143,7 +143,7 @@ void CameraSetup::generateBuffers(float aspectRatio)
 	// Fills both light and sprite UBOs
 	glGenBuffers(2, &m_lightUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 320, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, 304, NULL, GL_DYNAMIC_DRAW);
 
 	g_shaders.m_base.bindUniformBlock(3, "Lights");
 	g_boneShaders.m_base.bindUniformBlock(3, "Lights");
@@ -198,11 +198,6 @@ glm::mat4 CameraSetup::getViewMatrix(const float frame) const
 		position = posIter->m_position;
 	else
 		position = glm::mix(posIter->m_position, (posIter + 1)->m_position, (frame - posIter->m_frame) * posIter->m_coefficient);
-
-	// If this function is being called, then set light viewPosition at the same time
-	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 48, 12, glm::value_ptr(glm::vec3(position.x, position.y, -position.z)));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	auto rotIter = getIter(m_rotations, frame);
 	glm::quat rotation;

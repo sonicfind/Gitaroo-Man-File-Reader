@@ -19,8 +19,8 @@ AttDefModelSetup::AttDefModelSetup(FILE* inFile, char(&name)[16])
 {
 	if (m_headerVersion >= 0x1200)
 	{
-		fread(&m_attdef_float32, 4, 1, inFile);
-		fread(&m_attdef_64bytes, sizeof(Struct64_9f), 1, inFile);
+		fread(&m_attackSize_Z, 4, 1, inFile);
+		fread(&m_attackValues, sizeof(AttackStreamValues), 1, inFile);
 	}
 }
 
@@ -29,7 +29,7 @@ void AttDefModelSetup::create(FILE* outFile) const
 	ModelSetup::create(outFile);
 	if (m_headerVersion >= 0x1200)
 	{
-		fwrite(&m_attdef_float32, 4, 1, outFile);
-		fwrite(&m_attdef_64bytes, sizeof(Struct64_9f), 1, outFile);
+		fwrite(&m_attackSize_Z, 4, 1, outFile);
+		fwrite(&m_attackValues, sizeof(AttackStreamValues), 1, outFile);
 	}
 }

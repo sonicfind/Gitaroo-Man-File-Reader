@@ -118,16 +118,20 @@ public:
 
 class AttDefModelSetup : public ModelSetup
 {
-	float m_attdef_float32;
+	float m_attackSize_Z;
 
-	struct Struct64_9f
+	struct AttackStreamValues
 	{
-		glm::vec3 m_vec1;
-		glm::vec3 m_vec2;
-		char m_modelName_1[16];
-		char m_modelName_2[16];
+		glm::vec3 m_startOffset;
+		glm::vec3 m_targetOffset;
+		char m_startingModel[16];
+		char m_targetModel[16];
+		// Might've been the 32bit pointers to the model matrices
+		// that correspond to the two models provided here
+		//
+		// No longer applicable in this 64 bit application
 		char m_junk[8];
-	} m_attdef_64bytes;
+	} m_attackValues;
 
 public:
 	AttDefModelSetup(FILE* inFile, char(&name)[16]);

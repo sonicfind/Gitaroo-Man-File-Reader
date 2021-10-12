@@ -344,20 +344,25 @@ bool XGM::viewModels()
 			printf_tab("Mouse Scroll - Increase/Decrease zoom\n");
 			printf_tab("ESC - exit\n");
 			printf_tab("\n");
-			printf_tab("'M' - Release/Reattach mouse control from/to the window\n");
-			printf_tab("'N' - Toggle displaying vertex normal vectors\n");
-			printf_tab("'O' - Switch between Animation & Pose modes\n");
-			printf_tab("'L' - Toggle animation looping\n");
+
+			printf_tab("M - Release/Reattach mouse control from/to the window\n");
+			printf_tab("N - Toggle displaying vertex normal vectors\n");
+			printf_tab("O - Switch between Animation & Pose modes\n");
+			printf_tab("L - Toggle animation looping\n");
+			printf_tab("U - Toggle Shading\n");
 			printf_tab("\n");
+
 			printf_tab("With Animation mode active:\n");
 			printf_tab("\tP - Pause/Play\n");
 			printf_tab("\tR (Press) - Reset current animation to frame 0\n");
 			printf_tab("\tR (Hold) - Reset to first animation\n");
 			printf_tab("\tRight/Left - Switch current animation\n");
 			printf_tab("\n");
+
 			printf_tab("With only one model loaded:\n");
 			printf_tab("\t','/'.' - Change currently viewed model\n");
 			printf_tab("\n");
+
 			printf_tab("Press 'Enter' when you're done reading\n");
 			printf_tab("");
 			clearIn();

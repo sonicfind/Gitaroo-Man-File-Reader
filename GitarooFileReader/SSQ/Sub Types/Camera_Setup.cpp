@@ -147,6 +147,7 @@ void CameraSetup::generateBuffers(float aspectRatio)
 
 	g_shaderList.m_baseShaders.m_base.bindUniformBlock(3, "Lights");
 	g_shaderList.m_boneShaders.m_base.bindUniformBlock(3, "Lights");
+	g_shaderList.m_lightShader.bindUniformBlock(3, "Lights");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
 	unsigned long numLights = (unsigned long)m_lights.size();

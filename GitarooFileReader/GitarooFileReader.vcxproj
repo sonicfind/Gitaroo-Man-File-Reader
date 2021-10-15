@@ -350,6 +350,9 @@
   <ItemGroup>
     <None Include="Viewer\Shaders\base.vert" />
     <None Include="Viewer\Shaders\bones.vert" />
+    <None Include="Viewer\Shaders\light.frag" />
+    <None Include="Viewer\Shaders\light.geo" />
+    <None Include="Viewer\Shaders\light.vert" />
     <None Include="Viewer\Shaders\material.frag" />
     <None Include="Viewer\Shaders\normals - bones.vert" />
     <None Include="Viewer\Shaders\normals.frag" />

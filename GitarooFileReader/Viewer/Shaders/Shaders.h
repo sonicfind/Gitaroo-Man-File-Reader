@@ -78,6 +78,9 @@ class ShaderList
 	const char* vectors_vert = "Viewer/Shaders/sprite - vectors.vert";
 	const char* vectors_geo = "Viewer/Shaders/sprite - vectors.geo";
 	const char* vectors_frag = "Viewer/Shaders/sprite - vectors.frag";
+	const char* light_vert = "Viewer/Shaders/light.vert";
+	const char* light_geo = "Viewer/Shaders/light.geo";
+	const char* light_frag = "Viewer/Shaders/light.frag";
 #else
 	const char* base_vert =
 	#include "base.vert"
@@ -118,11 +121,21 @@ class ShaderList
 	const char* vectors_frag =
 	#include "sprite - vectors.frag"
 	;
+	const char* light_vert =
+	#include "light.vert"
+	;
+	const char* light_geo =
+	#include "light.geo"
+	;
+	const char* light_frag =
+	#include "light.frag"
+	;
 #endif
 public:
 	ShaderCombo m_baseShaders;
 	ShaderCombo m_boneShaders;
 	ShaderCombo m_spriteShaders;
+	Shader m_lightShader;
 
 	void createPrograms();
 	void closePrograms();

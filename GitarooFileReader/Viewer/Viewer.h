@@ -37,6 +37,9 @@ protected:
 	unsigned int m_viewUBO;
 	unsigned int m_projectionUBO;
 
+	unsigned int m_lightVAO = 0;
+	unsigned int m_lightVBO = 0;
+
 	Camera* m_controlledCamera;
 	glm::mat4 m_view;
 	glm::mat4 m_projection;
@@ -58,4 +61,7 @@ protected:
 	virtual void update(float delta) = 0;
 	virtual void drawOpaques() = 0;
 	virtual void drawTranparents() = 0;
+
+private:
+	void drawLights();
 };

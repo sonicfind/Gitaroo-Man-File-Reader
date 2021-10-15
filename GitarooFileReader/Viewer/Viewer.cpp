@@ -74,6 +74,14 @@ void Viewer::initialize(const char* windowName)
 	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_projectionUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+	glGenBuffers(1, &m_lightVBO);
+	glGenVertexArrays(1, &m_lightVAO);
+	glBindVertexArray(m_lightVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_lightVBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	xgDagMesh::generateMatrixUniform();
 	xgMaterial::generateMaterialUniform();
 	xgEnvelope::generateBoneUniform();
@@ -96,6 +104,10 @@ void XGM::initialize(const char* windowName)
 {
 	Viewer::initialize(windowName);
 
+	glBindBuffer(GL_ARRAY_BUFFER, m_lightVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), glm::value_ptr(glm::vec3(0, 40, 200)), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	// Generate light structure uniform
 	glGenBuffers(1, &m_lightUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_lightUBO);
@@ -103,6 +115,7 @@ void XGM::initialize(const char* windowName)
 
 	g_shaderList.m_baseShaders.m_base.bindUniformBlock(3, "Lights");
 	g_shaderList.m_boneShaders.m_base.bindUniformBlock(3, "Lights");
+	g_shaderList.m_lightShader.bindUniformBlock(3, "Lights");
 
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
 
@@ -147,6 +160,10 @@ void XGM::uninitialize()
 void SSQ::initialize(const char* windowName)
 {
 	Viewer::initialize(windowName);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_lightVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), glm::value_ptr(glm::vec3(0, 150, 0)), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	setFrame(m_startFrame);
 	for (auto& model : m_modelSetups)
@@ -302,6 +319,7 @@ int Viewer::startDisplay(const char* windowName)
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		drawOpaques();
+		drawLights();
 		drawTranparents();
 
 		// Check calls
@@ -312,6 +330,21 @@ int Viewer::startDisplay(const char* windowName)
 
 	uninitialize();
 	return 0;
+}
+
+// Called last
+void Viewer::drawLights()
+{
+	if (m_viewerControls->showNormals)
+	{
+		glLineWidth(20);
+		g_shaderList.m_lightShader.use();
+		glBindBuffer(GL_ARRAY_BUFFER, m_lightVBO);
+		glBindVertexArray(m_lightVAO);
+		glDrawArrays(GL_POINTS, 0, 1);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glLineWidth(1);
+	}
 }
 
 void XGM::update(float delta)

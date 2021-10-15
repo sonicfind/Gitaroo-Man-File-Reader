@@ -392,6 +392,7 @@ void ShaderList::createPrograms()
 	m_baseShaders.createPrograms(base_vert, material_frag, normals_vert, normals_geo, normals_frag);
 	m_boneShaders.createPrograms(bones_vert, material_frag, normals_bones_vert, normals_geo, normals_frag);
 	m_spriteShaders.createPrograms(sprite_vert, sprite_geo, sprite_frag, vectors_vert, vectors_geo, vectors_frag);
+	m_lightShader.createProgram(light_vert, light_geo, light_frag);
 }
 
 void ShaderList::closePrograms()
@@ -399,6 +400,7 @@ void ShaderList::closePrograms()
 	m_baseShaders.closePrograms();
 	m_boneShaders.closePrograms();
 	m_spriteShaders.closePrograms();
+	m_lightShader.closeProgram();
 }
 
 void ShaderList::bindUniformBlock(unsigned int bufferIndex, const char* const blockName)
@@ -406,6 +408,7 @@ void ShaderList::bindUniformBlock(unsigned int bufferIndex, const char* const bl
 	m_baseShaders.bindUniformBlock(bufferIndex, blockName);
 	m_boneShaders.bindUniformBlock(bufferIndex, blockName);
 	m_spriteShaders.bindUniformBlock(bufferIndex, blockName);
+	m_lightShader.bindUniformBlock(bufferIndex, blockName);
 }
 
 void ShaderList::bindStorageBlock(unsigned int bufferIndex, const char* const blockName)
@@ -413,4 +416,5 @@ void ShaderList::bindStorageBlock(unsigned int bufferIndex, const char* const bl
 	m_baseShaders.bindStorageBlock(bufferIndex, blockName);
 	m_boneShaders.bindStorageBlock(bufferIndex, blockName);
 	m_spriteShaders.bindStorageBlock(bufferIndex, blockName);
+	m_lightShader.bindStorageBlock(bufferIndex, blockName);
 }

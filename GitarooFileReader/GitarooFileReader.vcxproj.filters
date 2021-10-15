@@ -103,6 +103,9 @@
     <Filter Include="Viewer\Shaders\Sprite\vectors">
       <UniqueIdentifier>{973d07e0-8cc1-43ba-af16-5431576a1380}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Viewer\Shaders\Light Vectors">
+      <UniqueIdentifier>{e788d96d-0292-46de-925b-c98546f15ad6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main\pch.cpp">
@@ -575,6 +578,15 @@
     </None>
     <None Include="Viewer\Shaders\material.frag">
       <Filter>Viewer\Shaders\Base</Filter>
+    </None>
+    <None Include="Viewer\Shaders\light.frag">
+      <Filter>Viewer\Shaders\Light Vectors</Filter>
+    </None>
+    <None Include="Viewer\Shaders\light.geo">
+      <Filter>Viewer\Shaders\Light Vectors</Filter>
+    </None>
+    <None Include="Viewer\Shaders\light.vert">
+      <Filter>Viewer\Shaders\Light Vectors</Filter>
     </None>
   </ItemGroup>
 </Project>

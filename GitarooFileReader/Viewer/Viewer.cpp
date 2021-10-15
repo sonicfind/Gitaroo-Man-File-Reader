@@ -301,7 +301,8 @@ int Viewer::startDisplay(const char* windowName)
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(m_projection));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		draw();
+		drawOpaques();
+		drawTranparents();
 
 		// Check calls
 		glfwSwapBuffers(m_window);
@@ -473,7 +474,7 @@ void XGM::update(float delta)
 	}
 }
 
-void XGM::draw()
+void XGM::drawOpaques()
 {
 	const ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls.get();
 	// Clear color and depth buffers
@@ -483,16 +484,19 @@ void XGM::draw()
 	// Disable color blending
 	glDisable(GL_BLEND);
 	// Draw opaque meshes
-	for (auto& model : ((ViewerControls_XGM*)m_viewerControls.get())->m_models)
+	for (auto& model : controls->m_models)
 		m_models[model.modelIndex].draw(controls->showNormals, false, controls->animate);
+}
 
+void XGM::drawTranparents()
+{
+	const ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls.get();
 	// Enable color blending
 	glEnable(GL_BLEND);
 	// Draw transparent meshes
 	// Does not draw normals
-	for (auto& model : ((ViewerControls_XGM*)m_viewerControls.get())->m_models)
+	for (auto& model : controls->m_models)
 		m_models[model.modelIndex].draw(false, true, controls->animate);
-	glBindVertexArray(0);
 }
 
 void SSQ::update(float delta)
@@ -611,75 +615,55 @@ void SSQ::update(float delta)
 	}
 }
 
-void SSQ::draw()
+void SSQ::drawOpaques()
 {
 	// Clear color and depth buffers
 	const glm::vec3 color = m_camera.getClearColor(m_currFrame);
 	glClearColor(color.r, color.g, color.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	auto sequence = [&](const bool doTransparents)
-	{
-		for (size_t i = 0; i < m_modelSetups.size(); ++i)
-		{
-			auto& entry = m_XGentries[i];
-			if (!entry.m_isClone && entry.m_xg->getInstanceCount())
-			{
-				if (entry.m_type >= ModelType::Player1AttDef && entry.m_type < ModelType::Snake)
-				{
-					// names will be inserted in reverse order
-					std::vector<std::string> names;
-					glm::mat4 matrices[2] = { m_modelMatrices[i], glm::mat4() };
-					for (size_t n = 0; n < names.size(); ++n)
-					{
-						for (size_t e = 0; e < m_XGentries.size(); ++e)
-						{
-							if (names[n].compare(m_XGentries[e].m_name) == 0)
-							{
-								m_modelMatrices[1 - i] = m_modelMatrices[e];
-								break;
-							}
-						}
-					}
-				}
-				entry.m_xg->draw(m_viewerControls->showNormals && !doTransparents, doTransparents);
-			}
-		}
-
-		// Temporary solution for blending
-		// Full solution will require figuring out how it decides if a sprite a blends or not
-		if (m_sprites.hasSprites())
-		{
-			static const std::string textures[] =
-			{
-				"textures[0]", "textures[1]", "textures[2]", "textures[3]", "textures[4]", "textures[5]", "textures[6]", "textures[7]",
-			};
-
-			g_shaderList.m_spriteShaders.m_base.use();
-			for (size_t i = 0; i < m_IMXentries.size(); ++i)
-			{
-				glActiveTexture(GL_TEXTURE0 + int(i));
-				m_IMXentries[i].m_imxPtr->m_data->bindTexture();
-				Shader::setInt(textures[i], int(i));
-			}
-
-			m_sprites.draw(doTransparents);
-
-			if (!doTransparents && m_viewerControls->showNormals)
-			{
-				g_shaderList.m_spriteShaders.m_normals.use();
-				m_sprites.draw(doTransparents);
-			}
-		}
-	};
-
 	// Draw opaque meshes
 	glDisable(GL_BLEND);
-	sequence(false);
+	draw(false);
+}
 
+void SSQ::drawTranparents()
+{
 	// Draw transparent meshes
 	// Does not draw normals
 	glEnable(GL_BLEND);
-	sequence(true);
-	glBindVertexArray(0);
+	draw(true);
+}
+
+void SSQ::draw(const bool doTransparents)
+{
+	for (size_t i = 0; i < m_modelSetups.size(); ++i)
+		if (!m_XGentries[i].m_isClone && m_XGentries[i].m_xg->getInstanceCount())
+			m_XGentries[i].m_xg->draw(m_viewerControls->showNormals && !doTransparents, doTransparents);
+
+	// Temporary solution for blending
+	// Full solution will require figuring out how it decides if a sprite a blends or not
+	if (m_sprites.hasSprites())
+	{
+		static const std::string textures[] =
+		{
+			"textures[0]", "textures[1]", "textures[2]", "textures[3]", "textures[4]", "textures[5]", "textures[6]", "textures[7]",
+		};
+
+		g_shaderList.m_spriteShaders.m_base.use();
+		for (size_t i = 0; i < m_IMXentries.size(); ++i)
+		{
+			glActiveTexture(GL_TEXTURE0 + int(i));
+			m_IMXentries[i].m_imxPtr->m_data->bindTexture();
+			Shader::setInt(textures[i], int(i));
+		}
+
+		m_sprites.draw(doTransparents);
+
+		if (!doTransparents && m_viewerControls->showNormals)
+		{
+			g_shaderList.m_spriteShaders.m_normals.use();
+			m_sprites.draw(doTransparents);
+		}
+	}
 }

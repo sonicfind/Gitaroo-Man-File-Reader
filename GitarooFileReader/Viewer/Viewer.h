@@ -56,5 +56,6 @@ protected:
 	virtual void initialize(const char* windowName);
 	virtual void uninitialize();
 	virtual void update(float delta) = 0;
-	virtual void draw() = 0;
+	virtual void drawOpaques() = 0;
+	virtual void drawTranparents() = 0;
 };

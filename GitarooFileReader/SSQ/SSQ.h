@@ -67,10 +67,13 @@ public:
 	static void displayMultiHelp();
 	static const std::string multiChoiceString;
 
+private:
 	void initialize(const char* windowName);
 	void uninitialize();
 	void update(float current);
-	void draw();
+	void drawOpaques();
+	void drawTranparents();
+	void draw(const bool doTranparents);
 
 	void setFrame(const float frame);
 };

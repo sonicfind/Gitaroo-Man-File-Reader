@@ -74,10 +74,11 @@ public:
 	static void displayMultiHelp();
 	static const std::string multiChoiceString;
 
-protected:
+private:
 	void initialize(const char* windowName);
 	void uninitialize();
 
 	void update(float current);
-	void draw();
+	void drawOpaques();
+	void drawTranparents();
 };

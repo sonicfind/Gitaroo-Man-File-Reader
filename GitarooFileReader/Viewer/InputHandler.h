@@ -170,7 +170,6 @@ namespace InputHandling
 
 	void processKey(GLFWwindow* window, KeyPair* key, const float time);
 	void processInputs(GLFWwindow* window, const float time);
-	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	void resetInputs();

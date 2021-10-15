@@ -77,11 +77,6 @@ namespace InputHandling
 			processKey(window, keys + index, time);
 	}
 
-	void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-	{
-		glViewport(0, 0, width, height);
-	}
-
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	{
 		Camera::s_currentCamera->turnCamera(xpos, ypos);

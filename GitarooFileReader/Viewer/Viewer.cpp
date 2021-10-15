@@ -31,6 +31,7 @@ void Viewer::initialize(const char* windowName)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	m_window = glfwCreateWindow(s_screenWidth, s_screenHeight, windowName, NULL, NULL);
 	if (!m_window)
@@ -46,8 +47,6 @@ void Viewer::initialize(const char* windowName)
 	glViewport(0, 0, s_screenWidth, s_screenHeight);
 
 	g_shaderList.createPrograms();
-
-	glfwSetFramebufferSizeCallback(m_window, InputHandling::framebuffer_size_callback);
 
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);

@@ -40,6 +40,7 @@ LightSetup::LightSetup(FILE* inFile)
 	{
 		m_rotations.resize(numRotations);
 		fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
+		flipHand(m_rotations);
 	}
 
 	if (numColors > 1)
@@ -70,7 +71,11 @@ void LightSetup::create(FILE* outFile)
 	fwrite(&numColors, 4, 1, outFile);
 
 	if (numRotations > 1)
-		fwrite(&m_rotations.front(), sizeof(Rotation), numRotations, outFile);
+	{
+		std::vector<Rotation> tmp = m_rotations;
+		flipHand(tmp);
+		fwrite(tmp.data(), sizeof(Rotation), numRotations, outFile);
+	}
 
 	if (numColors > 1)
 		fwrite(&m_colors.front(), sizeof(LightColors), numColors, outFile);

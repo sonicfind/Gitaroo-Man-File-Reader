@@ -106,11 +106,10 @@ vec4 applyShading(const vec4 baseColor)
 	{
 		result = sceneAmbience;
 		vec3 viewDir = normalize(vec3(view[0][3], view[1][3], view[2][3]) - vs_in.fragPos);
-
 		for (int i = 0; i < numLights; ++i)
 		{
 			// diffuse shading
-			float diff = min(max(dot(vs_in.normal, -lights[i].direction), lights[i].min), lights[i].max);
+			float diff = min(max(dot(vs_in.normal, -lights[i].direction) - lights[i].coefficient, lights[i].min), lights[i].max);
 			if (shadingType < 3)
 				result += globalCoefficient * diff * lights[i].diffuse * diffuse.rgb;
 			else

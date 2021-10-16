@@ -54,7 +54,7 @@ void AttDefModelSetup::create(FILE* outFile) const
 
 void AttDefModelSetup::animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame)
 {
-	if (g_gameState[static_cast<int>(m_type)])
+	if (g_gameState.isModelTypeActive(static_cast<int>(m_type)))
 	{
 		const float animLength = xg->getAnimationLength(0);
 		if (m_attackValues.m_targetModel[0] != 0)

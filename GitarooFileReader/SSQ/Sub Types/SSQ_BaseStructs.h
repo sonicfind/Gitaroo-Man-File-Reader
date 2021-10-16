@@ -74,4 +74,20 @@ T mix(const T a, const T b, const float coefficient)
 }
 
 void flipHand(std::vector<Rotation>& rotations);
-extern bool g_gameState[10];
+
+class GameState
+{
+	enum class Mode
+	{
+		Attack_Charge,
+		Guard
+	};
+
+	bool activeModels[10];
+
+public:
+	void reset();
+	void setGlobalStates();
+	bool isModelTypeActive(int model) { return activeModels[model]; }
+};
+extern GameState g_gameState;

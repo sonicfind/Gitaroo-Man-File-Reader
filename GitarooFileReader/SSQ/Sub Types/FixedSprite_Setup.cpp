@@ -101,7 +101,7 @@ void FixedSpriteSetup::update(const float frame)
 	for (size_t index = 0; index < m_80bytes.size(); ++index)
 	{
 		if (m_80bytes[index].m_modelTypeMapping < ModelType::Player1AttDef ||
-			g_gameState[static_cast<int>(m_80bytes[index].m_modelTypeMapping)])
+			g_gameState.isModelTypeActive(static_cast<int>(m_80bytes[index].m_modelTypeMapping)))
 		{
 			SpriteValues vals{
 				m_80bytes[index].m_IMXindex,

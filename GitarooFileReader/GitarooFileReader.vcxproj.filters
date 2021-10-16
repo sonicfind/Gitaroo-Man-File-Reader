@@ -297,6 +297,9 @@
     <ClCompile Include="SSQ\Sub Types\XGEntry.cpp">
       <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
     </ClCompile>
+	<ClCompile Include="SSQ\GameState.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+    </ClCompile>
     <ClCompile Include="Viewer\Viewer.cpp">
       <Filter>Viewer</Filter>
     </ClCompile>

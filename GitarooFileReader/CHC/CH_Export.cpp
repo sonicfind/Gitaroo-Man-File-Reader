@@ -113,7 +113,7 @@ bool CHC_To_CloneHero::writeChart(CHC* song)
 			case ResultType::Yes:
 				//Generate the ini file if it's a chart from the original games (stage 2 also including separate EN & JP charts)
 				open(filenameMod + ".ini", true);
-				writeIni(song->m_stage, (unsigned long)ceilf((.0625f / 3) * m_samepleDuration), song->m_filename.find("HE") == string::npos);
+				writeIni(song->m_stage, (uint32_t)ceilf((.0625f / 3) * m_samepleDuration), song->m_filename.find("HE") == string::npos);
 				open(filenameMod + ".chart", true);
 
 				if (song->m_imc[0])
@@ -166,7 +166,7 @@ bool CHC_To_CloneHero::convertSong(CHC* song, std::vector<size_t>& sectionIndexe
 			m_sync.emplace_back(m_position_ticks, 0, 73983);
 		else if (0 < song->m_stage && song->m_stage <= 12)
 		{
-			static const unsigned long bpmArray[] = { 77538, 74070, 76473, 79798, 74718, 79658, 73913, 76523, 74219, 75500, 80000, 80000 };
+			static const uint32_t bpmArray[] = { 77538, 74070, 76473, 79798, 74718, 79658, 73913, 76523, 74219, 75500, 80000, 80000 };
 			m_sync.emplace_back(m_position_ticks, 0, bpmArray[song->m_stage - 1], false);
 		}
 		m_position_ticks += s_TICKS_PER_BEAT;
@@ -197,14 +197,14 @@ bool CHC_To_CloneHero::convertSong(CHC* song, std::vector<size_t>& sectionIndexe
 			m_events.push_back({ m_position_ticks, "section FINAL_I - " + string(section.getName()) });
 		}
 
-		if (m_events.size() == 2 || unsigned long(section.getTempo() * 1000) != m_sync.back().m_bpm)
+		if (m_events.size() == 2 || uint32_t(section.getTempo() * 1000) != m_sync.back().m_bpm)
 		{
 			// Toda Pasion is off by one beat. Yay for rushed development
 			if (song->m_stage == 12 && section.getPhase() == SongSection::Phase::INTRO)
 			{
 				m_sync.push_back({ m_position_ticks
 								 , 3
-								 , unsigned long(section.getTempo() * 1000) });
+								 , uint32_t(section.getTempo() * 1000) });
 
 				m_sync.push_back({ m_position_ticks + 3 * s_TICKS_PER_BEAT
 								 , 4 });
@@ -212,7 +212,7 @@ bool CHC_To_CloneHero::convertSong(CHC* song, std::vector<size_t>& sectionIndexe
 			else
 				m_sync.push_back({ m_position_ticks
 								 , m_events.size() == 2 ? 4UL : 0UL
-								 , unsigned long(section.getTempo() * 1000)
+								 , uint32_t(section.getTempo() * 1000)
 								 , section.getTempo() < 80.0f ? 3UL : 2UL });
 		}
 
@@ -258,7 +258,7 @@ bool CHC_To_CloneHero::convertSong(CHC* song, std::vector<size_t>& sectionIndexe
 
 					if (chart.getNumTracelines() > 1)
 					{
-						convertTrace(chart, TICKS_PER_SAMPLE, (long)roundf(TICKS_PER_SAMPLE * section.getDuration()), currentPlayer);
+						convertTrace(chart, TICKS_PER_SAMPLE, (int32_t)roundf(TICKS_PER_SAMPLE * section.getDuration()), currentPlayer);
 						try
 						{
 							if (m_phraseBarPromptType[currentPlayer])
@@ -427,7 +427,7 @@ void CHC_To_CloneHero::convertGuards(Chart& chart, const float TICKS_PER_SAMPLE,
 	, { 8, 1, 4, 16 }
 	, { 8, 2, 4, 16 } };
 
-	const static long GUARD_GAP = 8000;
+	const static int32_t GUARD_GAP = 8000;
 	const float GUARD_OPEN_TICK_DISTANCE = GUARD_GAP * TICKS_PER_SAMPLE;
 	std::pair<float, float> starPower;
 
@@ -453,7 +453,7 @@ void CHC_To_CloneHero::convertGuards(Chart& chart, const float TICKS_PER_SAMPLE,
 
 			if (openNotes && i < arraySize)
 			{
-				const long dif = chart.m_guards[i + 1].m_pivotAlpha - chart.m_guards[i].m_pivotAlpha;
+				const int32_t dif = chart.m_guards[i + 1].m_pivotAlpha - chart.m_guards[i].m_pivotAlpha;
 				if (dif < 5200)
 				{
 					if (undersized < 3)
@@ -517,12 +517,12 @@ void CHC_To_CloneHero::convertGuards(Chart& chart, const float TICKS_PER_SAMPLE,
 	}
 }
 
-void CHC_To_CloneHero::convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer)
+void CHC_To_CloneHero::convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const int32_t sectionDuration, const size_t currentPlayer)
 {
 	for (size_t i = 0; i < chart.getNumTracelines(); i++)
 	{
 		float pos = TICKS_PER_SAMPLE * (chart.m_tracelines[i].m_pivotAlpha + (float)chart.getPivotTime());
-		string name = (long)round(pos) < sectionDuration ? "Trace" : "TraceP";
+		string name = (int32_t)round(pos) < sectionDuration ? "Trace" : "TraceP";
 
 		if (m_modchart)
 			pos += m_position_ticks - 2 * s_TICKS_PER_BEAT;
@@ -547,8 +547,8 @@ void CHC_To_CloneHero::convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, 
 void CHC_To_CloneHero::convertPhrases(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer, const SongSection::Phase phase)
 {
 	std::pair<float, float> starPower;
-	unsigned long prevFret = m_strumFret[currentPlayer];
-	unsigned long& fret = m_strumFret[currentPlayer];
+	uint32_t prevFret = m_strumFret[currentPlayer];
+	uint32_t& fret = m_strumFret[currentPlayer];
 
 	for (size_t i = 0, note = 1, piece = 1; i < chart.getNumPhrases(); i++)
 	{
@@ -581,13 +581,13 @@ void CHC_To_CloneHero::convertPhrases(Chart& chart, const float TICKS_PER_SAMPLE
 			fret = prevFret;
 
 		float endTick = m_position_ticks + TICKS_PER_SAMPLE * (chart.m_phrases[i].getEndAlpha() + (float)chart.getPivotTime());
-		unsigned long addedNotes = fret & 63, removedNotes = 0;
+		uint32_t addedNotes = fret & 63, removedNotes = 0;
 		if (piece > 1)
 		{
 			if (((prevFret & 31) != 31) == ((fret & 31) != 31))
 			{
 				// Used for setting extended sustains
-				for (unsigned long color = 0, val = 1; color < 6; ++color, val <<= 1)
+				for (uint32_t color = 0, val = 1; color < 6; ++color, val <<= 1)
 				{
 					if ((prevFret & val) && (fret & val))
 					{
@@ -634,7 +634,7 @@ void CHC_To_CloneHero::convertPhrases(Chart& chart, const float TICKS_PER_SAMPLE
 			if (m_modchart)
 			{
 				size_t added = 0;
-				for (unsigned long color = 0, val = 1; added < 2 && color < 6; ++color, val <<= 1)
+				for (uint32_t color = 0, val = 1; added < 2 && color < 6; ++color, val <<= 1)
 					if (addedNotes & val)
 						++added;
 
@@ -667,7 +667,7 @@ void CHC_To_CloneHero::convertPhrases(Chart& chart, const float TICKS_PER_SAMPLE
 					ntIterator->m_isForced = true;
 
 				// Handles Sustain Gaps
-				for (unsigned long color = 0, val = 1; color < 6; ++color, val <<= 1)
+				for (uint32_t color = 0, val = 1; color < 6; ++color, val <<= 1)
 				{
 					auto index = m_modchartNotes[currentPlayer].m_colors[color].rbegin();
 					if (index != m_modchartNotes[currentPlayer].m_colors[color].rend()
@@ -767,7 +767,7 @@ bool CHC_To_CloneHero::getOrientation(const char* sectionName, const size_t play
 //128 (Bit 7) - Continue from previous Color || 256 - Extended continuation to note end
 bool CHC_To_CloneHero::getFrets(unsigned promptType, const size_t currentplayer, size_t note, size_t piece)
 {
-	const unsigned long prevFret = m_strumFret[currentplayer];
+	const uint32_t prevFret = m_strumFret[currentplayer];
 	
 	string choices = "dgrybop";
 	if (promptType == 1)
@@ -942,11 +942,11 @@ bool CHC_To_CloneHero::getFrets(unsigned promptType, const size_t currentplayer,
 							}
 							else
 							{
-								unsigned long added = 0;
+								uint32_t added = 0;
 								bool toggle = true;
 								for (unsigned color = 0; color < 5; color++)
 								{
-									unsigned long val = 1UL << color;
+									uint32_t val = 1UL << color;
 									if (m_strumFret[currentplayer] & val && !(prevFret & val))
 									{
 										do
@@ -988,7 +988,7 @@ bool CHC_To_CloneHero::getFrets(unsigned promptType, const size_t currentplayer,
 							break;
 						default:
 						{
-							unsigned long color = 1UL << g_global.answer.index;
+							uint32_t color = 1UL << g_global.answer.index;
 							if (m_strumFret[currentplayer] & color || numColoredFrets < 4)
 							{
 								if (piece == 1 && !(m_strumFret[currentplayer] & color) && m_strumFret[currentplayer] & 32)
@@ -1143,7 +1143,7 @@ void ChartFileExporter::writeDuetModchart()
 		m_reimportNotes[player].writeDuet(m_chart, player);
 }
 
-void ChartFileExporter::writeIni(const int stageNumber, const unsigned long totalDuration, const bool jap)
+void ChartFileExporter::writeIni(const int stageNumber, const uint32_t totalDuration, const bool japanese)
 {
 	fprintf(m_chart, "[song]\n");
 	switch (stageNumber)
@@ -1184,7 +1184,7 @@ void ChartFileExporter::writeIni(const int stageNumber, const unsigned long tota
 		break;
 	case 2:
 		fprintf(m_chart, "artist = Tomohiro Harada, YUAN, a - li\n");
-		if (!jap)
+		if (!japanese)
 			fprintf(m_chart, "name = 2E. Flyin' to Your Heart (EN) <p style=\"color:#FF0000\";>(MODCHART)</p>\n");
 		else
 			fprintf(m_chart, "name = 2. Flyin' to Your Heart (JP) <p style=\"color:#FF0000\";>(MODCHART)</p>\n");

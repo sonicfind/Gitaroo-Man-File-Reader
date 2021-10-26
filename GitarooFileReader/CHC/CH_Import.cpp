@@ -167,7 +167,7 @@ Section::Section(string name, float pos_ticks)
 	m_subs[1].push_back({ false });
 }
 
-Section::Tempo::Tempo(float pos_ticks, float sample_offset, unsigned long bpm)
+Section::Tempo::Tempo(float pos_ticks, float sample_offset, uint32_t bpm)
 	: CHObject(pos_ticks)
 	, m_sample_offset_from_section(sample_offset)
 	, m_bpm(bpm) {}
@@ -418,7 +418,7 @@ CHC* CloneHero_To_CHC::convertNotes(CHC* song)
 							{
 							case -1:
 								printf("%sTrace line event at tick position %lu had extraneous data that could not be pulled.\n", g_global.tabs.c_str(),
-									(unsigned long)noteIterator->m_position_ticks);
+									(uint32_t)noteIterator->m_position_ticks);
 								printf("%sRemember: trace events *must* be formatted as \"Trace(P)\", \"Trace(P)_[float angle value]\", \"Trace(P)_end\", or \"Trace_curve\"\n", g_global.tabs.c_str());
 								__fallthrough;
 							case 1:
@@ -427,11 +427,11 @@ CHC* CloneHero_To_CHC::convertNotes(CHC* song)
 								else if (status == Status::StartWithGuard)
 								{
 									status = Status::SwappedToPath;
-									chart->setPivotTime(((long)roundf(position) + chart->m_guards.back().m_pivotAlpha) >> 1);
+									chart->setPivotTime(((int32_t)roundf(position) + chart->m_guards.back().m_pivotAlpha) >> 1);
 								}
 
 								if (status == Status::SwappedToPath)
-									chart->setEndTime((long)roundf(position) + 1);
+									chart->setEndTime((int32_t)roundf(position) + 1);
 							}
 						}
 						noteIterator->m_events.erase(eventIterator++);
@@ -451,7 +451,7 @@ CHC* CloneHero_To_CHC::convertNotes(CHC* song)
 							goto CheckAnims;
 						}
 
-					const long roundedPosition = (long)roundf(position);
+					const int32_t roundedPosition = (int32_t)roundf(position);
 					if (status != Status::SwappedToPath
 						&& addGuardMark(chart, *noteIterator, roundedPosition))
 					{
@@ -493,7 +493,7 @@ CHC* CloneHero_To_CHC::convertNotes(CHC* song)
 					{
 						//Sets Section duration to an even and equal spacing based off marked tempo
 						const float numBeats = roundf((m_sections[sectIndex + 1].m_position_ticks - section.m_position_ticks) / s_TICKS_PER_BEAT);
-						songSection.setDuration((unsigned long)round(s_SAMPLES_PER_MIN * numBeats / songSection.getTempo()));
+						songSection.setDuration((uint32_t)round(s_SAMPLES_PER_MIN * numBeats / songSection.getTempo()));
 					}
 				}
 
@@ -527,8 +527,8 @@ void Section::replaceNotes(const bool charted[2])
 	SongSection* section = m_insertions.front();
 	struct ChartRange
 	{
-		long start = 0;
-		long end = 0;
+		int32_t start = 0;
+		int32_t end = 0;
 		Chart* insert;
 	};
 
@@ -570,8 +570,8 @@ void Section::replaceNotes(const bool charted[2])
 		{
 			if (chart.m_tracelines.size() > 1 || chart.m_guards.size())
 			{
-				long start;
-				long end;
+				int32_t start;
+				int32_t end;
 				if (chart.getNumGuards() && chart.getNumTracelines() > 1)
 				{
 					// Determining which comes first
@@ -647,8 +647,8 @@ void Section::replaceNotes_Duet(const bool charted[2])
 	SongSection* section = m_insertions.front();
 	struct ChartRange
 	{
-		long start = 0;
-		long end = 0;
+		int32_t start = 0;
+		int32_t end = 0;
 		Chart* insert;
 	};
 
@@ -687,8 +687,8 @@ void Section::replaceNotes_Duet(const bool charted[2])
 		{
 			if (chart.m_tracelines.size() > 1 || chart.m_guards.size())
 			{
-				long start;
-				long end;
+				int32_t start;
+				int32_t end;
 				if (chart.getNumGuards() && chart.getNumTracelines() > 1)
 				{
 					// Determining which comes first
@@ -767,16 +767,16 @@ int CloneHero_To_CHC::addTraceLine(float pos, string name, const size_t sectInde
 	{
 		try
 		{
-			insert->emplaceTraceline((long)round(pos), 1, float(stof(name.substr(name.find('_') + 1)) * M_PI / 180));
+			insert->emplaceTraceline((int32_t)round(pos), 1, float(stof(name.substr(name.find('_') + 1)) * M_PI / 180));
 			return 1;
 		}
 		catch (...)
 		{
-			insert->emplaceTraceline((long)round(pos));
+			insert->emplaceTraceline((int32_t)round(pos));
 			return -1;
 		}
 	}
-	insert->emplaceTraceline((long)round(pos));
+	insert->emplaceTraceline((int32_t)round(pos));
 	return 0;
 }
 
@@ -791,7 +791,7 @@ void CloneHero_To_CHC::addPhraseBar(Chart* currChart, const CHNote& note, const 
 		{
 			start = false;
 			currChart->m_phrases.back().m_end = false;
-			currChart->m_phrases.back().changeEndAlpha((long)roundf(position));
+			currChart->m_phrases.back().changeEndAlpha((int32_t)roundf(position));
 		}
 		else
 			color = 1 << 6;
@@ -815,8 +815,8 @@ void CloneHero_To_CHC::addPhraseBar(Chart* currChart, const CHNote& note, const 
 		for (int index = 0; index < 6; ++index)
 			if (note.m_colors[index].m_sustain >= sustain)
 				color += 1UL << index;
-		currChart->emplacePhrase( (long)roundf(position + processed * SAMPLES_PER_TICK)
-								, (long)roundf((sustain - processed) * SAMPLES_PER_TICK)
+		currChart->emplacePhrase( (int32_t)roundf(position + processed * SAMPLES_PER_TICK)
+								, (int32_t)roundf((sustain - processed) * SAMPLES_PER_TICK)
 								, start
 								, false
 								, 0
@@ -829,7 +829,7 @@ void CloneHero_To_CHC::addPhraseBar(Chart* currChart, const CHNote& note, const 
 	currChart->m_phrases.back().m_end = true;
 }
 
-bool CloneHero_To_CHC::addGuardMark(Chart* currChart, const CHNote& note, const long position)
+bool CloneHero_To_CHC::addGuardMark(Chart* currChart, const CHNote& note, const int32_t position)
 {
 	static const int buttons[5] = { 1, 2, -1, 0, 3 };
 	if (currChart->m_guards.size() == 0 || currChart->m_guards.back().m_pivotAlpha < position)

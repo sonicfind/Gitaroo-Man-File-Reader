@@ -28,7 +28,7 @@ struct TAS_Frame
 
 struct Point
 {
-	long position;
+	int32_t position;
 	auto operator<=>(const Point& point) const { return position <=> point.position; }
 };
 
@@ -43,7 +43,7 @@ struct PhrasePoint : public Point
 {
 	size_t index;
 	bool last;
-	unsigned long duration;
+	uint32_t duration;
 };
 
 struct GuardPoint : public Point
@@ -60,7 +60,7 @@ struct SectPoint : public Point
 		Visual,
 		Mixed
 	} type;
-	long sustainLimit = 0;
+	int32_t sustainLimit = 0;
 };
 
 struct PlayerTrack
@@ -88,7 +88,7 @@ struct TAS
 	int m_orientation = 0;
 	bool m_multi[2] = { false, false };
 
-	long m_position = 0;
+	int32_t m_position = 0;
 	size_t m_initialFrame = 0;
 	int m_notes[2] = { 0, 0 };
 	PlayerTrack m_players[4];

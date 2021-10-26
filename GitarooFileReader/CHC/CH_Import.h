@@ -21,8 +21,8 @@ struct Section : public CHObject
 	struct Tempo : public CHObject
 	{
 		float m_sample_offset_from_section;
-		unsigned long m_bpm;
-		Tempo(float pos_ticks, float sample_offset, unsigned long bpm);
+		uint32_t m_bpm;
+		Tempo(float pos_ticks, float sample_offset, uint32_t bpm);
 	};
 
 	float m_position_samples;
@@ -49,5 +49,5 @@ public:
 	// Returns whether the traceline was added to the current chart
 	int addTraceLine(float pos, std::string name, const size_t sectIndex, const size_t playerIndex);
 	void addPhraseBar(Chart* currChart, const CHNote& note, const float position, const float SAMPLES_PER_TICK);
-	bool addGuardMark(Chart* currChart, const CHNote& note, const long position);
+	bool addGuardMark(Chart* currChart, const CHNote& note, const int32_t position);
 };

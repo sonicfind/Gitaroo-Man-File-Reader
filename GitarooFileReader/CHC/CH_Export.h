@@ -19,7 +19,7 @@
 class CHC_To_CloneHero : public ChartFileExporter
 {
 	unsigned m_phraseBarPromptType[2] = { 0, 0 };
-	unsigned long m_strumFret[2] = { 0, 0 };
+	uint32_t m_strumFret[2] = { 0, 0 };
 	unsigned m_guardPromptType = 0;
 	unsigned m_guardOrientation = 2;
 	float m_position_ticks = 0;
@@ -37,7 +37,7 @@ public:
 	void convertGuards(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer);
 	bool getOrientation(const char* sectionName, const size_t player = 0, const size_t chart = 0);
 
-	void convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const long sectionDuration, const size_t currentPlayer);
+	void convertTrace(Chart& chart, const float TICKS_PER_SAMPLE, const int32_t sectionDuration, const size_t currentPlayer);
 
 	void convertPhrases(Chart& chart, const float TICKS_PER_SAMPLE, const size_t currentPlayer, const SongSection::Phase phase);
 	bool getFrets(unsigned promptType, const size_t currentplayer, size_t note = 1, size_t piece = 1);

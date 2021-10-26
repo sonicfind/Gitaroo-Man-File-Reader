@@ -266,7 +266,7 @@ void CHC::fixNotes()
 						{
 							for (size_t traceIndex = 0, phraseIndex = 0; traceIndex + 1 < chart.m_tracelines.size(); ++traceIndex)
 							{
-								unsigned long curve = false;
+								uint32_t curve = false;
 								while (phraseIndex < chart.m_phrases.size() && chart.m_phrases[phraseIndex].m_pivotAlpha < chart.m_tracelines[traceIndex].getEndAlpha())
 								{
 									if (chart.m_phrases[phraseIndex].m_start)
@@ -380,19 +380,19 @@ void CHC::fixNotes()
 						{
 							for (size_t condIndex = 0; condIndex < section.m_conditions.size(); condIndex++)
 							{
-								long* effect = &section.m_conditions[condIndex].m_trueEffect;
+								int32_t* effect = &section.m_conditions[condIndex].m_trueEffect;
 								for (size_t i = 0; i < 2; i++, effect++)
 								{
 									if (*effect >= 0)
 									{
-										long endTime = section.m_duration - (chart.m_phrases.back().getEndAlpha() + chart.m_pivotTime);
+										int32_t endTime = section.m_duration - (chart.m_phrases.back().getEndAlpha() + chart.m_pivotTime);
 										Chart& chart2 = m_sections[*effect].m_charts[playerIndex * m_sections[*effect].m_numCharts];
 										if (chart2.m_phrases.size())
 										{
-											long startTime = chart2.m_phrases.front().m_pivotAlpha + chart2.m_pivotTime;
+											int32_t startTime = chart2.m_phrases.front().m_pivotAlpha + chart2.m_pivotTime;
 											if (startTime + endTime < section.s_SAMPLE_GAP)
 											{
-												chart.m_phrases.back().changeEndAlpha((long)(section.m_duration - startTime - section.s_SAMPLE_GAP - chart.m_pivotTime));
+												chart.m_phrases.back().changeEndAlpha((int32_t)(section.m_duration - startTime - section.s_SAMPLE_GAP - chart.m_pivotTime));
 												strings.push(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
 												strings.push("Phrase bar " + to_string(chart.m_phrases.size() - 1) + " shortened\n");
 												phrasesShortened++;
@@ -421,19 +421,19 @@ void CHC::fixNotes()
 							{
 								for (size_t condIndex = 0; condIndex < section.m_conditions.size(); condIndex++)
 								{
-									long* effect = &section.m_conditions[condIndex].m_trueEffect;
+									int32_t* effect = &section.m_conditions[condIndex].m_trueEffect;
 									for (size_t i = 0; i < 2; i++, effect++)
 									{
 										if (*effect >= 0)
 										{
-											long endTime = section.m_duration - (chart.m_phrases.back().getEndAlpha() + chart.m_pivotTime);
+											int32_t endTime = section.m_duration - (chart.m_phrases.back().getEndAlpha() + chart.m_pivotTime);
 											Chart& chart2 = m_sections[*effect].m_charts[p * m_sections[*effect].m_numCharts];
 											if (chart2.m_phrases.size())
 											{
-												long startTime = chart2.m_phrases.front().m_pivotAlpha + chart2.m_pivotTime;
+												int32_t startTime = chart2.m_phrases.front().m_pivotAlpha + chart2.m_pivotTime;
 												if (startTime + endTime < section.s_SAMPLE_GAP)
 												{
-													chart.m_phrases.back().changeEndAlpha(long(section.m_duration - startTime - section.s_SAMPLE_GAP - chart.m_pivotTime));
+													chart.m_phrases.back().changeEndAlpha(int32_t(section.m_duration - startTime - section.s_SAMPLE_GAP - chart.m_pivotTime));
 													strings.push(g_global.tabs + section.m_name + " - Subsection " + to_string(playerIndex * section.m_numCharts + chartIndex) + ": ");
 													strings.push("Phrase bar " + to_string(chart.m_phrases.size() - 1) + " shortened\n");
 													phrasesShortened++;
@@ -784,8 +784,8 @@ void CHC::audioSettings()
 							printf("%sProvide value for Volume (0 - 32767[100%%]) ['B' for Volume/Panning Menu | 'Q' to exit audio settings]\n", g_global.tabs.c_str());
 							printf("%sCurrent Volume: %lu (%g%%)\n", g_global.tabs.c_str(), m_audio[channel].volume, 100.0 * m_audio[channel].volume / 32767);
 							printf("%sInput: ", g_global.tabs.c_str());
-							unsigned long oldVol = m_audio[channel].volume;
-							switch (valueInsert(m_audio[channel].volume, false, 0UL, 32767UL, "b"))
+							uint32_t oldVol = m_audio[channel].volume;
+							switch (valueInsert(m_audio[channel].volume, false, uint32_t(0), uint32_t(32767), "b"))
 							{
 							case ResultType::Quit:
 								return;
@@ -814,7 +814,7 @@ void CHC::audioSettings()
 							banner(" " + m_filename + ".CHC - Audio Channel " + to_string(channel + 1) + " - Panning");
 							printf("%sProvide value for Panning (Left[0] - Center[16383] - Right[32767]) ['B' for Volume/Panning Menu | 'Q' to exit audio settings]\n", g_global.tabs.c_str());
 							printf("%sCurrent Panning: ", g_global.tabs.c_str());
-							unsigned long oldPan = m_audio[channel].pan;
+							uint32_t oldPan = m_audio[channel].pan;
 							switch (m_audio[channel].pan)
 							{
 							case 0: printf("Left (0)\n"); break;
@@ -823,7 +823,7 @@ void CHC::audioSettings()
 							default: printf("%g%% Left | %g%% Right (%lu)\n", 100.0 - (double(m_audio[channel].pan) * (100.0 / 32767)), double(m_audio[channel].pan) * (100.0 / 32767), m_audio[channel].pan);
 							}
 							printf("%sInput: ", g_global.tabs.c_str());
-							switch (valueInsert(m_audio[channel].pan, false, 0UL, 32767UL, "b"))
+							switch (valueInsert(m_audio[channel].pan, false, uint32_t(0), uint32_t(32767), "b"))
 							{
 							case ResultType::Quit:
 								return;
@@ -1056,12 +1056,12 @@ void CHC::playOrder()
 		if (index + 1 < sectionIndexes.size())
 		{
 			m_sections[sectionIndexes[index]].m_conditions.front().m_type = 0;
-			m_sections[sectionIndexes[index]].m_conditions.front().m_trueEffect = (long)sectionIndexes[index + 1];
+			m_sections[sectionIndexes[index]].m_conditions.front().m_trueEffect = (int32_t)sectionIndexes[index + 1];
 		}
 		else if (!testPathing(sectionIndexes[index]))
 		{
 			m_sections[sectionIndexes[index]].m_conditions.front().m_type = 0;
-			m_sections[sectionIndexes[index]].m_conditions.front().m_trueEffect = (long)m_sections.size();
+			m_sections[sectionIndexes[index]].m_conditions.front().m_trueEffect = (int32_t)m_sections.size();
 		}
 
 		printf("%s ", m_sections[sectionIndexes[index]].m_name);
@@ -1133,7 +1133,7 @@ void CHC::rearrange()
 
 	if (numElements < m_sections.size())
 	{
-		long alpha;
+		int32_t alpha;
 		if (m_sections.size() - numElements == 1)
 		{
 			if (!startIndex)
@@ -1177,12 +1177,12 @@ void CHC::rearrange()
 				case ResultType::Success:
 					if (position < startIndex)
 					{
-						alpha = long(position - startIndex);
+						alpha = int32_t(position - startIndex);
 						g_global.quit = true;
 					}
 					else if (position > startIndex + numElements)
 					{
-						alpha = long(position - (startIndex + numElements));
+						alpha = int32_t(position - (startIndex + numElements));
 						g_global.quit = true;
 					}
 					else
@@ -1208,20 +1208,20 @@ void CHC::rearrange()
 		{
 			for (size_t condIndex = 0; condIndex < m_sections[sectIndex].m_conditions.size(); condIndex++)
 			{
-				long* effect = &m_sections[sectIndex].m_conditions[condIndex].m_trueEffect;
+				int32_t* effect = &m_sections[sectIndex].m_conditions[condIndex].m_trueEffect;
 				for (size_t eff = 0; eff < 2; eff++, effect++)
 				{
 					if (*effect >= 0)
 					{
-						if (*effect < (long)startIndex)
+						if (*effect < (int32_t)startIndex)
 						{
-							if (*effect >= (long)position)
-								*effect += (long)numElements;
+							if (*effect >= (int32_t)position)
+								*effect += (int32_t)numElements;
 						}
-						else if (*effect < long(startIndex + numElements))
+						else if (*effect < int32_t(startIndex + numElements))
 							*effect += alpha;
-						else if (*effect < (long)position)
-							*effect -= (long)numElements;
+						else if (*effect < (int32_t)position)
+							*effect -= (int32_t)numElements;
 					}
 				}
 			}
@@ -1435,11 +1435,11 @@ bool CHC::sectionPathTest(const size_t index, bool* isAccessible, bool* canReach
 		for (auto& cond : m_sections[index].m_conditions)
 		{
 			if (cond.m_trueEffect >= 0)
-				if (cond.m_trueEffect >= (long)m_sections.size() || sectionPathTest(cond.m_trueEffect, isAccessible, canReachEnd))
+				if (cond.m_trueEffect >= (int32_t)m_sections.size() || sectionPathTest(cond.m_trueEffect, isAccessible, canReachEnd))
 					canReachEnd[index] = true;
 
 			if (cond.m_type && cond.m_falseEffect >= 0)
-				if (cond.m_falseEffect >= (long)m_sections.size() || sectionPathTest(cond.m_falseEffect, isAccessible, canReachEnd))
+				if (cond.m_falseEffect >= (int32_t)m_sections.size() || sectionPathTest(cond.m_falseEffect, isAccessible, canReachEnd))
 					canReachEnd[index] = true;
 		}
 	}
@@ -1569,7 +1569,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 	{
 		struct OrderedNote
 		{
-			long position = 0;
+			int32_t position = 0;
 			Note* note = nullptr;
 			bool operator<(const OrderedNote& note) { return position < note.position; }
 		};
@@ -1665,7 +1665,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 					currentChart = &newCharts[currentPlayer].back();
 
 					if (ntIndex->position >= 2 * SAMPLES_PER_BEAT)
-						currentChart->setPivotTime((long)roundf(ntIndex->position - SAMPLES_PER_BEAT));
+						currentChart->setPivotTime((int32_t)roundf(ntIndex->position - SAMPLES_PER_BEAT));
 					else
 						currentChart->setPivotTime(ntIndex->position >> 1);
 					makeNewChart = false;
@@ -1686,7 +1686,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 						{
 							// If the note is a phrase bar or if the guard mark lies inside the note 
 							if (dynamic_cast<Phrase*>(pt) != nullptr
-								|| prevIndex->position + (long)pt->m_duration > ntIndex->position)
+								|| prevIndex->position + (int32_t)pt->m_duration > ntIndex->position)
 							{
 								prevIndex = ntIndex++;
 								// If there's another note after the guard mark
@@ -1703,7 +1703,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 								if ((isPlayer == (isPs2 && m_swapped & 1))
 									|| (ntIndex != notes[player].end() && dynamic_cast<Guard*>(ntIndex->note) != nullptr))
 								{
-									long endAlpha = ntIndex->position - SongSection::s_SAMPLE_GAP - 1 - currentChart->getPivotTime();
+									int32_t endAlpha = ntIndex->position - SongSection::s_SAMPLE_GAP - 1 - currentChart->getPivotTime();
 									float angle = 0;
 
 									while (currentChart->m_tracelines.size() && !currentChart->m_tracelines.back().changeEndAlpha(endAlpha))
@@ -1766,14 +1766,14 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 							if (dynamic_cast<Traceline*>(ntIndex->note) != nullptr)
 							{
 								// If the trace lines are disconnected
-								if (prevIndex->position + (long)tr->m_duration != ntIndex->position)
+								if (prevIndex->position + (int32_t)tr->m_duration != ntIndex->position)
 								{
 									currentChart->setEndTime(prevIndex->position + tr->m_duration);
 									makeNewChart = true;
 								}
 							}
 							// If the phrase bar is outside the trace line
-							else if (prevIndex->position + (long)tr->m_duration <= ntIndex->position)
+							else if (prevIndex->position + (int32_t)tr->m_duration <= ntIndex->position)
 								notes[player].erase(ntIndex++);
 						}
 					}
@@ -1796,7 +1796,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 								auto next = ntIndex++;
 								if (ntIndex != notes[player].end())
 								{
-									long newFirst = (next->position + ntIndex->position) >> 1;
+									int32_t newFirst = (next->position + ntIndex->position) >> 1;
 									if (tr->changePivotAlpha(tr->m_pivotAlpha + newFirst - prevIndex->position))
 									{
 										prevIndex->position = newFirst;
@@ -1826,7 +1826,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 								{
 									// Move chartPivot in between these two notes
 									// Calculate the value adjustment
-									long pivotDifference = ((ntIndex->position + prevIndex->position) >> 1) - currentChart->getPivotTime();
+									int32_t pivotDifference = ((ntIndex->position + prevIndex->position) >> 1) - currentChart->getPivotTime();
 									// Adjust the chartAlpha
 									currentChart->adjustPivotTime(pivotDifference);
 									// Adjust the pivot alphas of inserted notes
@@ -1843,16 +1843,16 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 						// AND if there is enough distance between these guard marks in a duet or tutorial stage
 						if (dynamic_cast<Guard*>(ntIndex->note) != nullptr
 							&& (!isPs2 || stage == 0 || stage == 11 || stage == 12)
-							&& ntIndex->position - prevIndex->position >= long(5.5 * SAMPLES_PER_BEAT))
+							&& ntIndex->position - prevIndex->position >= int32_t(5.5 * SAMPLES_PER_BEAT))
 						{
-							currentChart->setEndTime(prevIndex->position + long(SAMPLES_PER_BEAT));
+							currentChart->setEndTime(prevIndex->position + int32_t(SAMPLES_PER_BEAT));
 							makeNewChart = true;
 
 							if (!currentChart->m_tracelines.size())
 							{
 								// Move chartPivot in between these two notes
 								// Calculate the value adjustment
-								long pivotDifference = ((ntIndex->position + prevIndex->position) >> 1) - currentChart->getPivotTime();
+								int32_t pivotDifference = ((ntIndex->position + prevIndex->position) >> 1) - currentChart->getPivotTime();
 								// Adjust the chartAlpha
 								currentChart->adjustPivotTime(pivotDifference);
 								// Adjust the pivot alphas of inserted notes
@@ -1880,7 +1880,7 @@ bool SongSection::reorganize(const bool isPs2, const int stage)
 					perChart--;
 
 			if (perChart > m_numCharts)
-				m_numCharts = (unsigned long)perChart;
+				m_numCharts = (uint32_t)perChart;
 		}
 
 		m_charts.clear();
@@ -2167,7 +2167,7 @@ void SongSection::adjustDuration()
 		printf("%sProvide a value for the change [Type 'Q' to exit duration settings]\n", g_global.tabs.c_str());
 		printf("%sCurrent Value: %lu\n", g_global.tabs.c_str(), m_duration );
 		printf("%sInput: ", g_global.tabs.c_str());
-		unsigned long oldDuration = m_duration;
+		uint32_t oldDuration = m_duration;
 		switch (valueInsert(m_duration, false))
 		{
 		case ResultType::Success:

@@ -125,7 +125,7 @@ bool CHC::create(std::string filename, bool useBanner)
 		fwrite(&m_speed, 4, 1, m_filePtr);
 
 		// Cues
-		const unsigned long size = (unsigned long)m_sections.size();
+		const uint32_t size = (uint32_t)m_sections.size();
 		fwrite(&size, 4, 1, m_filePtr);
 		for (SongSection& section : m_sections)	
 		{
@@ -427,13 +427,13 @@ bool CHC::colorCheatTemplate()
 		fputs("[phrasemode fragments]\n", outSheet2);
 		dualvfprintf_s(outSheet, outSheet2, "[attack point palette]\nG: 00ff00\nR: ff0000\nY: ffff00\nB: 0000ff\nO: ff7f00\nP: ff00ff\nN: f89b44\ng: ffffff\nr: ffffff\ny: ffffff\nb: ffffff\no: ffffff\np: ffffff\n\n");
 		dualvfprintf_s(outSheet, outSheet2, "[phrase bar palette]\nG: 40ff40\nR: ff4040\nY: ffff40\nB: 4040c8\nO: ff9f40\nP: ff40ff\nN: f07b7b\ng: 40ff40\nr: ff4040\ny: ffff40\nb: 4040c8\no: ff9f40\np: ff40ff\n\n");
-		unsigned long chartCount = 0;
+		uint32_t chartCount = 0;
 		const size_t size = m_sections.size();
 		bool* inputs = new bool[size]();
 		for (size_t sect = 0; sect < sectionIndexes.size(); sect++)
 			inputs[sectionIndexes[sect]] = true;
 		std::string colors = "GRYBOPgrybop";
-		for (unsigned long sectIndex = 0; sectIndex < size; sectIndex++)
+		for (uint32_t sectIndex = 0; sectIndex < size; sectIndex++)
 		{
 			SongSection& section = m_sections[sectIndex];
 			for (unsigned playerIndex = 0; playerIndex < section.m_numPlayers; playerIndex++)
@@ -442,14 +442,14 @@ bool CHC::colorCheatTemplate()
 				{
 					if (!(playerIndex & 1) || multiplayer)
 					{
-						Chart& chart = section.m_charts[(unsigned long long)playerIndex * section.m_numCharts + chartIndex];
+						Chart& chart = section.m_charts[(uint64_t)playerIndex * section.m_numCharts + chartIndex];
 						if (chart.getNumPhrases())
 						{
 							dualvfprintf_s(outSheet, outSheet2, "#SongSection %lu [%s], P%lu CHCH %lu\n", sectIndex, section.getName(), playerIndex + 1, chartIndex);
 							dualvfprintf_s(outSheet, outSheet2, "[drawn chart %lu]\n", chartCount);
 							if (inputs[sectIndex])
 							{
-								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
+								for (uint32_t phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
 								{
 									Phrase& phr = chart.m_phrases[phrIndex];
 									if (writeColors && phr.getColor())
@@ -490,7 +490,7 @@ bool CHC::colorCheatTemplate()
 							}
 							else
 							{
-								for (unsigned long phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
+								for (uint32_t phrIndex = 0; phrIndex < chart.getNumPhrases(); phrIndex++)
 								{
 									Phrase& phr = chart.m_phrases[phrIndex];
 									if (writeColors && phr.getColor())
@@ -599,7 +599,7 @@ SongSection& SongSection::operator=(const SongSection& section)
 // Returns if the section is organized
 void SongSection::continueRead(FILE* inFile, const size_t index, const int stage, bool isDuet)
 {
-	unsigned long value;
+	uint32_t value;
 	fread(&value, 1, 4, inFile);
 	setOrganized(value & 1);
 	m_swapped = (value - 4864) / 2;
@@ -657,7 +657,7 @@ void SongSection::continueRead(FILE* inFile, const size_t index, const int stage
 void SongSection::create(FILE* outFile)
 {
 	fputs("CHLS", outFile);
-	unsigned long value = 4864UL;
+	uint32_t value = 4864UL;
 	fwrite(&value, 1, 4, outFile);
 	value = getSize();
 	fwrite(&value, 1, 4, outFile);
@@ -670,7 +670,7 @@ void SongSection::create(FILE* outFile)
 	fwrite(&m_duration, 4, 1, outFile);
 	fwrite("\0\0\0\0", 1, 4, outFile);
 
-	const unsigned long size = (unsigned long)m_conditions.size();
+	const uint32_t size = (uint32_t)m_conditions.size();
 	fwrite(&size, 4, 1, outFile);
 	for (SongSection::Condition& cond : m_conditions)
 		fwrite(&cond, 16, 1, outFile);
@@ -712,10 +712,10 @@ void SongSection::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 	}
 
 	fprintf(txtFile, "\t\t       Size (32bit) - 44: %lu\n", getSize());
-	fprintf(txtFile, "\t\t\t\t    Junk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk)));
-	fprintf(txtFile, "\t\t\t\t\t  0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 4)));
-	fprintf(txtFile, "\t\t\t\t\t  0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 8)));
-	fprintf(txtFile, "\t\t\t\t\t  0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 12)));
+	fprintf(txtFile, "\t\t\t\t    Junk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk)));
+	fprintf(txtFile, "\t\t\t\t\t  0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk + 4)));
+	fprintf(txtFile, "\t\t\t\t\t  0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk + 8)));
+	fprintf(txtFile, "\t\t\t\t\t  0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk + 12)));
 
 	switch (m_battlePhase)
 	{
@@ -767,7 +767,7 @@ void SongSection::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 	fflush(simpleTxtFile);
 }
 
-void SongSection::setOrganized(unsigned long org)
+void SongSection::setOrganized(uint32_t org)
 {
 	if (m_organized != org)
 	{
@@ -895,9 +895,9 @@ void SongSection::clearConditions()
 }
 
 //Returns the byte size of the section
-unsigned long SongSection::getSize() const
+uint32_t SongSection::getSize() const
 {
-	unsigned long size = 64 + 16 * (unsigned long)m_conditions.size();
+	uint32_t size = 64 + 16 * (uint32_t)m_conditions.size();
 	for (auto& chart : m_charts)
 		size += chart.getSize();
 	return size;
@@ -948,7 +948,7 @@ Chart::Chart(FILE* inFile)
 	fread(&m_pivotTime, 4, 1, inFile);
 	fread(&m_endTime, 4, 1, inFile);
 
-	unsigned long numNotes;
+	uint32_t numNotes;
 	// Read number of trace lines
 	fread(&numNotes, 1, 4, inFile);
 	// Uses Traceline FILE* constructor
@@ -972,7 +972,7 @@ Chart::Chart(FILE* inFile)
 void Chart::create(FILE* outFile)
 {
 	fputs("CHCH", outFile);
-	unsigned long value = 4864UL;
+	uint32_t value = 4864UL;
 	fwrite(&value, 1, 4, outFile);
 
 	value = getSize();
@@ -982,17 +982,17 @@ void Chart::create(FILE* outFile)
 	fwrite(&m_pivotTime, 4, 1, outFile);
 	fwrite(&m_endTime, 4, 1, outFile);
 
-	value = (unsigned long)m_tracelines.size();
+	value = (uint32_t)m_tracelines.size();
 	fwrite(&value, 4, 1, outFile);
 	for (Traceline& trace : m_tracelines)
 		trace.create(outFile);
 
-	value = (unsigned long)m_phrases.size();
+	value = (uint32_t)m_phrases.size();
 	fwrite(&value, 4, 1, outFile);
 	for (Phrase& phrase : m_phrases)
 		phrase.create(outFile);
 
-	value = (unsigned long)m_guards.size();
+	value = (uint32_t)m_guards.size();
 	fwrite(&value, 4, 1, outFile);
 	for (Guard& guard : m_guards)
 		guard.create(outFile);
@@ -1004,10 +1004,10 @@ void Chart::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 {
 	fprintf(txtFile, "\t\t\t\t\t  Size (32bit): %lu\n", getSize());
 
-	fprintf(txtFile, "\t\t\t\t\t\t  Junk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk)));
-	fprintf(txtFile, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 4)));
-	fprintf(txtFile, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 8)));
-	fprintf(txtFile, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 12)));
+	fprintf(txtFile, "\t\t\t\t\t\t  Junk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk)));
+	fprintf(txtFile, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk + 4)));
+	fprintf(txtFile, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk + 8)));
+	fprintf(txtFile, "\t\t\t\t\t\t\t0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk + 12)));
 
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t   Pivot Point: %lu samples\n", m_pivotTime);
 	fprintf(txtFile, "\t\t\t\t\t      End Time: %lu samples\n", m_endTime);
@@ -1057,9 +1057,9 @@ void Chart::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 	}
 }
 
-unsigned long Chart::getSize() const
+uint32_t Chart::getSize() const
 {
-	return 60 + 16 * unsigned long(m_tracelines.size() + m_guards.size() + 2 * m_phrases.size());
+	return 60 + 16 * uint32_t(m_tracelines.size() + m_guards.size() + 2 * m_phrases.size());
 }
 
 void Chart::setJunk(char* newJunk, rsize_t count)
@@ -1192,7 +1192,7 @@ void Chart::finalizeNotes()
 			{
 				m_phrases.insert(m_phrases.begin() + phrIndex + 1,
 					{ trace.m_pivotAlpha
-					, unsigned long(phrase->getEndAlpha() - trace.m_pivotAlpha)
+					, uint32_t(phrase->getEndAlpha() - trace.m_pivotAlpha)
 					, false
 					, phrase->m_end
 					, 0
@@ -1236,7 +1236,7 @@ void Chart::finalizeNotes()
 Note::Note()
 	: m_pivotAlpha(0) {}
 
-Note::Note(long alpha) 
+Note::Note(int32_t alpha) 
 	: m_pivotAlpha(alpha) {}
 
 Note::Note(FILE* inFile)
@@ -1259,7 +1259,7 @@ Path::Path()
 	: Note()
 	, m_duration(1) {}
 
-Path::Path(long alpha, unsigned long dur)
+Path::Path(int32_t alpha, uint32_t dur)
 	: Note(alpha)
 	, m_duration(dur) {}
 
@@ -1295,9 +1295,9 @@ void Path::create(FILE* outFile)
 	fwrite(&m_duration, 4, 1, outFile);
 }
 
-bool Path::adjustDuration(long change)
+bool Path::adjustDuration(int32_t change)
 {
-	if ((long)m_duration + change >= 1)
+	if ((int32_t)m_duration + change >= 1)
 	{
 		m_duration += change;
 		return true;
@@ -1309,9 +1309,9 @@ bool Path::adjustDuration(long change)
 	}
 }
 
-bool Path::changePivotAlpha(const long alpha)
+bool Path::changePivotAlpha(const int32_t alpha)
 {
-	if (alpha < m_pivotAlpha + (long)m_duration)
+	if (alpha < m_pivotAlpha + (int32_t)m_duration)
 	{
 		m_duration -= alpha - m_pivotAlpha;
 		m_pivotAlpha = alpha;
@@ -1321,7 +1321,7 @@ bool Path::changePivotAlpha(const long alpha)
 		return false;
 }
 
-bool Path::changeEndAlpha(const long endAlpha)
+bool Path::changeEndAlpha(const int32_t endAlpha)
 {
 	if (endAlpha > m_pivotAlpha)
 	{
@@ -1337,7 +1337,7 @@ Traceline::Traceline()
 	, m_angle(0)
 	, m_curve(false) {}
 
-Traceline::Traceline(long alpha, unsigned long dur, float ang, unsigned long cur)
+Traceline::Traceline(int32_t alpha, uint32_t dur, float ang, uint32_t cur)
 	: Path(alpha, dur)
 	, m_angle(ang)
 	, m_curve(cur) {}
@@ -1388,7 +1388,7 @@ void Traceline::create(FILE* outFile)
 	fwrite(&m_curve, 4, 1, outFile);
 }
 
-void Traceline::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivotTime)
+void Traceline::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const int32_t pivotTime)
 {
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", m_pivotAlpha);
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", m_pivotAlpha + pivotTime);
@@ -1406,7 +1406,7 @@ Phrase::Phrase()
 	, m_animation(0)
 	, m_color(0) {}
 
-Phrase::Phrase(long alpha, unsigned long dur, unsigned long start, unsigned long end, unsigned long anim, unsigned long color)
+Phrase::Phrase(int32_t alpha, uint32_t dur, uint32_t start, uint32_t end, uint32_t anim, uint32_t color)
 	: Path(alpha, dur)
 	, m_start(start)
 	, m_end(end)
@@ -1484,7 +1484,7 @@ void Phrase::create(FILE* outFile)
 		fwrite(m_junk, 1, 12, outFile);
 }
 
-void Phrase::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivotTime)
+void Phrase::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const int32_t pivotTime)
 {
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", m_pivotAlpha);
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n",
@@ -1518,9 +1518,9 @@ void Phrase::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivot
 	}
 	else
 	{
-		fprintf(txtFile, "\t\t\t\t\t\t\t\tJunk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk)));
-		fprintf(txtFile, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 4)));
-		fprintf(txtFile, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<unsigned long*>(m_junk + 8)));
+		fprintf(txtFile, "\t\t\t\t\t\t\t\tJunk: 0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk)));
+		fprintf(txtFile, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk + 4)));
+		fprintf(txtFile, "\t\t\t\t\t\t\t\t      0x%08x\n", _byteswap_ulong(*reinterpret_cast<uint32_t*>(m_junk + 8)));
 	}
 }
 
@@ -1528,7 +1528,7 @@ Guard::Guard()
 	: Note()
 	, m_button(0) {}
 
-Guard::Guard(long alpha, unsigned long but)
+Guard::Guard(int32_t alpha, uint32_t but)
 	: Note(alpha)
 	, m_button(but)
 {
@@ -1570,7 +1570,7 @@ void Guard::create(FILE* outFile)
 	fwrite("\0\0\0\0\0\0\0\0", 1, 8, outFile);
 }
 
-void Guard::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const long pivotTime)
+void Guard::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile, const int32_t pivotTime)
 {
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t Pivot Alpha: %+li samples\n", m_pivotAlpha);
 	dualvfprintf_s(txtFile, simpleTxtFile, "\t\t\t\t\t\t\t  Start Time: %li samples (Relative to SongSection)\n", m_pivotAlpha + pivotTime);

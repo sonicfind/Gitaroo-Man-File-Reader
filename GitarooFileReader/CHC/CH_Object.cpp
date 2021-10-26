@@ -22,7 +22,7 @@ CHObject::CHObject()
 CHObject::CHObject(float pos_ticks)
 	: m_position_ticks(pos_ticks) {}
 
-SyncTrack::SyncTrack(float pos, unsigned long timeSigNumer, unsigned long tempo, unsigned long timeSigDenom)
+SyncTrack::SyncTrack(float pos, uint32_t timeSigNumer, uint32_t tempo, uint32_t timeSigDenom)
 	: CHObject(pos)
 	, m_timeSigNumerator(timeSigNumer)
 	, m_bpm(tempo)
@@ -48,13 +48,13 @@ void SyncTrack::write(FILE* outFile)
 	if (m_timeSigNumerator)
 	{
 		if (m_timeSigDenomSelection != 2)
-			fprintf(outFile, "  %lu = TS %lu %lu\n", (unsigned long)round(m_position_ticks), m_timeSigNumerator, m_timeSigDenomSelection);
+			fprintf(outFile, "  %lu = TS %lu %lu\n", (uint32_t)round(m_position_ticks), m_timeSigNumerator, m_timeSigDenomSelection);
 		else
-			fprintf(outFile, "  %lu = TS %lu\n", (unsigned long)round(m_position_ticks), m_timeSigNumerator);
+			fprintf(outFile, "  %lu = TS %lu\n", (uint32_t)round(m_position_ticks), m_timeSigNumerator);
 	}
 		
 	if (m_bpm)
-		fprintf(outFile, "  %lu = B %lu\n", (unsigned long)round(m_position_ticks), m_bpm);
+		fprintf(outFile, "  %lu = B %lu\n", (uint32_t)round(m_position_ticks), m_bpm);
 };
 
 Event::Event(FILE* inFile)
@@ -68,7 +68,7 @@ Event::Event(FILE* inFile)
 
 void Event::write(FILE* outFile)
 {
-	fprintf(outFile, "  %lu = E \"%s\"\n", (unsigned long)round(m_position_ticks), m_name.c_str());
+	fprintf(outFile, "  %lu = E \"%s\"\n", (uint32_t)round(m_position_ticks), m_name.c_str());
 };
 
 CHNote::CHNote(float pos)
@@ -199,7 +199,7 @@ void CHNote::Fret::setEndPoint(float endTick, float threshold)
 
 void CHNote::write(FILE* outFile) const
 {
-	const unsigned long position = (unsigned long)round(m_position_ticks);
+	const uint32_t position = (uint32_t)round(m_position_ticks);
 	for (int lane = 0; lane < 6; ++lane)
 	{
 		if (m_colors[lane].m_active)
@@ -207,7 +207,7 @@ void CHNote::write(FILE* outFile) const
 			fprintf(outFile, "  %lu = N %u %lu\n"
 				, position
 				, lane != 5 ? lane : 7
-				, m_colors[lane].m_writeSustain ? (unsigned long)round(m_colors[lane].m_sustain) : 0UL);
+				, m_colors[lane].m_writeSustain ? (uint32_t)round(m_colors[lane].m_sustain) : 0UL);
 		}
 	}
 
@@ -218,7 +218,7 @@ void CHNote::write(FILE* outFile) const
 		fprintf(outFile, "  %lu = N 6 0\n", position);
 
 	if (m_star.m_active)
-		fprintf(outFile, "  %lu = S 2 %lu\n", position, (unsigned long)round(m_star.m_sustain));
+		fprintf(outFile, "  %lu = S 2 %lu\n", position, (uint32_t)round(m_star.m_sustain));
 
 	for (const string& ev : m_events)
 		fprintf(outFile, "  %lu = E %s\n", position, ev.c_str());	

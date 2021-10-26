@@ -389,16 +389,16 @@ namespace GlobalFunctions
 		return iter != values.end() && *iter == value;
 	}
 
-	long radiansToDegrees(float angle)
+	int32_t radiansToDegrees(float angle)
 	{
-		return (long)roundf((180 * (angle / M_PI)));
+		return (int32_t)roundf((180 * (angle / M_PI)));
 	}
 
 	string angleToFraction(float angle)
 	{
 		static const int factors[] = { 90, 60, 45, 36, 30, 20, 18, 15, 12, 10, 9, 6, 5, 4, 3, 2 };
 		static const char* dems[] = { "2", "3", "4", "5", "6", "9", "10", "12", "15", "18", "20", "30", "36", "45", "60", "90" };
-		long degree = radiansToDegrees(angle);
+		int32_t degree = radiansToDegrees(angle);
 		if (degree == 0)
 			return "0";
 		else if (degree == 180)

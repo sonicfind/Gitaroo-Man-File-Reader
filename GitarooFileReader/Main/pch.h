@@ -28,4 +28,5 @@
 #include <queue>
 #include <list>
 #include <sstream>
+#include <cstdint>
 #endif //PCH_H

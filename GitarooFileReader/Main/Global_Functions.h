@@ -605,7 +605,7 @@ namespace GlobalFunctions
 		return list.emplace(location, obj);
 	}
 
-	long radiansToDegrees(float angle);
+	int32_t radiansToDegrees(float angle);
 
 	std::string angleToFraction(float angle);
 }

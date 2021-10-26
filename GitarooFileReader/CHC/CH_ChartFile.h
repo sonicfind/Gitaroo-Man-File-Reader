@@ -41,5 +41,5 @@ public:
 	void writeHeader(const bool modchart);
 	void write(const bool modchart);
 	void writeDuetModchart();
-	void writeIni(const int stageNumber, const unsigned long totalDuration, const bool jap = true);
+	void writeIni(const int stageNumber, const uint32_t totalDuration, const bool japanese = true);
 };

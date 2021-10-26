@@ -28,7 +28,7 @@ struct
 	// Each stage is split into two sets
 	// Set 1 is the number of samples to offset the recording by (48000 samples per second)
 	// Set 2 is the number of total frames to offset the recording by
-	long values[13][2][6] =
+	int32_t values[13][2][6] =
 	{ { { 0, 0, 0, 0, 0, 0 }, {373, 399, 0, 0, 0, 0} }
 	, { { 44, 0, 0, 0, 0, 0 }, {646, 639, 646, 720, 735, 739} }
 	, { { 0, 0, 0, 0, 0, 0 }, {553, 553, 547, 680, 693, 696} }
@@ -246,14 +246,14 @@ bool CHC::buildTAS()
 			return false;
 
 		bool endReached = false;
-		unsigned long totalDuration = 0;
+		uint32_t totalDuration = 0;
 
 		// Places every single note that will appear in all chosen sections
 		// into one huge timeline.
 		for (const size_t sectIndex : sectionIndexes)
 		{
 			SongSection& section = m_sections[sectIndex];
-			g_TASValues.markers.push_back({ pcsx2.m_position, SectPoint::VisualType::Technical, (long)round(s_SAMPLES_PER_MIN / section.m_tempo) });
+			g_TASValues.markers.push_back({ pcsx2.m_position, SectPoint::VisualType::Technical, (int32_t)round(s_SAMPLES_PER_MIN / section.m_tempo) });
 			printf_tab("%s\n", section.m_name);
 			if (m_stage == 0
 				|| (section.m_battlePhase != SongSection::Phase::INTRO
@@ -303,7 +303,7 @@ bool CHC::buildTAS()
 											{
 											case ResultType::Success:
 												g_TASValues.markers.back().type = SectPoint::VisualType::Mixed;
-												g_TASValues.markers.back().sustainLimit = (long)round(sustainCoeffienct * s_SAMPLES_PER_MIN / section.m_tempo);
+												g_TASValues.markers.back().sustainLimit = (int32_t)round(sustainCoeffienct * s_SAMPLES_PER_MIN / section.m_tempo);
 												g_global.quit = true;
 												break;
 											case ResultType::Quit:
@@ -391,14 +391,14 @@ bool CHC::buildTAS()
 									{
 									case SectPoint::VisualType::Visual:
 										if (chart.m_phrases[i + 1].m_pivotAlpha - chart.m_phrases[i].getEndAlpha() < g_TASValues.markers.back().sustainLimit)
-											phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - long(g_TASValues.samples_per_frame));
+											phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - int32_t(g_TASValues.samples_per_frame));
 										else
-											phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() + long(2 * g_TASValues.samples_per_frame));
+											phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() + int32_t(2 * g_TASValues.samples_per_frame));
 										break;
 									case SectPoint::VisualType::Mixed:
 										if (chart.m_phrases[i + 1].m_pivotAlpha - phrase.m_pivotAlpha < g_TASValues.markers.back().sustainLimit)
 										{
-											phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - long(g_TASValues.samples_per_frame));
+											phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - int32_t(g_TASValues.samples_per_frame));
 											break;
 										}
 										__fallthrough;
@@ -407,7 +407,7 @@ bool CHC::buildTAS()
 									}
 								}
 								else if (g_TASValues.markers.back().type != SectPoint::VisualType::Visual
-									|| !phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() - long(5 * g_TASValues.samples_per_frame)))
+									|| !phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() - int32_t(5 * g_TASValues.samples_per_frame)))
 									phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha());
 
 								const PhrasePoint point =
@@ -497,7 +497,7 @@ bool CHC::buildTAS()
 				printf_tab("Stage ST00B: ");
 				printf("%lu frames during intermission |", g_frameOffsets.values[0][1][1]);
 				printf(" Post-intermission Displacement: %li samples\n%s\n", g_frameOffsets.values[0][0][1], g_global.tabs.c_str());
-				pcsx2.m_position += long((g_frameOffsets.values[0][1][1] - 1000) * g_TASValues.samples_per_frame) + g_frameOffsets.values[0][0][1];
+				pcsx2.m_position += int32_t((g_frameOffsets.values[0][1][1] - 1000) * g_TASValues.samples_per_frame) + g_frameOffsets.values[0][0][1];
 
 				sectionIndexes = indexInsertionDialogue(m_sections
 						, "Type the index for each section that you wish to TAS from ST00B - in chronological order and w/ spaces in-between."
@@ -513,7 +513,7 @@ bool CHC::buildTAS()
 				for (const size_t sectIndex : sectionIndexes)
 				{
 					SongSection& section = m_tutorialStageB->m_sections[sectIndex];
-					g_TASValues.markers.push_back({ pcsx2.m_position, SectPoint::VisualType::Technical, (long)round(s_SAMPLES_PER_MIN / section.m_tempo) });
+					g_TASValues.markers.push_back({ pcsx2.m_position, SectPoint::VisualType::Technical, (int32_t)round(s_SAMPLES_PER_MIN / section.m_tempo) });
 					printf_tab("%s\n", section.m_name);
 
 					if (sectIndex + 1 == m_tutorialStageB->m_sections.size())
@@ -559,7 +559,7 @@ bool CHC::buildTAS()
 												{
 												case ResultType::Success:
 													g_TASValues.markers.back().type = SectPoint::VisualType::Mixed;
-													g_TASValues.markers.back().sustainLimit = (long)round(sustainCoeffienct * s_SAMPLES_PER_MIN / section.m_tempo);
+													g_TASValues.markers.back().sustainLimit = (int32_t)round(sustainCoeffienct * s_SAMPLES_PER_MIN / section.m_tempo);
 													g_global.quit = true;
 													break;
 												case ResultType::Quit:
@@ -643,14 +643,14 @@ bool CHC::buildTAS()
 										{
 										case SectPoint::VisualType::Visual:
 											if (chart.m_phrases[i + 1].m_pivotAlpha - chart.m_phrases[i].getEndAlpha() < g_TASValues.markers.back().sustainLimit)
-												phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - long(g_TASValues.samples_per_frame));
+												phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - int32_t(g_TASValues.samples_per_frame));
 											else
-												phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() + long(2 * g_TASValues.samples_per_frame));
+												phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() + int32_t(2 * g_TASValues.samples_per_frame));
 											break;
 										case SectPoint::VisualType::Mixed:
 											if (chart.m_phrases[i + 1].m_pivotAlpha - phrase.m_pivotAlpha < g_TASValues.markers.back().sustainLimit)
 											{
-												phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - long(g_TASValues.samples_per_frame));
+												phrase.changeEndAlpha(chart.m_phrases[i + 1].m_pivotAlpha - int32_t(g_TASValues.samples_per_frame));
 												break;
 											}
 											__fallthrough;
@@ -659,7 +659,7 @@ bool CHC::buildTAS()
 										}
 									}
 									else if (g_TASValues.markers.back().type != SectPoint::VisualType::Visual
-										|| !phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() - long(5 * g_TASValues.samples_per_frame)))
+										|| !phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha() - int32_t(5 * g_TASValues.samples_per_frame)))
 										phrase.changeEndAlpha(chart.m_phrases[i].getEndAlpha());
 
 									const PhrasePoint point =
@@ -923,7 +923,7 @@ bool PCSX2::print()
 			unsigned char sequence[18] = { 0 };
 			for (size_t index = 0; index < m_players[0].m_frames.size(); index++)
 			{
-				for (long player = 0; player < 2 + m_multi[0] + m_multi[1]; player++)
+				for (int32_t player = 0; player < 2 + m_multi[0] + m_multi[1]; player++)
 				{
 					TAS_Frame& frame = m_players[player].m_frames[index];
 					sequence[0] = frame.dpad;
@@ -1238,7 +1238,7 @@ void PlayerTrack::convertToFrames(const std::string& filename, const size_t init
 						if ((g_TASValues.markers[markIndex].type == SectPoint::VisualType::Mixed
 								&& m_phrases[phraseIndex + 1].position - m_phrases[phraseIndex].position < g_TASValues.markers[markIndex].sustainLimit)
 							|| (g_TASValues.markers[markIndex].type == SectPoint::VisualType::Visual
-								&& m_phrases[phraseIndex + 1].position - m_phrases[phraseIndex].position < g_TASValues.markers[markIndex].sustainLimit + (long)m_phrases[phraseIndex].duration))
+								&& m_phrases[phraseIndex + 1].position - m_phrases[phraseIndex].position < g_TASValues.markers[markIndex].sustainLimit + (int32_t)m_phrases[phraseIndex].duration))
 						{
 							endFrame = test;
 							fprintf(taslog, "\t      - Extended to sample %li | Frame #%zu\n", m_phrases[phraseIndex + 1].position, endFrame - initialFrame);
@@ -1265,7 +1265,7 @@ void PlayerTrack::convertToFrames(const std::string& filename, const size_t init
 					{
 					case 0:
 						// Push the second mark back one frame
-						m_guards[guardIndex + 1].position += long(g_TASValues.samples_per_frame);
+						m_guards[guardIndex + 1].position += int32_t(g_TASValues.samples_per_frame);
 						// If pushing it back places it behind the note that *was* after it, fix the order
 						if (guardIndex + 2 != m_guards.size()
 							&& m_guards[guardIndex + 1].position >= m_guards[guardIndex + 2].position)

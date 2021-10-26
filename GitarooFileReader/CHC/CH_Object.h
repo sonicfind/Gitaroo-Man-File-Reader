@@ -26,11 +26,11 @@ struct CHObject
 
 struct SyncTrack : public CHObject
 {
-	unsigned long m_timeSigNumerator = 4;
-	unsigned long m_timeSigDenomSelection = 2;
-	unsigned long m_bpm = 0;
+	uint32_t m_timeSigNumerator = 4;
+	uint32_t m_timeSigDenomSelection = 2;
+	uint32_t m_bpm = 0;
 	SyncTrack(FILE* inFile);
-	SyncTrack(float pos, unsigned long timeSigNumer, unsigned long tempo = 0, unsigned long timeSigDenom = 2);
+	SyncTrack(float pos, uint32_t timeSigNumer, uint32_t tempo = 0, uint32_t timeSigDenom = 2);
 	void write(FILE* outFile);
 };
 

@@ -37,6 +37,7 @@ public:
 	FileType(const char* extension, const bool saved = false);
 	FileType(std::string filename, const char* extension, bool useBanner = true);
 	FileType(const FileType&) = default;
+	virtual ~FileType() = default;
 	virtual bool create(std::string filename, bool trueSave = true);
 	virtual bool menu(bool nextFile, const std::pair<bool, const char*> nextExtension) = 0;
 	virtual bool functionSelection(const char choice, bool isMulti) = 0;

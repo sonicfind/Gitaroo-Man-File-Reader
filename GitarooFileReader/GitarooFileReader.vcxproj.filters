@@ -117,4 +117,9 @@
       <Filter>GMFR</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Main\glm.natvis">
+      <Filter>GMFR</Filter>
+    </Natvis>
+  </ItemGroup>
 </Project>

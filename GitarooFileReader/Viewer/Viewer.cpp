@@ -90,9 +90,16 @@ void Viewer::initialize(const char* windowName)
 void Viewer::uninitialize()
 {
 	delete m_controlledCamera;
+
 	xgDagMesh::deleteMatrixUniform();
 	xgMaterial::deleteMaterialUniform();
 	xgEnvelope::deleteBoneUniform();
+
+	glDeleteBuffers(1, &m_lightVBO);
+	glDeleteVertexArrays(1, &m_lightVAO);
+	glDeleteBuffers(1, &m_projectionUBO);
+	glDeleteBuffers(1, &m_viewUBO);
+
 	g_shaderList.closePrograms();
 	InputHandling::resetInputs();
 	glfwTerminate();
@@ -185,7 +192,6 @@ void SSQ::initialize(const char* windowName)
 
 void SSQ::uninitialize()
 {
-	Viewer::uninitialize();
 	for (auto& entry : m_XGentries)
 		entry.m_dropShadow = false;
 
@@ -206,6 +212,7 @@ void SSQ::uninitialize()
 
 	m_sprites.deleteSpriteBuffers();
 	g_gameState.reset();
+	Viewer::uninitialize();
 }
 
 const char* Viewer::getAspectRatioString()

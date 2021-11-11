@@ -27,6 +27,7 @@ protected:
 
 public:
 	XGNode(const PString& type, const PString& name);
+	virtual ~XGNode() = default;
 	virtual unsigned long read(FILE* inFile, const std::list<std::unique_ptr<XGNode>>& nodeList) = 0;
 	virtual void create(FILE* outFile) const;
 	void createPrototype(FILE* outFile) const;

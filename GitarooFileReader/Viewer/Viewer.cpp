@@ -601,27 +601,31 @@ void SSQ::update(float delta)
 
 	m_camera.setLights(m_currFrame, controls->useLights);
 
-	for (size_t i = 0; i < m_modelSetups.size(); ++i)
+	if (doFullUpdate)
 	{
-		auto& entry = m_XGentries[i];
-		XG* xg;
-		if (!entry.m_isClone)
+		for (size_t i = 0; i < m_modelSetups.size(); ++i)
 		{
-			xg = entry.m_xg;
-			xg->resetInstanceCount();
+			auto& entry = m_XGentries[i];
+			XG* xg;
+			if (!entry.m_isClone)
+			{
+				xg = entry.m_xg;
+				xg->resetInstanceCount();
+			}
+			else
+				xg = m_XGentries[entry.m_cloneID].m_xg;
+
+			const auto result = m_modelSetups[i]->animate(m_currFrame);
+			m_XGentries[i].m_dropShadow = result.first;
+			m_modelMatrices[i] = result.second;
 		}
-		else
-			xg = m_XGentries[entry.m_cloneID].m_xg;
 
-		const auto result = m_modelSetups[i]->animate(xg, m_currFrame);
-		m_XGentries[i].m_dropShadow = result.first;
-		m_modelMatrices[i] = result.second;
+
+		for (auto& texAnim : m_texAnimations)
+			texAnim.substitute(m_currFrame);
+
+		m_sprites.update(m_currFrame);
 	}
-
-	for (auto& texAnim : m_texAnimations)
-		texAnim.substitute(m_currFrame);
-
-	m_sprites.update(m_currFrame);
 
 	if (!controls->hasFreeMovement)
 	{

@@ -14,9 +14,8 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-ModelSetup::ModelSetup(FILE* inFile, ModelType type, char(&name)[16])
-	: m_name(name)
-	, m_type(type)
+ModelSetup::ModelSetup(FILE* inFile, ModelType type)
+	: m_type(type)
 {
 	// Block Tag
 	char tmp[5] = { 0 };
@@ -108,6 +107,11 @@ void ModelSetup::create(FILE* outFile) const
 	}
 }
 
+void ModelSetup::bindXG(XG* xg)
+{
+	m_xg = xg;
+}
+
 void ModelSetup::setBPMFrame(const float frame)
 {
 	m_bpmStartFrame = frame;
@@ -164,7 +168,7 @@ glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 	return result;
 }
 
-std::pair<bool, glm::mat4> ModelSetup::animate(XG* xg, const float frame)
+std::pair<bool, glm::mat4> ModelSetup::animate(const float frame)
 {
 	std::pair<bool, glm::mat4> shadowMatrix(false, getModelMatrix(frame));
 	if (!m_animations.empty())
@@ -173,36 +177,36 @@ std::pair<bool, glm::mat4> ModelSetup::animate(XG* xg, const float frame)
 		if (!iter->m_noDrawing)
 		{
 			const bool looping = iter->m_loop;
-			const unsigned long animIndex = xg->getValidatedAnimationIndex(iter->m_animIndex);
+			const unsigned long animIndex = m_xg->getValidatedAnimationIndex(iter->m_animIndex);
 			shadowMatrix.first = iter->m_dropShadow;
 
 			while (iter != m_animations.begin()
 				&& !iter->m_startOverride
 				&& !iter->m_pollGameState
-				&& xg->getValidatedAnimationIndex((iter - 1)->m_animIndex) == animIndex)
+				&& m_xg->getValidatedAnimationIndex((iter - 1)->m_animIndex) == animIndex)
 				--iter;
-			
+
 			if (!iter->m_pollGameState)
 			{
-				const float length = xg->getAnimationLength(animIndex);
 				if (m_controllableIndex != 0)
 				{
 					m_controllableIndex = 0;
 					m_controllableStartFrame = m_bpmStartFrame;
 				}
 
+				const float length = m_xg->getAnimationLength(animIndex);
 				if (frame < length + iter->m_frame)
-					xg->animate(frame - iter->m_frame, animIndex, shadowMatrix.second);
+					m_xg->animate(frame - iter->m_frame, animIndex, shadowMatrix.second);
 				else if (looping)
-					xg->animate(fmod(frame - iter->m_frame, length), animIndex, shadowMatrix.second);
+					m_xg->animate(fmod(frame - iter->m_frame, length), animIndex, shadowMatrix.second);
 				else
-					xg->animate(length - 1, animIndex, shadowMatrix.second);
+					m_xg->animate(length - 1, animIndex, shadowMatrix.second);
 			}
 			else
-				animateFromGameState(xg, shadowMatrix.second, frame);
+				animateFromGameState(shadowMatrix.second, frame);
 		}
 	}
 	else
-		xg->animate(fmod(frame, xg->getAnimationLength(m_baseValues.m_baseAnimIndex_maybe)), m_baseValues.m_baseAnimIndex_maybe, shadowMatrix.second);
+		m_xg->animate(fmod(frame, m_xg->getAnimationLength(m_baseValues.m_baseAnimIndex_maybe)), m_baseValues.m_baseAnimIndex_maybe, shadowMatrix.second);
 	return shadowMatrix;
 }

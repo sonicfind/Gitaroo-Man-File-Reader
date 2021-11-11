@@ -74,21 +74,21 @@ SSQ::SSQ(std::string filename, bool unused)
 		switch (m_XGentries[i].m_type)
 		{
 		case ModelType::Normal:
-			m_modelSetups.push_back(std::make_unique<ModelSetup>(m_filePtr, m_XGentries[i].m_type, m_XGentries[i].m_name));
+			m_modelSetups.push_back(std::make_unique<ModelSetup>(m_filePtr, m_XGentries[i].m_type));
 			break;
 		case ModelType::Player1:
 		case ModelType::Player2:
 		case ModelType::DuetPlayer:
-			m_modelSetups.push_back(std::make_unique<PlayerModelSetup>(m_filePtr, m_XGentries[i].m_type, m_XGentries[i].m_name));
+			m_modelSetups.push_back(std::make_unique<PlayerModelSetup>(m_filePtr, m_XGentries[i].m_type));
 			break;
 		case ModelType::Player1AttDef:
 		case ModelType::Player2AttDef:
 		case ModelType::DuetPlayerAttDef:
 		case ModelType::DuetComboAttack:
-			m_modelSetups.push_back(std::make_unique<AttDefModelSetup>(m_filePtr, m_XGentries[i].m_type, m_XGentries[i].m_name));
+			m_modelSetups.push_back(std::make_unique<AttDefModelSetup>(m_filePtr, m_XGentries[i].m_type));
 			break;
 		case ModelType::Snake:
-			m_modelSetups.push_back(std::make_unique<SnakeModelSetup>(m_filePtr, m_XGentries[i].m_type, m_XGentries[i].m_name));
+			m_modelSetups.push_back(std::make_unique<SnakeModelSetup>(m_filePtr, m_XGentries[i].m_type));
 		}
 	}
 
@@ -141,9 +141,14 @@ bool SSQ::loadXGM()
 	for (auto& entry : m_IMXentries)
 		entry.m_imxPtr = m_xgm->getTexture(entry.m_name);
 
-	for (auto& entry : m_XGentries)
-		if (!entry.m_isClone)
-			entry.m_xg = m_xgm->getModel(entry.m_name);
+	for (size_t i = 0; i < m_XGentries.size(); ++i)
+		if (!m_XGentries[i].m_isClone)
+		{
+			m_XGentries[i].m_xg = m_xgm->getModel(m_XGentries[i].m_name);
+			m_modelSetups[i]->bindXG(m_XGentries[i].m_xg);
+		}
+		else
+			m_modelSetups[i]->bindXG(m_XGentries[m_XGentries[i].m_cloneID].m_xg);
 
 	m_shadowPtr = m_xgm->getTexture("SHADOW.IMX");
 

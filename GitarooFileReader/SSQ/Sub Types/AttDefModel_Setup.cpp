@@ -14,8 +14,8 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-AttDefModelSetup::AttDefModelSetup(FILE* inFile, ModelType type, char(&name)[16])
-	: ModelSetup(inFile, type, name)
+AttDefModelSetup::AttDefModelSetup(FILE* inFile, ModelType type)
+	: ModelSetup(inFile, type)
 {
 	if (m_headerVersion >= 0x1200)
 	{
@@ -52,11 +52,11 @@ void AttDefModelSetup::create(FILE* outFile) const
 	}
 }
 
-void AttDefModelSetup::animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame)
+void AttDefModelSetup::animateFromGameState(const glm::mat4& matrix, const float frame)
 {
 	if (g_gameState.isModelTypeActive(static_cast<int>(m_type)))
 	{
-		const float animLength = xg->getAnimationLength(0);
+		const float animLength = m_xg->getAnimationLength(0);
 		if (m_attackValues.m_targetModel[0] != 0)
 		{
 			const glm::vec3 start = glm::vec3((*m_matrix1) * glm::vec4(m_attackValues.m_startOffset, 1));
@@ -71,9 +71,9 @@ void AttDefModelSetup::animateFromGameState(XG* xg, const glm::mat4& matrix, con
 			result[2] *= length / m_attackSize_Z;
 			result[3] = glm::vec4(start, 1);
 
-			xg->animate(fmod(frame - m_bpmStartFrame, animLength), 0, result);
+			m_xg->animate(fmod(frame - m_bpmStartFrame, animLength), 0, result);
 		}
 		else
-			xg->animate(fmod(frame - m_bpmStartFrame, animLength), 0, matrix);
+			m_xg->animate(fmod(frame - m_bpmStartFrame, animLength), 0, matrix);
 	}
 }

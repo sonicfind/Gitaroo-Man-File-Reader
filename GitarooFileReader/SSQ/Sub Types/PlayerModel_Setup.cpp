@@ -14,8 +14,8 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-PlayerModelSetup::PlayerModelSetup(FILE* inFile, ModelType type, char(&name)[16])
-	: ModelSetup(inFile, type, name)
+PlayerModelSetup::PlayerModelSetup(FILE* inFile, ModelType type)
+	: ModelSetup(inFile, type)
 {
 	if (m_headerVersion >= 0x1300)
 	{
@@ -26,13 +26,14 @@ PlayerModelSetup::PlayerModelSetup(FILE* inFile, ModelType type, char(&name)[16]
 		fread(m_controllables.data(), sizeof(Controllable), m_numControllables, inFile);
 		//m_controllables[1].ulong_h = 1;
 
-		m_connections.resize(m_numControllables);
 		m_connections.reserve(m_numControllables);
+		m_connections.resize(m_numControllables);
 		for (auto& set : m_connections)
 		{
 			fread(&set.size, 4, 1, inFile);
 			if (set.size)
 			{
+				set.controllableList.reserve(set.size);
 				set.controllableList.resize(set.size);
 				fread(set.controllableList.data(), 4, set.size, inFile);
 			}
@@ -64,15 +65,15 @@ void PlayerModelSetup::create(FILE* outFile) const
 }
 
 #include <time.h>
-void PlayerModelSetup::animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame)
+void PlayerModelSetup::animateFromGameState(const glm::mat4& matrix, const float frame)
 {
 	const Controllable* current = &m_controllables[m_controllableIndex];
-	float length = xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
+	float length = m_xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
 	if (current->m_eventFlag == 64 ||
 		(current->m_eventFlag == 4 && 
 			current->m_angleMin == -3.14159298f &&
 			current->m_angleMax == 3.14159298f))
-		length += xg->getAnimationLength(12);
+		length += m_xg->getAnimationLength(12);
 
 	while (!current->m_interruptible && frame >= length + m_controllableStartFrame)
 	{
@@ -84,30 +85,30 @@ void PlayerModelSetup::animateFromGameState(XG* xg, const glm::mat4& matrix, con
 		else
 			m_controllableStartFrame = m_bpmStartFrame;
 
-		length = xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
+		length = m_xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
 		if (current->m_eventFlag == 64 ||
 			(current->m_eventFlag == 4 &&
 				current->m_angleMin == -3.14159298f &&
 				current->m_angleMax == 3.14159298f))
-			length += xg->getAnimationLength(12);
+			length += m_xg->getAnimationLength(12);
 	}
 
 	while (current->m_interruptible && !checkInterruptible(frame))
 		current = &m_controllables[m_controllableIndex];
 	
 	const float delta = frame - m_controllableStartFrame;
-	if (length > xg->getAnimationLength(current->m_animIndex) + current->m_holdTime)
+	if (length > m_xg->getAnimationLength(current->m_animIndex) + current->m_holdTime)
 	{
-		float anim12 = .5f * xg->getAnimationLength(12);
+		float anim12 = .5f * m_xg->getAnimationLength(12);
 		if (delta < anim12)
-			xg->animate(2 * delta, 12, matrix, 1);
+			m_xg->animate(2 * delta, 12, matrix, 1);
 		else if (delta < length - anim12)
-			xg->animate(delta - anim12, current->m_animIndex, matrix, 1);
+			m_xg->animate(delta - anim12, current->m_animIndex, matrix, 1);
 		else
-			xg->animate(2 * (delta - (length - anim12)), 12, matrix, 0);
+			m_xg->animate(2 * (delta - (length - anim12)), 12, matrix, 0);
 	}
 	else
-		xg->animate(fmod(delta, length), current->m_animIndex, matrix, current->m_playbackDirection);
+		m_xg->animate(fmod(delta, length), current->m_animIndex, matrix, current->m_playbackDirection);
 }
 
 bool PlayerModelSetup::checkInterruptible(const float frame)

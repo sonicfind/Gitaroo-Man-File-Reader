@@ -54,8 +54,6 @@ protected:
 		float float_i;
 		unsigned long ulong_g;
 	};
-
-	const char* m_name;
 	
 	ModelType m_type = ModelType::Normal;
 	unsigned long m_headerVersion;
@@ -63,7 +61,12 @@ protected:
 	unsigned long m_controllableIndex;
 	float m_bpmStartFrame;
 	float m_controllableStartFrame;
+	// Possibly could hold a 32bit pointer to the matching XG file
+	//
+	// Not applicable in the same way for a 64bit application
 	Val m_junk[4] = { 0 };
+	XG* m_xg;
+
 	std::vector<Position> m_positions;
 	std::vector<Rotation> m_rotations;
 	std::vector<ModelAnim> m_animations;
@@ -71,18 +74,19 @@ protected:
 	BaseValues m_baseValues;
 
 public:
-	ModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
+	ModelSetup(FILE* inFile, ModelType type);
 	virtual void create(FILE* outFile) const;
+	void bindXG(XG* xg);
 
 	void reset();
 	void setBPMFrame(const float frame);
-	std::pair<bool, glm::mat4> animate(XG* xg, const float frame);
+	std::pair<bool, glm::mat4> animate(const float frame);
 	glm::mat4 getModelMatrix(const float frame) const;
 	std::pair<bool, ModelAnim*> getAnim(const float frame);
 
 
 protected:
-	virtual void animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame) {}
+	virtual void animateFromGameState(const glm::mat4& matrix, const float frame) {}
 };
 
 class PlayerModelSetup : public ModelSetup
@@ -118,12 +122,12 @@ class PlayerModelSetup : public ModelSetup
 	std::vector<long> m_endings;
 
 public:
-	PlayerModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
+	PlayerModelSetup(FILE* inFile, ModelType type);
 	bool checkInterruptible(const float frame);
 	void create(FILE* outFile) const;
 
 private:
-	virtual void animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame);
+	virtual void animateFromGameState(const glm::mat4& matrix, const float frame);
 };
 
 class AttDefModelSetup : public ModelSetup
@@ -147,18 +151,18 @@ class AttDefModelSetup : public ModelSetup
 	glm::mat4* m_matrix2;
 
 public:
-	AttDefModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
+	AttDefModelSetup(FILE* inFile, ModelType type);
 	std::vector<std::string> getConnectedNames() const;
 	void setConnectedMatrices(glm::mat4* mat_1, glm::mat4* mat_2);
 	void create(FILE* outFile) const;
 
 private:
-	virtual void animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame);
+	virtual void animateFromGameState(const glm::mat4& matrix, const float frame);
 };
 
 class SnakeModelSetup : public ModelSetup
 {
 public:
-	SnakeModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
+	SnakeModelSetup(FILE* inFile, ModelType type);
 	void create(FILE* outFile) const;
 };

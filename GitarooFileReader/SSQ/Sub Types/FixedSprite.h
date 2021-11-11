@@ -54,7 +54,7 @@ class FixedSprite
 		unsigned long ulong_p;
 	} m_64bytes;
 
-	struct Struct48_8f : public Frame
+	struct SpriteWorldValues : public Frame
 	{
 		glm::vec3 position;
 		glm::vec2 worldSize;
@@ -66,7 +66,7 @@ class FixedSprite
 		unsigned long otherPos;
 	};
 
-	std::vector<Struct48_8f> m_48bytes;
+	std::vector<SpriteWorldValues> m_48bytes;
 
 	struct ColorMultipliers : public Frame
 	{

@@ -39,7 +39,7 @@ FixedSprite::FixedSprite(FILE* inFile)
 	if (num48 > 1)
 	{
 		m_48bytes.resize(num48);
-		fread(&m_48bytes.front(), sizeof(Struct48_8f), num48, inFile);
+		fread(&m_48bytes.front(), sizeof(SpriteWorldValues), num48, inFile);
 	}
 
 	if (pair1 > 1)
@@ -79,7 +79,7 @@ void FixedSprite::create(FILE* outFile)
 	fwrite(&numFrames, 4, 1, outFile);
 
 	if (num48 > 1)
-		fwrite(&m_48bytes.front(), sizeof(Struct48_8f), num48, outFile);
+		fwrite(&m_48bytes.front(), sizeof(SpriteWorldValues), num48, outFile);
 
 	if (colors > 1)
 		fwrite(&m_colors.front(), sizeof(ColorMultipliers), colors, outFile);

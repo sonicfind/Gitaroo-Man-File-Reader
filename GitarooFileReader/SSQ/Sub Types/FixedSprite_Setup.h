@@ -25,18 +25,18 @@ class FixedSpriteSetup
 
 	struct Struct80_7f
 	{
-		unsigned long m_IMXindex;
-		glm::vec2 m_initial_BottomLeft;
-		glm::vec2 m_boxSize;
-		glm::vec3 m_worldPosition;
-		glm::vec2 m_worldSize;
-		glm::vec2 m_worldSize_ZW_maybe;
+		unsigned long IMXindex;
+		glm::vec2 initial_BottomLeft;
+		glm::vec2 boxSize;
+		glm::vec3 worldPosition;
+		glm::vec2 worldSize;
+		glm::vec2 worldSize_ZW_maybe;
 		float float_l;
 		unsigned long ulong_b;
 		float float_m;
 		unsigned long ulong_c;
-		unsigned long m_depthTest;
-		ModelType m_modelTypeMapping = ModelType::Normal;
+		unsigned long depthTest;
+		ModelType modelTypeMapping = ModelType::Normal;
 		unsigned long ulong_f;
 		unsigned long ulong_g;
 	};

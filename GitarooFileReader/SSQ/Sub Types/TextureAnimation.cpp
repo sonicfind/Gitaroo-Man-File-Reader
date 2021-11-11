@@ -84,9 +84,9 @@ void TexAnim::loadCuts()
 	// Check bytes per pixel here just in case a texture swap changes the format
 	m_bytesPerPixel = m_imxPtr->m_data->hasAlpha() ? 4 : 3;
 	for (auto& cut : m_cutOuts)
-		cut.m_subImage = m_imxPtr->m_data->getSubImage(m_bytesPerPixel, cut.m_topLeft.x, cut.m_topLeft.y, cut.m_bottomRight.x, cut.m_bottomRight.y);
+		cut.subImage = m_imxPtr->m_data->getSubImage(m_bytesPerPixel, cut.topLeft.x, cut.topLeft.y, cut.bottomRight.x, cut.bottomRight.y);
 
-	m_cutOutIndex = m_textureFrames.front().m_cutOutIndex;
+	m_cutOutIndex = m_textureFrames.front().cutOutIndex;
 	// Load the first subImage into the texture buffer
 }
 
@@ -99,11 +99,11 @@ void TexAnim::unloadCuts()
 
 	for (auto& cut : m_cutOuts)
 	{
-		if (cut.m_subImage)
+		if (cut.subImage)
 		{
-			const size_t size = (size_t)roundf(m_bytesPerPixel * (cut.m_bottomRight.x - cut.m_topLeft.x)) * (size_t)roundf(cut.m_bottomRight.y - cut.m_topLeft.y);
-			delete[size] cut.m_subImage;
-			cut.m_subImage = nullptr;
+			const size_t size = (size_t)roundf(m_bytesPerPixel * (cut.bottomRight.x - cut.topLeft.x)) * (size_t)roundf(cut.bottomRight.y - cut.topLeft.y);
+			delete[size] cut.subImage;
+			cut.subImage = nullptr;
 		}
 	}
 }
@@ -114,19 +114,19 @@ void TexAnim::substitute(const float frame)
 	if (!m_imxPtr)
 		return;
 
-	auto iter = getIter(m_textureFrames, fmod(frame, m_textureFrames.back().m_frame));
-	if (iter->m_cutOutIndex != m_cutOutIndex)
+	auto iter = getIter(m_textureFrames, fmod(frame, m_textureFrames.back().frame));
+	if (iter->cutOutIndex != m_cutOutIndex)
 	{
-		m_cutOutIndex = iter->m_cutOutIndex;
+		m_cutOutIndex = iter->cutOutIndex;
 		const auto& cut = m_cutOuts[m_cutOutIndex];
-		if (cut.m_subImage)
+		if (cut.subImage)
 		{
 			m_imxPtr->m_data->bindTexture();
 			glTexSubImage2D(GL_TEXTURE_2D, 0, m_offset.x, m_offset.y,
-				(unsigned long)roundf(cut.m_bottomRight.x - cut.m_topLeft.x),
-				(unsigned long)roundf(cut.m_bottomRight.y - cut.m_topLeft.y),
+				(unsigned long)roundf(cut.bottomRight.x - cut.topLeft.x),
+				(unsigned long)roundf(cut.bottomRight.y - cut.topLeft.y),
 				m_imxPtr->m_data->hasAlpha() ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
-				cut.m_subImage);
+				cut.subImage);
 			glGenerateMipmap(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}

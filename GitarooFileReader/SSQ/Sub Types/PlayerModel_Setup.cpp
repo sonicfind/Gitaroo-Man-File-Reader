@@ -64,69 +64,68 @@ void PlayerModelSetup::create(FILE* outFile) const
 	}
 }
 
-#include <time.h>
 void PlayerModelSetup::animateFromGameState(const float frame)
 {
 	const Controllable* current = &m_controllables[m_controllableIndex];
-	float length = m_xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
-	if (current->m_eventFlag == 64 ||
-		(current->m_eventFlag == 4 && 
-			current->m_angleMin == -3.14159298f &&
-			current->m_angleMax == 3.14159298f))
+	float length = m_xg->getAnimationLength(current->animIndex) + current->holdTime;
+	if (current->eventFlag == 64 ||
+		(current->eventFlag == 4 && 
+			current->angleMin == -3.14159298f &&
+			current->angleMax == 3.14159298f))
 		length += m_xg->getAnimationLength(12);
 
-	while (!current->m_interruptible && frame >= length + m_controllableStartFrame)
+	while (!current->interruptible && frame >= length + m_controllableStartFrame)
 	{
 		m_controllableIndex = m_endings[m_controllableIndex];
 		current = &m_controllables[m_controllableIndex];
 
-		if (!current->m_interruptible)
+		if (!current->interruptible)
 			m_controllableStartFrame = length + m_controllableStartFrame;
 		else
 			m_controllableStartFrame = m_bpmStartFrame;
 
-		length = m_xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
-		if (current->m_eventFlag == 64 ||
-			(current->m_eventFlag == 4 &&
-				current->m_angleMin == -3.14159298f &&
-				current->m_angleMax == 3.14159298f))
+		length = m_xg->getAnimationLength(current->animIndex) + current->holdTime;
+		if (current->eventFlag == 64 ||
+			(current->eventFlag == 4 &&
+				current->angleMin == -3.14159298f &&
+				current->angleMax == 3.14159298f))
 			length += m_xg->getAnimationLength(12);
 	}
 
-	while (current->m_interruptible && !checkInterruptible(frame))
+	while (current->interruptible && !checkInterruptible(frame))
 		current = &m_controllables[m_controllableIndex];
 	
 	const float delta = frame - m_controllableStartFrame;
-	if (length > m_xg->getAnimationLength(current->m_animIndex) + current->m_holdTime)
+	if (length > m_xg->getAnimationLength(current->animIndex) + current->holdTime)
 	{
 		float anim12 = .5f * m_xg->getAnimationLength(12);
 		if (delta < anim12)
 			m_xg->animate(2 * delta, 12, m_matrix, 1);
 		else if (delta < length - anim12)
-			m_xg->animate(delta - anim12, current->m_animIndex, m_matrix, 1);
+			m_xg->animate(delta - anim12, current->animIndex, m_matrix, 1);
 		else
 			m_xg->animate(2 * (delta - (length - anim12)), 12, m_matrix, 0);
 	}
 	else
-		m_xg->animate(fmod(delta, length), current->m_animIndex, m_matrix, current->m_playbackDirection);
+		m_xg->animate(fmod(delta, length), current->animIndex, m_matrix, current->playbackDirection);
 }
 
 bool PlayerModelSetup::checkInterruptible(const float frame)
 {
-	if (m_controllables[m_controllableIndex].m_randomize != 1)
+	if (m_controllables[m_controllableIndex].randomize != 1)
 	{
 		const auto player = g_gameState.getPlayerState(static_cast<int>(m_type) - 1);
 		for (const auto& connection : m_connections[m_controllableIndex].controllableList)
 		{
-			if (m_controllables[connection].m_angleMin <= player.getAngle() &&
-				player.getAngle() < m_controllables[connection].m_angleMax &&
-				player.getEvent() == m_controllables[connection].m_eventFlag &&
-				player.getDescriptor() == m_controllables[connection].m_descriptor)
+			if (m_controllables[connection].angleMin <= player.getAngle() &&
+				player.getAngle() < m_controllables[connection].angleMax &&
+				player.getEvent() == m_controllables[connection].eventFlag &&
+				player.getDescriptor() == m_controllables[connection].descriptor)
 			{
 				m_controllableIndex = connection;
 
 				// Has to be in this order
-				if (!m_controllables[m_controllableIndex].m_interruptible)
+				if (!m_controllables[m_controllableIndex].interruptible)
 					m_controllableStartFrame = frame;
 				else
 					checkInterruptible(frame);
@@ -137,7 +136,7 @@ bool PlayerModelSetup::checkInterruptible(const float frame)
 		if (m_endings[m_controllableIndex] != -1)
 		{
 			m_controllableIndex = m_endings[m_controllableIndex];
-			if (!m_controllables[m_controllableIndex].m_interruptible)
+			if (!m_controllables[m_controllableIndex].interruptible)
 				m_controllableStartFrame = frame;
 			return false;
 		}

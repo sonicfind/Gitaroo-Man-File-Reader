@@ -20,15 +20,15 @@ class TexAnim
 public:
 	struct CutOut
 	{
-		glm::vec2 m_topLeft;
-		glm::vec2 m_bottomRight;
-		unsigned char* m_subImage;
+		glm::vec2 topLeft;
+		glm::vec2 bottomRight;
+		unsigned char* subImage;
 	};
 
 	struct TexFrame : public Frame
 	{
-		unsigned long m_cutOutIndex;
-		unsigned long m_unknown;
+		unsigned long cutOutIndex;
+		unsigned long unknown;
 	};
 private:
 	// 

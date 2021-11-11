@@ -36,16 +36,16 @@ class FixedSprite
 
 	struct Struct64_7f
 	{
-		unsigned long m_IMXEntryIndex;
+		unsigned long IMXEntryIndex;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
 		unsigned long ulong_d;
-		unsigned long m_transparent;
+		unsigned long transparent;
 		unsigned long ulong_f;
 		unsigned long ulong_g;
 		unsigned long ulong_h;
-		unsigned long m_blendingType;
-		unsigned long m_mipmapDepth;
+		unsigned long blendingType;
+		unsigned long mipmapDepth;
 		unsigned long ulong_k;
 		unsigned long ulong_l;
 		unsigned long ulong_m;
@@ -56,34 +56,34 @@ class FixedSprite
 
 	struct Struct48_8f : public Frame
 	{
-		glm::vec3 m_position;
-		glm::vec2 m_worldSize;
-		unsigned long m_noDrawing;
+		glm::vec3 position;
+		glm::vec2 worldSize;
+		unsigned long noDrawing;
 		unsigned long ulong_b;
-		unsigned long m_doInterpolation;
+		unsigned long doInterpolation;
 		unsigned long ulong_d;
 		// Essentially m_frame * 160
-		unsigned long m_otherPos;
+		unsigned long otherPos;
 	};
 
 	std::vector<Struct48_8f> m_48bytes;
 
 	struct ColorMultipliers : public Frame
 	{
-		glm::vec4 m_colors;
+		glm::vec4 colors;
 		unsigned long ulong_a;
-		unsigned long m_doInterpolation;
+		unsigned long doInterpolation;
 	};
 
 	std::vector<ColorMultipliers> m_colors;
 
 	struct SpriteFrame : public Frame
 	{
-		glm::vec2 m_initial_BottomLeft;
-		glm::vec2 m_boxSize;
-		unsigned long m_doInterpolation;
+		glm::vec2 initial_BottomLeft;
+		glm::vec2 boxSize;
+		unsigned long doInterpolation;
 		// Essentially m_frame * 160
-		unsigned long m_otherPos;
+		unsigned long otherPos;
 	};
 
 	std::vector<SpriteFrame> m_spriteFrames;

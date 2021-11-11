@@ -24,25 +24,25 @@ union Val
 
 struct Frame
 {
-	float m_frame;
-	float m_coefficient;
+	float frame;
+	float coefficient;
 };
 
 struct Position : public Frame
 {
-	glm::vec3 m_position;
-	unsigned long m_doInterpolation;
-	// Essentially m_frame * 160
-	unsigned long m_otherPos;
+	glm::vec3 position;
+	unsigned long doInterpolation;
+	// Essentially frame * 160
+	unsigned long otherPos;
 	unsigned long ulong_c;
 };
 
 struct Rotation : public Frame
 {
-	glm::quat m_rotation;
-	unsigned long m_doInterpolation;
-	// Essentially m_frame * 160
-	unsigned long m_otherPos;
+	glm::quat rotation;
+	unsigned long doInterpolation;
+	// Essentially frame * 160
+	unsigned long otherPos;
 };
 
 enum class ModelType
@@ -61,7 +61,7 @@ enum class ModelType
 template <typename T>
 auto getIter(const std::vector<T>& vect, const float time)
 {
-	auto iter = std::lower_bound(vect.begin(), vect.end(), time, [](const T& a, const float b) { return a.m_frame < b; });
+	auto iter = std::lower_bound(vect.begin(), vect.end(), time, [](const T& a, const float b) { return a.frame < b; });
 	if (iter != vect.begin())
 		--iter;
 	return iter;

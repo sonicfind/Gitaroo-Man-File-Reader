@@ -19,41 +19,41 @@ class CameraSetup
 public:
 	struct BaseGlobalValues
 	{
-		glm::vec3 m_clearColor;
-		float m_coefficient;
-		glm::u32vec3 m_baseAmbience;
-		unsigned long m_useDiffuse;
-		glm::u32vec3 m_vertColorDiffuse;
-		float m_fov;
-		float m_aspectRatio;
-		float m_zNear;
-		float m_zFar;
+		glm::vec3 clearColor;
+		float coefficient;
+		glm::u32vec3 baseAmbience;
+		unsigned long useDiffuse;
+		glm::u32vec3 vertColorDiffuse;
+		float fov;
+		float aspectRatio;
+		float zNear;
+		float zFar;
 		unsigned long ulong_h;
 	};
 
 	struct Projection : public Frame
 	{
-		float m_fov;
-		float m_aspectRatio;
-		float m_zNear;
-		float m_zFar;
+		float fov;
+		float aspectRatio;
+		float zNear;
+		float zFar;
 		unsigned long ulong_a;
-		unsigned long m_doInterpolation;
+		unsigned long doInterpolation;
 	};
 
 	struct AmbientColor : public Frame
 	{
-		glm::vec3 m_color;
-		unsigned long m_doInterpolation;
+		glm::vec3 color;
+		unsigned long doInterpolation;
 		// Essentially m_frame * 160
-		unsigned long m_otherPos;
+		unsigned long otherPos;
 		// Seems to match m_otherPos
 		unsigned long ulong_c;
 	};
 
 	struct Struct64_7f : public Frame
 	{
-		unsigned long m_cameraRelated;
+		unsigned long cameraRelated;
 		unsigned long ulong_b;
 		unsigned long ulong_c;
 		unsigned long ulong_d;
@@ -66,10 +66,10 @@ public:
 		unsigned long ulong_k;
 		unsigned long ulong_l;
 		unsigned long ulong_m;
-		unsigned long m_doInterpolation;
+		unsigned long doInterpolation;
 	};
-private:
 
+private:
 	unsigned long m_headerVersion;
 	// Maybe?
 	unsigned long m_size;
@@ -90,7 +90,6 @@ private:
 	std::vector<AmbientColor> m_ambientColors;
 	std::vector<LightSetup> m_lights;
 	std::vector<Struct64_7f> m_64bytes_v;
-
 
 	unsigned int m_lightUBO = 0;
 

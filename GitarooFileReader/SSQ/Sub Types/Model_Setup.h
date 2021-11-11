@@ -20,33 +20,33 @@ class ModelSetup
 protected:
 	struct ModelAnim : public Frame
 	{
-		unsigned long m_animIndex;
-		unsigned long m_startOverride;
-		unsigned long m_noDrawing;
-		unsigned long m_pollGameState;
-		unsigned long m_loop;
+		unsigned long animIndex;
+		unsigned long startOverride;
+		unsigned long noDrawing;
+		unsigned long pollGameState;
+		unsigned long loop;
 		unsigned long ulong_f;
-		unsigned long m_holdLastFrame;
-		unsigned long m_dropShadow;
-		unsigned long m_unknown;
-		unsigned long m_otherPos;
+		unsigned long holdLastFrame;
+		unsigned long dropShadow;
+		unsigned long unknown;
+		unsigned long otherPos;
 	};
 
 	struct ModelScalar : public Frame
 	{
-		glm::vec3 m_scalar;
-		unsigned long m_envMap_maybe;
-		unsigned long m_doInterpolation;
+		glm::vec3 scalar;
+		unsigned long envMap_maybe;
+		unsigned long doInterpolation;
 		unsigned long ulong_b;
 	};
 
 	struct BaseValues
 	{
-		glm::vec3 m_basePosition;
-		glm::quat m_baseRotation;
-		unsigned long m_baseAnimIndex_maybe;
+		glm::vec3 basePosition;
+		glm::quat baseRotation;
+		unsigned long baseAnimIndex_maybe;
 		unsigned long ulong_b;
-		unsigned long m_depthTest;
+		unsigned long depthTest;
 		unsigned long ulong_d;
 		unsigned long ulong_e;
 		unsigned long ulong_f;
@@ -94,19 +94,19 @@ class PlayerModelSetup : public ModelSetup
 {
 	struct Controllable
 	{
-		float m_angleMin;
-		float m_angleMax;
-		unsigned long m_descriptor;
-		unsigned long m_eventFlag;
-		unsigned long m_animIndex;
+		float angleMin;
+		float angleMax;
+		unsigned long descriptor;
+		unsigned long eventFlag;
+		unsigned long animIndex;
 		// Length of time to hold onto the last frame of animation
-		unsigned long m_holdTime;
+		unsigned long holdTime;
 		// 1 - forwards; 0 - backwards
-		unsigned long m_playbackDirection;
-		unsigned long m_interruptible;
-		unsigned long m_useCurrentFrame_maybe;
-		unsigned long m_randomize;
-		Val m_junk[2];
+		unsigned long playbackDirection;
+		unsigned long interruptible;
+		unsigned long useCurrentFrame_maybe;
+		unsigned long randomize;
+		Val junk[2];
 	};
 
 	unsigned long m_numControllables;
@@ -137,15 +137,15 @@ class AttDefModelSetup : public ModelSetup
 
 	struct AttackStreamValues
 	{
-		glm::vec3 m_startOffset;
-		glm::vec3 m_targetOffset;
-		char m_startingModel[16];
-		char m_targetModel[16];
+		glm::vec3 startOffset;
+		glm::vec3 targetOffset;
+		char startingModel[16];
+		char targetModel[16];
 		// Might've been the 32bit pointers to the model matrices
 		// that correspond to the two models provided here
 		//
 		// No longer applicable in this 64 bit application
-		char m_junk[8];
+		char junk[8];
 	} m_attackValues;
 
 	glm::mat4* m_startMatrix;

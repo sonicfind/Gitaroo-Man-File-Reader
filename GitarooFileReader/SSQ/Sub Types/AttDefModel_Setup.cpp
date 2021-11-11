@@ -26,9 +26,9 @@ AttDefModelSetup::AttDefModelSetup(FILE* inFile, ModelType type, glm::mat4& mat)
 
 std::vector<std::string> AttDefModelSetup::getConnectedNames() const
 {
-	if (m_attackValues.m_targetModel[0] != 0)
+	if (m_attackValues.targetModel[0] != 0)
 	{
-		std::vector<std::string> names{ m_attackValues.m_targetModel , m_attackValues.m_startingModel };
+		std::vector<std::string> names{ m_attackValues.targetModel , m_attackValues.startingModel };
 		if (names.front().length() == 0)
 			names.erase(names.begin());
 		return names;
@@ -57,10 +57,10 @@ void AttDefModelSetup::animateFromGameState(const float frame)
 	if (g_gameState.isModelTypeActive(static_cast<int>(m_type)))
 	{
 		const float animLength = m_xg->getAnimationLength(0);
-		if (m_attackValues.m_targetModel[0] != 0)
+		if (m_attackValues.targetModel[0] != 0)
 		{
-			const glm::vec3 start = glm::vec3((*m_startMatrix) * glm::vec4(m_attackValues.m_startOffset, 1));
-			const glm::vec3 end = glm::vec3((*m_targetMatrix) * glm::vec4(m_attackValues.m_targetOffset, 1));
+			const glm::vec3 start = glm::vec3((*m_startMatrix) * glm::vec4(m_attackValues.startOffset, 1));
+			const glm::vec3 end = glm::vec3((*m_targetMatrix) * glm::vec4(m_attackValues.targetOffset, 1));
 			const glm::vec3 diff = end - start;
 			const float length = glm::length(diff);
 

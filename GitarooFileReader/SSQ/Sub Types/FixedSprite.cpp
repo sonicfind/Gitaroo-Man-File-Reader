@@ -94,58 +94,58 @@ bool FixedSprite::update(const float frame, SpriteValues& values)
 	if (!m_48bytes.empty())
 	{
 		auto iter = getIter(m_48bytes, frame);
-		if (iter->m_noDrawing)
+		if (iter->noDrawing)
 			return false;
 
-		if (!iter->m_doInterpolation || iter + 1 == m_48bytes.end())
+		if (!iter->doInterpolation || iter + 1 == m_48bytes.end())
 		{
-			values.position = iter->m_position;
-			values.worldSize = iter->m_worldSize;
+			values.position = iter->position;
+			values.worldSize = iter->worldSize;
 		}
 		else
 		{
-			const float coefficient = (frame - iter->m_frame) * iter->m_coefficient;
-			values.position = glm::mix(iter->m_position, (iter + 1)->m_position, coefficient);
-			values.worldSize = glm::mix(iter->m_worldSize, (iter + 1)->m_worldSize, coefficient);
+			const float coefficient = (frame - iter->frame) * iter->coefficient;
+			values.position = glm::mix(iter->position, (iter + 1)->position, coefficient);
+			values.worldSize = glm::mix(iter->worldSize, (iter + 1)->worldSize, coefficient);
 		}
 	}
 
 	if (!m_colors.empty())
 	{
 		auto iter = getIter(m_colors, frame);
-		if (!iter->m_doInterpolation || iter + 1 == m_colors.end())
-			values.colorMultipliers = iter->m_colors;
+		if (!iter->doInterpolation || iter + 1 == m_colors.end())
+			values.colorMultipliers = iter->colors;
 		else
-			values.colorMultipliers = glm::mix(iter->m_colors, (iter + 1)->m_colors, (frame - iter->m_frame) * iter->m_coefficient);
+			values.colorMultipliers = glm::mix(iter->colors, (iter + 1)->colors, (frame - iter->frame) * iter->coefficient);
 	}
 
 	if (!m_spriteFrames.empty())
 	{
 		const float spriteFrame = fmod(frame, float(m_spriteFrames.size()));
 		auto iter = m_spriteFrames.begin() + (size_t)spriteFrame;
-		if (!iter->m_doInterpolation)
+		if (!iter->doInterpolation)
 		{
-			values.texCoord = iter->m_initial_BottomLeft;
-			values.texOffsets = iter->m_boxSize;
+			values.texCoord = iter->initial_BottomLeft;
+			values.texOffsets = iter->boxSize;
 		}
 		else
 		{
-			const float coefficient = (spriteFrame - (size_t)spriteFrame) * iter->m_coefficient;
+			const float coefficient = (spriteFrame - (size_t)spriteFrame) * iter->coefficient;
 			if (iter + 1 != m_spriteFrames.end())
 			{
-				values.texCoord = glm::mix(iter->m_initial_BottomLeft, (iter + 1)->m_initial_BottomLeft, coefficient);
-				values.texOffsets = glm::mix(iter->m_boxSize, (iter + 1)->m_boxSize, coefficient);
+				values.texCoord = glm::mix(iter->initial_BottomLeft, (iter + 1)->initial_BottomLeft, coefficient);
+				values.texOffsets = glm::mix(iter->boxSize, (iter + 1)->boxSize, coefficient);
 			}
 			else
 			{
-				values.texCoord = glm::mix(iter->m_initial_BottomLeft, m_spriteFrames.front().m_initial_BottomLeft, coefficient);
-				values.texOffsets = glm::mix(iter->m_boxSize, m_spriteFrames.front().m_boxSize, coefficient);
+				values.texCoord = glm::mix(iter->initial_BottomLeft, m_spriteFrames.front().initial_BottomLeft, coefficient);
+				values.texOffsets = glm::mix(iter->boxSize, m_spriteFrames.front().boxSize, coefficient);
 			}
 		}
 	}
 
-	if (m_64bytes.m_transparent)
-		values.blendType = m_64bytes.m_blendingType;
+	if (m_64bytes.transparent)
+		values.blendType = m_64bytes.blendingType;
 	else
 		values.blendType = 0;
 	return true;

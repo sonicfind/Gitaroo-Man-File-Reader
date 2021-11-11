@@ -128,26 +128,26 @@ void ModelSetup::updateMatrix(const float frame) const
 {
 	glm::vec3 position;
 	if (m_positions.empty())
-		position = m_baseValues.m_basePosition;
+		position = m_baseValues.basePosition;
 	else
 	{
 		auto iter = getIter(m_positions, frame);
-		if (!iter->m_doInterpolation || iter + 1 == m_positions.end())
-			position = iter->m_position;
+		if (!iter->doInterpolation || iter + 1 == m_positions.end())
+			position = iter->position;
 		else
-			position = glm::mix(iter->m_position, (iter + 1)->m_position, (frame - iter->m_frame) * iter->m_coefficient);
+			position = glm::mix(iter->position, (iter + 1)->position, (frame - iter->frame) * iter->coefficient);
 	}
 
 	glm::quat rotation;
 	if (m_rotations.empty())
-		rotation = m_baseValues.m_baseRotation;
+		rotation = m_baseValues.baseRotation;
 	else
 	{
 		auto iter = getIter(m_rotations, frame);
-		if (!iter->m_doInterpolation || iter + 1 == m_rotations.end())
-			rotation = iter->m_rotation;
+		if (!iter->doInterpolation || iter + 1 == m_rotations.end())
+			rotation = iter->rotation;
 		else
-			rotation = glm::slerp(iter->m_rotation, (iter + 1)->m_rotation, (frame - iter->m_frame) * iter->m_coefficient);
+			rotation = glm::slerp(iter->rotation, (iter + 1)->rotation, (frame - iter->frame) * iter->coefficient);
 	}
 
 	m_matrix = glm::toMat4(rotation);
@@ -157,10 +157,10 @@ void ModelSetup::updateMatrix(const float frame) const
 	{
 		glm::vec3 scale;
 		auto iter = getIter(m_scalars, frame);
-		if (!iter->m_doInterpolation || iter + 1 == m_scalars.end())
-			scale = iter->m_scalar;
+		if (!iter->doInterpolation || iter + 1 == m_scalars.end())
+			scale = iter->scalar;
 		else
-			scale = glm::mix(iter->m_scalar, (iter + 1)->m_scalar, (frame - iter->m_frame) * iter->m_coefficient);
+			scale = glm::mix(iter->scalar, (iter + 1)->scalar, (frame - iter->frame) * iter->coefficient);
 		m_matrix[0] *= scale.x;
 		m_matrix[1] *= scale.y;
 		m_matrix[2] *= scale.z;
@@ -174,19 +174,19 @@ bool ModelSetup::animate(const float frame)
 	if (!m_animations.empty())
 	{
 		auto iter = getIter(m_animations, frame);
-		if (!iter->m_noDrawing)
+		if (!iter->noDrawing)
 		{
-			const bool looping = iter->m_loop;
-			const unsigned long animIndex = m_xg->getValidatedAnimationIndex(iter->m_animIndex);
-			doShadow = iter->m_dropShadow;
+			const bool looping = iter->loop;
+			const unsigned long animIndex = m_xg->getValidatedAnimationIndex(iter->animIndex);
+			doShadow = iter->dropShadow;
 
 			while (iter != m_animations.begin()
-				&& !iter->m_startOverride
-				&& !iter->m_pollGameState
-				&& m_xg->getValidatedAnimationIndex((iter - 1)->m_animIndex) == animIndex)
+				&& !iter->startOverride
+				&& !iter->pollGameState
+				&& m_xg->getValidatedAnimationIndex((iter - 1)->animIndex) == animIndex)
 				--iter;
 
-			if (!iter->m_pollGameState)
+			if (!iter->pollGameState)
 			{
 				if (m_controllableIndex != 0)
 				{
@@ -195,10 +195,10 @@ bool ModelSetup::animate(const float frame)
 				}
 
 				const float length = m_xg->getAnimationLength(animIndex);
-				if (frame < length + iter->m_frame)
-					m_xg->animate(frame - iter->m_frame, animIndex, m_matrix);
+				if (frame < length + iter->frame)
+					m_xg->animate(frame - iter->frame, animIndex, m_matrix);
 				else if (looping)
-					m_xg->animate(fmod(frame - iter->m_frame, length), animIndex, m_matrix);
+					m_xg->animate(fmod(frame - iter->frame, length), animIndex, m_matrix);
 				else
 					m_xg->animate(length - 1, animIndex, m_matrix);
 			}
@@ -207,6 +207,6 @@ bool ModelSetup::animate(const float frame)
 		}
 	}
 	else
-		m_xg->animate(fmod(frame, m_xg->getAnimationLength(m_baseValues.m_baseAnimIndex_maybe)), m_baseValues.m_baseAnimIndex_maybe, m_matrix);
+		m_xg->animate(fmod(frame, m_xg->getAnimationLength(m_baseValues.baseAnimIndex_maybe)), m_baseValues.baseAnimIndex_maybe, m_matrix);
 	return doShadow;
 }

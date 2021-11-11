@@ -18,10 +18,10 @@ class LightSetup
 {
 	struct BaseValues
 	{
-		unsigned long m_isActive;
-		glm::vec3 m_diffuse;
-		glm::vec3 m_specular;
-		glm::quat m_rotation;
+		unsigned long isActive;
+		glm::vec3 diffuse;
+		glm::vec3 specular;
+		glm::quat rotation;
 		Val ulong_b;
 		Val l_a;
 		Val ulong_c;
@@ -45,12 +45,12 @@ class LightSetup
 
 	struct LightColors : public Frame
 	{
-		glm::vec3 m_diffuse;
-		glm::vec3 m_specular;
-		unsigned long m_doInterpolation;
-		long m_min;
-		float m_specular_coeff_maybe;
-		long m_max;
+		glm::vec3 diffuse;
+		glm::vec3 specular;
+		unsigned long doInterpolation;
+		long min;
+		float specular_coeff_maybe;
+		long max;
 	};
 
 	std::vector<LightColors> m_colors;
@@ -58,12 +58,12 @@ class LightSetup
 public:
 	struct LightForBuffer
 	{
-		glm::vec4 m_direction;
-		glm::vec4 m_diffuse;
-		glm::vec3 m_specular;
-		float m_min;
-		float m_specular_coeff_maybe;
-		float m_max;
+		glm::vec4 direction;
+		glm::vec4 diffuse;
+		glm::vec3 specular;
+		float min;
+		float specular_coeff_maybe;
+		float max;
 		// Padding
 		unsigned long :32, :32;
 	};

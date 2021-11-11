@@ -39,7 +39,7 @@ void CameraSetup::read(FILE* inFile)
 	m_positions.resize(numPositions);
 	fread(&m_positions.front(), sizeof(Position), numPositions, inFile);
 	for (auto& pos : m_positions)
-		pos.m_position.z *= -1;
+		pos.position.z *= -1;
 
 	m_rotations.resize(numRotations);
 	fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
@@ -94,7 +94,7 @@ void CameraSetup::create(FILE* outFile)
 	fwrite(&numRotations, 4, 1, outFile);
 	std::vector<Position> tmp = m_positions;
 	for (auto& pos : tmp)
-		pos.m_position.z *= -1;
+		pos.position.z *= -1;
 	fwrite(&tmp.front(), sizeof(Position), numPositions, outFile);
 	fwrite(&m_rotations.front(), sizeof(Rotation), numRotations, outFile);
 
@@ -131,7 +131,7 @@ void CameraSetup::create(FILE* outFile)
 
 float CameraSetup::getLastFrame() const
 {
-	return m_positions.back().m_frame;
+	return m_positions.back().frame;
 }
 
 #include "Viewer/Shaders/Shaders.h"
@@ -152,10 +152,10 @@ void CameraSetup::generateBuffers(float aspectRatio)
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_lightUBO);
 	unsigned long numLights = (unsigned long)m_lights.size();
 	glBufferSubData(GL_UNIFORM_BUFFER, 4, 4, &numLights);
-	glBufferSubData(GL_UNIFORM_BUFFER, 8, 4, &m_baseGlobalValues.m_coefficient);
-	glBufferSubData(GL_UNIFORM_BUFFER, 12, 4, &m_baseGlobalValues.m_useDiffuse);
-	glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(glm::vec3(m_baseGlobalValues.m_vertColorDiffuse) / 255.0f));
-	glBufferSubData(GL_UNIFORM_BUFFER, 32, sizeof(glm::vec3), glm::value_ptr(glm::vec3(m_baseGlobalValues.m_baseAmbience) / 255.0f));
+	glBufferSubData(GL_UNIFORM_BUFFER, 8, 4, &m_baseGlobalValues.coefficient);
+	glBufferSubData(GL_UNIFORM_BUFFER, 12, 4, &m_baseGlobalValues.useDiffuse);
+	glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(glm::vec3(m_baseGlobalValues.vertColorDiffuse) / 255.0f));
+	glBufferSubData(GL_UNIFORM_BUFFER, 32, sizeof(glm::vec3), glm::value_ptr(glm::vec3(m_baseGlobalValues.baseAmbience) / 255.0f));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -168,31 +168,31 @@ void CameraSetup::deleteBuffers()
 glm::vec3 CameraSetup::getClearColor(const float frame) const
 {
 	// Temporary as I am so sure that something must control the clear color mid-stage
-	return m_baseGlobalValues.m_clearColor;
+	return m_baseGlobalValues.clearColor;
 }
 
 glm::mat4 CameraSetup::getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const
 {
 	if (m_projections.empty())
-		return glm::perspective(glm::radians(m_baseGlobalValues.m_fov),
-								m_baseGlobalValues.m_aspectRatio * m_viewerAspectRatio,
-								m_baseGlobalValues.m_zNear,
-								m_baseGlobalValues.m_zFar);
+		return glm::perspective(glm::radians(m_baseGlobalValues.fov),
+								m_baseGlobalValues.aspectRatio * m_viewerAspectRatio,
+								m_baseGlobalValues.zNear,
+								m_baseGlobalValues.zFar);
 	else
 	{
 		auto iter = getIter(m_projections, frame);
-		if (!iter->m_doInterpolation || iter + 1 == m_projections.end())
-			return glm::perspective(glm::radians(iter->m_fov),
-									iter->m_aspectRatio * m_viewerAspectRatio,
-									iter->m_zNear,
-									iter->m_zFar);
+		if (!iter->doInterpolation || iter + 1 == m_projections.end())
+			return glm::perspective(glm::radians(iter->fov),
+									iter->aspectRatio * m_viewerAspectRatio,
+									iter->zNear,
+									iter->zFar);
 		else
 		{
-			const float coefficient = (frame - iter->m_frame) * iter->m_coefficient;
-			return glm::perspective(glm::radians(mix(iter->m_fov, (iter + 1)->m_fov, coefficient)),
-									mix(iter->m_aspectRatio, (iter + 1)->m_aspectRatio, coefficient) * m_viewerAspectRatio,
-									mix(iter->m_zNear, (iter + 1)->m_zNear, coefficient),
-									mix(iter->m_zFar, (iter + 1)->m_zFar, coefficient));
+			const float coefficient = (frame - iter->frame) * iter->coefficient;
+			return glm::perspective(glm::radians(mix(iter->fov, (iter + 1)->fov, coefficient)),
+									mix(iter->aspectRatio, (iter + 1)->aspectRatio, coefficient) * m_viewerAspectRatio,
+									mix(iter->zNear, (iter + 1)->zNear, coefficient),
+									mix(iter->zFar, (iter + 1)->zFar, coefficient));
 		}
 	}
 }
@@ -201,17 +201,17 @@ glm::mat4 CameraSetup::getViewMatrix(const float frame) const
 {
 	auto posIter = getIter(m_positions, frame);
 	glm::vec3 position;
-	if (!posIter->m_doInterpolation || posIter + 1 == m_positions.end())
-		position = posIter->m_position;
+	if (!posIter->doInterpolation || posIter + 1 == m_positions.end())
+		position = posIter->position;
 	else
-		position = glm::mix(posIter->m_position, (posIter + 1)->m_position, (frame - posIter->m_frame) * posIter->m_coefficient);
+		position = glm::mix(posIter->position, (posIter + 1)->position, (frame - posIter->frame) * posIter->coefficient);
 
 	auto rotIter = getIter(m_rotations, frame);
 	glm::quat rotation;
-	if (!rotIter->m_doInterpolation || rotIter + 1 == m_rotations.end())
-		rotation = rotIter->m_rotation;
+	if (!rotIter->doInterpolation || rotIter + 1 == m_rotations.end())
+		rotation = rotIter->rotation;
 	else
-		rotation = glm::slerp(rotIter->m_rotation, (rotIter + 1)->m_rotation, (frame - rotIter->m_frame) * rotIter->m_coefficient);
+		rotation = glm::slerp(rotIter->rotation, (rotIter + 1)->rotation, (frame - rotIter->frame) * rotIter->coefficient);
 
 	return glm::toMat4(rotation) * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 }
@@ -219,14 +219,14 @@ glm::mat4 CameraSetup::getViewMatrix(const float frame) const
 glm::vec3 CameraSetup::getAmbientColor(const float frame) const
 {
 	if (m_ambientColors.empty())
-		return glm::vec3(m_baseGlobalValues.m_baseAmbience) / 255.0f;
+		return glm::vec3(m_baseGlobalValues.baseAmbience) / 255.0f;
 	else
 	{
 		auto iter = getIter(m_ambientColors, frame);
-		if (!iter->m_doInterpolation || iter + 1 == m_ambientColors.end())
-			return iter->m_color;
+		if (!iter->doInterpolation || iter + 1 == m_ambientColors.end())
+			return iter->color;
 		else
-			return glm::mix(iter->m_color, (iter + 1)->m_color, (frame - iter->m_frame) * iter->m_coefficient);
+			return glm::mix(iter->color, (iter + 1)->color, (frame - iter->frame) * iter->coefficient);
 	}
 }
 

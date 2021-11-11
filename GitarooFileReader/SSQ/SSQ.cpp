@@ -21,9 +21,9 @@ void flipHand(std::vector<Rotation>& rotations)
 	float tmp;
 	for (auto& rot : rotations)
 	{
-		tmp = rot.m_rotation.z;
-		rot.m_rotation.z = rot.m_rotation.y;
-		rot.m_rotation.y = tmp;
+		tmp = rot.rotation.z;
+		rot.rotation.z = rot.rotation.y;
+		rot.rotation.y = tmp;
 	}
 }
 

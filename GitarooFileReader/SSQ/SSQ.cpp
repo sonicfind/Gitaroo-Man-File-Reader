@@ -74,21 +74,21 @@ SSQ::SSQ(std::string filename, bool unused)
 		switch (m_XGentries[i].m_type)
 		{
 		case ModelType::Normal:
-			m_modelSetups.push_back(std::make_unique<ModelSetup>(m_filePtr, m_XGentries[i].m_type));
+			m_modelSetups.push_back(std::make_unique<ModelSetup>(m_filePtr, m_XGentries[i].m_type, m_modelMatrices[i]));
 			break;
 		case ModelType::Player1:
 		case ModelType::Player2:
 		case ModelType::DuetPlayer:
-			m_modelSetups.push_back(std::make_unique<PlayerModelSetup>(m_filePtr, m_XGentries[i].m_type));
+			m_modelSetups.push_back(std::make_unique<PlayerModelSetup>(m_filePtr, m_XGentries[i].m_type, m_modelMatrices[i]));
 			break;
 		case ModelType::Player1AttDef:
 		case ModelType::Player2AttDef:
 		case ModelType::DuetPlayerAttDef:
 		case ModelType::DuetComboAttack:
-			m_modelSetups.push_back(std::make_unique<AttDefModelSetup>(m_filePtr, m_XGentries[i].m_type));
+			m_modelSetups.push_back(std::make_unique<AttDefModelSetup>(m_filePtr, m_XGentries[i].m_type, m_modelMatrices[i]));
 			break;
 		case ModelType::Snake:
-			m_modelSetups.push_back(std::make_unique<SnakeModelSetup>(m_filePtr, m_XGentries[i].m_type));
+			m_modelSetups.push_back(std::make_unique<SnakeModelSetup>(m_filePtr, m_XGentries[i].m_type, m_modelMatrices[i]));
 		}
 	}
 

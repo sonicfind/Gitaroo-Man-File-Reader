@@ -14,8 +14,8 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-AttDefModelSetup::AttDefModelSetup(FILE* inFile, ModelType type)
-	: ModelSetup(inFile, type)
+AttDefModelSetup::AttDefModelSetup(FILE* inFile, ModelType type, glm::mat4& mat)
+	: ModelSetup(inFile, type, mat)
 {
 	if (m_headerVersion >= 0x1200)
 	{
@@ -38,8 +38,8 @@ std::vector<std::string> AttDefModelSetup::getConnectedNames() const
 
 void AttDefModelSetup::setConnectedMatrices(glm::mat4* mat_1, glm::mat4* mat_2)
 {
-	m_matrix1 = mat_1;
-	m_matrix2 = mat_2;
+	m_startMatrix = mat_1;
+	m_targetMatrix = mat_2;
 }
 
 void AttDefModelSetup::create(FILE* outFile) const
@@ -52,28 +52,29 @@ void AttDefModelSetup::create(FILE* outFile) const
 	}
 }
 
-void AttDefModelSetup::animateFromGameState(const glm::mat4& matrix, const float frame)
+void AttDefModelSetup::animateFromGameState(const float frame)
 {
 	if (g_gameState.isModelTypeActive(static_cast<int>(m_type)))
 	{
 		const float animLength = m_xg->getAnimationLength(0);
 		if (m_attackValues.m_targetModel[0] != 0)
 		{
-			const glm::vec3 start = glm::vec3((*m_matrix1) * glm::vec4(m_attackValues.m_startOffset, 1));
-			const glm::vec3 end = glm::vec3((*m_matrix2) * glm::vec4(m_attackValues.m_targetOffset, 1));
+			const glm::vec3 start = glm::vec3((*m_startMatrix) * glm::vec4(m_attackValues.m_startOffset, 1));
+			const glm::vec3 end = glm::vec3((*m_targetMatrix) * glm::vec4(m_attackValues.m_targetOffset, 1));
 			const glm::vec3 diff = end - start;
-			const glm::vec3 forward = glm::mat3(matrix) * glm::vec3(0, 0, -1);
 			const float length = glm::length(diff);
+
+			const glm::vec3 forward = glm::mat3(m_matrix) * glm::vec3(0, 0, -1);
 			const glm::vec3 cross = glm::cross(forward, diff);
 			const float w = length + glm::dot(forward, diff);
 
-			glm::mat4 result = glm::toMat4(glm::normalize(glm::quat(w, cross))) * matrix;
+			glm::mat4 result = glm::toMat3(glm::normalize(glm::quat(w, cross))) * glm::mat3(m_matrix);
 			result[2] *= length / m_attackSize_Z;
 			result[3] = glm::vec4(start, 1);
 
 			m_xg->animate(fmod(frame - m_bpmStartFrame, animLength), 0, result);
 		}
 		else
-			m_xg->animate(fmod(frame - m_bpmStartFrame, animLength), 0, matrix);
+			m_xg->animate(fmod(frame - m_bpmStartFrame, animLength), 0, m_matrix);
 	}
 }

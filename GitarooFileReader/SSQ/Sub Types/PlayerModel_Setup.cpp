@@ -14,8 +14,8 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-PlayerModelSetup::PlayerModelSetup(FILE* inFile, ModelType type)
-	: ModelSetup(inFile, type)
+PlayerModelSetup::PlayerModelSetup(FILE* inFile, ModelType type, glm::mat4& mat)
+	: ModelSetup(inFile, type, mat)
 {
 	if (m_headerVersion >= 0x1300)
 	{
@@ -65,7 +65,7 @@ void PlayerModelSetup::create(FILE* outFile) const
 }
 
 #include <time.h>
-void PlayerModelSetup::animateFromGameState(const glm::mat4& matrix, const float frame)
+void PlayerModelSetup::animateFromGameState(const float frame)
 {
 	const Controllable* current = &m_controllables[m_controllableIndex];
 	float length = m_xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
@@ -101,14 +101,14 @@ void PlayerModelSetup::animateFromGameState(const glm::mat4& matrix, const float
 	{
 		float anim12 = .5f * m_xg->getAnimationLength(12);
 		if (delta < anim12)
-			m_xg->animate(2 * delta, 12, matrix, 1);
+			m_xg->animate(2 * delta, 12, m_matrix, 1);
 		else if (delta < length - anim12)
-			m_xg->animate(delta - anim12, current->m_animIndex, matrix, 1);
+			m_xg->animate(delta - anim12, current->m_animIndex, m_matrix, 1);
 		else
-			m_xg->animate(2 * (delta - (length - anim12)), 12, matrix, 0);
+			m_xg->animate(2 * (delta - (length - anim12)), 12, m_matrix, 0);
 	}
 	else
-		m_xg->animate(fmod(delta, length), current->m_animIndex, matrix, current->m_playbackDirection);
+		m_xg->animate(fmod(delta, length), current->m_animIndex, m_matrix, current->m_playbackDirection);
 }
 
 bool PlayerModelSetup::checkInterruptible(const float frame)

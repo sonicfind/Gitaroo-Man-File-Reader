@@ -643,9 +643,7 @@ void SSQ::update(float delta)
 			else
 				xg = m_XGentries[entry.m_cloneID].m_xg;
 
-			const auto result = m_modelSetups[i]->animate(m_currFrame);
-			m_XGentries[i].m_dropShadow = result.first;
-			m_modelMatrices[i] = result.second;
+			m_XGentries[i].m_dropShadow = m_modelSetups[i]->animate(m_currFrame);
 		}
 
 		if (m_shadowPtr)

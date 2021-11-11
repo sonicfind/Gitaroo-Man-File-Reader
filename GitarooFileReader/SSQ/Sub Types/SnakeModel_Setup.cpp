@@ -14,8 +14,8 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-SnakeModelSetup::SnakeModelSetup(FILE* inFile, ModelType type)
-	: ModelSetup(inFile, type) {}
+SnakeModelSetup::SnakeModelSetup(FILE* inFile, ModelType type, glm::mat4& mat)
+	: ModelSetup(inFile, type, mat) {}
 void SnakeModelSetup::create(FILE* outFile) const
 {
 	ModelSetup::create(outFile);

@@ -14,8 +14,9 @@
  */
 #include "pch.h"
 #include "Model_Setup.h"
-ModelSetup::ModelSetup(FILE* inFile, ModelType type)
+ModelSetup::ModelSetup(FILE* inFile, ModelType type, glm::mat4& mat)
 	: m_type(type)
+	, m_matrix(mat)
 {
 	// Block Tag
 	char tmp[5] = { 0 };
@@ -123,8 +124,7 @@ void ModelSetup::reset()
 	m_controllableStartFrame = m_bpmStartFrame;
 }
 
-#include <glm/gtx/transform.hpp>
-glm::mat4 ModelSetup::getModelMatrix(const float frame) const
+void ModelSetup::updateMatrix(const float frame) const
 {
 	glm::vec3 position;
 	if (m_positions.empty())
@@ -150,8 +150,8 @@ glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 			rotation = glm::slerp(iter->m_rotation, (iter + 1)->m_rotation, (frame - iter->m_frame) * iter->m_coefficient);
 	}
 
-	glm::mat4 result = glm::toMat4(rotation);
-	result[3] = glm::vec4(position, 1);
+	m_matrix = glm::toMat4(rotation);
+	m_matrix[3] = glm::vec4(position, 1);
 	
 	if (!m_scalars.empty())
 	{
@@ -161,16 +161,16 @@ glm::mat4 ModelSetup::getModelMatrix(const float frame) const
 			scale = iter->m_scalar;
 		else
 			scale = glm::mix(iter->m_scalar, (iter + 1)->m_scalar, (frame - iter->m_frame) * iter->m_coefficient);
-		result[0] *= scale.x;
-		result[1] *= scale.y;
-		result[2] *= scale.z;
+		m_matrix[0] *= scale.x;
+		m_matrix[1] *= scale.y;
+		m_matrix[2] *= scale.z;
 	}
-	return result;
 }
 
-std::pair<bool, glm::mat4> ModelSetup::animate(const float frame)
+bool ModelSetup::animate(const float frame)
 {
-	std::pair<bool, glm::mat4> shadowMatrix(false, getModelMatrix(frame));
+	bool doShadow = false;
+	updateMatrix(frame);
 	if (!m_animations.empty())
 	{
 		auto iter = getIter(m_animations, frame);
@@ -178,7 +178,7 @@ std::pair<bool, glm::mat4> ModelSetup::animate(const float frame)
 		{
 			const bool looping = iter->m_loop;
 			const unsigned long animIndex = m_xg->getValidatedAnimationIndex(iter->m_animIndex);
-			shadowMatrix.first = iter->m_dropShadow;
+			doShadow = iter->m_dropShadow;
 
 			while (iter != m_animations.begin()
 				&& !iter->m_startOverride
@@ -196,17 +196,17 @@ std::pair<bool, glm::mat4> ModelSetup::animate(const float frame)
 
 				const float length = m_xg->getAnimationLength(animIndex);
 				if (frame < length + iter->m_frame)
-					m_xg->animate(frame - iter->m_frame, animIndex, shadowMatrix.second);
+					m_xg->animate(frame - iter->m_frame, animIndex, m_matrix);
 				else if (looping)
-					m_xg->animate(fmod(frame - iter->m_frame, length), animIndex, shadowMatrix.second);
+					m_xg->animate(fmod(frame - iter->m_frame, length), animIndex, m_matrix);
 				else
-					m_xg->animate(length - 1, animIndex, shadowMatrix.second);
+					m_xg->animate(length - 1, animIndex, m_matrix);
 			}
 			else
-				animateFromGameState(shadowMatrix.second, frame);
+				animateFromGameState(frame);
 		}
 	}
 	else
-		m_xg->animate(fmod(frame, m_xg->getAnimationLength(m_baseValues.m_baseAnimIndex_maybe)), m_baseValues.m_baseAnimIndex_maybe, shadowMatrix.second);
-	return shadowMatrix;
+		m_xg->animate(fmod(frame, m_xg->getAnimationLength(m_baseValues.m_baseAnimIndex_maybe)), m_baseValues.m_baseAnimIndex_maybe, m_matrix);
+	return doShadow;
 }

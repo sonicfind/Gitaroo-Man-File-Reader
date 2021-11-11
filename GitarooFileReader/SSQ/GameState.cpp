@@ -20,9 +20,6 @@ void GameState::reset()
 	m_mode = Mode::Attack_Charge;
 	for (auto& model : m_activeModels)
 		model = false;
-
-	for (auto& player : m_players)
-		player = Player();
 }
 
 void GameState::setGlobalStates()
@@ -45,6 +42,10 @@ void GameState::setGlobalStates()
 
 void GameState::Player::set(int mode, int playerIndex)
 {
+	playerEvent = 0;
+	eventDescriptor = 0;
+	angle = 0;
+
 	int buttonCount = 0, padIndex = 0;
 	const float* axes;
 
@@ -62,14 +63,8 @@ void GameState::Player::set(int mode, int playerIndex)
 				break;
 			++padIndex;
 		}
-		// If no applicable pad is found, reset all values
 		else if (i + 1 == GLFW_JOYSTICK_LAST)
-		{
-			playerEvent = 0;
-			eventDescriptor = 0;
-			angle = 0;
 			return;
-		}
 	}
 
 	buttons = glfwGetJoystickButtons(padIndex, &buttonCount);

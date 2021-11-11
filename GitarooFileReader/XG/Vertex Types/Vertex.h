@@ -30,11 +30,11 @@ struct BoneVertex : public Vertex
 
 class VertexList
 {
-	unsigned long m_vertexFlags;
+	unsigned long m_vertexFlags = 0;
 	std::vector<Vertex> m_vertices;
 
-	unsigned int m_VAO;
-	unsigned int m_VBO;
+	unsigned int m_VAO = 0;
+	unsigned int m_VBO = 0;
 public:
 	VertexList() = default;
 	VertexList(const VertexList& a, const VertexList& b, float coefficient);

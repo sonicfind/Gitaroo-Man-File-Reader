@@ -499,6 +499,7 @@ void XGM::update(float delta)
 						++model.animIndex;
 					else
 						model.animIndex = 0;
+					GlobalFunctions::printf_tab("%s - Anim: %zu\n", m_models[model.modelIndex].getName(), model.animIndex);
 				}
 				else if (InputHandling::g_input_keyboard.KEY_LEFT.isTicked())
 				{
@@ -506,6 +507,7 @@ void XGM::update(float delta)
 						--model.animIndex;
 					else
 						model.animIndex = m_models[model.modelIndex].m_animations.size() - 1;
+					GlobalFunctions::printf_tab("%s - Anim: %zu\n", m_models[model.modelIndex].getName(), model.animIndex);
 				}
 
 				model.length = m_models[model.modelIndex].getAnimationLength(model.animIndex);
@@ -519,13 +521,14 @@ void XGM::update(float delta)
 				{
 					model.frame -= model.length;
 					if (controls->loop)
-						GlobalFunctions::printf_tab("Loop\n");
+						GlobalFunctions::printf_tab("%s - Loop\n", m_models[model.modelIndex].getName());
 					else
 					{
 						if (model.animIndex < m_models[model.modelIndex].m_animations.size() - 1)
 							++model.animIndex;
 						else
 							model.animIndex = 0;
+						GlobalFunctions::printf_tab("%s - Anim: %zu\n", m_models[model.modelIndex].getName(), model.animIndex);
 						model.length = m_models[model.modelIndex].getAnimationLength(model.animIndex);
 					}
 				}

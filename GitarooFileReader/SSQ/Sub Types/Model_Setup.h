@@ -119,6 +119,7 @@ class PlayerModelSetup : public ModelSetup
 
 public:
 	PlayerModelSetup(FILE* inFile, ModelType type, char(&name)[16]);
+	bool checkInterruptible(const float frame);
 	void create(FILE* outFile) const;
 
 private:

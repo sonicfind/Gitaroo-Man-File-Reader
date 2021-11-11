@@ -66,58 +66,82 @@ void PlayerModelSetup::create(FILE* outFile) const
 #include <time.h>
 void PlayerModelSetup::animateFromGameState(XG* xg, const glm::mat4& matrix, const float frame)
 {
-	// Insert check to see if an uninterruptible animation isn't finished
-	int flag = 0;
-	float ang = 0;
-	int descriptor = 0;
-
 	const Controllable* current = &m_controllables[m_controllableIndex];
 	float length = xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
+	if (current->m_eventFlag == 64 ||
+		(current->m_eventFlag == 4 && 
+			current->m_angleMin == -3.14159298f &&
+			current->m_angleMax == 3.14159298f))
+		length += xg->getAnimationLength(12);
 
-	if (current->m_interruptible || frame >= length + m_controllableStartFrame)
+	while (!current->m_interruptible && frame >= length + m_controllableStartFrame)
 	{
-		do
-		{
-			if (!current->m_interruptible && m_endings[m_controllableIndex] != -1)
-			{
-				m_controllableIndex = m_endings[m_controllableIndex];
-				current = &m_controllables[m_controllableIndex];
-			}
+		m_controllableIndex = m_endings[m_controllableIndex];
+		current = &m_controllables[m_controllableIndex];
 
-			bool connectionMade = current->m_randomize == 1;
-			if (!connectionMade)
-			{
-				for (const auto& connection : m_connections[m_controllableIndex].controllableList)
-				{
-					if (m_controllables[connection].m_angleMin <= ang
-						&& ang < m_controllables[connection].m_angleMax
-						&& flag == m_controllables[connection].m_eventFlag
-						&& descriptor == m_controllables[connection].m_descriptor)
-					{
-						m_controllableIndex = connection;
-						connectionMade = true;
-						break;
-					}
-				}
-			}
-			else
-			{
-				srand(unsigned int(time(0)));
-				m_controllableIndex = m_connections[m_controllableIndex].controllableList[rand() % m_connections[m_controllableIndex].size];
-			}
+		if (!current->m_interruptible)
+			m_controllableStartFrame = length + m_controllableStartFrame;
+		else
+			m_controllableStartFrame = m_bpmStartFrame;
 
-			if (connectionMade)
-			{
-				current = &m_controllables[m_controllableIndex];
-				if (current->m_useCurrentFrame_maybe)
-					m_controllableStartFrame = length + m_controllableStartFrame;
-				else
-					m_controllableStartFrame = m_bpmStartFrame;
-
-				length = xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
-			}
-		} while (!current->m_interruptible && frame >= length + m_controllableStartFrame);
+		length = xg->getAnimationLength(current->m_animIndex) + current->m_holdTime;
+		if (current->m_eventFlag == 64 ||
+			(current->m_eventFlag == 4 &&
+				current->m_angleMin == -3.14159298f &&
+				current->m_angleMax == 3.14159298f))
+			length += xg->getAnimationLength(12);
 	}
 
-	xg->animate(fmod(frame - m_controllableStartFrame, length), current->m_animIndex, matrix);
+	while (current->m_interruptible && !checkInterruptible(frame))
+		current = &m_controllables[m_controllableIndex];
+	
+	const float delta = frame - m_controllableStartFrame;
+	if (length > xg->getAnimationLength(current->m_animIndex) + current->m_holdTime)
+	{
+		float anim12 = .5f * xg->getAnimationLength(12);
+		if (delta < anim12)
+			xg->animate(2 * delta, 12, matrix, 1);
+		else if (delta < length - anim12)
+			xg->animate(delta - anim12, current->m_animIndex, matrix, 1);
+		else
+			xg->animate(2 * (delta - (length - anim12)), 12, matrix, 0);
+	}
+	else
+		xg->animate(fmod(delta, length), current->m_animIndex, matrix, current->m_playbackDirection);
+}
+
+bool PlayerModelSetup::checkInterruptible(const float frame)
+{
+	if (m_controllables[m_controllableIndex].m_randomize != 1)
+	{
+		const auto player = g_gameState.getPlayerState(static_cast<int>(m_type) - 1);
+		for (const auto& connection : m_connections[m_controllableIndex].controllableList)
+		{
+			if (m_controllables[connection].m_angleMin <= player.getAngle() &&
+				player.getAngle() < m_controllables[connection].m_angleMax &&
+				player.getEvent() == m_controllables[connection].m_eventFlag &&
+				player.getDescriptor() == m_controllables[connection].m_descriptor)
+			{
+				m_controllableIndex = connection;
+
+				// Has to be in this order
+				if (!m_controllables[m_controllableIndex].m_interruptible)
+					m_controllableStartFrame = frame;
+				else
+					checkInterruptible(frame);
+				return true;
+			}
+		}
+
+		if (m_endings[m_controllableIndex] != -1)
+		{
+			m_controllableIndex = m_endings[m_controllableIndex];
+			if (!m_controllables[m_controllableIndex].m_interruptible)
+				m_controllableStartFrame = frame;
+			return false;
+		}
+	}
+	else
+		m_controllableIndex = m_connections[m_controllableIndex].controllableList[rand() % m_connections[m_controllableIndex].size];
+	return true;
 }

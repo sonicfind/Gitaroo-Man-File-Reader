@@ -185,6 +185,12 @@ std::pair<bool, glm::mat4> ModelSetup::animate(XG* xg, const float frame)
 			if (!iter->m_pollGameState)
 			{
 				const float length = xg->getAnimationLength(animIndex);
+				if (m_controllableIndex != 0)
+				{
+					m_controllableIndex = 0;
+					m_controllableStartFrame = m_bpmStartFrame;
+				}
+
 				if (frame < length + iter->m_frame)
 					xg->animate(frame - iter->m_frame, animIndex, shadowMatrix.second);
 				else if (looping)

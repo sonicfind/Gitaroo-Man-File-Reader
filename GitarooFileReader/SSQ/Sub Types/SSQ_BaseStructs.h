@@ -83,11 +83,26 @@ class GameState
 		Guard
 	};
 
-	bool activeModels[10];
+	class Player
+	{
+		int playerEvent = 0;
+		int eventDescriptor = 0;
+		float angle = 0;
+	public:
+		void set(int mode, int playerIndex);
+		int getEvent() const { return playerEvent; }
+		int getDescriptor() const { return eventDescriptor; }
+		float getAngle() const { return angle; }
+	};
+
+	Mode m_mode = Mode::Attack_Charge;
+	bool m_activeModels[10];
+	Player m_players[4];
 
 public:
 	void reset();
 	void setGlobalStates();
-	bool isModelTypeActive(int model) { return activeModels[model]; }
+	bool isModelTypeActive(int model) { return m_activeModels[model]; }
+	Player getPlayerState(int player) { return m_players[player]; }
 };
 extern GameState g_gameState;

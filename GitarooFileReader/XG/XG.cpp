@@ -315,24 +315,16 @@ void XG::restPose()
 }
 
 // Updates all data to the current frame
-void XG::animate(float frame, size_t index, const glm::mat4 matrix)
+void XG::animate(float frame, size_t index, const glm::mat4 matrix, const bool playbackDirection)
 {
-	try
-	{
-		// Calculates the current keyframe from the current animation
-		float key;
-		if (index < m_animations.size())
-			key = m_animations[index].getTime(frame);
-		else
-			key = m_animations.back().getTime(frame);
-		// Increment count for if another instance is needed
-		m_data->animate(key, m_instanceCount++, matrix);
-	}
-	catch (...)
-	{
-		// There is no length to the animation
-		m_instanceCount++;
-	}
+	// Calculates the current keyframe from the current animation
+	float key;
+	if (index < m_animations.size())
+		key = m_animations[index].getTime(frame, playbackDirection);
+	else
+		key = m_animations.back().getTime(frame, playbackDirection);
+	// Increment count for if another instance is needed
+	m_data->animate(key, m_instanceCount++, matrix);
 }
 
 // Draws all vertex data to the current framebuffer

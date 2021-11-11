@@ -41,5 +41,6 @@ public:
 	// Generates the keyframe value to give to the xgTime node
 	// 
 	// @param frame - The current time in terms of frames
-	const float getTime(const float numSeconds) const;
+	// @param direction - true if playback is normal, false if playback is reverse
+	const float getTime(float frame, bool direction) const;
 };

@@ -80,11 +80,11 @@ const float Animation::getTotalTime() const
 // Generates the keyframe value to give to the xgTime node
 // 
 // @param frame - The current time in terms of frames
-const float Animation::getTime(const float frame) const
+const float Animation::getTime(float frame, bool direction) const
 {
-	if (m_length == 0)
-		throw "Lengthless";
-	
+	if (!direction)
+		frame = getTotalTime() - frame;
+
 	if (m_non_tempo)
 		return frame / m_keyframe_interval + m_starting_keyframe;
 	else

@@ -69,7 +69,7 @@ private:
 	void restPose();
 	// Updates all data to the current frame
 	// @param frame - The current time in terms of frames
-	void animate(float frame, size_t index, const glm::mat4 matrix);
+	void animate(float frame, size_t index, const glm::mat4 matrix, const bool playbackDirection = true);
 	// Draws all vertex data to the current framebuffer
 	void draw(const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
 

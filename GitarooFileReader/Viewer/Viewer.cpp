@@ -607,11 +607,38 @@ void SSQ::update(float delta)
 	if (controls->hasFreeMovement && controls->isMouseActive)
 		m_controlledCamera->moveCamera(delta);
 
-	if (InputHandling::g_input_keyboard.KEY_P.isPressed())
 	{
-		controls->isPaused = !controls->isPaused;
-		if (controls->isPaused)
-			GlobalFunctions::printf_tab("%g\n", m_currFrame);
+		static bool toggleState = false;
+		bool togglePause = false;
+
+		if (InputHandling::g_input_keyboard.KEY_P.isPressed())
+			togglePause = true;
+		else
+		{
+			for (int i = GLFW_JOYSTICK_1; i < GLFW_JOYSTICK_LAST; ++i)
+			{
+				int buttonCount;
+				const unsigned char* buttons = glfwGetJoystickButtons(i, &buttonCount);
+				if (buttons && buttons[7])
+				{
+					togglePause = true;
+					break;
+				}
+			}
+		}
+
+		if (togglePause)
+		{
+			if (!toggleState)
+			{
+				controls->isPaused = !controls->isPaused;
+				if (controls->isPaused)
+					GlobalFunctions::printf_tab("%g\n", m_currFrame);
+				toggleState = true;
+			}
+		}
+		else
+			toggleState = false;
 	}
 
 	bool doFullUpdate = !controls->isPaused;

@@ -359,6 +359,12 @@
     <None Include="Viewer\Shaders\normals.frag" />
     <None Include="Viewer\Shaders\normals.geo" />
     <None Include="Viewer\Shaders\normals.vert" />
+    <None Include="Viewer\Shaders\shadow - vectors.frag" />
+    <None Include="Viewer\Shaders\shadow - vectors.geo" />
+    <None Include="Viewer\Shaders\shadow - vectors.vert" />
+    <None Include="Viewer\Shaders\shadow.frag" />
+    <None Include="Viewer\Shaders\shadow.geo" />
+    <None Include="Viewer\Shaders\shadow.vert" />
     <None Include="Viewer\Shaders\sprite - vectors.frag" />
     <None Include="Viewer\Shaders\sprite - vectors.geo" />
     <None Include="Viewer\Shaders\sprite - vectors.vert" />

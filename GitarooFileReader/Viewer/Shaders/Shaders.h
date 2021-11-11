@@ -75,9 +75,15 @@ class ShaderList
 	const char* sprite_vert = "Viewer/Shaders/sprite.vert";
 	const char* sprite_geo = "Viewer/Shaders/sprite.geo";
 	const char* sprite_frag = "Viewer/Shaders/sprite.frag";
-	const char* vectors_vert = "Viewer/Shaders/sprite - vectors.vert";
-	const char* vectors_geo = "Viewer/Shaders/sprite - vectors.geo";
-	const char* vectors_frag = "Viewer/Shaders/sprite - vectors.frag";
+	const char* sprite_vectors_vert = "Viewer/Shaders/sprite - vectors.vert";
+	const char* sprite_vectors_geo = "Viewer/Shaders/sprite - vectors.geo";
+	const char* sprite_vectors_frag = "Viewer/Shaders/sprite - vectors.frag";
+	const char* shadow_vert = "Viewer/Shaders/shadow.vert";
+	const char* shadow_geo = "Viewer/Shaders/shadow.geo";
+	const char* shadow_frag = "Viewer/Shaders/shadow.frag";
+	const char* shadow_vectors_vert = "Viewer/Shaders/shadow - vectors.vert";
+	const char* shadow_vectors_geo = "Viewer/Shaders/shadow - vectors.geo";
+	const char* shadow_vectors_frag = "Viewer/Shaders/shadow - vectors.frag";
 	const char* light_vert = "Viewer/Shaders/light.vert";
 	const char* light_geo = "Viewer/Shaders/light.geo";
 	const char* light_frag = "Viewer/Shaders/light.frag";
@@ -112,14 +118,32 @@ class ShaderList
 	const char* sprite_frag =
 	#include "sprite.frag"
 	;
-	const char* vectors_vert =
+	const char* sprite_vectors_vert =
 	#include "sprite - vectors.vert"
 	;
-	const char* vectors_geo =
+	const char* sprite_vectors_geo =
 	#include "sprite - vectors.geo"
 	;
-	const char* vectors_frag =
+	const char* sprite_vectors_frag =
 	#include "sprite - vectors.frag"
+	;
+	const char* shadow_vert =
+	#include "shadow.vert"
+	;
+	const char* shadow_geo =
+	#include "shadow.geo"
+	;
+	const char* shadow_frag =
+	#include "shadow.frag"
+	;
+	const char* shadow_vectors_vert =
+	#include "shadow - vectors.vert"
+	;
+	const char* shadow_vectors_geo =
+	#include "shadow - vectors.geo"
+	;
+	const char* shadow_vectors_frag =
+	#include "shadow - vectors.frag"
 	;
 	const char* light_vert =
 	#include "light.vert"
@@ -135,6 +159,7 @@ public:
 	ShaderCombo m_baseShaders;
 	ShaderCombo m_boneShaders;
 	ShaderCombo m_spriteShaders;
+	ShaderCombo m_shadowShaders;
 	Shader m_lightShader;
 
 	void createPrograms();

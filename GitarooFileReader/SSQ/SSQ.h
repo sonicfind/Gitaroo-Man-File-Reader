@@ -27,10 +27,24 @@ class SSQ
 	, public Viewer
 {
 	unsigned long m_headerVersion;
+
+	// Possibly not the use of these values
 	float m_startFrame;
 	float m_endFrame;
+
+	// Could be these
+	unsigned int m_shadowVAO;
+	unsigned int m_shadowVBO;
+
 	float m_currFrame;
+
+	// Could possibly hold some 32bit IMX pointers
+	// Notably, one to a possible SHADOW.IMX texture
+	//
+	// Not applicable in the same way for a 64bit application
 	Val m_junk[4] = { 0 };
+	IMX* m_shadowPtr = nullptr;
+
 	std::vector<glm::mat4> m_modelMatrices;
 	std::vector<IMXEntry> m_IMXentries;
 	std::vector<XGEntry> m_XGentries;

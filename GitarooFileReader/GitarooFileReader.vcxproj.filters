@@ -106,6 +106,15 @@
     <Filter Include="Viewer\Shaders\Light Vectors">
       <UniqueIdentifier>{e788d96d-0292-46de-925b-c98546f15ad6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Visual-Based Types\SSQ\Sub Types\Environment Setups">
+      <UniqueIdentifier>{552f971a-40d9-4e4f-a97d-792dbf72b4fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Viewer\Shaders\Shadow">
+      <UniqueIdentifier>{cea680fe-a515-43c6-a6de-491ac8b66fef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Viewer\Shaders\Shadow\Vectors">
+      <UniqueIdentifier>{698a05e9-6af5-49f6-a435-47091396c967}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main\pch.cpp">
@@ -285,11 +294,11 @@
     <ClCompile Include="SSQ\Sub Types\UnkSprite_Setups.cpp">
       <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
     </ClCompile>
-    <ClCompile Include="SSQ\Sub Types\Light_Setup.cpp">
-      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
-    </ClCompile>
     <ClCompile Include="SSQ\Sub Types\Camera_Setup.cpp">
-      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+      <Filter>Visual-Based Types\SSQ\Sub Types\Environment Setups</Filter>
+    </ClCompile>
+    <ClCompile Include="SSQ\Sub Types\Light_Setup.cpp">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Environment Setups</Filter>
     </ClCompile>
     <ClCompile Include="SSQ\Sub Types\IMXEntry.cpp">
       <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
@@ -467,11 +476,11 @@
     <ClInclude Include="SSQ\Sub Types\UnkSprite_Setups.h">
       <Filter>Visual-Based Types\SSQ\Sub Types\Sprite Setups</Filter>
     </ClInclude>
-    <ClInclude Include="SSQ\Sub Types\Light_Setup.h">
-      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
-    </ClInclude>
     <ClInclude Include="SSQ\Sub Types\Camera_Setup.h">
-      <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
+      <Filter>Visual-Based Types\SSQ\Sub Types\Environment Setups</Filter>
+    </ClInclude>
+    <ClInclude Include="SSQ\Sub Types\Light_Setup.h">
+      <Filter>Visual-Based Types\SSQ\Sub Types\Environment Setups</Filter>
     </ClInclude>
     <ClInclude Include="SSQ\Sub Types\SSQ_BaseStructs.h">
       <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
@@ -535,9 +544,6 @@
     <Natvis Include="Main\SharedPtr.natvis">
       <Filter>Global</Filter>
     </Natvis>
-    <Natvis Include="SSQ\Sub Types\Model_Setup.natvis">
-      <Filter>Visual-Based Types\SSQ\Sub Types\Model Setups</Filter>
-    </Natvis>
     <Natvis Include="XG\glm.natvis">
       <Filter>Visual-Based Types\XG</Filter>
     </Natvis>
@@ -590,6 +596,24 @@
     </None>
     <None Include="Viewer\Shaders\light.vert">
       <Filter>Viewer\Shaders\Light Vectors</Filter>
+    </None>
+    <None Include="Viewer\Shaders\shadow.frag">
+      <Filter>Viewer\Shaders\Shadow</Filter>
+    </None>
+    <None Include="Viewer\Shaders\shadow.geo">
+      <Filter>Viewer\Shaders\Shadow</Filter>
+    </None>
+    <None Include="Viewer\Shaders\shadow.vert">
+      <Filter>Viewer\Shaders\Shadow</Filter>
+    </None>
+    <None Include="Viewer\Shaders\shadow - vectors.frag">
+      <Filter>Viewer\Shaders\Shadow\Vectors</Filter>
+    </None>
+    <None Include="Viewer\Shaders\shadow - vectors.geo">
+      <Filter>Viewer\Shaders\Shadow\Vectors</Filter>
+    </None>
+    <None Include="Viewer\Shaders\shadow - vectors.vert">
+      <Filter>Viewer\Shaders\Shadow\Vectors</Filter>
     </None>
   </ItemGroup>
 </Project>

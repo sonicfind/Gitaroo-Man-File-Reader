@@ -183,6 +183,26 @@ void SSQ::initialize(const char* windowName)
 		if (!m_XGentries[i].m_isClone)
 			m_XGentries[i].m_xg->initializeViewerState();
 
+	if (m_shadowPtr)
+	{
+		m_shadowPtr->m_data->generateTexture();
+		glGenBuffers(1, &m_shadowVBO);
+		glGenVertexArrays(1, &m_shadowVAO);
+		glBindVertexArray(m_shadowVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_shadowVBO);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(4 * sizeof(float)));
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(8 * sizeof(float)));
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(12 * sizeof(float)));
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+		glEnableVertexAttribArray(3);
+
+		glBufferData(GL_ARRAY_BUFFER, m_modelMatrices.size() * sizeof(glm::mat4), NULL, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
 	m_camera.generateBuffers(s_aspectRatio);
 	for (auto& texAnim : m_texAnimations)
 		texAnim.loadCuts();
@@ -192,6 +212,11 @@ void SSQ::initialize(const char* windowName)
 
 void SSQ::uninitialize()
 {
+	glDeleteBuffers(1, &m_shadowVBO);
+	glDeleteVertexArrays(1, &m_shadowVAO);
+	m_shadowVBO = 0;
+	m_shadowVAO = 0;
+
 	for (auto& entry : m_XGentries)
 		entry.m_dropShadow = false;
 
@@ -205,6 +230,9 @@ void SSQ::uninitialize()
 	for (size_t i = 0; i < m_modelSetups.size(); ++i)
 		if (!m_XGentries[i].m_isClone)
 			m_XGentries[i].m_xg->uninitializeViewerState();
+
+	if (m_shadowPtr)
+		m_shadowPtr->m_data->deleteTexture();
 
 	m_camera.deleteBuffers();
 	for (auto& texAnim : m_texAnimations)
@@ -620,6 +648,12 @@ void SSQ::update(float delta)
 			m_modelMatrices[i] = result.second;
 		}
 
+		if (m_shadowPtr)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, m_shadowVBO);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, m_modelMatrices.size() * sizeof(glm::mat4), m_modelMatrices.data());
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
 
 		for (auto& texAnim : m_texAnimations)
 			texAnim.substitute(m_currFrame);
@@ -665,8 +699,30 @@ void SSQ::draw(const bool doTransparents)
 		if (!m_XGentries[i].m_isClone && m_XGentries[i].m_xg->getInstanceCount())
 			m_XGentries[i].m_xg->draw(m_viewerControls->showNormals && !doTransparents, doTransparents);
 
-	// Temporary solution for blending
-	// Full solution will require figuring out how it decides if a sprite a blends or not
+	if (m_shadowPtr &&
+		(doTransparents || m_viewerControls->showNormals))
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, m_shadowVBO);
+		glBindVertexArray(m_shadowVAO);
+
+		if (!doTransparents)
+			g_shaderList.m_shadowShaders.m_normals.use();
+		else
+		{
+			g_shaderList.m_shadowShaders.m_base.use();
+			glActiveTexture(GL_TEXTURE0);
+			m_shadowPtr->m_data->bindTexture();
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+		}
+
+		for (size_t i = 0; i < m_XGentries.size(); ++i)
+			if (m_XGentries[i].m_dropShadow)
+				glDrawArrays(GL_POINTS, i, 1);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+
 	if (m_sprites.hasSprites())
 	{
 		static const std::string textures[] =

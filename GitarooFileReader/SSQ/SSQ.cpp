@@ -33,6 +33,8 @@ SSQ::SSQ() : FileType(".SSQ") {}
 
 SSQ::SSQ(std::string filename, bool unused)
 	: FileType(filename, ".SSQ")
+	, m_shadowVAO(0)
+	, m_shadowVBO(0)
 {
 	char tmp[5] = { 0 };
 	// Block Tag
@@ -142,6 +144,8 @@ bool SSQ::loadXGM()
 	for (auto& entry : m_XGentries)
 		if (!entry.m_isClone)
 			entry.m_xg = m_xgm->getModel(entry.m_name);
+
+	m_shadowPtr = m_xgm->getTexture("SHADOW.IMX");
 
 	for (auto& texAnim : m_texAnimations)
 		texAnim.connectTexture(m_xgm->getTexture(texAnim.getTextureName()));

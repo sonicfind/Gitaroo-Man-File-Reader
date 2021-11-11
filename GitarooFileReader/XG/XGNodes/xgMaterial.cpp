@@ -121,7 +121,7 @@ void xgMaterial::write_to_txt(FILE* txtFile, const char* tabs) const
 	case 4:
 		fprintf_s(txtFile, "\t\t\t%s    Blend Type: Unknown\n", tabs); break;
 	case 5:
-		fprintf_s(txtFile, "\t\t\t%s    Blend Type: Opaque (+Tex Alpha)\n", tabs); break;
+		fprintf_s(txtFile, "\t\t\t%s    Blend Type: Opaque (+Use Diffuse Alpha)\n", tabs); break;
 	default:
 		fprintf_s(txtFile, "\t\t\t%s    Blend Type: Opaque\n", tabs);
 	}

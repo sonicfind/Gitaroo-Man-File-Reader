@@ -115,6 +115,9 @@
     <Filter Include="Viewer\Shaders\Shadow\Vectors">
       <UniqueIdentifier>{698a05e9-6af5-49f6-a435-47091396c967}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Viewer\Shaders\Sky">
+      <UniqueIdentifier>{767365ad-a8a7-4ea5-8aed-227d25ab767a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main\pch.cpp">
@@ -306,7 +309,7 @@
     <ClCompile Include="SSQ\Sub Types\XGEntry.cpp">
       <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
     </ClCompile>
-	<ClCompile Include="SSQ\GameState.cpp">
+    <ClCompile Include="SSQ\GameState.cpp">
       <Filter>Visual-Based Types\SSQ\Sub Types</Filter>
     </ClCompile>
     <ClCompile Include="Viewer\Viewer.cpp">
@@ -614,6 +617,15 @@
     </None>
     <None Include="Viewer\Shaders\shadow - vectors.vert">
       <Filter>Viewer\Shaders\Shadow\Vectors</Filter>
+    </None>
+    <None Include="Viewer\Shaders\sky.frag">
+      <Filter>Viewer\Shaders\Sky</Filter>
+    </None>
+    <None Include="Viewer\Shaders\sky.geo">
+      <Filter>Viewer\Shaders\Sky</Filter>
+    </None>
+    <None Include="Viewer\Shaders\sky.vert">
+      <Filter>Viewer\Shaders\Sky</Filter>
     </None>
   </ItemGroup>
 </Project>

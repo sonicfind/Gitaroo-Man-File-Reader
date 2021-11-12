@@ -36,6 +36,10 @@ class SSQ
 	unsigned int m_shadowVAO;
 	unsigned int m_shadowVBO;
 
+	// Extra values for *special* use
+	unsigned int m_skyVAO;
+	unsigned int m_skyVBO;
+
 	float m_currFrame;
 
 	// Could possibly hold some 32bit IMX pointers
@@ -44,6 +48,7 @@ class SSQ
 	// Not applicable in the same way for a 64bit application
 	Val m_junk[4] = { 0 };
 	IMX* m_shadowPtr = nullptr;
+	IMX* m_skyPtr = nullptr;
 
 	std::vector<glm::mat4> m_modelMatrices;
 	std::vector<IMXEntry> m_IMXentries;
@@ -55,6 +60,7 @@ class SSQ
 	PSetup m_pSetup;
 
 	std::unique_ptr<XGM> m_xgm;
+	bool m_doSkyBackground = false;
 
 	struct ViewerControls_SSQ : public ViewerControls
 	{

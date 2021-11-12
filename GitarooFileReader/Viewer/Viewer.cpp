@@ -190,6 +190,7 @@ void SSQ::initialize(const char* windowName)
 		glGenVertexArrays(1, &m_shadowVAO);
 		glBindVertexArray(m_shadowVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, m_shadowVBO);
+
 		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
 		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(4 * sizeof(float)));
 		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(8 * sizeof(float)));
@@ -200,6 +201,21 @@ void SSQ::initialize(const char* windowName)
 		glEnableVertexAttribArray(3);
 
 		glBufferData(GL_ARRAY_BUFFER, m_modelMatrices.size() * sizeof(glm::mat4), NULL, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
+	if (m_skyPtr)
+	{
+		m_skyPtr->m_data->generateTexture();
+		glGenBuffers(1, &m_skyVBO);
+		glGenVertexArrays(1, &m_skyVAO);
+		glBindVertexArray(m_skyVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_skyVBO);
+
+		glVertexAttribIPointer(0, 2, GL_UNSIGNED_INT, sizeof(glm::ivec2), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::ivec2), glm::value_ptr(glm::ivec2(s_screenWidth, s_screenHeight)), GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
@@ -217,6 +233,11 @@ void SSQ::uninitialize()
 	m_shadowVBO = 0;
 	m_shadowVAO = 0;
 
+	glDeleteBuffers(1, &m_skyVBO);
+	glDeleteVertexArrays(1, &m_skyVAO);
+	m_skyVBO = 0;
+	m_skyVAO = 0;
+
 	for (auto& entry : m_XGentries)
 		entry.m_dropShadow = false;
 
@@ -233,6 +254,9 @@ void SSQ::uninitialize()
 
 	if (m_shadowPtr)
 		m_shadowPtr->m_data->deleteTexture();
+
+	if (m_skyPtr)
+		m_skyPtr->m_data->deleteTexture();
 
 	m_camera.deleteBuffers();
 	for (auto& texAnim : m_texAnimations)
@@ -703,13 +727,40 @@ void SSQ::update(float delta)
 
 void SSQ::drawOpaques()
 {
-	// Clear color and depth buffers
-	const glm::vec3 color = m_camera.getClearColor(m_currFrame);
-	glClearColor(color.r, color.g, color.b, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (InputHandling::g_input_keyboard.KEY_K.isPressed())
+		m_doSkyBackground = !m_doSkyBackground;
+
+	glDisable(GL_BLEND);
+	// Draw the sky as the background
+	if (m_skyPtr && m_doSkyBackground)
+	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glDisable(GL_DEPTH_TEST);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_skyVBO);
+		glBindVertexArray(m_skyVAO);
+
+		g_shaderList.m_skyShader.use();
+
+		glActiveTexture(GL_TEXTURE0);
+		m_skyPtr->m_data->bindTexture();
+		glDrawArrays(GL_POINTS, 0, 1);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+
+		glEnable(GL_DEPTH_TEST);
+	}
+	// Use a flat color as the background
+	else
+	{
+		const glm::vec3 color = m_camera.getClearColor(m_currFrame);
+		glClearColor(color.r, color.g, color.b, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 
 	// Draw opaque meshes
-	glDisable(GL_BLEND);
 	draw(false);
 }
 

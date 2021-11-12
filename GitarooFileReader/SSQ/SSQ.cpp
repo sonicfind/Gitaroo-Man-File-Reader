@@ -151,6 +151,7 @@ bool SSQ::loadXGM()
 			m_modelSetups[i]->bindXG(m_XGentries[m_XGentries[i].m_cloneID].m_xg);
 
 	m_shadowPtr = m_xgm->getTexture("SHADOW.IMX");
+	m_skyPtr = m_xgm->getTexture("ST02SKY.IMX");
 
 	for (auto& texAnim : m_texAnimations)
 		texAnim.connectTexture(m_xgm->getTexture(texAnim.getTextureName()));
@@ -218,8 +219,10 @@ bool SSQ::viewSequence()
 		printf_tab("H - Change viewer resolution, Height: %u\n", s_screenHeight);
 		printf_tab("S - Change Starting Frame: %g\n", m_startFrame);
 		printf_tab("E - Change Ending Frame: %g\n", m_endFrame);
+		if (m_skyPtr)
+			printf_tab("K - Toggle Sky Background: %s\n", m_doSkyBackground ? "TRUE" : "FALSE");
 		printf_tab("? - Show list of controls\n");
-		switch (menuChoices("vbahse"))
+		switch (menuChoices("vbahsek"))
 		{
 		case ResultType::Help:
 			printf_tab("\n");
@@ -228,6 +231,8 @@ bool SSQ::viewSequence()
 			printf_tab("N - Toggle displaying vertex normal vectors\n");
 			printf_tab("F - Toggle FreeCam movement\n");
 			printf_tab("U - Toggle Shading\n");
+			if (m_skyPtr)
+				printf_tab("K - Toggle Sky Background\n");
 			printf_tab("ESC - exit\n");
 			printf_tab("\n");
 
@@ -280,6 +285,9 @@ bool SSQ::viewSequence()
 			case 'e':
 				if (changeEndFrame())
 					return true;
+				break;
+			case 'k':
+				m_doSkyBackground = !m_doSkyBackground;
 			}
 		}
 	}

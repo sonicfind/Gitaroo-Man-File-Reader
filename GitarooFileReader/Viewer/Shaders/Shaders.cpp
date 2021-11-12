@@ -394,6 +394,7 @@ void ShaderList::createPrograms()
 	m_spriteShaders.createPrograms(sprite_vert, sprite_geo, sprite_frag, sprite_vectors_vert, sprite_vectors_geo, sprite_vectors_frag);
 	m_shadowShaders.createPrograms(shadow_vert, shadow_geo, shadow_frag, shadow_vectors_vert, shadow_vectors_geo, shadow_vectors_frag);
 	m_lightShader.createProgram(light_vert, light_geo, light_frag);
+	m_skyShader.createProgram(sky_vert, sky_geo, sky_frag);
 }
 
 void ShaderList::closePrograms()
@@ -403,6 +404,7 @@ void ShaderList::closePrograms()
 	m_spriteShaders.closePrograms();
 	m_shadowShaders.closePrograms();
 	m_lightShader.closeProgram();
+	m_skyShader.closeProgram();
 }
 
 void ShaderList::bindUniformBlock(unsigned int bufferIndex, const char* const blockName)

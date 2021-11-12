@@ -364,6 +364,9 @@
     <None Include="Viewer\Shaders\shadow.frag" />
     <None Include="Viewer\Shaders\shadow.geo" />
     <None Include="Viewer\Shaders\shadow.vert" />
+    <None Include="Viewer\Shaders\sky.frag" />
+    <None Include="Viewer\Shaders\sky.geo" />
+    <None Include="Viewer\Shaders\sky.vert" />
     <None Include="Viewer\Shaders\sprite - vectors.frag" />
     <None Include="Viewer\Shaders\sprite - vectors.geo" />
     <None Include="Viewer\Shaders\sprite - vectors.vert" />

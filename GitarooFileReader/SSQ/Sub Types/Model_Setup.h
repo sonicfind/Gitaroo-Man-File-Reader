@@ -120,11 +120,10 @@ class PlayerModelSetup : public ModelSetup
 
 	std::vector<Connection> m_connections;
 
-	std::vector<long> m_endings;
+	std::vector<long> m_defaults;
 
 public:
 	PlayerModelSetup(FILE* inFile, ModelType type, glm::mat4& mat);
-	bool checkInterruptible(const float frame);
 	void create(FILE* outFile) const;
 
 private:

@@ -39,9 +39,9 @@ PlayerModelSetup::PlayerModelSetup(FILE* inFile, ModelType type, glm::mat4& mat)
 			}
 		}
 
-		m_endings.reserve(m_numControllables);
-		m_endings.resize(m_numControllables);
-		fread(m_endings.data(), 4, m_numControllables, inFile);
+		m_defaults.reserve(m_numControllables);
+		m_defaults.resize(m_numControllables);
+		fread(m_defaults.data(), 4, m_numControllables, inFile);
 	}
 }
 
@@ -60,7 +60,7 @@ void PlayerModelSetup::create(FILE* outFile) const
 				fwrite(set.controllableList.data(), 4, set.size, outFile);
 		}
 
-		fwrite(m_endings.data(), 4, m_numControllables, outFile);
+		fwrite(m_defaults.data(), 4, m_numControllables, outFile);
 	}
 }
 
@@ -74,15 +74,51 @@ void PlayerModelSetup::animateFromGameState(const float frame)
 			current->angleMax == 3.14159298f))
 		length += m_xg->getAnimationLength(12);
 
-	while (!current->interruptible && frame >= length + m_controllableStartFrame)
+	const auto player = g_gameState.getPlayerState(static_cast<int>(m_type) - 1);
+	while (current->interruptible || frame >= length + m_controllableStartFrame)
 	{
-		m_controllableIndex = m_endings[m_controllableIndex];
-		current = &m_controllables[m_controllableIndex];
+		long index = -1;
+		bool connected = current->randomize;
+		if (!connected)
+		{
+			for (const auto& connection : m_connections[m_controllableIndex].controllableList)
+			{
+				const auto& compare = m_controllables[connection];
+				if (compare.angleMin <= player.getAngle() &&
+					player.getAngle() < compare.angleMax &&
+					player.getDescriptor() == compare.descriptor &&
+					player.getEvent() <= compare.eventFlag)
+				{
+					if (player.getEvent() == compare.eventFlag ||
+						(player.getEvent() != 0 &&
+							(index == -1 || compare.eventFlag < m_controllables[index].eventFlag)))
+					{
+						connected = true;
+						index = connection;
+						if (player.getEvent() == compare.eventFlag)
+							break;
+					}
+				}
+			}
 
-		if (!current->interruptible)
+			if (!connected)
+			{
+				index = m_defaults[m_controllableIndex];
+				if (index == -1)
+					break;
+			}
+		}
+		else
+			index = m_connections[m_controllableIndex].controllableList[rand() % m_connections[m_controllableIndex].size];
+
+		m_controllableIndex = index;
+		if (!current->interruptible && !m_controllables[m_controllableIndex].interruptible)
 			m_controllableStartFrame = length + m_controllableStartFrame;
+		else if (current->interruptible && !m_controllables[m_controllableIndex].interruptible)
+			m_controllableStartFrame = frame;
 		else
 			m_controllableStartFrame = m_bpmStartFrame;
+		current = &m_controllables[m_controllableIndex];
 
 		length = m_xg->getAnimationLength(current->animIndex) + current->holdTime;
 		if (current->eventFlag == 64 ||
@@ -90,10 +126,10 @@ void PlayerModelSetup::animateFromGameState(const float frame)
 				current->angleMin == -3.14159298f &&
 				current->angleMax == 3.14159298f))
 			length += m_xg->getAnimationLength(12);
-	}
 
-	while (current->interruptible && !checkInterruptible(frame))
-		current = &m_controllables[m_controllableIndex];
+		if (!connected && current->interruptible)
+			break;
+	}
 	
 	const float delta = frame - m_controllableStartFrame;
 	if (length > m_xg->getAnimationLength(current->animIndex) + current->holdTime)
@@ -108,40 +144,4 @@ void PlayerModelSetup::animateFromGameState(const float frame)
 	}
 	else
 		m_xg->animate(fmod(delta, length), current->animIndex, m_matrix, current->playbackDirection);
-}
-
-bool PlayerModelSetup::checkInterruptible(const float frame)
-{
-	if (m_controllables[m_controllableIndex].randomize != 1)
-	{
-		const auto player = g_gameState.getPlayerState(static_cast<int>(m_type) - 1);
-		for (const auto& connection : m_connections[m_controllableIndex].controllableList)
-		{
-			if (m_controllables[connection].angleMin <= player.getAngle() &&
-				player.getAngle() < m_controllables[connection].angleMax &&
-				player.getEvent() == m_controllables[connection].eventFlag &&
-				player.getDescriptor() == m_controllables[connection].descriptor)
-			{
-				m_controllableIndex = connection;
-
-				// Has to be in this order
-				if (!m_controllables[m_controllableIndex].interruptible)
-					m_controllableStartFrame = frame;
-				else
-					checkInterruptible(frame);
-				return true;
-			}
-		}
-
-		if (m_endings[m_controllableIndex] != -1)
-		{
-			m_controllableIndex = m_endings[m_controllableIndex];
-			if (!m_controllables[m_controllableIndex].interruptible)
-				m_controllableStartFrame = frame;
-			return false;
-		}
-	}
-	else
-		m_controllableIndex = m_connections[m_controllableIndex].controllableList[rand() % m_connections[m_controllableIndex].size];
-	return true;
 }

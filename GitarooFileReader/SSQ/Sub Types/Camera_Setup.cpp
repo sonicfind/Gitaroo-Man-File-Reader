@@ -171,7 +171,7 @@ glm::vec3 CameraSetup::getClearColor(const float frame) const
 	return m_baseGlobalValues.clearColor;
 }
 
-glm::mat4 CameraSetup::getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const
+glm::mat4 CameraSetup::getProjectionMatrix(const float frame) const
 {
 	if (m_projections.empty())
 		return glm::perspective(glm::radians(m_baseGlobalValues.fov),

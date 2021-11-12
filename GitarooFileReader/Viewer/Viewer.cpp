@@ -692,7 +692,7 @@ void SSQ::update(float delta)
 	if (!controls->hasFreeMovement)
 	{
 		m_view = m_camera.getViewMatrix(m_currFrame);
-		m_projection = m_camera.getProjectionMatrix(m_currFrame, s_screenWidth, s_screenHeight);
+		m_projection = m_camera.getProjectionMatrix(m_currFrame);
 	}
 	else
 	{

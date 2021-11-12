@@ -101,7 +101,7 @@ public:
 	void generateBuffers(float aspectRatio);
 	void deleteBuffers();
 	glm::vec3 getClearColor(const float frame) const;
-	glm::mat4 getProjectionMatrix(const float frame, unsigned int width, unsigned int height) const;
+	glm::mat4 getProjectionMatrix(const float frame) const;
 	glm::mat4 getViewMatrix(const float frame) const;
 	glm::vec3 getAmbientColor(const float frame) const;
 	void setLights(const float frame, const unsigned int doLights);

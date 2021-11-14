@@ -687,16 +687,10 @@ void SSQ::update(float delta)
 	{
 		for (size_t i = 0; i < m_modelSetups.size(); ++i)
 		{
-			auto& entry = m_XGentries[i];
-			XG* xg;
-			if (!entry.m_isClone)
-			{
-				xg = entry.m_xg;
-				xg->resetInstanceCount();
-			}
-			else
-				xg = m_XGentries[entry.m_cloneID].m_xg;
+			if (!m_XGentries[i].m_isClone)
+				m_XGentries[i].m_xg->resetInstanceCount();
 
+			m_modelSetups[i]->updateMatrix(m_currFrame);
 			m_XGentries[i].m_dropShadow = m_modelSetups[i]->animate(m_currFrame);
 		}
 

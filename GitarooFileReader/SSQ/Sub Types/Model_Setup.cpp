@@ -170,7 +170,6 @@ void ModelSetup::updateMatrix(const float frame) const
 bool ModelSetup::animate(const float frame)
 {
 	bool doShadow = false;
-	updateMatrix(frame);
 	if (!m_animations.empty())
 	{
 		auto iter = getIter(m_animations, frame);

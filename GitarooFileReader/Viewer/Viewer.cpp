@@ -150,16 +150,121 @@ void XGM::initialize(const char* windowName)
 	glfwSetCursorPosCallback(m_window, InputHandling::mouse_callback);
 	glfwSetScrollCallback(m_window, InputHandling::scroll_callback);
 
-	for (auto& model : ((ViewerControls_XGM*)m_viewerControls.get())->m_models)
-		m_models[model.modelIndex].initializeViewerState();
+	for (auto& model : ((ViewerControls_XGM*)m_viewerControls)->m_models)
+		model.init();
 }
 
 void XGM::uninitialize()
 {
-	for (auto& model : ((ViewerControls_XGM*)m_viewerControls.get())->m_models)
-		m_models[model.modelIndex].uninitializeViewerState();
+	delete (ViewerControls_XGM*)m_viewerControls;
 	glDeleteBuffers(1, &m_lightUBO);
 	Viewer::uninitialize();
+}
+
+XGM::ViewerControls_XGM::ModelInfo::ModelInfo(XG* model)
+	: m_model(model)
+	, m_animIndex(0)
+	, m_length(m_model->getAnimationLength(m_animIndex))
+	, m_frame(0) {}
+
+XGM::ViewerControls_XGM::ModelInfo::~ModelInfo()
+{
+	m_model->uninitializeViewerState();
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::init()
+{
+	m_model->initializeViewerState();
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::update(float delta, bool loop)
+{
+	if (m_length > 0)
+	{
+		m_frame += delta;
+		while (m_frame >= m_length)
+		{
+			m_frame -= m_length;
+			if (m_model->m_animations.size() != 1)
+			{
+				if (loop)
+					GlobalFunctions::printf_tab("%s - Loop\n", m_model->getName());
+				else
+					nextAnim(false);
+			}
+		}
+	}
+
+	m_model->resetInstanceCount();
+	m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>());
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::draw(bool showNormals, bool doTransparents) const
+{
+	m_model->draw(showNormals, doTransparents);
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::animReset()
+{
+	m_frame = 0;
+	m_model->resetInstanceCount();
+	m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>());
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::nextAnim(bool animate)
+{
+	if (m_animIndex < m_model->m_animations.size() - 1)
+		++m_animIndex;
+	else
+		m_animIndex = 0;
+	animChanged(animate);
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::prevAnim()
+{
+	if (m_animIndex > 0)
+		--m_animIndex;
+	else
+		m_animIndex = m_model->m_animations.size() - 1;
+	animChanged(true);
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::animChanged(bool animate)
+{
+	m_frame = 0;
+	m_length = m_model->getAnimationLength(m_animIndex);
+
+	if (animate)
+	{
+		m_model->resetInstanceCount();
+		m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>());
+	}
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::fullReset()
+{
+	m_frame = 0;
+	m_animIndex = 0;
+	m_length = m_model->getAnimationLength(0);
+
+	m_model->resetInstanceCount();
+	m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>());
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::restPose()
+{
+	m_model->restPose();
+}
+
+void XGM::ViewerControls_XGM::ModelInfo::swap(XG* model)
+{
+	m_model->uninitializeViewerState();
+	m_model = model;
+	m_model->initializeViewerState();
+
+	m_frame = 0;
+	m_animIndex = 0;
+	m_length = m_model->getAnimationLength(0);
 }
 
 void SSQ::initialize(const char* windowName)
@@ -264,6 +369,8 @@ void SSQ::uninitialize()
 
 	m_sprites.deleteSpriteBuffers();
 	g_gameState.reset();
+
+	delete (ViewerControls_SSQ*)m_viewerControls;
 	Viewer::uninitialize();
 }
 
@@ -403,7 +510,7 @@ void Viewer::drawLights()
 
 void XGM::update(float delta)
 {
-	ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls.get();
+	ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls;
 	if (InputHandling::g_input_keyboard.KEY_M.isPressed())
 	{
 		controls->isMouseActive = !controls->isMouseActive;
@@ -441,37 +548,32 @@ void XGM::update(float delta)
 		{
 			if (InputHandling::g_input_keyboard.KEY_PERIOD.isTicked() || InputHandling::g_input_keyboard.KEY_COMMA.isTicked())
 			{
-				auto& model = controls->m_models.front();
-				m_models[model.modelIndex].uninitializeViewerState();
 				if (InputHandling::g_input_keyboard.KEY_PERIOD.isTicked())
 				{
-					if (model.modelIndex < m_models.size() - 1)
-						++model.modelIndex;
+					if (controls->modelIndex < m_models.size() - 1)
+						++controls->modelIndex;
 					else
-						model.modelIndex = 0;
+						controls->modelIndex = 0;
 				}
 				else
 				{
-					if (model.modelIndex > 0)
-						--model.modelIndex;
+					if (controls->modelIndex > 0)
+						--controls->modelIndex;
 					else
-						model.modelIndex = m_models.size() - 1;
+						controls->modelIndex = m_models.size() - 1;
 				}
-				m_models[model.modelIndex].initializeViewerState();
-
-				if (controls->animate && !InputHandling::g_input_keyboard.KEY_O.isPressed())
-				{
-					model.frame = 0;
-					model.animIndex = 0;
-					model.length = m_models[model.modelIndex].getAnimationLength(0);
-				}
-				else
-					m_models[model.modelIndex].restPose();
-				glfwSetWindowTitle(m_window, m_models[model.modelIndex].getName());
+				
+				controls->m_models.front().swap(&m_models[controls->modelIndex]);
+				if (!controls->animate)
+					controls->m_models.front().restPose();
 			}
 			delta = 0;
 		}
 	}
+	delta *= 30;
+
+	if (InputHandling::g_input_keyboard.KEY_P.isPressed())
+		controls->isPaused = !controls->isPaused;
 
 	// Toggling whether to play animations
 	if (InputHandling::g_input_keyboard.KEY_O.isPressed())
@@ -479,25 +581,19 @@ void XGM::update(float delta)
 		controls->animate = !controls->animate;
 
 		if (!controls->animate)
-			for (auto& model : controls->m_models)
-				m_models[model.modelIndex].restPose();
-		else
 		{
 			for (auto& model : controls->m_models)
-			{
-				model.frame = 0;
-				model.animIndex = 0;
-				model.length = m_models[model.modelIndex].getAnimationLength(0);
-				controls->isPaused = false;
-			}
+				model.restPose();
+		}
+		else
+		{
+			controls->isPaused = false;
+			for (auto& model : controls->m_models)
+				model.fullReset();
 		}
 	}
-
-	if (controls->animate)
+	else if (controls->animate)
 	{
-		if (InputHandling::g_input_keyboard.KEY_P.isPressed())
-			controls->isPaused = !controls->isPaused;
-
 		if (InputHandling::g_input_keyboard.KEY_L.isPressed())
 			controls->loop = !controls->loop;
 
@@ -505,68 +601,29 @@ void XGM::update(float delta)
 		{
 			if (InputHandling::g_input_keyboard.KEY_R.isActive())
 			{
-				model.frame = 0;
 				// Reset current animation
 				if (InputHandling::g_input_keyboard.KEY_R.isHeld())
-				{
-					model.animIndex = 0;
-					model.length = m_models[model.modelIndex].getAnimationLength(model.animIndex);
-				}
+					model.fullReset();
+				else if (InputHandling::g_input_keyboard.KEY_R.isPressed())
+					model.animReset();
 			}
 			else if (InputHandling::g_input_keyboard.KEY_RIGHT.isActive() || InputHandling::g_input_keyboard.KEY_LEFT.isActive())
 			{
-				model.frame = 0;
 				// Skip to the next animation
 				if (InputHandling::g_input_keyboard.KEY_RIGHT.isTicked())
-				{
-					if (model.animIndex < m_models[model.modelIndex].m_animations.size() - 1)
-						++model.animIndex;
-					else
-						model.animIndex = 0;
-					GlobalFunctions::printf_tab("%s - Anim: %zu\n", m_models[model.modelIndex].getName(), model.animIndex);
-				}
+					model.nextAnim(true);
 				else if (InputHandling::g_input_keyboard.KEY_LEFT.isTicked())
-				{
-					if (model.animIndex > 0)
-						--model.animIndex;
-					else
-						model.animIndex = m_models[model.modelIndex].m_animations.size() - 1;
-					GlobalFunctions::printf_tab("%s - Anim: %zu\n", m_models[model.modelIndex].getName(), model.animIndex);
-				}
-
-				model.length = m_models[model.modelIndex].getAnimationLength(model.animIndex);
+					model.prevAnim();
 			}
 			else if (!controls->isPaused)
-				model.frame += 30 * delta;
-
-			if (model.length > 0)
-			{
-				while (model.frame >= model.length)
-				{
-					model.frame -= model.length;
-					if (controls->loop)
-						GlobalFunctions::printf_tab("%s - Loop\n", m_models[model.modelIndex].getName());
-					else
-					{
-						if (model.animIndex < m_models[model.modelIndex].m_animations.size() - 1)
-							++model.animIndex;
-						else
-							model.animIndex = 0;
-						GlobalFunctions::printf_tab("%s - Anim: %zu\n", m_models[model.modelIndex].getName(), model.animIndex);
-						model.length = m_models[model.modelIndex].getAnimationLength(model.animIndex);
-					}
-				}
-			}
-
-			m_models[model.modelIndex].resetInstanceCount();
-			m_models[model.modelIndex].animate(model.frame, model.animIndex, glm::identity<glm::mat4>());
+				model.update(delta, controls->loop);
 		}
 	}
 }
 
 void XGM::drawOpaques()
 {
-	const ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls.get();
+	const ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls;
 	// Clear color and depth buffers
 	glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -575,23 +632,23 @@ void XGM::drawOpaques()
 	glDisable(GL_BLEND);
 	// Draw opaque meshes
 	for (auto& model : controls->m_models)
-		m_models[model.modelIndex].draw(controls->showNormals, false, controls->animate);
+		model.draw(controls->showNormals, false);
 }
 
 void XGM::drawTranparents()
 {
-	const ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls.get();
+	const ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls;
 	// Enable color blending
 	glEnable(GL_BLEND);
 	// Draw transparent meshes
 	// Does not draw normals
 	for (auto& model : controls->m_models)
-		m_models[model.modelIndex].draw(false, true, controls->animate);
+		model.draw(false, true);
 }
 
 void SSQ::update(float delta)
 {
-	ViewerControls_SSQ* controls = (ViewerControls_SSQ*)m_viewerControls.get();
+	ViewerControls_SSQ* controls = (ViewerControls_SSQ*)m_viewerControls;
 	if (InputHandling::g_input_keyboard.KEY_F.isPressed())
 	{
 		controls->hasFreeMovement = !controls->hasFreeMovement;

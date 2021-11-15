@@ -263,7 +263,7 @@ bool SSQ::viewSequence()
 			switch (g_global.answer.character)
 			{
 			case 'v':
-				m_viewerControls.reset(new ViewerControls_SSQ());
+				m_viewerControls = new ViewerControls_SSQ;
 				srand(unsigned int(time(0)));
 				startDisplay(m_filename.c_str());
 				break;

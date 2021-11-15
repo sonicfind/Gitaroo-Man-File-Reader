@@ -30,24 +30,41 @@ class XGM
 	{
 		bool animate = true;
 		bool loop = false;
+		size_t modelIndex = 0;
 
-		struct ModelInfo
+		class ModelInfo
 		{
-			size_t modelIndex;
-			size_t animIndex = 0;
-			float length;
-			float frame = 0;
-			ModelInfo(size_t index, float length)
-				: modelIndex(index)
-				, length(length) {}
+			XG* m_model;
+			size_t m_animIndex;
+			float m_length;
+			float m_frame;
+
+		public:
+
+			ModelInfo(XG* model);
+			~ModelInfo();
+			void init();
+			void update(float delta, bool loop);
+			void draw(bool showNormals, bool doTransparents) const;
+			void animReset();
+			void nextAnim(bool animate);
+			void prevAnim();
+			void fullReset();
+			void restPose();
+			void swap(XG* model);
+			void changeTitle(GLFWwindow* window, bool animate, bool loop);
+		private:
+			void animChanged(bool animate);
+			
 		};
 		std::vector<ModelInfo> m_models;
 
-		ViewerControls_XGM(const std::vector<size_t>& indices, const std::vector<float>& lengths)
+		ViewerControls_XGM(const std::vector<XG*>& models, size_t index = 0)
 			: ViewerControls(true)
+			, modelIndex(index)
 		{
-			for (size_t i = 0; i < indices.size(); ++i)
-				m_models.emplace_back(indices[i], lengths[i]);
+			for (auto& model : models)
+				m_models.push_back(model);
 		}
 	};
 

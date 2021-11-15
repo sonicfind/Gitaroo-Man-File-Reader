@@ -388,15 +388,15 @@ bool XGM::viewModels()
 			break;
 		case ResultType::Success:
 		{
-			std::vector<float> lengths;
+			std::vector<XG*> models;
 			for (const auto& index : modelIndexes)
-				lengths.push_back(m_models[index].getAnimationLength(0));
+				models.push_back(&m_models[index]);
 
-			m_viewerControls.reset(new ViewerControls_XGM(modelIndexes, lengths));
+			m_viewerControls = new ViewerControls_XGM(models, modelIndexes.front());
 			if (modelIndexes.size() == 1)
 				startDisplay(m_models[modelIndexes.front()].getName());
 			else
-				startDisplay("Multi-XG Viewer");
+				startDisplay(m_filename.c_str());
 			modelIndexes.clear();
 		}
 		}

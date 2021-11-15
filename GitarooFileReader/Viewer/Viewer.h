@@ -44,7 +44,7 @@ protected:
 	glm::mat4 m_view;
 	glm::mat4 m_projection;
 
-	std::unique_ptr<ViewerControls> m_viewerControls;
+	ViewerControls* m_viewerControls;
 
 public:
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);

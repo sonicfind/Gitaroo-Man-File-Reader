@@ -38,5 +38,5 @@ public:
 	// Updates all data to the current frame
 	void animate(float frame, unsigned long instance, const glm::mat4 matrix);
 	// Draws all vertex data to the current framebuffer
-	void draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated = true) const;
+	void draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents) const;
 };

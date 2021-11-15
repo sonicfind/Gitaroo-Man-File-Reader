@@ -184,8 +184,8 @@ void XG_Data::animate(float frame, unsigned long instance, const glm::mat4 matri
 
 #include <glm/gtx/transform.hpp>
 // Draws all vertex data to the current framebuffer
-void XG_Data::draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents, const bool isAnimated) const
+void XG_Data::draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents) const
 {
 	for (const Dag& dag : m_dagMap)
-		dag.draw(numInstances, showNormals, doTransparents, isAnimated);
+		dag.draw(numInstances, showNormals, doTransparents);
 }

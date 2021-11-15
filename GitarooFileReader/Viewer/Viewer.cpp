@@ -452,8 +452,8 @@ int Viewer::startDisplay(const char* windowName)
 {
 	initialize(windowName);
 
-#ifdef _DEBUG
 	double lastFPSTime = glfwGetTime();
+#ifdef _DEBUG
 	int nbFrames = 0;
 #endif
 	float previousTime = (float)lastFPSTime;

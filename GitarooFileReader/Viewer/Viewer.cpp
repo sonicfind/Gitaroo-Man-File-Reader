@@ -135,15 +135,11 @@ void XGM::initialize(const char* windowName)
 	// Light Direction
 	glBufferSubData(GL_UNIFORM_BUFFER, 48, 12, glm::value_ptr(glm::vec3(1, 0, 0)));
 	// Light Diffuse
-	glBufferSubData(GL_UNIFORM_BUFFER, 64, 12, glm::value_ptr(glm::vec3(0)));
+	glBufferSubData(GL_UNIFORM_BUFFER, 64, 12, glm::value_ptr(glm::vec3(1)));
 	// Light Specular
 	glBufferSubData(GL_UNIFORM_BUFFER, 80, 12, glm::value_ptr(glm::vec3(.5)));
-	unsigned long min = 0;
-	glBufferSubData(GL_UNIFORM_BUFFER, 92, 4, &min);
 	float coeff = 1;
 	glBufferSubData(GL_UNIFORM_BUFFER, 96, 4, &coeff);
-	unsigned long max = 1;
-	glBufferSubData(GL_UNIFORM_BUFFER, 100, 4, &max);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

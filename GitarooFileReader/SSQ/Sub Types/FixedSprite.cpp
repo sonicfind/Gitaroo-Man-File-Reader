@@ -144,6 +144,7 @@ bool FixedSprite::update(const float frame, SpriteValues& values)
 		}
 	}
 
+	values.colorAlg = m_64bytes.colorAlgorithm_maybe;
 	if (m_64bytes.transparent)
 		values.blendType = m_64bytes.blendingType;
 	else

@@ -73,8 +73,10 @@ void FixedSpriteSetup::generateSpriteBuffer()
 	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(8 * sizeof(float)));
 	// Color multipliers
 	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(SpriteValues), (void*)(10 * sizeof(float)));
-	// Blend type
+	// Color Algorithm
 	glVertexAttribIPointer(6, 1, GL_UNSIGNED_INT, sizeof(SpriteValues), (void*)(14 * sizeof(float)));
+	// Blend type
+	glVertexAttribIPointer(7, 1, GL_UNSIGNED_INT, sizeof(SpriteValues), (void*)(15 * sizeof(uint32_t)));
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
@@ -83,6 +85,7 @@ void FixedSpriteSetup::generateSpriteBuffer()
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
 	glEnableVertexAttribArray(6);
+	glEnableVertexAttribArray(7);
 
 	glBufferData(GL_ARRAY_BUFFER, m_numSprites * sizeof(SpriteValues), NULL, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -110,8 +113,9 @@ void FixedSpriteSetup::update(const float frame)
 				m_80bytes[index].boxSize,
 				m_80bytes[index].worldSize,
 				glm::vec4(1),
+				2,
 				// Additive blending default
-				1
+				1,
 			};
 
 			if (m_fixedSprites[index].update(frame, vals))
@@ -139,13 +143,16 @@ void FixedSpriteSetup::draw(const bool doTransparents)
 	while (first < m_spritesToDraw.size())
 	{
 		const int blend = m_spritesToDraw[first].blendType;
+		const int alg = m_spritesToDraw[first].colorAlg;
 		bool tmp = blend > 0;
 		if (tmp == doTransparents)
 		{
 			size_t count = 1;
-			while (first + count < m_spritesToDraw.size() && blend == m_spritesToDraw[first + count].blendType)
+			while (first + count < m_spritesToDraw.size() &&
+				blend == m_spritesToDraw[first + count].blendType &&
+				alg == m_spritesToDraw[first + count].colorAlg)
 				++count;
-			drawSprite(blend, first, count);
+			drawSprite(first, count, blend, alg);
 			first += (unsigned long)count;
 		}
 		else
@@ -156,13 +163,16 @@ void FixedSpriteSetup::draw(const bool doTransparents)
 	for (unsigned long i = 0; i < m_depthlessDraws.size();)
 	{
 		const int blend = m_depthlessDraws[i].blendType;
+		const int alg = m_depthlessDraws[first].colorAlg;
 		bool tmp = blend > 0;
 		if (tmp == doTransparents)
 		{
 			size_t count = 1;
-			while (i + count < m_depthlessDraws.size() && blend == m_depthlessDraws[i + count].blendType)
+			while (i + count < m_depthlessDraws.size() &&
+				blend == m_depthlessDraws[i + count].blendType &&
+				alg == m_depthlessDraws[first + count].colorAlg)
 				++count;
-			drawSprite(blend, first + i, count);
+			drawSprite(first, count, blend, alg);
 			i += (unsigned long)count;
 		}
 		else
@@ -171,12 +181,15 @@ void FixedSpriteSetup::draw(const bool doTransparents)
 	glEnable(GL_DEPTH_TEST);
 }
 
-void FixedSpriteSetup::drawSprite(const unsigned long blend, const unsigned long first, const size_t count)
+void FixedSpriteSetup::drawSprite(const unsigned long first, const size_t count, const unsigned long blend, const unsigned long alg)
 {
 	switch (blend)
 	{
 	case 1:
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
+		if (alg == 1)
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+		else
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
 		break;
 	case 2:
 		glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);

@@ -22,6 +22,7 @@ struct SpriteValues
 	glm::vec2 texOffsets;
 	glm::vec2 worldSize;
 	glm::vec4 colorMultipliers;
+	unsigned int colorAlg;
 	unsigned int blendType;
 };
 
@@ -42,7 +43,7 @@ class FixedSprite
 		unsigned long ulong_d;
 		unsigned long transparent;
 		unsigned long ulong_f;
-		unsigned long ulong_g;
+		unsigned long colorAlgorithm_maybe;
 		unsigned long ulong_h;
 		unsigned long blendingType;
 		unsigned long mipmapDepth;

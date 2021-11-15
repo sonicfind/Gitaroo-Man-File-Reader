@@ -2,6 +2,7 @@ R"(#version 330 core
 flat in int fTextureIndex;
 in vec2 fTexCoord;
 in vec4 fColors;
+flat in int fColorAlg;
 flat in int fBlendType;
 
 out vec4 FragColor;
@@ -15,16 +16,17 @@ layout (std140) uniform SpriteSizes
 void main()
 {
 	vec4 texColor = texture(textures[fTextureIndex], fTexCoord / sizes[fTextureIndex]);
-	
-	// If true, then the image can be taken as an alpha map where
-	// all color channels are equal with the final color being pure white
-	if (texColor.a == 1)
+	if (fColorAlg == 0)
+		texColor.a = 1;
+	else if (fColorAlg == 1 && texColor.r == 0)
+		texColor.a = 0;
+	else if (fColorAlg == 2 && texColor.a == 1)
 	{
 		texColor.a = texColor.r;
 		texColor.rgb = vec3(1);
 	}
 	else
-	    texColor.a *= 2;
+		texColor.a *= 2;
 	
 	switch (fBlendType)
 	{

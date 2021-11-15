@@ -60,5 +60,5 @@ public:
 	void draw(const bool doTransparents);
 
 private:
-	void drawSprite(const unsigned long blend, const unsigned long first, const size_t count);
+	void drawSprite(const unsigned long first, const size_t count, const unsigned long blend, const unsigned long alg);
 };

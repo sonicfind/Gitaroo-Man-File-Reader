@@ -60,13 +60,13 @@ void main()
 {
 	const mat4 model = models[gl_InstanceID];
 	vec4 finalPos = vec4(0.0);
-	vec4 finalNorm = vec4(0.0);
+	vec4 finalNorm = vec4(aNorm.xyz, 0);//vec4(0.0);
 	
 	for (int i = 0; i < envelopes[aEnvelope].numBones; ++i)
 	{
 		mat4 weightedMatrix = aWeights[i] * envelopes[aEnvelope].bones[gl_InstanceID][i];
 		finalPos += weightedMatrix * vec4(aPos.xyz, 1);
-		finalNorm += weightedMatrix * vec4(aNorm.xyz, 0);
+		//finalNorm += weightedMatrix * vec4(aNorm.xyz, 0);
 	}
 	
 	// Position relative to the screen

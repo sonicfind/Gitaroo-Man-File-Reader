@@ -37,13 +37,13 @@ layout (std430) buffer Envelopes
 void main()
 {
 	vec4 finalPos = vec4(0.0);
-	vec4 finalNorm = vec4(0.0);
+	vec4 finalNorm = vec4(aNorm.xyz, 0);//vec4(0.0);
 	
 	for (int i = 0; i < envelopes[aEnvelope].numBones; ++i)
 	{
 		mat4 weightedMatrix = aWeights[i] * envelopes[aEnvelope].bones[gl_InstanceID][i];
 		finalPos += weightedMatrix * vec4(aPos.xyz, 1);
-		finalNorm += weightedMatrix * vec4(aNorm.xyz, 0);
+		//finalNorm += weightedMatrix * vec4(aNorm.xyz, 0);
 	}
 	
 	const mat4 combo = view * models[gl_InstanceID];

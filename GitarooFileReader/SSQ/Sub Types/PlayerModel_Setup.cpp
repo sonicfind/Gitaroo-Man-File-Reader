@@ -84,33 +84,24 @@ void PlayerModelSetup::animateFromGameState(const float frame)
 			for (const auto& connection : m_connections[m_controllableIndex].controllableList)
 			{
 				const auto& compare = m_controllables[connection];
-				if (compare.angleMin <= player.getAngle() &&
-					player.getAngle() < compare.angleMax &&
+				if (compare.angleMin <= player.getAngle() && player.getAngle() < compare.angleMax &&
 					player.getDescriptor() == compare.descriptor &&
-					player.getEvent() <= compare.eventFlag)
+					(player.getEvent() == compare.eventFlag || (player.getEvent() != 0 && (player.getEvent() & compare.eventFlag))))
 				{
-					if (player.getEvent() == compare.eventFlag ||
-						(player.getEvent() != 0 &&
-							(index == -1 || compare.eventFlag < m_controllables[index].eventFlag)))
-					{
-						connected = true;
-						index = connection;
-						if (player.getEvent() == compare.eventFlag)
-							break;
-					}
+					connected = true;
+					index = connection;
+					goto SetControllableValues;
 				}
 			}
 
-			if (!connected)
-			{
-				index = m_defaults[m_controllableIndex];
-				if (index == -1)
-					break;
-			}
+			index = m_defaults[m_controllableIndex];
+			if (index == -1)
+				break;
 		}
 		else
 			index = m_connections[m_controllableIndex].controllableList[rand() % m_connections[m_controllableIndex].size];
 
+	SetControllableValues:
 		m_controllableIndex = index;
 		if (!current->interruptible && !m_controllables[m_controllableIndex].interruptible)
 			m_controllableStartFrame = length + m_controllableStartFrame;

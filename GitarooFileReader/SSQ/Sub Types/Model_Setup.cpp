@@ -173,6 +173,7 @@ bool ModelSetup::animate(const float frame)
 	if (!m_animations.empty())
 	{
 		auto iter = getIter(m_animations, frame);
+		doShadow = iter->dropShadow && !iter->noDrawing;
 		if (!iter->noDrawing && !iter->pollGameState)
 		{
 			if (m_controllableIndex != 0)
@@ -181,9 +182,7 @@ bool ModelSetup::animate(const float frame)
 				m_controllableStartFrame = m_bpmStartFrame;
 			}
 			float length = m_xg->getAnimationLength(iter->animIndex);
-			doShadow = iter->dropShadow;
 			float start = iter->frame;
-
 			
 			{
 				std::vector<ModelAnim>::const_iterator test = iter;

@@ -267,6 +267,25 @@ void XGM::ViewerControls_XGM::ModelInfo::swap(XG* model)
 	m_length = m_model->getAnimationLength(0);
 }
 
+void XGM::ViewerControls_XGM::ModelInfo::changeTitle(GLFWwindow* window, bool animate, bool loop)
+{
+	if (animate)
+	{
+		std::string title = std::string(m_model->getName())
+										+ " | Anim: " + std::to_string(m_animIndex)
+										+ " / " + std::to_string(m_model->m_animations.size())
+										+ " | Frame: " + std::to_string(m_frame)
+										+ " / " + std::to_string(m_length);
+
+		if (m_model->m_animations.size() != 1 && loop)
+			title += " | Loop Enabled";
+
+		glfwSetWindowTitle(window, title.c_str());
+	}
+	else
+		glfwSetWindowTitle(window, m_model->getName());
+}
+
 void SSQ::initialize(const char* windowName)
 {
 	Viewer::initialize(windowName);
@@ -619,6 +638,9 @@ void XGM::update(float delta)
 				model.update(delta, controls->loop);
 		}
 	}
+
+	if (controls->m_models.size() == 1)
+		controls->m_models.front().changeTitle(m_window, controls->animate, controls->loop);
 }
 
 void XGM::drawOpaques()
@@ -713,8 +735,6 @@ void SSQ::update(float delta)
 			if (!toggleState)
 			{
 				controls->isPaused = !controls->isPaused;
-				if (controls->isPaused)
-					GlobalFunctions::printf_tab("%g\n", m_currFrame);
 				toggleState = true;
 			}
 		}
@@ -762,6 +782,7 @@ void SSQ::update(float delta)
 			texAnim.substitute(m_currFrame);
 
 		m_sprites.update(m_currFrame);
+		glfwSetWindowTitle(m_window, (m_filename + " | Frame: " + std::to_string(m_currFrame)).c_str());
 	}
 
 	if (!controls->hasFreeMovement)

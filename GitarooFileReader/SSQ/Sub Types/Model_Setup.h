@@ -80,7 +80,7 @@ public:
 	void bindXG(XG* xg);
 
 	void reset();
-	void setBPMFrame(const float frame);
+	void jumpToFrame(const float frame);
 	bool animate(const float frame);
 	void updateMatrix(const float frame) const;
 

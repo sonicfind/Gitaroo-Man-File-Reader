@@ -113,7 +113,7 @@ void ModelSetup::bindXG(XG* xg)
 	m_xg = xg;
 }
 
-void ModelSetup::setBPMFrame(const float frame)
+void ModelSetup::jumpToFrame(const float frame)
 {
 	m_bpmStartFrame = frame;
 }

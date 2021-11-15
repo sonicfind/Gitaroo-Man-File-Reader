@@ -208,10 +208,11 @@ void xgDagMesh::deleteBuffers()
 	m_triList->deleteBuffers();*/
 }
 
-void xgDagMesh::restPose() const
+void xgDagMesh::restPose(const glm::mat4 matrix)
 {
 	if (m_doGeometryAnimation)
 		m_inputGeometry->restPose();
+	m_matrices[0] = matrix;
 }
 
 void xgDagMesh::animate(unsigned long instance, const glm::mat4 matrix)

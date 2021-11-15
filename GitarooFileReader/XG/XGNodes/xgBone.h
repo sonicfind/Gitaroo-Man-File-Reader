@@ -27,5 +27,5 @@ public:
 	static bool compareType(const PString& str) { return strcmp("xgBone", str.m_pstring) == 0; }
 	const size_t getSize() const;
 
-	glm::mat4 getBoneMatrix() const;
+	glm::mat4 getBoneMatrix(bool animated) const;
 };

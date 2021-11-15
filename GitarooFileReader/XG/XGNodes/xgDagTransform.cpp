@@ -60,16 +60,14 @@ const size_t xgDagTransform::getSize() const
 	return size;
 }
 
-#include <glm/gtx/transform.hpp>
-glm::mat4 xgDagTransform::getModelMatrix() const
+glm::mat4 xgDagTransform::getModelMatrix(bool animated) const
 {
 	if (m_inputMatrix)
 	{
 		glm::vec3 translation(0.0f);
 		glm::quat rotation(1, 0, 0, 0);
 		glm::vec3 scale(1.0f);
-		if (m_inputMatrix)
-			m_inputMatrix->applyTransformations(translation, rotation, scale);
+		m_inputMatrix->applyTransformations(translation, rotation, scale, animated);
 
 		glm::mat4 result = glm::toMat4(conjugate(rotation));
 		result[0] *= scale.x;

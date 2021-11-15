@@ -139,22 +139,22 @@ const size_t xgBgMatrix::getSize() const
 	return size;
 }
 
-void xgBgMatrix::applyTransformations(glm::vec3& pos, glm::quat& rot, glm::vec3& scl)
+void xgBgMatrix::applyTransformations(glm::vec3& pos, glm::quat& rot, glm::vec3& scl, bool animated) const
 {
 	if (m_inputParentMatrix)
-		m_inputParentMatrix->applyTransformations(pos, rot, scl);
+		m_inputParentMatrix->applyTransformations(pos, rot, scl, animated);
 
-	if (m_inputPosition)
+	if (animated && m_inputPosition)
 		pos += m_inputPosition->interpolate();
 	else
 		pos += m_position;
 
-	if (m_inputRotation)
+	if (animated && m_inputRotation)
 		rot *= m_inputRotation->interpolate();
 	else
 		rot *= m_rotation;
 
-	if (m_inputScale)
+	if (animated && m_inputScale)
 		scl *= m_inputScale->interpolate();
 	else
 		scl *= m_scale;

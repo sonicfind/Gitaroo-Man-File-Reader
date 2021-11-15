@@ -191,13 +191,13 @@ void xgEnvelope::bindBoneWeights(unsigned long envIndex) const
 void xgEnvelope::restPose()
 {
 	for (size_t i = 0; i < m_inputMatrices.size(); ++i)
-		m_matrices[0][i] = glm::identity<glm::mat4>();
+		m_matrices[0][i] = m_inputMatrices[i]->getBoneMatrix(false);
 }
 
 void xgEnvelope::animate(unsigned long instance)
 {
 	for (size_t i = 0; i < m_inputMatrices.size(); ++i)
-		m_matrices[instance][i] = m_inputMatrices[i]->getBoneMatrix();
+		m_matrices[instance][i] = m_inputMatrices[i]->getBoneMatrix(true);
 }
 
 #include <glm/gtc/type_ptr.hpp>

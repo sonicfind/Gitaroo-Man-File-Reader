@@ -167,7 +167,7 @@ void XG_Data::uninitializeViewerState()
 void XG_Data::restPose() const
 {
 	for (const Dag& dag : m_dagMap)
-		dag.restPose();
+		dag.restPose(glm::identity<glm::mat4>());
 }
 
 // Updates all data to the current frame

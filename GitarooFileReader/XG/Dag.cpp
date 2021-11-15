@@ -108,14 +108,15 @@ void Dag::uninitializeViewerState()
 			dag.uninitializeViewerState();
 }
 
-void Dag::restPose() const
+void Dag::restPose(glm::mat4 matrix) const
 {
 	if (auto mesh = m_base.get<xgDagMesh>())
-		mesh->restPose();
+		mesh->restPose(matrix);
 	else
 	{
+		matrix *= m_base.get<xgDagTransform>()->getModelMatrix(false);
 		for (auto& dag : m_connected)
-			dag.restPose();
+			dag.restPose(matrix);
 	}
 }
 
@@ -125,7 +126,7 @@ void Dag::animate(unsigned long instance, glm::mat4 matrix)
 		mesh->animate(instance, matrix);
 	else
 	{
-		matrix *= m_base.get<xgDagTransform>()->getModelMatrix();
+		matrix *= m_base.get<xgDagTransform>()->getModelMatrix(true);
 		for (auto& dag : m_connected)
 			dag.animate(instance, matrix);
 	}

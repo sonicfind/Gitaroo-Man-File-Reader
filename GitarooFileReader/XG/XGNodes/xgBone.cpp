@@ -63,18 +63,22 @@ const size_t xgBone::getSize() const
 }
 
 #include <glm/gtx/transform.hpp>
-glm::mat4 xgBone::getBoneMatrix() const
+glm::mat4 xgBone::getBoneMatrix(bool animated) const
 {
-	glm::vec3 translation(0);
-	glm::quat rotation(1, 0, 0, 0);
-	glm::vec3 scale(1.0f);
 	if (m_inputMatrix)
-		m_inputMatrix->applyTransformations(translation, rotation, scale);
+	{
+		glm::vec3 translation(0);
+		glm::quat rotation(1, 0, 0, 0);
+		glm::vec3 scale(1.0f);
+		m_inputMatrix->applyTransformations(translation, rotation, scale, animated);
 
-	glm::mat4 result = glm::toMat4(conjugate(rotation));
-	result[0] *= scale.x;
-	result[1] *= scale.y;
-	result[2] *= scale.z;
-	result[3] = glm::vec4(translation, 1);
-	return result * m_restMatrix;
+		glm::mat4 result = glm::toMat4(conjugate(rotation));
+		result[0] *= scale.x;
+		result[1] *= scale.y;
+		result[2] *= scale.z;
+		result[3] = glm::vec4(translation, 1);
+		return result * m_restMatrix;
+	}
+	else
+		return m_restMatrix;
 }

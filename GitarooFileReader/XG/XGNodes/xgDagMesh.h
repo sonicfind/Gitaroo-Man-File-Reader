@@ -51,7 +51,7 @@ public:
 	void connectTextures(std::vector<IMX>& textures);
 	void intializeBuffers();
 	void deleteBuffers();
-	void restPose() const;
+	void restPose(const glm::mat4 matrix);
 	void animate(unsigned long instance, const glm::mat4 matrix);
 	void draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents) const;
 

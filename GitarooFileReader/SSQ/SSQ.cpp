@@ -287,7 +287,8 @@ bool SSQ::viewSequence()
 					return true;
 				break;
 			case 'k':
-				m_doSkyBackground = !m_doSkyBackground;
+				if (m_skyPtr)
+					m_doSkyBackground = !m_doSkyBackground;
 			}
 		}
 	}

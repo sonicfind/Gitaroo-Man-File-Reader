@@ -795,16 +795,21 @@ void SSQ::update(float delta)
 
 void SSQ::drawOpaques()
 {
-	if (InputHandling::g_input_keyboard.KEY_K.isPressed())
+	if (m_skyPtr && InputHandling::g_input_keyboard.KEY_K.isPressed())
 		m_doSkyBackground = !m_doSkyBackground;
 
 	glDisable(GL_BLEND);
+	if (!m_skyPtr || !m_doSkyBackground)
+	{
+		const glm::vec3 color = m_camera.getClearColor(m_currFrame);
+		glClearColor(color.r, color.g, color.b, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 	// Draw the sky as the background
-	if (m_skyPtr && m_doSkyBackground)
+	else
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_skyVBO);
 		glBindVertexArray(m_skyVAO);
@@ -818,14 +823,7 @@ void SSQ::drawOpaques()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 
-		glEnable(GL_DEPTH_TEST);
-	}
-	// Use a flat color as the background
-	else
-	{
-		const glm::vec3 color = m_camera.getClearColor(m_currFrame);
-		glClearColor(color.r, color.g, color.b, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glDepthMask(GL_TRUE);
 	}
 
 	// Draw opaque meshes

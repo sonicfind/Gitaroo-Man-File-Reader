@@ -173,37 +173,48 @@ bool ModelSetup::animate(const float frame)
 	if (!m_animations.empty())
 	{
 		auto iter = getIter(m_animations, frame);
-		if (!iter->noDrawing)
+		if (!iter->noDrawing && !iter->pollGameState)
 		{
-			const bool looping = iter->loop;
-			const unsigned long animIndex = m_xg->getValidatedAnimationIndex(iter->animIndex);
-			doShadow = iter->dropShadow;
-
-			while (iter != m_animations.begin()
-				&& !iter->startOverride
-				&& !iter->pollGameState
-				&& m_xg->getValidatedAnimationIndex((iter - 1)->animIndex) == animIndex)
-				--iter;
-
-			if (!iter->pollGameState)
+			if (m_controllableIndex != 0)
 			{
-				if (m_controllableIndex != 0)
-				{
-					m_controllableIndex = 0;
-					m_controllableStartFrame = m_bpmStartFrame;
-				}
-
-				const float length = m_xg->getAnimationLength(animIndex);
-				if (frame < length + iter->frame)
-					m_xg->animate(frame - iter->frame, animIndex, m_matrix);
-				else if (looping)
-					m_xg->animate(fmod(frame - iter->frame, length), animIndex, m_matrix);
-				else
-					m_xg->animate(length - 1, animIndex, m_matrix);
+				m_controllableIndex = 0;
+				m_controllableStartFrame = m_bpmStartFrame;
 			}
+			float length = m_xg->getAnimationLength(iter->animIndex);
+			doShadow = iter->dropShadow;
+			float start = iter->frame;
+
+			
+			{
+				std::vector<ModelAnim>::const_iterator test = iter;
+				while (test != m_animations.begin() &&
+					!test->startOverride)
+				{
+					--test;
+					if (test->animIndex == iter->animIndex)
+						start = test->frame;
+					else
+					{
+						if (!test->loop)
+							start = test->frame + m_xg->getAnimationLength(test->animIndex);
+						break;
+					}
+				}
+			}
+
+			if (iter->loop)
+				m_xg->animate(fmod(frame - start, length), iter->animIndex, m_matrix);
+			else if (frame >= length + start &&
+				!iter->holdLastFrame &&
+				iter + 1 != m_animations.end() &&
+				iter->animIndex + 1 == (iter + 1)->animIndex &&
+				!(iter + 1)->loop && !(iter + 1)->startOverride)
+				m_xg->animate(frame - (start + length), (iter + 1)->animIndex, m_matrix);
 			else
-				animateFromGameState(frame);
+				m_xg->animate(frame - start, iter->animIndex, m_matrix);
 		}
+		else if (iter->pollGameState)
+			animateFromGameState(frame, !iter->noDrawing);
 	}
 	else
 		m_xg->animate(fmod(frame, m_xg->getAnimationLength(m_baseValues.baseAnimIndex_maybe)), m_baseValues.baseAnimIndex_maybe, m_matrix);

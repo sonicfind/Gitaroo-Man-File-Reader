@@ -83,11 +83,9 @@ public:
 	void setBPMFrame(const float frame);
 	bool animate(const float frame);
 	void updateMatrix(const float frame) const;
-	std::pair<bool, ModelAnim*> getAnim(const float frame);
-
 
 protected:
-	virtual void animateFromGameState(const float frame) {}
+	virtual void animateFromGameState(const float frame, const bool draw) {}
 };
 
 class PlayerModelSetup : public ModelSetup
@@ -127,7 +125,7 @@ public:
 	void create(FILE* outFile) const;
 
 private:
-	virtual void animateFromGameState(const float frame);
+	virtual void animateFromGameState(const float frame, const bool draw);
 };
 
 class AttDefModelSetup : public ModelSetup
@@ -157,7 +155,7 @@ public:
 	void create(FILE* outFile) const;
 
 private:
-	virtual void animateFromGameState(const float frame);
+	virtual void animateFromGameState(const float frame, const bool draw);
 };
 
 class SnakeModelSetup : public ModelSetup

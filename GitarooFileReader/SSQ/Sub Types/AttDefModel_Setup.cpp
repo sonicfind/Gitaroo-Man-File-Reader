@@ -52,9 +52,9 @@ void AttDefModelSetup::create(FILE* outFile) const
 	}
 }
 
-void AttDefModelSetup::animateFromGameState(const float frame)
+void AttDefModelSetup::animateFromGameState(const float frame, const bool draw)
 {
-	if (g_gameState.isModelTypeActive(static_cast<int>(m_type)))
+	if (draw && g_gameState.isModelTypeActive(static_cast<int>(m_type)))
 	{
 		const float animLength = m_xg->getAnimationLength(0);
 		if (m_attackValues.targetModel[0] != 0)

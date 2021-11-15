@@ -82,11 +82,14 @@ const float Animation::getTotalTime() const
 // @param frame - The current time in terms of frames
 const float Animation::getTime(float frame, bool direction) const
 {
-	if (!direction)
-		frame = getTotalTime() - frame;
+	if (!m_non_tempo)
+		frame *= s_tempo / 225;
 
-	if (m_non_tempo)
-		return frame / m_keyframe_interval + m_starting_keyframe;
-	else
-		return frame * s_tempo / (225 * m_keyframe_interval) + m_starting_keyframe;
+	if (frame >= m_length)
+		frame = m_length;
+
+	if (!direction)
+		frame = m_length - frame;
+	return frame / m_keyframe_interval + m_starting_keyframe;
+
 }

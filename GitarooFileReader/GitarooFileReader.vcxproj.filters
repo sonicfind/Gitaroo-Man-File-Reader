@@ -118,6 +118,9 @@
     <Filter Include="Viewer\Shaders\Sky">
       <UniqueIdentifier>{767365ad-a8a7-4ea5-8aed-227d25ab767a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Viewer\Shaders\Screen">
+      <UniqueIdentifier>{679e342f-b304-4085-a59b-e383bec8a6cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main\pch.cpp">
@@ -621,8 +624,8 @@
     <None Include="Viewer\Shaders\sky.frag">
       <Filter>Viewer\Shaders\Sky</Filter>
     </None>
-    <None Include="Viewer\Shaders\sky.vert">
-      <Filter>Viewer\Shaders\Sky</Filter>
+    <None Include="Viewer\Shaders\quad.vert">
+      <Filter>Viewer\Shaders\Screen</Filter>
     </None>
   </ItemGroup>
 </Project>

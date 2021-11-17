@@ -332,10 +332,20 @@ void SSQ::initialize(const char* windowName)
 		glBindVertexArray(m_skyVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, m_skyVBO);
 
-		glVertexAttribIPointer(0, 2, GL_UNSIGNED_INT, sizeof(glm::ivec2), (void*)0);
-		glEnableVertexAttribArray(0);
+		static const float quadVertices[] = {
+			// positions // texCoords
+			-1.0f, -1.0f, 0.0f, 1.0f,
+			-1.0f, 1.0f, 0.0f, 0.0f,
+			1.0f, -1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 0.0f
+		};
 
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::ivec2), glm::value_ptr(glm::ivec2(s_screenWidth, s_screenHeight)), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
@@ -818,7 +828,7 @@ void SSQ::drawOpaques()
 
 		glActiveTexture(GL_TEXTURE0);
 		m_skyPtr->m_data->bindTexture();
-		glDrawArrays(GL_POINTS, 0, 1);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);

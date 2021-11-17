@@ -88,7 +88,6 @@ class ShaderList
 	const char* light_geo = "Viewer/Shaders/light.geo";
 	const char* light_frag = "Viewer/Shaders/light.frag";
 	const char* sky_vert = "Viewer/Shaders/sky.vert";
-	const char* sky_geo =  "Viewer/Shaders/sky.geo";
 	const char* sky_frag = "Viewer/Shaders/sky.frag";
 #else
 	const char* base_vert =
@@ -159,9 +158,6 @@ class ShaderList
 	;
 	const char* sky_vert =
 	#include "sky.vert"
-	;
-	const char* sky_geo =
-	#include "sky.geo"
 	;
 	const char* sky_frag =
 	#include "sky.frag"

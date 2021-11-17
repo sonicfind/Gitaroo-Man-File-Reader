@@ -621,9 +621,6 @@
     <None Include="Viewer\Shaders\sky.frag">
       <Filter>Viewer\Shaders\Sky</Filter>
     </None>
-    <None Include="Viewer\Shaders\sky.geo">
-      <Filter>Viewer\Shaders\Sky</Filter>
-    </None>
     <None Include="Viewer\Shaders\sky.vert">
       <Filter>Viewer\Shaders\Sky</Filter>
     </None>

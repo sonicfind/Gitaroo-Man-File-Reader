@@ -1,13 +1,11 @@
 R"(#version 330 core
-layout(location = 0) in ivec2 aScreenSize;
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aTexCoords;
 
-out VS_OUT
-{
-	vec2 screenSize;
-} vs_out;
-
+out vec2 fTexCoord;
 void main()
 {
-	vs_out.screenSize = .5 * aScreenSize;
+	gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+	fTexCoord = aTexCoords;
 }
 )"

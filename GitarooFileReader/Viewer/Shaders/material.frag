@@ -78,9 +78,6 @@ void main()
 	if (flags > 2)
 		result.a *= 2;
 
-	if (result.a < .01)
-		discard;
-
 	FragColor = applyShading(result);
 }
 

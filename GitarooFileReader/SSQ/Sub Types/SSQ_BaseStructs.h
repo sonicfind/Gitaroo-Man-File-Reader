@@ -89,7 +89,7 @@ class GameState
 		int eventDescriptor = 0;
 		float angle = 0;
 	public:
-		void set(int mode, int playerIndex);
+		void set(int mode, int playerIndex, int padIndex);
 		int getEvent() const { return playerEvent; }
 		int getDescriptor() const { return eventDescriptor; }
 		float getAngle() const { return angle; }

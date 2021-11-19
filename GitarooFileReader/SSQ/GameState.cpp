@@ -31,44 +31,43 @@ void GameState::setGlobalStates()
 		else
 			m_mode = Mode::Attack_Charge;
 	}
-
-	for (int i = 0; i < 4; ++i)
+	bool changed = false;
+	for (int i = 0, playerIndex = 0; i < 4; ++i)
 	{
+		if (glfwJoystickPresent(i))
+		{
+			m_players[playerIndex].set(static_cast<int>(m_mode), playerIndex++, i);
+			int axisCount = 0;
+			const float* axes = glfwGetJoystickAxes(i, &axisCount);
+			if (!changed && axisCount > 5)
+			{
+				m_activeModels[7] = m_activeModels[5] = axes[4] >= -.5;
+				m_activeModels[8] = m_activeModels[6] = axes[5] >= -.5;
+				changed = true;
+			}
+		}
+
 		if ((&InputHandling::g_input_keyboard.KEY_5 + i)->isPressed())
 			m_activeModels[5 + i] = !m_activeModels[5 + i];
-		m_players[i].set(static_cast<int>(m_mode), i);
 	}
 }
 
-void GameState::Player::set(int mode, int playerIndex)
+void GameState::Player::set(int mode, int playerIndex, int padIndex)
 {
 	playerEvent = 0;
 	eventDescriptor = 0;
 	angle = 0;
 
-	int buttonCount = 0, padIndex = 0;
-	const float* axes;
+	int buttonCount = 0, axisCount = 0;
 
 	// 0 - A
 	// 1 - B
 	// 2 - X
 	// 3 - Y
 	// 7 - Start
-	const unsigned char* buttons;
-	for (int i = GLFW_JOYSTICK_1; i < GLFW_JOYSTICK_LAST; ++i)
-	{
-		if (glfwJoystickPresent(i))
-		{
-			if (padIndex == playerIndex)
-				break;
-			++padIndex;
-		}
-		else if (i + 1 == GLFW_JOYSTICK_LAST)
-			return;
-	}
+	const unsigned char* buttons = glfwGetJoystickButtons(padIndex, &buttonCount);
+	const float* axes = glfwGetJoystickAxes(padIndex, &axisCount);
 
-	buttons = glfwGetJoystickButtons(padIndex, &buttonCount);
-	axes = glfwGetJoystickAxes(padIndex, &buttonCount);
 	// Decides whether the current player is in the attack/charge phase or the guard phase
 	//
 	// True if attack/Charge

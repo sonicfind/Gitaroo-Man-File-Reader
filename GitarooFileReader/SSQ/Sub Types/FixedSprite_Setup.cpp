@@ -163,16 +163,16 @@ void FixedSpriteSetup::draw(const bool doTransparents)
 	for (unsigned long i = 0; i < m_depthlessDraws.size();)
 	{
 		const int blend = m_depthlessDraws[i].blendType;
-		const int alg = m_depthlessDraws[first].colorAlg;
+		const int alg = m_depthlessDraws[i].colorAlg;
 		bool tmp = blend > 0;
 		if (tmp == doTransparents)
 		{
 			size_t count = 1;
 			while (i + count < m_depthlessDraws.size() &&
 				blend == m_depthlessDraws[i + count].blendType &&
-				alg == m_depthlessDraws[first + count].colorAlg)
+				alg == m_depthlessDraws[i + count].colorAlg)
 				++count;
-			drawSprite(first, count, blend, alg);
+			drawSprite(first + i, count, blend, alg);
 			i += (unsigned long)count;
 		}
 		else

@@ -332,8 +332,9 @@ bool XGM::viewModels()
 		printf_tab("B - Change BPM for tempo-base animations: %g\n", Animation::getTempo());
 		printf_tab("A - Switch aspect ratio: %s\n", getAspectRatioString());
 		printf_tab("H - Change viewer resolution, Height: %u\n", s_screenHeight);
+		printf_tab("D - Toggle window border: %s\n", s_borderless ? "FALSE" : "TRUE");
 		printf_tab("? - Show list of controls\n");
-		switch (insertIndexValues(modelIndexes, "bah", m_models.size(), false))
+		switch (insertIndexValues(modelIndexes, "bahd", m_models.size(), false))
 		{
 		case ResultType::Help:
 			printf_tab("\n");
@@ -384,6 +385,9 @@ bool XGM::viewModels()
 			case 'h':
 				if (changeHeight())
 					return true;
+				break;
+			case 'd':
+				s_borderless = !s_borderless;
 			}
 			break;
 		case ResultType::Success:

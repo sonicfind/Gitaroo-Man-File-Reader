@@ -39,6 +39,7 @@ MessageCallback(GLenum source,
 float Viewer::s_aspectRatio = 16.0f / 9;
 unsigned int Viewer::s_screenWidth = 1280;
 unsigned int Viewer::s_screenHeight = 720;
+bool Viewer::s_borderless = false;
 void Viewer::initialize(const char* windowName)
 {
 	glfwInit();
@@ -47,6 +48,8 @@ void Viewer::initialize(const char* windowName)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	if (s_borderless)
+		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
 	m_window = glfwCreateWindow(s_screenWidth, s_screenHeight, windowName, NULL, NULL);
 	if (!m_window)

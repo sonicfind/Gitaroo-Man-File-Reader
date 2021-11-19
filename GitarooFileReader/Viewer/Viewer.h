@@ -32,6 +32,7 @@ protected:
 	static float s_aspectRatio;
 	static unsigned int s_screenWidth;
 	static unsigned int s_screenHeight;
+	static bool s_borderless;
 
 	GLFWwindow* m_window;
 	unsigned int m_viewUBO;

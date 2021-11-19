@@ -217,12 +217,13 @@ bool SSQ::viewSequence()
 		printf_tab("B - Change BPM for tempo-base animations: %g\n", Animation::getTempo());
 		printf_tab("A - Switch aspect ratio: %s\n", getAspectRatioString());
 		printf_tab("H - Change viewer resolution, Height: %u\n", s_screenHeight);
+		printf_tab("D - Toggle window border: %s\n", s_borderless ? "FALSE" : "TRUE");
 		printf_tab("S - Change Starting Frame: %g\n", m_startFrame);
 		printf_tab("E - Change Ending Frame: %g\n", m_endFrame);
 		if (m_skyPtr)
 			printf_tab("K - Toggle Sky Background: %s\n", m_doSkyBackground ? "TRUE" : "FALSE");
 		printf_tab("? - Show list of controls\n");
-		switch (menuChoices("vbahsek"))
+		switch (menuChoices("vbahdsek"))
 		{
 		case ResultType::Help:
 			printf_tab("\n");
@@ -277,6 +278,9 @@ bool SSQ::viewSequence()
 			case 'h':
 				if (Viewer::changeHeight())
 					return true;
+				break;
+			case 'd':
+				s_borderless = !s_borderless;
 				break;
 			case 's':
 				if (changeStartFrame())

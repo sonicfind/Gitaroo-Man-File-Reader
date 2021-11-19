@@ -20,6 +20,22 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 
+#ifdef _DEBUG
+void GLAPIENTRY
+MessageCallback(GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar* message,
+	const void* userParam)
+{
+	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+		(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+		type, severity, message);
+}
+#endif
+
 float Viewer::s_aspectRatio = 16.0f / 9;
 unsigned int Viewer::s_screenWidth = 1280;
 unsigned int Viewer::s_screenHeight = 720;
@@ -42,6 +58,11 @@ void Viewer::initialize(const char* windowName)
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		throw "Failed to initialize GLAD";
+
+#ifdef _DEBUG
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
+#endif
 
 	glViewport(0, 0, s_screenWidth, s_screenHeight);
 

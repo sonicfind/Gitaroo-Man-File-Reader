@@ -525,8 +525,17 @@ int Viewer::startDisplay(const char* windowName)
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, glm::value_ptr(m_projection));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+		glDepthMask(GL_TRUE);
+		// No need for blending to be active
+		glDisable(GL_BLEND);
 		drawOpaques();
 		drawLights();
+		
+		// Ensures that overlapping fragments don't cut off eachother
+		// Emulates how the original engine handles blending
+		// Includes some of the drawbacks (some models being drawn out of order)
+		glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
 		drawTranparents();
 
 		// Check calls
@@ -672,26 +681,18 @@ void XGM::update(float delta)
 
 void XGM::drawOpaques()
 {
-	const ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls;
 	// Clear color and depth buffers
 	glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Disable color blending
-	glDisable(GL_BLEND);
-	// Draw opaque meshes
+	const ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls;
 	for (auto& model : controls->m_models)
 		model.draw(controls->showNormals, false);
 }
 
 void XGM::drawTranparents()
 {
-	const ViewerControls_XGM* controls = (ViewerControls_XGM*)m_viewerControls;
-	// Enable color blending
-	glEnable(GL_BLEND);
-	// Draw transparent meshes
-	// Does not draw normals
-	for (auto& model : controls->m_models)
+	for (auto& model : ((ViewerControls_XGM*)m_viewerControls)->m_models)
 		model.draw(false, true);
 }
 
@@ -829,7 +830,6 @@ void SSQ::drawOpaques()
 	if (m_skyPtr && InputHandling::g_input_keyboard.KEY_K.isPressed())
 		m_doSkyBackground = !m_doSkyBackground;
 
-	glDisable(GL_BLEND);
 	if (!m_skyPtr || !m_doSkyBackground)
 	{
 		const glm::vec3 color = m_camera.getClearColor(m_currFrame);
@@ -863,9 +863,6 @@ void SSQ::drawOpaques()
 
 void SSQ::drawTranparents()
 {
-	// Draw transparent meshes
-	// Does not draw normals
-	glEnable(GL_BLEND);
 	draw(true);
 }
 

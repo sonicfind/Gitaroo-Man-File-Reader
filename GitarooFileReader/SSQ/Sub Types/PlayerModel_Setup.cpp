@@ -129,13 +129,13 @@ void PlayerModelSetup::animateFromGameState(const float frame, const bool draw)
 		{
 			float anim12 = .5f * m_xg->getAnimationLength(12);
 			if (delta < anim12)
-				m_xg->animate(2 * delta, 12, m_matrix, 1);
+				m_xg->animate(2 * delta, 12, m_matrix, false, 1);
 			else if (delta < length - anim12)
-				m_xg->animate(delta - anim12, current->animIndex, m_matrix, 1);
+				m_xg->animate(delta - anim12, current->animIndex, m_matrix, false, 1);
 			else
-				m_xg->animate(2 * (delta - (length - anim12)), 12, m_matrix, 0);
+				m_xg->animate(2 * (delta - (length - anim12)), 12, m_matrix, false, 0);
 		}
 		else
-			m_xg->animate(fmod(delta, length), current->animIndex, m_matrix, current->playbackDirection);
+			m_xg->animate(delta, current->animIndex, m_matrix, true, current->playbackDirection);
 	}
 }

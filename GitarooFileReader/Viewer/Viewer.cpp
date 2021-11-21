@@ -216,7 +216,7 @@ void XGM::ViewerControls_XGM::ModelInfo::update(float delta, bool loop)
 	}
 
 	m_model->resetInstanceCount();
-	m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>());
+	m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>(), false);
 }
 
 void XGM::ViewerControls_XGM::ModelInfo::draw(bool showNormals, bool doTransparents) const
@@ -228,7 +228,7 @@ void XGM::ViewerControls_XGM::ModelInfo::animReset()
 {
 	m_frame = 0;
 	m_model->resetInstanceCount();
-	m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>());
+	m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>(), false);
 }
 
 void XGM::ViewerControls_XGM::ModelInfo::nextAnim(bool animate)
@@ -257,7 +257,7 @@ void XGM::ViewerControls_XGM::ModelInfo::animChanged(bool animate)
 	if (animate)
 	{
 		m_model->resetInstanceCount();
-		m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>());
+		m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>(), false);
 	}
 }
 
@@ -268,7 +268,7 @@ void XGM::ViewerControls_XGM::ModelInfo::fullReset()
 	m_length = m_model->getAnimationLength(0);
 
 	m_model->resetInstanceCount();
-	m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>());
+	m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>(), false);
 }
 
 void XGM::ViewerControls_XGM::ModelInfo::restPose()

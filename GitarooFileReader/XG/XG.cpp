@@ -295,6 +295,14 @@ void XG::uninitializeViewerState()
 	m_instanceCount = 0;
 }
 
+bool XG::isAnimationTempoBased(size_t index) const
+{
+	if (index < m_animations.size())
+		return m_animations[index].isTempoBased();
+	else
+		return m_animations.back().isTempoBased();
+}
+
 unsigned long XG::getValidatedAnimationIndex(size_t index) const
 {
 	if (index < m_animations.size())
@@ -320,14 +328,14 @@ void XG::restPose()
 }
 
 // Updates all data to the current frame
-void XG::animate(float frame, size_t index, const glm::mat4 matrix, const bool playbackDirection)
+void XG::animate(float frame, size_t index, const glm::mat4 matrix, bool loop, const bool playbackDirection)
 {
 	// Calculates the current keyframe from the current animation
 	float key;
 	if (index < m_animations.size())
-		key = m_animations[index].getTime(frame, playbackDirection);
+		key = m_animations[index].getTime(frame, playbackDirection, loop);
 	else
-		key = m_animations.back().getTime(frame, playbackDirection);
+		key = m_animations.back().getTime(frame, playbackDirection, loop);
 	// Increment count for if another instance is needed
 	m_data->animate(key, m_instanceCount++, matrix);
 }

@@ -80,12 +80,14 @@ const float Animation::getTotalTime() const
 // Generates the keyframe value to give to the xgTime node
 // 
 // @param frame - The current time in terms of frames
-const float Animation::getTime(float frame, bool direction) const
+const float Animation::getTime(float frame, bool direction, bool loop) const
 {
 	if (!m_non_tempo)
 		frame *= s_tempo / 225;
 
-	if (frame >= m_length)
+	if (loop)
+		frame = fmod(frame, m_length);
+	else if (frame >= m_length)
 		frame = m_length;
 
 	if (!direction)

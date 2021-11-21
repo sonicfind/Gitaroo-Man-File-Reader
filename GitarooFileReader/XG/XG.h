@@ -62,6 +62,7 @@ private:
 	void initializeViewerState();
 	// Deletes all the vertex and uniform buffers created for the OpenGL viewer
 	void uninitializeViewerState();
+	bool isAnimationTempoBased(size_t index) const;
 	// Returns the actual index to be used for animating
 	unsigned long getValidatedAnimationIndex(size_t index) const;
 	// Returns the total duration of the chosen animation in seconds 
@@ -70,7 +71,7 @@ private:
 	void restPose();
 	// Updates all data to the current frame
 	// @param frame - The current time in terms of frames
-	void animate(float frame, size_t index, const glm::mat4 matrix, const bool playbackDirection = true);
+	void animate(float frame, size_t index, const glm::mat4 matrix, bool loop, const bool playbackDirection = true);
 	// Draws all vertex data to the current framebuffer
 	void draw(const bool showNormals, const bool doTransparents) const;
 

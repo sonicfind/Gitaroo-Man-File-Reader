@@ -56,7 +56,6 @@ void AttDefModelSetup::animateFromGameState(const float frame, const bool draw)
 {
 	if (draw && g_gameState.isModelTypeActive(static_cast<int>(m_type)))
 	{
-		const float animLength = m_xg->getAnimationLength(0);
 		if (m_attackValues.targetModel[0] != 0)
 		{
 			const glm::vec3 start = glm::vec3((*m_startMatrix) * glm::vec4(m_attackValues.startOffset, 1));
@@ -72,9 +71,9 @@ void AttDefModelSetup::animateFromGameState(const float frame, const bool draw)
 			result[2] *= length / m_attackSize_Z;
 			result[3] = glm::vec4(start, 1);
 
-			m_xg->animate(fmod(frame - m_bpmStartFrame, animLength), 0, result);
+			m_xg->animate(frame - m_bpmStartFrame, 0, result, true);
 		}
 		else
-			m_xg->animate(fmod(frame - m_bpmStartFrame, animLength), 0, m_matrix);
+			m_xg->animate(frame - m_bpmStartFrame, 0, m_matrix, true);
 	}
 }

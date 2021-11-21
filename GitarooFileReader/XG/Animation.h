@@ -20,7 +20,7 @@ class Animation
 	float m_keyframe_interval = 0;
 	float m_framerate = 60;
 	float m_starting_keyframe = 0;
-	unsigned long m_non_tempo = true;
+	unsigned long m_non_tempo = 0;
 	union
 	{
 		char c[4];
@@ -36,11 +36,13 @@ public:
 	static float getTempo();
 	static bool setTempo();
 
+	bool isTempoBased() const { return m_non_tempo == 0; }
 	// Returns the total length in seconds
 	const float getTotalTime() const;
 	// Generates the keyframe value to give to the xgTime node
 	// 
 	// @param frame - The current time in terms of frames
 	// @param direction - true if playback is normal, false if playback is reverse
-	const float getTime(float frame, bool direction) const;
+	// @param loop - hmmmmmmm
+	const float getTime(float frame, bool direction, bool loop) const;
 };

@@ -184,7 +184,7 @@ bool ModelSetup::animate(const float frame)
 				m_controllableIndex = 0;
 				m_controllableStartFrame = m_bpmStartFrame;
 			}
-			float length = m_xg->getAnimationLength(iter->animIndex);
+			
 			float start = iter->frame;
 			
 			{
@@ -202,23 +202,35 @@ bool ModelSetup::animate(const float frame)
 						break;
 					}
 				}
+
+				if (test->startOverride && test->loop)
+				{
+					if (m_xg->isAnimationTempoBased(iter->animIndex))
+						start = m_bpmStartFrame;
+				}
 			}
 
-			if (iter->loop)
-				m_xg->animate(fmod(frame - start, length), iter->animIndex, m_matrix);
-			else if (frame >= length + start &&
-				!iter->holdLastFrame &&
-				iter + 1 != m_animations.end() &&
-				iter->animIndex + 1 == (iter + 1)->animIndex &&
-				!(iter + 1)->loop && !(iter + 1)->startOverride)
-				m_xg->animate(frame - (start + length), (iter + 1)->animIndex, m_matrix);
-			else
-				m_xg->animate(frame - start, iter->animIndex, m_matrix);
+			unsigned long index = iter->animIndex;
+			if (!iter->loop)
+			{
+				float length = m_xg->getAnimationLength(iter->animIndex);
+				if (frame >= length + start &&
+					!iter->holdLastFrame &&
+					iter + 1 != m_animations.end() &&
+					iter->animIndex + 1 == (iter + 1)->animIndex &&
+					!(iter + 1)->loop && !(iter + 1)->startOverride)
+				{
+					++index;
+					start += length;
+				}
+			}
+
+			m_xg->animate(frame - start, index, m_matrix, iter->loop);
 		}
 		else if (iter->pollGameState)
 			animateFromGameState(frame, !iter->noDrawing);
 	}
 	else
-		m_xg->animate(fmod(frame, m_xg->getAnimationLength(m_baseValues.baseAnimIndex_maybe)), m_baseValues.baseAnimIndex_maybe, m_matrix);
+		m_xg->animate(frame, m_baseValues.baseAnimIndex_maybe, m_matrix, true);
 	return doShadow;
 }

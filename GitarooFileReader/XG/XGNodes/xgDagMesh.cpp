@@ -238,6 +238,12 @@ void xgDagMesh::draw(const unsigned long numInstances, const bool showNormals, c
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		m_inputGeometry->bindVertexBuffer(numInstances);
+		if (showNormals)
+		{
+			m_inputGeometry->activateShader(true);
+			drawTriangles();
+		}
+
 		if (doTransparents == m_inputMaterial->hasTransparency())
 		{
 			if (m_cullFunc != s_currentCulling)
@@ -271,23 +277,19 @@ void xgDagMesh::draw(const unsigned long numInstances, const bool showNormals, c
 					glEnable(GL_BLEND);
 				// Allows for multipass materials to be applied to the same vertex
 				glDepthFunc(GL_LEQUAL);
+
 				for (int index = 1; index < m_inputMaterial->getNumMaterials(); ++index)
 				{
 					m_inputMaterial->setShaderValues(index);
 					drawTriangles();
 				}
+
 				if (!doTransparents)
 					glDisable(GL_BLEND);
 				glDepthFunc(GL_LESS);
 			}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
-		}
-
-		if (showNormals)
-		{
-			m_inputGeometry->activateShader(true);
-			drawTriangles();
 		}
 	}
 }

@@ -251,11 +251,10 @@ void XGM::ViewerControls_XGM::ModelInfo::prevAnim()
 
 void XGM::ViewerControls_XGM::ModelInfo::animChanged(bool animate)
 {
-	m_frame = 0;
 	m_length = m_model->getAnimationLength(m_animIndex);
-
 	if (animate)
 	{
+		m_frame = 0;
 		m_model->resetInstanceCount();
 		m_model->animate(m_frame, m_animIndex, glm::identity<glm::mat4>(), false);
 	}

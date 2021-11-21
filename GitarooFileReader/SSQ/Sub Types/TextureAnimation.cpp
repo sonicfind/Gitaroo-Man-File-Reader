@@ -88,6 +88,7 @@ void TexAnim::loadCuts()
 
 	m_cutOutIndex = m_textureFrames.front().cutOutIndex;
 	// Load the first subImage into the texture buffer
+	apply();
 }
 
 // It's imperative that the subImages are re-loaded on each viewer session
@@ -108,7 +109,6 @@ void TexAnim::unloadCuts()
 	}
 }
 
-#include <glad/glad.h>
 void TexAnim::substitute(const float frame)
 {
 	if (!m_imxPtr)
@@ -118,17 +118,23 @@ void TexAnim::substitute(const float frame)
 	if (iter->cutOutIndex != m_cutOutIndex)
 	{
 		m_cutOutIndex = iter->cutOutIndex;
-		const auto& cut = m_cutOuts[m_cutOutIndex];
-		if (cut.subImage)
-		{
-			m_imxPtr->m_data->bindTexture();
-			glTexSubImage2D(GL_TEXTURE_2D, 0, m_offset.x, m_offset.y,
-				(unsigned long)roundf(cut.bottomRight.x - cut.topLeft.x),
-				(unsigned long)roundf(cut.bottomRight.y - cut.topLeft.y),
-				m_imxPtr->m_data->hasAlpha() ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
-				cut.subImage);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
+		apply();
+	}
+}
+
+#include <glad/glad.h>
+void TexAnim::apply()
+{
+	const auto& cut = m_cutOuts[m_cutOutIndex];
+	if (cut.subImage)
+	{
+		m_imxPtr->m_data->bindTexture();
+		glTexSubImage2D(GL_TEXTURE_2D, 0, m_offset.x, m_offset.y,
+			(unsigned long)roundf(cut.bottomRight.x - cut.topLeft.x),
+			(unsigned long)roundf(cut.bottomRight.y - cut.topLeft.y),
+			m_imxPtr->m_data->hasAlpha() ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
+			cut.subImage);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }

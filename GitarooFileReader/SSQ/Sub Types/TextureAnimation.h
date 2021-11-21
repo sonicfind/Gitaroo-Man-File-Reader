@@ -59,4 +59,5 @@ public:
 	void loadCuts();
 	void unloadCuts();
 	void substitute(const float frame);
+	void apply();
 };

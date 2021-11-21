@@ -195,3 +195,9 @@ void XG_Data::draw(const unsigned long numInstances, const bool showNormals, con
 	for (const Dag& dag : m_dagMap)
 		dag.draw(numInstances, showNormals, doTransparents);
 }
+
+void XG_Data::drawAIO(const unsigned long numInstances, const bool showNormals) const
+{
+	for (const Dag& dag : m_dagMap)
+		dag.drawAIO(numInstances, showNormals);
+}

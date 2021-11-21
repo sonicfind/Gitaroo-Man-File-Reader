@@ -74,6 +74,8 @@ private:
 	// Draws all vertex data to the current framebuffer
 	void draw(const bool showNormals, const bool doTransparents) const;
 
+	void drawAIO(const bool showNormals) const;
+
 	unsigned long getInstanceCount() const;
 	void resetInstanceCount();
 };

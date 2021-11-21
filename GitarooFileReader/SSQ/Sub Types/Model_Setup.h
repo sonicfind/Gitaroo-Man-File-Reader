@@ -77,7 +77,7 @@ protected:
 public:
 	ModelSetup(FILE* inFile, ModelType type, glm::mat4& mat);
 	virtual void create(FILE* outFile) const;
-	void bindXG(XG* xg);
+	bool bindXG(XG* xg);
 
 	void reset();
 	void jumpToFrame(const float frame);

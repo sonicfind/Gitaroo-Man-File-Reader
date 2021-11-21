@@ -145,10 +145,11 @@ bool SSQ::loadXGM()
 		if (!m_XGentries[i].m_isClone)
 		{
 			m_XGentries[i].m_xg = m_xgm->getModel(m_XGentries[i].m_name);
-			m_modelSetups[i]->bindXG(m_XGentries[i].m_xg);
+			if (!m_modelSetups[i]->bindXG(m_XGentries[i].m_xg))
+				m_useSplitRendering = false;
 		}
-		else
-			m_modelSetups[i]->bindXG(m_XGentries[m_XGentries[i].m_cloneID].m_xg);
+		else if (!m_modelSetups[i]->bindXG(m_XGentries[m_XGentries[i].m_cloneID].m_xg))
+			m_useSplitRendering = false;
 
 	m_shadowPtr = m_xgm->getTexture("SHADOW.IMX");
 	m_skyPtr = m_xgm->getTexture("ST02SKY.IMX");

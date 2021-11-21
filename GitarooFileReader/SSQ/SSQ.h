@@ -61,6 +61,7 @@ class SSQ
 
 	std::unique_ptr<XGM> m_xgm;
 	bool m_doSkyBackground = false;
+	bool m_useSplitRendering = true;
 
 	struct ViewerControls_SSQ : public ViewerControls
 	{
@@ -94,6 +95,7 @@ private:
 	void drawOpaques();
 	void drawTranparents();
 	void draw(const bool doTranparents);
+	void draw_AIO();
 
 	void setFrame(const float frame);
 };

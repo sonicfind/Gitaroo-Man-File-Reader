@@ -860,13 +860,20 @@ void SSQ::drawOpaques()
 		glDepthMask(GL_TRUE);
 	}
 
-	// Draw opaque meshes
-	draw(false);
+	if (m_useSplitRendering)
+		// Draw opaque meshes
+		draw(false);
+	else
+		// Draws both opaques and transparents
+		// Required for properly rendering models that go without depth testing
+		draw_AIO();
 }
 
 void SSQ::drawTranparents()
 {
-	draw(true);
+	// If split rendering isn't used, the transparents are already rendered
+	if (m_useSplitRendering)
+		draw(true);
 }
 
 void SSQ::draw(const bool doTransparents)
@@ -921,5 +928,66 @@ void SSQ::draw(const bool doTransparents)
 			g_shaderList.m_spriteShaders.m_normals.use();
 			m_sprites.draw(doTransparents);
 		}
+	}
+}
+
+void SSQ::draw_AIO()
+{
+	for (size_t i = 0; i < m_modelSetups.size(); ++i)
+		if (!m_XGentries[i].m_isClone && m_XGentries[i].m_xg->getInstanceCount())
+			m_XGentries[i].m_xg->drawAIO(m_viewerControls->showNormals);
+
+	if (m_shadowPtr)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, m_shadowVBO);
+		glBindVertexArray(m_shadowVAO);
+		
+		if (m_viewerControls->showNormals)
+		{
+			g_shaderList.m_shadowShaders.m_normals.use();
+			for (size_t i = 0; i < m_XGentries.size(); ++i)
+				if (m_XGentries[i].m_dropShadow)
+					glDrawArrays(GL_POINTS, i, 1);
+		}
+
+		glEnable(GL_BLEND);
+		g_shaderList.m_shadowShaders.m_base.use();
+		glActiveTexture(GL_TEXTURE0);
+		m_shadowPtr->m_data->bindTexture();
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+
+		for (size_t i = 0; i < m_XGentries.size(); ++i)
+			if (m_XGentries[i].m_dropShadow)
+				glDrawArrays(GL_POINTS, i, 1);
+		glDisable(GL_BLEND);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+
+	if (m_sprites.hasSprites())
+	{
+		static const std::string textures[] =
+		{
+			"textures[0]", "textures[1]", "textures[2]", "textures[3]", "textures[4]", "textures[5]", "textures[6]", "textures[7]",
+		};
+
+		if (m_viewerControls->showNormals)
+		{
+			g_shaderList.m_spriteShaders.m_normals.use();
+			m_sprites.draw(true);
+		}
+
+		glEnable(GL_BLEND);
+		g_shaderList.m_spriteShaders.m_base.use();
+		for (size_t i = 0; i < m_IMXentries.size(); ++i)
+		{
+			glActiveTexture(GL_TEXTURE0 + int(i));
+			m_IMXentries[i].m_imxPtr->m_data->bindTexture();
+			Shader::setInt(textures[i], int(i));
+		}
+
+		m_sprites.draw(true);
+		glDisable(GL_BLEND);
 	}
 }

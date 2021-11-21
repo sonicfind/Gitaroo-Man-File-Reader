@@ -56,6 +56,7 @@ public:
 	void restPose(const glm::mat4 matrix);
 	void animate(unsigned long instance, const glm::mat4 matrix);
 	void draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents) const;
+	void drawAIO(const unsigned long numInstances, const bool showNormals) const;
 
 	static void generateMatrixUniform();
 	static void deleteMatrixUniform();

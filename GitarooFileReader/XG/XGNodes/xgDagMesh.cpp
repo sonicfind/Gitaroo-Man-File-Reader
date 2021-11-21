@@ -293,3 +293,91 @@ void xgDagMesh::draw(const unsigned long numInstances, const bool showNormals, c
 		}
 	}
 }
+
+void xgDagMesh::drawAIO(const unsigned long numInstances, const bool showNormals) const
+{
+	auto drawTriangles = [&] {
+		m_triFan->draw(numInstances);
+		m_triStrip->draw(numInstances);
+		m_triList->draw(numInstances);
+	};
+	
+	bool transparent = m_inputMaterial->hasTransparency();
+	glBindBuffer(GL_UNIFORM_BUFFER, s_matrixUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4) * numInstances, m_matrices);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	m_inputGeometry->bindVertexBuffer(numInstances);
+	if (showNormals)
+	{
+		m_inputGeometry->activateShader(true);
+		drawTriangles();
+	}
+
+	if (m_cullFunc != s_currentCulling)
+	{
+		switch (m_cullFunc)
+		{
+		case 0:
+			glDisable(GL_CULL_FACE);
+			break;
+		case 1:
+			if (s_currentCulling == 0)
+				glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			break;
+		case 2:
+			if (s_currentCulling == 0)
+				glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+		}
+		s_currentCulling = m_cullFunc;
+	}
+
+	glActiveTexture(GL_TEXTURE0);
+	m_inputGeometry->activateShader(false);
+	m_inputMaterial->setShaderValues(0);
+
+	if (transparent)
+	{
+		glEnable(GL_BLEND);
+		glDepthMask(GL_FALSE);
+		if (!m_updateDepthMask)
+			glDepthFunc(GL_ALWAYS);
+	}
+	drawTriangles();
+
+	if (m_inputMaterial->getNumMaterials() > 1)
+	{
+		if (m_updateDepthMask)
+		{
+			if (!transparent)
+				glEnable(GL_BLEND);
+			// Allows for multipass materials to be applied to the same vertex
+			glDepthFunc(GL_LEQUAL);
+		}
+
+		for (int index = 1; index < m_inputMaterial->getNumMaterials(); ++index)
+		{
+			m_inputMaterial->setShaderValues(index);
+			drawTriangles();
+		}
+
+		if (m_updateDepthMask)
+		{
+			if (!transparent)
+				glDisable(GL_BLEND);
+			glDepthFunc(GL_LESS);
+		}
+	}
+
+	if (transparent)
+	{
+		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
+		if (!m_updateDepthMask)
+			glDepthFunc(GL_LESS);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}

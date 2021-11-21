@@ -108,11 +108,12 @@ void ModelSetup::create(FILE* outFile) const
 	}
 }
 
-void ModelSetup::bindXG(XG* xg)
+bool ModelSetup::bindXG(XG* xg)
 {
 	m_xg = xg;
 	if (!m_baseValues.depthTest)
 		xg->disableDepthMask();
+	return m_baseValues.depthTest;
 }
 
 void ModelSetup::jumpToFrame(const float frame)

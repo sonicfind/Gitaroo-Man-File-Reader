@@ -338,6 +338,11 @@ void XG::draw(const bool showNormals, const bool doTransparents) const
 	m_data->draw(m_instanceCount, showNormals, doTransparents);
 }
 
+void XG::drawAIO(const bool showNormals) const
+{
+	m_data->drawAIO(m_instanceCount, showNormals);
+}
+
 unsigned long XG::getInstanceCount() const
 {
 	return m_instanceCount;

@@ -41,4 +41,6 @@ public:
 	void animate(float frame, unsigned long instance, const glm::mat4 matrix);
 	// Draws all vertex data to the current framebuffer
 	void draw(const unsigned long numInstances, const bool showNormals, const bool doTransparents) const;
+
+	void drawAIO(const unsigned long numInstances, const bool showNormals) const;
 };

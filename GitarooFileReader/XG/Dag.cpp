@@ -151,3 +151,14 @@ void Dag::draw(const unsigned long numInstances, const bool showNormals, const b
 			dag.draw(numInstances, showNormals, doTransparents);
 	}
 }
+
+void Dag::drawAIO(const unsigned long numInstances, const bool showNormals) const
+{
+	if (auto mesh = m_base.get<xgDagMesh>())
+		mesh->drawAIO(numInstances, showNormals);
+	else
+	{
+		for (const auto& dag : m_connected)
+			dag.drawAIO(numInstances, showNormals);
+	}
+}

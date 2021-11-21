@@ -57,6 +57,7 @@ public:
 
 private:
 	bool write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile);
+	void disableDepthMask();
 	// Constructs all the vertex and uniform buffers for use in the OpenGL viewer
 	void initializeViewerState();
 	// Deletes all the vertex and uniform buffers created for the OpenGL viewer

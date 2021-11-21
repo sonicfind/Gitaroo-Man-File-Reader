@@ -149,6 +149,12 @@ void XG_Data::connectTextures(std::vector<IMX>& textures)
 		dag.connectTextures(textures);
 }
 
+void XG_Data::disableDepthMask()
+{
+	for (Dag& dag : m_dagMap)
+		dag.disableDepthMask();
+}
+
 // Constructs all the vertex and uniform buffers for use in the OpenGL viewer
 void XG_Data::initializeViewerState()
 {

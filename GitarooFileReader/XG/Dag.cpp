@@ -90,6 +90,15 @@ void Dag::connectTextures(std::vector<IMX>& textures)
 			dag.connectTextures(textures);
 }
 
+void Dag::disableDepthMask()
+{
+	if (auto mesh = m_base.get<xgDagMesh>())
+		mesh->disableDepthMask();
+	else
+		for (auto& dag : m_connected)
+			dag.disableDepthMask();
+}
+
 void Dag::initializeViewerState()
 {
 	if (auto mesh = m_base.get<xgDagMesh>())

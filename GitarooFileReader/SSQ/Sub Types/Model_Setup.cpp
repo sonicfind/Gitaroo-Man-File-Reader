@@ -111,6 +111,8 @@ void ModelSetup::create(FILE* outFile) const
 void ModelSetup::bindXG(XG* xg)
 {
 	m_xg = xg;
+	if (!m_baseValues.depthTest)
+		xg->disableDepthMask();
 }
 
 void ModelSetup::jumpToFrame(const float frame)

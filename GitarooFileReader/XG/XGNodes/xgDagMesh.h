@@ -31,6 +31,7 @@ class xgDagMesh : public DagNode
 	SharedNode<MaterialNode> m_inputMaterial;
 
 	bool m_doGeometryAnimation = true;
+	bool m_updateDepthMask = true;
 	glm::mat4 m_matrices[MAX_INSTANCES];
 public:
 	using DagNode::DagNode;
@@ -49,6 +50,7 @@ private:
 
 public:
 	void connectTextures(std::vector<IMX>& textures);
+	void disableDepthMask() { m_updateDepthMask = false; }
 	void intializeBuffers();
 	void deleteBuffers();
 	void restPose(const glm::mat4 matrix);

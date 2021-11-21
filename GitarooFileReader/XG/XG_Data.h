@@ -29,6 +29,8 @@ public:
 	// Finds all xgMaterial nodes that contain references to a texture
 	// and connects each to the respective IMX pointer
 	void connectTextures(std::vector<IMX>& textures);
+
+	void disableDepthMask();
 	// Constructs all the vertex and uniform buffers for use in the OpenGL viewer
 	void initializeViewerState();
 	// Deletes all the vertex and uniform buffers created for the OpenGL viewer

@@ -27,6 +27,7 @@ public:
 	void faces_to_obj(FILE* objFile, std::vector<std::pair<size_t, xgBgGeometry*>>& history) const;
 	void connectTextures(std::vector<IMX>& textures);
 
+	void disableDepthMask();
 	void initializeViewerState();
 	void uninitializeViewerState();
 	void restPose(glm::mat4 matrix) const;

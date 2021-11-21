@@ -200,6 +200,11 @@ bool XG::write_to_txt(FILE*& txtFile, FILE*& simpleTxtFile)
 	return true;
 }
 
+void XG::disableDepthMask()
+{
+	m_data->disableDepthMask();
+}
+
 bool XG::write_to_obj(std::string newDirectory)
 {
 	GlobalFunctions::banner(" " + m_filename + " - Model Export ");

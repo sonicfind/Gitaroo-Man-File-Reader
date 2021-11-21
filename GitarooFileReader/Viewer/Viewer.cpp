@@ -897,7 +897,7 @@ void SSQ::draw(const bool doTransparents)
 			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
 		}
 
-		for (size_t i = 0; i < m_XGentries.size(); ++i)
+		for (unsigned i = 0; i < m_XGentries.size(); ++i)
 			if (m_XGentries[i].m_dropShadow)
 				glDrawArrays(GL_POINTS, i, 1);
 		
@@ -944,7 +944,7 @@ void SSQ::draw_AIO()
 		if (m_viewerControls->showNormals)
 		{
 			g_shaderList.m_shadowShaders.m_normals.use();
-			for (size_t i = 0; i < m_XGentries.size(); ++i)
+			for (unsigned i = 0; i < m_XGentries.size(); ++i)
 				if (m_XGentries[i].m_dropShadow)
 					glDrawArrays(GL_POINTS, i, 1);
 		}
@@ -955,7 +955,7 @@ void SSQ::draw_AIO()
 		m_shadowPtr->m_data->bindTexture();
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
 
-		for (size_t i = 0; i < m_XGentries.size(); ++i)
+		for (unsigned i = 0; i < m_XGentries.size(); ++i)
 			if (m_XGentries[i].m_dropShadow)
 				glDrawArrays(GL_POINTS, i, 1);
 		glDisable(GL_BLEND);

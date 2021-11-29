@@ -42,8 +42,7 @@ TexAnim::TexAnim(FILE* inFile)
 		fread(&cut, sizeof(float), 4, inFile);
 
 	fread(&numTexFrames, 4, 1, inFile);
-	m_textureFrames.resize(numTexFrames);
-	fread(&m_textureFrames.front(), sizeof(TexFrame), numTexFrames, inFile);
+	m_textureFrames.fill(numTexFrames, inFile);
 }
 
 void TexAnim::create(FILE* outFile)
@@ -64,7 +63,7 @@ void TexAnim::create(FILE* outFile)
 		fwrite(&cut, sizeof(float), 4, outFile);
 
 	fwrite(&numTexFrames, 4, 1, outFile);
-	fwrite(&m_textureFrames.front(), sizeof(TexFrame), numTexFrames, outFile);
+	m_textureFrames.write(outFile);
 }
 
 void TexAnim::connectTexture(IMX* imx)
@@ -114,7 +113,7 @@ void TexAnim::substitute(const float frame)
 	if (!m_imxPtr)
 		return;
 
-	auto iter = getIter(m_textureFrames, fmod(frame, m_textureFrames.back().frame));
+	auto iter = m_textureFrames.update(frame, true);
 	if (iter->cutOutIndex != m_cutOutIndex)
 	{
 		m_cutOutIndex = iter->cutOutIndex;

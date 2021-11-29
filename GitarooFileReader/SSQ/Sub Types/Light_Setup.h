@@ -41,7 +41,7 @@ class LightSetup
 
 	Val m_junk[4] = { 0 };
 
-	std::vector<Rotation> m_rotations;
+	IteratedVector<Rotation> m_rotations;
 
 	struct LightColors : public Frame
 	{
@@ -53,7 +53,7 @@ class LightSetup
 		long max;
 	};
 
-	std::vector<LightColors> m_colors;
+	IteratedVector<LightColors> m_colors;
 
 public:
 	struct LightForBuffer
@@ -69,8 +69,8 @@ public:
 	};
 	LightSetup(FILE* inFile);
 	void create(FILE* outFile);
-	LightForBuffer getLight(const float frame) const;
+	LightForBuffer getLight(const float frame);
 private:
-	glm::vec3 getDirection(const float frame) const;
-	LightColors getColors(const float frame) const;
+	glm::vec3 getDirection(const float frame);
+	LightColors getColors(const float frame);
 };

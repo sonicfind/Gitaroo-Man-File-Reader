@@ -67,7 +67,7 @@ class FixedSprite
 		unsigned long otherPos;
 	};
 
-	std::vector<SpriteWorldValues> m_48bytes;
+	IteratedVector<SpriteWorldValues> m_48bytes;
 
 	struct ColorMultipliers : public Frame
 	{
@@ -76,7 +76,7 @@ class FixedSprite
 		unsigned long doInterpolation;
 	};
 
-	std::vector<ColorMultipliers> m_colors;
+	IteratedVector<ColorMultipliers> m_colors;
 
 	struct SpriteFrame : public Frame
 	{

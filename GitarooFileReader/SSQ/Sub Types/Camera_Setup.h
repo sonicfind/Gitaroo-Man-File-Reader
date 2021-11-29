@@ -84,12 +84,12 @@ public:
 	BaseGlobalValues m_baseGlobalValues;
 
 private:
-	std::vector<Position> m_positions;
-	std::vector<Rotation> m_rotations;
-	std::vector<Projection> m_projections;
-	std::vector<AmbientColor> m_ambientColors;
+	IteratedVector<Position> m_positions;
+	IteratedVector<Rotation> m_rotations;
+	IteratedVector<Projection> m_projections;
+	IteratedVector<AmbientColor> m_ambientColors;
 	std::vector<LightSetup> m_lights;
-	std::vector<Struct64_7f> m_64bytes_v;
+	IteratedVector<Struct64_7f> m_64bytes_v;
 
 	unsigned int m_lightUBO = 0;
 
@@ -100,9 +100,9 @@ public:
 
 	void generateBuffers(float aspectRatio);
 	void deleteBuffers();
-	glm::vec3 getClearColor(const float frame) const;
-	glm::mat4 getProjectionMatrix(const float frame) const;
-	glm::mat4 getViewMatrix(const float frame) const;
-	glm::vec3 getAmbientColor(const float frame) const;
+	glm::vec3 getClearColor(const float frame);
+	glm::mat4 getProjectionMatrix(const float frame);
+	glm::mat4 getViewMatrix(const float frame);
+	glm::vec3 getAmbientColor(const float frame);
 	void setLights(const float frame, const unsigned int doLights);
 };

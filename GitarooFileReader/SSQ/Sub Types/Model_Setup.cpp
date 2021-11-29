@@ -38,30 +38,21 @@ ModelSetup::ModelSetup(FILE* inFile, ModelType type, glm::mat4& mat)
 	fread(&numPositions, 4, 1, inFile);
 	fread(&numRotations, 4, 1, inFile);
 
-	m_positions.resize(numPositions);
-	fread(&m_positions.front(), sizeof(Position), numPositions, inFile);
-
-	m_rotations.resize(numRotations);
-	fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
-	flipHand(m_rotations);
+	m_positions.fill(numPositions, inFile);
+	m_rotations.fill(numRotations, inFile);
+	flipHand(m_rotations.m_vect);
 
 	unsigned long numAnimations;
 	fread(&numAnimations, 4, 1, inFile);
 	if (numAnimations > 1)
-	{
-		m_animations.resize(numAnimations);
-		fread(&m_animations.front(), sizeof(ModelAnim), numAnimations, inFile);
-	}
+		m_animations.fill(numAnimations, inFile);
 
 	if (m_headerVersion >= 0x1100)
 	{
 		unsigned long numScalars;
 		fread(&numScalars, 4, 1, inFile);
 		if (numScalars > 1)
-		{
-			m_scalars.resize(numScalars);
-			fread(&m_scalars.front(), sizeof(ModelScalar), numScalars, inFile);
-		}
+			m_scalars.fill(numScalars, inFile);
 		fread(&m_baseValues, sizeof(BaseValues), 1, inFile);
 	}
 }
@@ -82,28 +73,15 @@ void ModelSetup::create(FILE* outFile) const
 
 	fwrite(&numPositions, 4, 1, outFile);
 	fwrite(&numRotations, 4, 1, outFile);
-	fwrite(&m_positions.front(), sizeof(Position), numPositions, outFile);
-	std::vector<Rotation> tmp = m_rotations;
+	m_positions.write(outFile);
+	std::vector<Rotation> tmp = m_rotations.m_vect;
 	flipHand(tmp);
 	fwrite(&tmp.front(), sizeof(Rotation), numRotations, outFile);
-
-	unsigned long size = (unsigned long)m_animations.size();
-	if (!size)
-		size = 1;
-	fwrite(&size, 4, 1, outFile);
-
-	if (size > 1)
-		fwrite(&m_animations.front(), sizeof(ModelAnim), size, outFile);
+	m_animations.write_conditioned(outFile);
 
 	if (m_headerVersion >= 0x1100)
 	{
-		size = (unsigned long)m_scalars.size();
-		if (!size)
-			size = 1;
-		fwrite(&size, 4, 1, outFile);
-
-		if (size > 1)
-			fwrite(&m_scalars.front(), sizeof(ModelScalar), size, outFile);
+		m_scalars.write_conditioned(outFile);
 		fwrite(&m_baseValues, sizeof(BaseValues), 1, outFile);
 	}
 }
@@ -127,14 +105,14 @@ void ModelSetup::reset()
 	m_controllableStartFrame = m_bpmStartFrame;
 }
 
-void ModelSetup::updateMatrix(const float frame) const
+void ModelSetup::updateMatrix(const float frame)
 {
 	glm::vec3 position;
 	if (m_positions.empty())
 		position = m_baseValues.basePosition;
 	else
 	{
-		auto iter = getIter(m_positions, frame);
+		auto iter = m_positions.update(frame);
 		if (!iter->doInterpolation || iter + 1 == m_positions.end())
 			position = iter->position;
 		else
@@ -146,7 +124,7 @@ void ModelSetup::updateMatrix(const float frame) const
 		rotation = m_baseValues.baseRotation;
 	else
 	{
-		auto iter = getIter(m_rotations, frame);
+		auto iter = m_rotations.update(frame);
 		if (!iter->doInterpolation || iter + 1 == m_rotations.end())
 			rotation = iter->rotation;
 		else
@@ -159,7 +137,7 @@ void ModelSetup::updateMatrix(const float frame) const
 	if (!m_scalars.empty())
 	{
 		glm::vec3 scale;
-		auto iter = getIter(m_scalars, frame);
+		auto iter = m_scalars.update(frame);
 		if (!iter->doInterpolation || iter + 1 == m_scalars.end())
 			scale = iter->scalar;
 		else
@@ -175,7 +153,7 @@ bool ModelSetup::animate(const float frame)
 	bool doShadow = false;
 	if (!m_animations.empty())
 	{
-		auto iter = getIter(m_animations, frame);
+		auto iter = m_animations.update(frame);
 		doShadow = iter->dropShadow && !iter->noDrawing;
 		if (!iter->noDrawing && !iter->pollGameState)
 		{

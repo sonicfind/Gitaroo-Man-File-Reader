@@ -36,29 +36,21 @@ void CameraSetup::read(FILE* inFile)
 	fread(&numPositions, 4, 1, inFile);
 	fread(&numRotations, 4, 1, inFile);
 
-	m_positions.resize(numPositions);
-	fread(&m_positions.front(), sizeof(Position), numPositions, inFile);
-	for (auto& pos : m_positions)
+	m_positions.fill(numPositions, inFile);
+	for (auto& pos : m_positions.m_vect)
 		pos.position.z *= -1;
 
-	m_rotations.resize(numRotations);
-	fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
+	m_rotations.fill(numRotations, inFile);
 
 	unsigned long numSettings;
 	fread(&numSettings, 4, 1, inFile);
 	if (numSettings > 1)
-	{
-		m_projections.resize(numSettings);
-		fread(&m_projections.front(), sizeof(Projection), numSettings, inFile);
-	}
+		m_projections.fill(numSettings, inFile);
 
 	unsigned long numAmbientColors;
 	fread(&numAmbientColors, 4, 1, inFile);
 	if (numAmbientColors > 1)
-	{
-		m_ambientColors.resize(numAmbientColors);
-		fread(&m_ambientColors.front(), sizeof(AmbientColor), numAmbientColors, inFile);
-	}
+		m_ambientColors.fill(numAmbientColors, inFile);
 
 	unsigned long numlights;
 	fread(&numlights, 4, 1, inFile);
@@ -71,10 +63,7 @@ void CameraSetup::read(FILE* inFile)
 		unsigned long unk3;
 		fread(&unk3, 4, 1, inFile);
 		if (unk3 > 1)
-		{
-			m_64bytes_v.resize(unk3);
-			fread(&m_64bytes_v.front(), sizeof(Struct64_7f), unk3, inFile);
-		}
+			m_64bytes_v.fill(unk3, inFile);
 	}
 }
 
@@ -92,41 +81,23 @@ void CameraSetup::create(FILE* outFile)
 
 	fwrite(&numPositions, 4, 1, outFile);
 	fwrite(&numRotations, 4, 1, outFile);
-	std::vector<Position> tmp = m_positions;
+	std::vector<Position> tmp = m_positions.m_vect;
 	for (auto& pos : tmp)
 		pos.position.z *= -1;
-	fwrite(&tmp.front(), sizeof(Position), numPositions, outFile);
-	fwrite(&m_rotations.front(), sizeof(Rotation), numRotations, outFile);
+	fwrite(tmp.data(), sizeof(Position), numPositions, outFile);
+	m_rotations.write(outFile);
 
-	unsigned long size = (unsigned long)m_projections.size();
-	if (!size)
-		size = 1;
-	fwrite(&size, 4, 1, outFile);
-	if (size > 1)
-		fwrite(&m_projections.front(), sizeof(Projection), size, outFile);
+	m_projections.write_conditioned(outFile);
+	m_ambientColors.write_conditioned(outFile);
 
-	size = (unsigned long)m_ambientColors.size();
-	if (!size)
-		size = 1;
-	fwrite(&size, 4, 1, outFile);
-	if (size > 1)
-		fwrite(&m_ambientColors.front(), sizeof(AmbientColor), size, outFile);
-
-	size = (unsigned long)m_lights.size();
+	unsigned long size = (unsigned long)m_lights.size();
 	fwrite(&size, 4, 1, outFile);
 
 	for (auto& light : m_lights)
 		light.create(outFile);
 
 	if (m_headerVersion >= 0x1200)
-	{
-		size = (unsigned long)m_64bytes_v.size();
-		if (!size)
-			size = 1;
-		fwrite(&size, 4, 1, outFile);
-		if (size > 1)
-			fwrite(&m_64bytes_v.front(), sizeof(Struct64_7f), size, outFile);
-	}
+		m_64bytes_v.write_conditioned(outFile);
 }
 
 float CameraSetup::getLastFrame() const
@@ -165,13 +136,13 @@ void CameraSetup::deleteBuffers()
 	glDeleteBuffers(2, &m_lightUBO);
 }
 
-glm::vec3 CameraSetup::getClearColor(const float frame) const
+glm::vec3 CameraSetup::getClearColor(const float frame)
 {
 	// Temporary as I am so sure that something must control the clear color mid-stage
 	return m_baseGlobalValues.clearColor;
 }
 
-glm::mat4 CameraSetup::getProjectionMatrix(const float frame) const
+glm::mat4 CameraSetup::getProjectionMatrix(const float frame)
 {
 	if (m_projections.empty())
 		return glm::perspective(glm::radians(m_baseGlobalValues.fov),
@@ -180,7 +151,7 @@ glm::mat4 CameraSetup::getProjectionMatrix(const float frame) const
 								m_baseGlobalValues.zFar);
 	else
 	{
-		auto iter = getIter(m_projections, frame);
+		const auto iter = m_projections.update(frame);
 		if (!iter->doInterpolation || iter + 1 == m_projections.end())
 			return glm::perspective(glm::radians(iter->fov),
 									iter->aspectRatio * m_viewerAspectRatio,
@@ -189,24 +160,25 @@ glm::mat4 CameraSetup::getProjectionMatrix(const float frame) const
 		else
 		{
 			const float coefficient = (frame - iter->frame) * iter->coefficient;
-			return glm::perspective(glm::radians(mix(iter->fov, (iter + 1)->fov, coefficient)),
-									mix(iter->aspectRatio, (iter + 1)->aspectRatio, coefficient) * m_viewerAspectRatio,
-									mix(iter->zNear, (iter + 1)->zNear, coefficient),
-									mix(iter->zFar, (iter + 1)->zFar, coefficient));
+			const auto next = iter + 1;
+			return glm::perspective(glm::radians(mix(iter->fov, next->fov, coefficient)),
+									mix(iter->aspectRatio, next->aspectRatio, coefficient) * m_viewerAspectRatio,
+									mix(iter->zNear, next->zNear, coefficient),
+									mix(iter->zFar, next->zFar, coefficient));
 		}
 	}
 }
 
-glm::mat4 CameraSetup::getViewMatrix(const float frame) const
+glm::mat4 CameraSetup::getViewMatrix(const float frame)
 {
-	auto posIter = getIter(m_positions, frame);
+	const auto posIter = m_positions.update(frame);
 	glm::vec3 position;
 	if (!posIter->doInterpolation || posIter + 1 == m_positions.end())
 		position = posIter->position;
 	else
 		position = glm::mix(posIter->position, (posIter + 1)->position, (frame - posIter->frame) * posIter->coefficient);
 
-	auto rotIter = getIter(m_rotations, frame);
+	const auto rotIter = m_rotations.update(frame);
 	glm::quat rotation;
 	if (!rotIter->doInterpolation || rotIter + 1 == m_rotations.end())
 		rotation = rotIter->rotation;
@@ -216,13 +188,13 @@ glm::mat4 CameraSetup::getViewMatrix(const float frame) const
 	return glm::toMat4(rotation) * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 }
 
-glm::vec3 CameraSetup::getAmbientColor(const float frame) const
+glm::vec3 CameraSetup::getAmbientColor(const float frame)
 {
 	if (m_ambientColors.empty())
 		return glm::vec3(m_baseGlobalValues.baseAmbience) / 255.0f;
 	else
 	{
-		auto iter = getIter(m_ambientColors, frame);
+		const auto iter = m_ambientColors.update(frame);
 		if (!iter->doInterpolation || iter + 1 == m_ambientColors.end())
 			return iter->color;
 		else

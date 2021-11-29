@@ -47,7 +47,7 @@ private:
 
 	std::vector<CutOut> m_cutOuts;
 	size_t m_cutOutIndex = 0;
-	std::vector<TexFrame> m_textureFrames;
+	IteratedVector<TexFrame> m_textureFrames;
 public:
 	
 	TexAnim(FILE* inFile);

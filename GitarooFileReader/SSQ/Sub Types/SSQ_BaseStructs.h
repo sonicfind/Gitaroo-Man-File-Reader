@@ -194,15 +194,6 @@ enum class ModelType
 };
 
 template <typename T>
-auto getIter(const std::vector<T>& vect, const float time)
-{
-	auto iter = std::lower_bound(vect.begin(), vect.end(), time, [](const T& a, const float b) { return a.frame < b; });
-	if (iter != vect.begin())
-		--iter;
-	return iter;
-}
-
-template <typename T>
 T mix(const T a, const T b, const float coefficient)
 {
 	return T(a + (b - a) * coefficient);

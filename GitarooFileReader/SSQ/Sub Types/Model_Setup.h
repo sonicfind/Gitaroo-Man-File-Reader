@@ -68,10 +68,10 @@ protected:
 	XG* m_xg;
 	glm::mat4& m_matrix;
 
-	std::vector<Position> m_positions;
-	std::vector<Rotation> m_rotations;
-	std::vector<ModelAnim> m_animations;
-	std::vector<ModelScalar> m_scalars;
+	IteratedVector<Position> m_positions;
+	IteratedVector<Rotation> m_rotations;
+	IteratedVector<ModelAnim> m_animations;
+	IteratedVector<ModelScalar> m_scalars;
 	BaseValues m_baseValues;
 
 public:
@@ -82,7 +82,7 @@ public:
 	void reset();
 	void jumpToFrame(const float frame);
 	bool animate(const float frame);
-	void updateMatrix(const float frame) const;
+	void updateMatrix(const float frame);
 
 protected:
 	virtual void animateFromGameState(const float frame, const bool draw) {}

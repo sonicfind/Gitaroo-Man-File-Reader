@@ -37,16 +37,10 @@ FixedSprite::FixedSprite(FILE* inFile)
 	fread(&numFrames, 4, 1, inFile);
 
 	if (num48 > 1)
-	{
-		m_48bytes.resize(num48);
-		fread(&m_48bytes.front(), sizeof(SpriteWorldValues), num48, inFile);
-	}
+		m_48bytes.fill(num48, inFile);
 
 	if (pair1 > 1)
-	{
-		m_colors.resize(pair1);
-		fread(&m_colors.front(), sizeof(ColorMultipliers), pair1, inFile);
-	}
+		m_colors.fill(pair1, inFile);
 
 	if (numFrames > 1)
 	{
@@ -79,13 +73,13 @@ void FixedSprite::create(FILE* outFile)
 	fwrite(&numFrames, 4, 1, outFile);
 
 	if (num48 > 1)
-		fwrite(&m_48bytes.front(), sizeof(SpriteWorldValues), num48, outFile);
+		m_48bytes.write(outFile);
 
 	if (colors > 1)
-		fwrite(&m_colors.front(), sizeof(ColorMultipliers), colors, outFile);
+		m_colors.write(outFile);
 
 	if (numFrames > 1)
-		fwrite(&m_spriteFrames.front(), sizeof(SpriteFrame), numFrames, outFile);
+		fwrite(m_spriteFrames.data(), sizeof(SpriteFrame), numFrames, outFile);
 }
 
 #include <math.h>
@@ -93,7 +87,7 @@ bool FixedSprite::update(const float frame, SpriteValues& values)
 {
 	if (!m_48bytes.empty())
 	{
-		auto iter = getIter(m_48bytes, frame);
+		auto iter = m_48bytes.update(frame);
 		if (iter->noDrawing)
 			return false;
 
@@ -112,7 +106,7 @@ bool FixedSprite::update(const float frame, SpriteValues& values)
 
 	if (!m_colors.empty())
 	{
-		auto iter = getIter(m_colors, frame);
+		auto iter = m_colors.update(frame);
 		if (!iter->doInterpolation || iter + 1 == m_colors.end())
 			values.colorMultipliers = iter->colors;
 		else

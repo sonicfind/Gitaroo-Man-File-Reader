@@ -19,6 +19,7 @@ LightSetup::LightSetup(FILE* inFile)
 	char tmp[5] = { 0 };
 
 	fread(&m_baseValues, sizeof(BaseValues), 1, inFile);
+
 	fread(tmp, 1, 4, inFile);
 	if (!strstr(tmp, "GMLT"))
 	{
@@ -38,16 +39,12 @@ LightSetup::LightSetup(FILE* inFile)
 
 	if (numRotations > 1)
 	{
-		m_rotations.resize(numRotations);
-		fread(&m_rotations.front(), sizeof(Rotation), numRotations, inFile);
-		flipHand(m_rotations);
+		m_rotations.fill(numRotations, inFile);
+		flipHand(m_rotations.m_vect);
 	}
 
 	if (numColors > 1)
-	{
-		m_colors.resize(numColors);
-		fread(&m_colors.front(), sizeof(LightColors), numColors, inFile);
-	}
+		m_colors.fill(numColors, inFile);
 }
 
 void LightSetup::create(FILE* outFile)
@@ -72,16 +69,16 @@ void LightSetup::create(FILE* outFile)
 
 	if (numRotations > 1)
 	{
-		std::vector<Rotation> tmp = m_rotations;
+		std::vector<Rotation> tmp = m_rotations.m_vect;
 		flipHand(tmp);
 		fwrite(tmp.data(), sizeof(Rotation), numRotations, outFile);
 	}
 
 	if (numColors > 1)
-		fwrite(&m_colors.front(), sizeof(LightColors), numColors, outFile);
+		m_colors.write(outFile);
 }
 
-LightSetup::LightForBuffer LightSetup::getLight(const float frame) const
+LightSetup::LightForBuffer LightSetup::getLight(const float frame)
 {
 	const LightColors colors = getColors(frame);
 	return
@@ -95,7 +92,7 @@ LightSetup::LightForBuffer LightSetup::getLight(const float frame) const
 	};
 }
 
-glm::vec3 LightSetup::getDirection(const float frame) const
+glm::vec3 LightSetup::getDirection(const float frame)
 {
 	// The actual direction of the light can not yet be determined at this point,
 	// so we're going with these basic returns for now
@@ -104,10 +101,7 @@ glm::vec3 LightSetup::getDirection(const float frame) const
 		direction = glm::rotate(m_baseValues.rotation, glm::vec3(0, 0, -1));
 	else
 	{
-		auto iter = m_rotations.begin();
-
-		while (iter + 1 != m_rotations.end() && (iter + 2)->frame < frame)
-			iter += 2;
+		auto iter = m_rotations.update_skip(frame);
 
 		if (!iter->doInterpolation || iter + 1 == m_rotations.end())
 			direction = glm::rotate(iter->rotation, glm::vec3(0, 0, -1));
@@ -120,7 +114,7 @@ glm::vec3 LightSetup::getDirection(const float frame) const
 	return direction;
 }
 
-LightSetup::LightColors LightSetup::getColors(const float frame) const
+LightSetup::LightColors LightSetup::getColors(const float frame)
 {
 	LightColors colors{};
 	if (m_colors.empty())
@@ -133,7 +127,7 @@ LightSetup::LightColors LightSetup::getColors(const float frame) const
 	}
 	else
 	{
-		auto iter = getIter(m_colors, frame);
+		auto iter = m_colors.update(frame);
 		if (!iter->doInterpolation || iter + 1 == m_colors.end())
 		{
 			colors.diffuse = iter->diffuse;

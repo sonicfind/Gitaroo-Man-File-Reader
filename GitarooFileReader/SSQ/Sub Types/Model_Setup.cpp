@@ -181,15 +181,16 @@ bool ModelSetup::animate(const float frame)
 					{
 						if (!test->loop)
 							start = test->frame + m_xg->getAnimationLength(test->animIndex);
+						++test;
 						break;
 					}
 				}
 
-				if (test->startOverride && test->loop)
+				/*if (test->startOverride && test->loop)
 				{
 					if (m_xg->isAnimationTempoBased(iter->animIndex))
 						start = m_bpmStartFrame;
-				}
+				}*/
 			}
 
 			unsigned long index = iter->animIndex;

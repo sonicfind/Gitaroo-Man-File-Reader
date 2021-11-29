@@ -58,6 +58,7 @@ public:
 	// since the actual image data held in the IMX object can be swapped out
 	void loadCuts();
 	void unloadCuts();
+	void jumpToFrame(const float frame);
 	void substitute(const float frame);
 	void apply();
 };

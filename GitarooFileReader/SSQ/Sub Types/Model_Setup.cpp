@@ -97,6 +97,10 @@ bool ModelSetup::bindXG(XG* xg)
 void ModelSetup::jumpToFrame(const float frame)
 {
 	m_bpmStartFrame = frame;
+	m_positions.jump(frame);
+	m_rotations.jump(frame);
+	m_animations.jump(frame);
+	m_scalars.jump(frame);
 }
 
 void ModelSetup::reset()

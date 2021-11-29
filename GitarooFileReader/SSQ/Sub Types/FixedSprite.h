@@ -93,5 +93,6 @@ public:
 	FixedSprite(FILE* inFile);
 	void create(FILE* outFile);
 
+	void jumpToFrame(const float frame);
 	bool update(const float frame, SpriteValues& values);
 };

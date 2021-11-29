@@ -97,6 +97,12 @@ void FixedSpriteSetup::deleteSpriteBuffer()
 	glDeleteBuffers(1, &m_fixedSpriteVBO);
 }
 
+void FixedSpriteSetup::jumpToFrame(const float frame)
+{
+	for (auto& fixed : m_fixedSprites)
+		fixed.jumpToFrame(frame);
+}
+
 void FixedSpriteSetup::update(const float frame)
 {
 	m_spritesToDraw.clear();

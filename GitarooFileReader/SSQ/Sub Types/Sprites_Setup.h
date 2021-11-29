@@ -40,6 +40,7 @@ public:
 	void generateSpriteBuffers();
 	void deleteSpriteBuffers();
 	bool hasSprites();
+	void jumpToFrame(const float frame);
 	void update(const float frame);
 	void draw(const bool doTransparents);
 };

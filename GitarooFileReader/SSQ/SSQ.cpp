@@ -366,4 +366,9 @@ void SSQ::setFrame(const float frame)
 	m_currFrame = frame;
 	for (auto& model : m_modelSetups)
 		model->jumpToFrame(frame);
+	m_camera.jumpToFrame(frame);
+	m_sprites.jumpToFrame(frame);
+	if (m_headerVersion >= 0x1100)
+		for (auto& anim : m_texAnimations)
+			anim.jumpToFrame(frame);
 }

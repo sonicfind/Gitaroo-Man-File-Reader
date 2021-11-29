@@ -77,6 +77,18 @@ bool SpritesSetup::hasSprites()
 	return m_fixedSpriteSetup || m_unk1SpriteSetup || m_unk2SpriteSetup;
 }
 
+void SpritesSetup::jumpToFrame(const float frame)
+{
+	if (m_fixedSpriteSetup)
+		m_fixedSpriteSetup->jumpToFrame(frame);
+
+	/*if (m_unk1SpriteSetup)
+		m_unk1SpriteSetup->jumpToFrame(frame);
+
+	if (m_unk2SpriteSetup)
+		m_unk2SpriteSetup->jumpToFrame(frame);*/
+}
+
 void SpritesSetup::generateSpriteBuffers()
 {
 	if (m_fixedSpriteSetup)

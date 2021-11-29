@@ -108,6 +108,11 @@ void TexAnim::unloadCuts()
 	}
 }
 
+void TexAnim::jumpToFrame(const float frame)
+{
+	m_textureFrames.jump(frame);
+}
+
 void TexAnim::substitute(const float frame)
 {
 	if (!m_imxPtr)

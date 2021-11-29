@@ -100,6 +100,7 @@ public:
 
 	void generateBuffers(float aspectRatio);
 	void deleteBuffers();
+	void jumpToFrame(const float frame);
 	glm::vec3 getClearColor(const float frame);
 	glm::mat4 getProjectionMatrix(const float frame);
 	glm::mat4 getViewMatrix(const float frame);

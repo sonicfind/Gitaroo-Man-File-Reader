@@ -69,6 +69,7 @@ public:
 	};
 	LightSetup(FILE* inFile);
 	void create(FILE* outFile);
+	void jumpToFrame(const float frame);
 	LightForBuffer getLight(const float frame);
 private:
 	glm::vec3 getDirection(const float frame);

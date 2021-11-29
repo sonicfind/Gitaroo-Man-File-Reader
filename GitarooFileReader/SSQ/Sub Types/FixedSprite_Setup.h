@@ -56,6 +56,7 @@ public:
 	void create(FILE* outFile);
 	void generateSpriteBuffer();
 	void deleteSpriteBuffer();
+	void jumpToFrame(const float frame);
 	void update(const float frame);
 	void draw(const bool doTransparents);
 

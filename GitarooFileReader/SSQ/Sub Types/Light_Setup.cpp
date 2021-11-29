@@ -78,6 +78,12 @@ void LightSetup::create(FILE* outFile)
 		m_colors.write(outFile);
 }
 
+void LightSetup::jumpToFrame(const float frame)
+{
+	m_colors.jump(frame);
+	m_rotations.jump_skip(frame);
+}
+
 LightSetup::LightForBuffer LightSetup::getLight(const float frame)
 {
 	const LightColors colors = getColors(frame);

@@ -83,6 +83,12 @@ void FixedSprite::create(FILE* outFile)
 }
 
 #include <math.h>
+void FixedSprite::jumpToFrame(const float frame)
+{
+	m_48bytes.jump(frame);
+	m_colors.jump(frame);
+}
+
 bool FixedSprite::update(const float frame, SpriteValues& values)
 {
 	if (!m_48bytes.empty())

@@ -136,6 +136,17 @@ void CameraSetup::deleteBuffers()
 	glDeleteBuffers(2, &m_lightUBO);
 }
 
+void CameraSetup::jumpToFrame(const float frame)
+{
+	m_positions.jump(frame);
+	m_rotations.jump(frame);
+	m_projections.jump(frame);
+	m_ambientColors.jump(frame);
+	for (auto& light : m_lights)
+		light.jumpToFrame(frame);
+	m_64bytes_v.jump(frame);
+}
+
 glm::vec3 CameraSetup::getClearColor(const float frame)
 {
 	// Temporary as I am so sure that something must control the clear color mid-stage

@@ -45,6 +45,141 @@ struct Rotation : public Frame
 	unsigned long otherPos;
 };
 
+template <class T>
+struct IteratedVector
+{
+	std::vector<T> m_vect;
+	std::vector<T>::const_iterator m_iter;
+	void fill(unsigned long numElements, FILE* inFile)
+	{
+		m_vect.reserve(numElements);
+		m_vect.resize(numElements);
+		fread(m_vect.data(), sizeof(T), numElements, inFile);
+	}
+
+	inline void write(FILE* outFile) const
+	{
+		fwrite(m_vect.data(), sizeof(T), m_vect.size(), outFile);
+	}
+
+	void write_conditioned(FILE* outFile) const
+	{
+		unsigned long size = (unsigned long)m_vect.size();
+		if (!size)
+			size = 1;
+		fwrite(&size, 4, 1, outFile);
+		if (size > 1)
+			fwrite(m_vect.data(), sizeof(T), size, outFile);
+	}
+
+	void jump(float time, bool loop = false)
+	{
+		if (m_vect.size())
+		{
+			if (loop)
+				time = fmod(time, m_vect.back().frame);
+			m_iter = std::lower_bound(m_vect.begin(), m_vect.end(), time, [](const T& a, const float b) { return a.frame < b; });
+			if (m_iter != m_vect.begin())
+				--m_iter;
+		}
+	}
+
+	// Like jump() but it only checks odd nodes
+	// Only to be used with light rotations
+	void jump_skip(const float time)
+	{
+		if (m_vect.size())
+		{
+			// Binary search tree code structure copied from xutility
+			long count = (long)m_vect.size();
+			long first = 0;
+			while (0 < count) { // divide and conquer, find half that contains answer
+				long count2 = count / 2;
+				if (count2 & 1)
+					--count2;
+
+				if (m_vect[first + count2].frame < time) { // try top half
+					first = count2 + 2;
+					count -= count2 + 2;
+				}
+				else {
+					count = count2;
+				}
+			}
+
+			if (first > 0)
+				first -= 2;
+			m_iter = m_vect.begin() + first;
+		}
+	}
+
+	std::vector<T>::const_iterator update(float time, bool loop = false)
+	{
+		if (loop)
+		{
+			const float total = m_vect.back().frame;
+			if (time >= total)
+			{
+				time = fmod(time, total);
+				m_iter = m_vect.begin();
+			}
+		}
+
+		while (m_iter + 1 != m_vect.end() && (m_iter + 1)->frame < time)
+			++m_iter;
+		return m_iter;
+	}
+
+	// Like update() but it skips every other node
+	// Only to be used with light rotations
+	std::vector<T>::const_iterator update_skip(const float time)
+	{
+		while (m_iter + 2 != m_vect.end() && (m_iter + 2)->frame < time)
+			m_iter += 2;
+		return m_iter;
+	}
+
+	inline bool empty() const
+	{
+		return m_vect.empty();
+	}
+
+	inline size_t size() const
+	{
+		return m_vect.size();
+	}
+
+	inline std::vector<T>::const_iterator begin() const
+	{
+		return m_vect.begin();
+	}
+
+	inline std::vector<T>::const_iterator end() const
+	{
+		return m_vect.end();
+	}
+
+	inline const T& front() const
+	{
+		return m_vect.front();
+	}
+
+	inline const T& back() const
+	{
+		return m_vect.back();
+	}
+
+	inline T& front()
+	{
+		return m_vect.front();
+	}
+
+	inline T& back()
+	{
+		return m_vect.back();
+	}
+};
+
 enum class ModelType
 {
 	Normal,
